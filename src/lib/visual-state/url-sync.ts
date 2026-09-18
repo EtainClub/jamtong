@@ -17,6 +17,7 @@ const SCENES: SceneId[] = [
   "hero",
   "route",
   "compare",
+  "land",
   "flow",
   "counterpoint",
   "timeline",

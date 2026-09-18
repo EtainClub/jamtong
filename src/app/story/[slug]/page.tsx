@@ -49,13 +49,14 @@ const LAYOUTS: Record<string, LayoutConfig> = {
     scenes: [
       { id: "hero", label: "개요" },
       { id: "timeline", label: "경과" },
+      { id: "land", label: "토지이용" },
       { id: "flow", label: "자금 흐름" },
       { id: "counterpoint", label: "쟁점" },
       { id: "share", label: "공유" },
     ],
     heroHighlights: [
-      { claimId: "claim-lh-exit", label: "LH 철수" },
-      { claimId: "claim-recovery-total", label: "공공 환수" },
+      { claimId: "claim-combined-district", label: "결합 개발구역" },
+      { claimId: "claim-land-use", label: "토지이용계획" },
     ],
   },
 };

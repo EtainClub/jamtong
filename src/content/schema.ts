@@ -172,6 +172,41 @@ export const moneyFlowSchema = z.object({
 export type MoneyFlow = z.infer<typeof moneyFlowSchema>;
 
 /**
+ * 토지이용 구성.
+ *
+ * 금액 자료가 없을 때 "공공이 무엇을 가져갔는가"를 면적으로 보여준다.
+ * 인허가 고시에 실리는 값이라 금액보다 검증이 쉽고 다툼의 여지도 적다.
+ */
+export const landUseItemSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  areaSqm: z.number().min(0),
+  sharePercent: z.number().min(0).max(100),
+  group: z.enum(["residential", "commercial", "public"]),
+  detail: z.string().optional(),
+});
+export type LandUseItem = z.infer<typeof landUseItemSchema>;
+
+export const landUseSchema = z.object({
+  totalSqm: z.number().positive(),
+  /** 최상위 구성. 합이 100%가 되어야 한다. */
+  groups: z.array(landUseItemSchema).min(1),
+  /** 공공용지 내역. 무엇이 공공 몫인지 항목으로 보여준다. */
+  publicBreakdown: z.array(landUseItemSchema).default([]),
+  claimId: z.string(),
+  note: z.string().optional(),
+  /**
+   * 면적 합과 총면적의 허용 오차(㎡).
+   *
+   * 1차 자료가 제 하위 항목과 어긋나는 경우가 있다. 그때는 자료에 적힌 값을
+   * 그대로 싣되 오차를 명시적으로 선언하게 한다. 조용히 눈감지 않는다.
+   * 1㎡를 넘게 열어 두려면 note에 이유를 적어야 한다.
+   */
+  sumToleranceSqm: z.number().min(0).default(1),
+});
+export type LandUse = z.infer<typeof landUseSchema>;
+
+/**
  * 쟁점과 답변 (설계 검토 문서 2.1).
  *
  * 관점을 가진 매체일수록 반론을 빼면 안 된다. 반론을 회피하면 그 자체가
@@ -207,6 +242,7 @@ export const storySchema = z.object({
   keyNumbers: z.array(keyNumberSchema).default([]),
   timeline: z.array(timelineEventSchema).default([]),
   moneyFlow: moneyFlowSchema.optional(),
+  landUse: landUseSchema.optional(),
   counterpoints: z.array(counterpointSchema).default([]),
   claims: z.array(claimSchema).default([]),
   sources: z.array(sourceSchema).default([]),
@@ -264,6 +300,24 @@ export function validateStory(story: Story): string[] {
     }
     if (!flow.scenarios.some((sc) => sc.isActual)) {
       errors.push(`moneyFlow → 실제 구조(isActual)인 시나리오가 없다`);
+    }
+  }
+
+  if (story.landUse) {
+    checkClaimRef("landUse", story.landUse.claimId);
+    const sum = story.landUse.groups.reduce((t, g) => t + g.sharePercent, 0);
+    if (Math.abs(sum - 100) > 0.5) {
+      errors.push(`landUse → 최상위 구성비 합이 ${sum.toFixed(1)}%다 (100%여야 한다)`);
+    }
+    const area = story.landUse.groups.reduce((t, g) => t + g.areaSqm, 0);
+    const gap = Math.abs(area - story.landUse.totalSqm);
+    if (gap > story.landUse.sumToleranceSqm) {
+      errors.push(
+        `landUse → 구성 면적 합(${area})이 총면적(${story.landUse.totalSqm})과 ${gap.toFixed(1)}㎡ 다르다`,
+      );
+    }
+    if (story.landUse.sumToleranceSqm > 1 && !story.landUse.note) {
+      errors.push("landUse → 오차를 1㎡ 넘게 허용하려면 note에 이유를 적어야 한다");
     }
   }
 

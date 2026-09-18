@@ -1,6 +1,7 @@
 import type { Story } from "@/content/schema";
 import { MoneyFlow } from "@/features/motion/MoneyFlow";
 import { Counterpoints } from "@/features/story/Counterpoints";
+import { LandUseBreakdown } from "@/features/story/LandUseBreakdown";
 import { KeyNumbers } from "@/features/story/KeyNumbers";
 import { Timeline } from "@/features/timeline/Timeline";
 import { ShareButton } from "@/features/story/ShareButton";
@@ -40,6 +41,35 @@ export function DaejangdongLayout({ story }: { story: Story }) {
         </div>
       </section>
 
+      {/* ── Scene: 토지이용 ─────────────────────────────────── */}
+      {story.landUse && (
+        <section
+          data-scene="land"
+          aria-labelledby="dj-land"
+          className="mx-auto mt-20 max-w-5xl scroll-mt-14 border-t border-line px-5 pt-12"
+        >
+          <h2
+            id="dj-land"
+            className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl"
+          >
+            땅은 어떻게 나뉘었나
+          </h2>
+          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-text-secondary">
+            금액을 따지기 전에 부지가 무엇으로 계획되었는지부터 봅니다.
+            인허가 고시에 실리는 값이라 다툼의 여지가 가장 적은 숫자입니다.
+          </p>
+
+          <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-14">
+            <LandUseBreakdown landUse={story.landUse} claims={story.claims} />
+            <KeyNumbers
+              numbers={story.keyNumbers}
+              claims={story.claims}
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1"
+            />
+          </div>
+        </section>
+      )}
+
       {/* ── Scene: 자금 흐름 ────────────────────────────────── */}
       {story.moneyFlow && (
         <section
@@ -58,13 +88,8 @@ export function DaejangdongLayout({ story }: { story: Story }) {
             몫이 어떻게 달라지는지 폭으로 나타납니다.
           </p>
 
-          <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-14">
+          <div className="mt-10">
             <MoneyFlow flow={story.moneyFlow} claims={story.claims} />
-            <KeyNumbers
-              numbers={story.keyNumbers}
-              claims={story.claims}
-              className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1"
-            />
           </div>
         </section>
       )}
