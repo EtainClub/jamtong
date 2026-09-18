@@ -24,10 +24,17 @@ const requestSchema = z.object({
 });
 
 /**
- * 설계서 14장은 의도별 모델 라우터를 요구한다. 지금은 한 단계만 두고,
- * 환경변수로 갈아끼울 수 있게 해 둔다 (예: 단순 화면 이동은 claude-haiku-4-5).
+ * 이 경로가 하는 일은 대부분 '어느 화면을 보여줄지' 고르는 것이라
+ * 저비용 모델로 충분하다 (설계서 14장 모델 라우터의 첫 단계).
+ * 더 무거운 판단이 필요해지면 ASK_MODEL로 올린다.
  */
-const MODEL = process.env.ASK_MODEL ?? "claude-opus-5";
+const MODEL = process.env.ASK_MODEL ?? "claude-haiku-4-5";
+
+/**
+ * effort는 Haiku 4.5에서 400을 낸다. 모델을 갈아끼울 수 있게 해 뒀으므로
+ * 보낼 수 있을 때만 보낸다.
+ */
+const SUPPORTS_EFFORT = !MODEL.startsWith("claude-haiku");
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -64,9 +71,9 @@ export async function POST(request: Request) {
           cache_control: { type: "ephemeral" },
         },
       ],
-      // 화면을 움직이는 일이라 깊게 생각할수록 느려지기만 한다.
       output_config: {
-        effort: "low",
+        // 화면을 움직이는 일이라 깊게 생각할수록 느려지기만 한다.
+        ...(SUPPORTS_EFFORT ? { effort: "low" as const } : {}),
         format: zodOutputFormat(agentAnswerSchema),
       },
       messages: [{ role: "user", content: parsed.data.question }],
@@ -115,11 +122,20 @@ export async function POST(request: Request) {
 
   const claimIds = answer.claimIds.filter((id) => grounding.inventory.claimIds.has(id));
 
+  /*
+   * 화면도 움직이지 않고 근거도 대지 않는 답은 그냥 챗봇이 말한 것이다.
+   * 이 제품이 피하려는 바로 그 동작이므로, 자료에 근거했다는 주장을 거둔다.
+   *
+   * 모델을 저비용으로 내릴수록 이 실패가 잦아진다. 프롬프트로 부탁하는 대신
+   * 서버에서 판정한다.
+   */
+  const grounded = answer.grounded && (valid.length > 0 || claimIds.length > 0);
+
   return Response.json({
-    grounded: answer.grounded,
+    grounded,
     message: answer.message,
     // 근거가 없다고 답했으면 화면도 움직이지 않는다 (설계서 40장).
-    actions: answer.grounded ? valid : [],
-    claimIds: answer.grounded ? claimIds : [],
+    actions: grounded ? valid : [],
+    claimIds: grounded ? claimIds : [],
   });
 }
