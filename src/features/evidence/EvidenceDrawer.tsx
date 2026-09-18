@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Claim, Source, SourceType } from "@/content/schema";
+import type { Claim, Source } from "@/content/schema";
+import { SOURCE_TYPE_LABEL, SOURCE_TYPE_TIER } from "@/content/labels";
 import { useVisualState } from "@/lib/visual-state/store";
 
 /**
@@ -10,16 +11,6 @@ import { useVisualState } from "@/lib/visual-state/store";
  * 화면에는 "근거 N개"만 두고, 누를 때 자료를 편다.
  * 여기서 FACT / CLAIM / INTERPRETATION / OPINION을 시각적으로 구분한다.
  */
-
-const SOURCE_TYPE_LABEL: Record<SourceType, string> = {
-  official: "정부·공공 공식 자료",
-  statistics: "통계 자료",
-  legislative: "국회·의회 자료",
-  judicial: "판결·수사 자료",
-  interview: "인터뷰·발언",
-  press: "언론 보도",
-  research: "연구 자료",
-};
 
 const ASSERTION_STYLE: Record<Claim["assertionType"], { label: string; className: string }> = {
   FACT: { label: "사실", className: "bg-ice-500/15 text-ice-400 ring-ice-500/30" },
@@ -128,8 +119,18 @@ export function EvidenceDrawer({ claims, sources }: Props) {
                 key={source.id}
                 className="rounded-lg border border-line bg-ink-600/60 p-4"
               >
-                <p className="text-[11px] uppercase tracking-wider text-text-muted">
-                  {SOURCE_TYPE_LABEL[source.type]}
+                <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
+                  <span
+                    aria-hidden="true"
+                    className={
+                      SOURCE_TYPE_TIER[source.type] === "primary"
+                        ? "text-ice-400"
+                        : "text-text-muted"
+                    }
+                  >
+                    {SOURCE_TYPE_TIER[source.type] === "primary" ? "◆" : "◇"}
+                  </span>
+                  <span className="text-text-muted">{SOURCE_TYPE_LABEL[source.type]}</span>
                 </p>
                 <p className="mt-1.5 text-sm font-medium leading-snug text-text-primary">
                   {source.title}

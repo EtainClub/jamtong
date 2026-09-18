@@ -5,7 +5,8 @@
  * Firestore였다면 불가능했을 검사다. 콘텐츠가 리포지토리에 있기 때문에 가능하다.
  */
 import { STORIES } from "../src/content/stories";
-import { validateStory } from "../src/content/schema";
+import { validateStory, validateAchievements } from "../src/content/schema";
+import { ACHIEVEMENTS, ALL_CLAIMS, ALL_SOURCES } from "../src/content/achievements";
 
 let failed = false;
 
@@ -29,6 +30,24 @@ for (const story of STORIES) {
   for (const claim of pending) {
     console.warn(`  \u26a0 \uac80\uc99d \uc804: ${claim.id} \u2014 ${claim.text.slice(0, 60)}\u2026`);
   }
+}
+
+const achErrors = validateAchievements({
+  achievements: ACHIEVEMENTS,
+  claims: ALL_CLAIMS,
+  sources: ALL_SOURCES,
+});
+const achPending = ALL_CLAIMS.filter((c) => !c.verified);
+
+if (achErrors.length > 0) {
+  failed = true;
+  console.error(`\n\u2717 \uc131\uacfc \uce74\ub4dc`);
+  for (const error of achErrors) console.error(`    ${error}`);
+} else {
+  console.log(
+    `\u2713 \uc131\uacfc \uce74\ub4dc \u2014 ${ACHIEVEMENTS.length}\uac74, ` +
+      `claim ${ALL_CLAIMS.length}, source ${ALL_SOURCES.length}, \ubbf8\uac80\uc99d ${achPending.length}`,
+  );
 }
 
 if (failed) {

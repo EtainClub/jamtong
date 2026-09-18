@@ -350,3 +350,92 @@ export function validateStory(story: Story): string[] {
 
   return errors;
 }
+
+/* ────────────────────────────────────────────────────────────────
+ * 성과 카드
+ *
+ * Visual Story는 하나에 몇 주가 든다. 그 방식만으로는 수백 건의 정책을
+ * 덮을 수 없고, 콘텐츠가 비어 있는 제품은 엔진이 아무리 좋아도 성립하지 않는다.
+ *
+ * 그래서 두 계층을 둔다.
+ *   카드  — 가볍게 넓게 덮는다. 항목당 근거 1건 이상.
+ *   스토리 — 그중 깊이 다룰 것만 승격한다.
+ *
+ * 카드라고 해서 근거 원칙이 느슨해지지는 않는다. 4.2 불변식은 그대로 적용된다.
+ * ──────────────────────────────────────────────────────────────── */
+
+export const AchievementCategory = z.enum([
+  "economy", // 경제·물류
+  "welfare", // 복지
+  "labor", // 노동
+  "health", // 보건
+  "environment", // 환경·안전
+  "fisheries", // 수산
+  "region", // 지역균형
+  "diplomacy", // 외교·안보
+  "science", // 과학기술
+  "education", // 교육
+  "culture", // 문화·체육
+]);
+export type AchievementCategory = z.infer<typeof AchievementCategory>;
+
+/** 진행 상태. 계획을 성과처럼 보이게 하지 않으려면 이 구분이 필요하다. */
+export const AchievementStatus = z.enum(["done", "ongoing", "planned"]);
+export type AchievementStatus = z.infer<typeof AchievementStatus>;
+
+export const achievementSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  summary: z.string(),
+  categories: z.array(AchievementCategory).min(1),
+  /** 누구에게 해당되는 일인지. 비어 있어도 된다. */
+  audiences: z.array(z.string()).default([]),
+  status: AchievementStatus,
+  date: z.string(),
+  datePrecision: DatePrecision,
+  /** ★ 불변식: 근거 없는 카드는 존재할 수 없다. */
+  claimIds: z.array(z.string()).min(1, "근거 없는 성과 카드는 허용되지 않는다"),
+  /** 눈에 띄는 수치가 있으면 카드 앞면에 하나만 올린다. */
+  highlight: z.object({ value: z.string(), label: z.string() }).optional(),
+  /** Visual Story로 승격된 경우 그 slug. */
+  storySlug: z.string().optional(),
+});
+export type Achievement = z.infer<typeof achievementSchema>;
+export type AchievementInput = z.input<typeof achievementSchema>;
+
+export interface AchievementCollection {
+  achievements: Achievement[];
+  claims: Claim[];
+  sources: Source[];
+}
+
+export function validateAchievements(collection: AchievementCollection): string[] {
+  const errors: string[] = [];
+  const sourceIds = new Set(collection.sources.map((s) => s.id));
+  const claimIds = new Set(collection.claims.map((c) => c.id));
+  const seen = new Set<string>();
+
+  for (const claim of collection.claims) {
+    for (const sid of claim.sourceIds) {
+      if (!sourceIds.has(sid)) {
+        errors.push(`claim "${claim.id}" → 존재하지 않는 source "${sid}"`);
+      }
+    }
+    if (claim.assertionType === "CLAIM" && !claim.assertedBy) {
+      errors.push(`claim "${claim.id}" → assertionType이 CLAIM인데 assertedBy가 없다`);
+    }
+  }
+
+  for (const item of collection.achievements) {
+    if (seen.has(item.id)) errors.push(`성과 카드 id가 중복이다: "${item.id}"`);
+    seen.add(item.id);
+
+    for (const cid of item.claimIds) {
+      if (!claimIds.has(cid)) {
+        errors.push(`성과 카드 "${item.id}" → 존재하지 않는 claim "${cid}"`);
+      }
+    }
+  }
+
+  return errors;
+}

@@ -1,4 +1,5 @@
 import { storySchema, type StoryInput } from "@/content/schema";
+import { MOF_2026, NANET_2025 } from "@/content/sources";
 
 /**
  * 북극항로 — Sprint 1 검증용 스토리.
@@ -386,32 +387,7 @@ const raw: StoryInput = {
     },
   ],
 
-  sources: [
-    {
-      id: "src-mof-2026",
-      title:
-        "북극항로 시대로의 대도약, 민생경제 활력, 대한민국 균형성장 실현 — 「2026년도 해양수산부 업무계획」 보고",
-      url: "https://www.mof.go.kr/doc/ko/selectDoc.do?docSeq=64262&listUpdtDt=2025-11-07++10%3A00&menuSeq=971&bbsSeq=10",
-      publisher: "해양수산부",
-      publishedAt: "2025-12-23",
-      type: "official",
-      license: "public",
-      quote:
-        "북극항로는 아시아와 유럽을 연결하는 최단거리 항로로서, 물류비용을 절감하고 조선·금융 등 전후방 산업이 동반 성장할 수 있는 기회로 여겨진다. (…) 하반기에 국내 민간 선사는 컨테이너선을 이용하여 부산에서 로테르담까지 북극항로 시범운항을 추진하여 극지운항 경험과 정보를 축적한다.",
-    },
-    {
-      id: "src-nanet-2025",
-      title:
-        "데이터로 보는 북극항로 — 『Data&Law』 2025-9호(통권 제34호), 전문경력관 최경원",
-      url: "https://docviewer.nanet.go.kr/reader/viewer",
-      publisher: "국회도서관 법률정보실 국내법률정보과",
-      publishedAt: "2025-08-28",
-      type: "legislative",
-      license: "public",
-      quote:
-        "한국해양수산개발원이 부산항에서 출발한 로테르담(네덜란드)행 78,000톤의 선박을 대상으로 7~10월 기준으로 수에즈 운하, 희망봉, 북극항로(북동항로) 항로를 분석한 결과 북극항로의 거리와 시간이 가장 짧은 것으로 나타났다.",
-    },
-  ],
+  sources: [MOF_2026, NANET_2025],
 };
 
 export const arcticRoute = storySchema.parse(raw);

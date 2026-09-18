@@ -1,4 +1,5 @@
 import { storySchema, type StoryInput } from "@/content/schema";
+import { ISDC_DAEJANG, ISDC_PARK } from "@/content/sources";
 
 /**
  * 성남 판교대장 도시개발사업 (통칭 대장동) — Sprint 2.
@@ -407,27 +408,7 @@ const raw: StoryInput = {
     },
   ],
 
-  sources: [
-    {
-      id: "src-isdc-daejang",
-      title: "성남 판교대장 도시개발사업 — 추진사업 (사업개요·추진경위·토지이용계획)",
-      url: "https://www.isdc.co.kr/devWork/devWork0202.asp",
-      publisher: "성남도시개발공사 주택사업처",
-      type: "official",
-      license: "public",
-      quote:
-        "위치 : 분당구 대장동 210일원 / 면적 : 917,068.8㎡(약277천평) / 사업기간 : 2014년 5월 ~ 2026년 12월 / 계획인구 : 15,938인(5,903세대) — 토지이용계획: 공공용지 소계 490,747.6㎡ (53.5%)",
-    },
-    {
-      id: "src-isdc-park",
-      title: "제1공단 도시계획시설(공원화) 사업 — 추진사업",
-      url: "https://www.isdc.co.kr/devWork/devWork0203.asp",
-      publisher: "성남도시개발공사 주택사업처",
-      type: "official",
-      license: "public",
-      quote:
-        "위치 : 수정구 신흥동 2458일원 / 면적 : 56,022㎡ (약17천평) / 공원 : 46,615㎡, 도로 : 9,407㎡ / 사업기간 : 2016. 4. ~ 2022. 3.",
-    },
+  sources: [ISDC_DAEJANG, ISDC_PARK,
     {
       id: "src-need-lh",
       title: "[필요] LH 대장동 사업 참여 및 철수 경위 자료 — 국회·국정감사 제출본 또는 LH 공식 자료",
