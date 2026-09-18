@@ -34,7 +34,8 @@ export interface RouteTrack {
   name: string;
   isBaseline: boolean;
   totalKm: number;
-  totalDays: number;
+  totalDaysMin: number;
+  totalDaysMax: number;
   claimId: string;
   /** [x, y] 쌍을 평탄화한 배열. 객체 배열보다 직렬화 크기가 작다. */
   points: number[];
@@ -133,7 +134,8 @@ export function buildTrack(route: Route): RouteTrack {
     name: route.name,
     isBaseline: route.isBaseline,
     totalKm: route.totalKm,
-    totalDays: route.totalDays,
+    totalDaysMin: route.totalDaysMin,
+    totalDaysMax: route.totalDaysMax,
     claimId: route.claimId,
     points,
     pathD,

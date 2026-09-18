@@ -81,3 +81,11 @@ export function progressFromPoint(track: RouteTrack, px: number, py: number): nu
 
   return bestIndex / (n - 1);
 }
+
+/** 진행도에 해당하는 운항 일수를 범위로 돌려준다. */
+export function elapsedDayRange(track: RouteTrack, km: number): string {
+  const ratio = track.totalKm > 0 ? km / track.totalKm : 0;
+  const min = Math.round(ratio * track.totalDaysMin);
+  const max = Math.round(ratio * track.totalDaysMax);
+  return min === max ? `${min}일` : `${min}~${max}일`;
+}

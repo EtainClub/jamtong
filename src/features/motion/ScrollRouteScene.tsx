@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { RouteTrack } from "@/lib/geo/route-track";
 import type { MapBackground } from "@/lib/geo/land";
-import { positionOnTrack } from "@/lib/geo/track-math";
+import { elapsedDayRange, positionOnTrack } from "@/lib/geo/track-math";
 import { useVisualState } from "@/lib/visual-state/store";
 import { RouteMap, Readout } from "./RouteMap";
 import { RouteSwitcher } from "@/features/story/RouteSwitcher";
@@ -37,7 +37,7 @@ export function ScrollRouteScene({ tracks, background }: Props) {
 
   const active = tracks.find((t) => t.id === activeRouteId) ?? tracks[0];
   const position = positionOnTrack(active, progress);
-  const elapsedDays = Math.round((position.km / active.totalKm) * active.totalDays);
+  const elapsedDays = elapsedDayRange(active, position.km);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -94,7 +94,7 @@ export function ScrollRouteScene({ tracks, background }: Props) {
 
             <div className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line">
               <Readout label="이동 거리" value={`${position.km.toLocaleString("ko-KR")} km`} />
-              <Readout label="운항 일수" value={`${elapsedDays}일`} />
+              <Readout label="운항 일수" value={elapsedDays} />
               <Readout
                 label="남은 거리"
                 value={`${(active.totalKm - position.km).toLocaleString("ko-KR")} km`}

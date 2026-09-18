@@ -3,13 +3,13 @@ import { storySchema, type Story } from "@/content/schema";
 /**
  * 북극항로 — Sprint 1 검증용 스토리.
  *
- * 출처 상태
- *  - `src-mof-2026`: 해양수산부 2026년도 업무계획 보도자료. 실제 1차 자료다.
- *    이 자료가 직접 뒷받침하는 claim만 verified: true로 둔다.
- *  - `src-pending-distance`: 거리·운항일수 수치의 출처는 아직 없다.
- *    해수부 자료는 "아시아와 유럽을 연결하는 최단거리 항로"라고만 서술하고
- *    구체적 수치를 제시하지 않으므로, 그 자료를 거리 claim에 붙이면 허위 인용이 된다.
- *    지도 위 경로 기하도 같은 이유로 잠정값이다.
+ * 출처
+ *  - `src-mof-2026`: 해양수산부 2026년도 업무계획 보도자료. 정책·일정·지원 규모.
+ *  - `src-nanet-2025`: 국회도서관 Data&Law 2025-9호. 항로별 거리·운항일수.
+ *
+ * 거리 수치의 전제 조건에 주의한다. 부산 출발 로테르담행 78,000톤 선박,
+ * 7~10월 기준 분석값이다. 북극항로는 연중 통항이 아니므로 이 조건을 빼고
+ * 숫자만 보여주면 오도가 된다. `comparisonNote`로 항상 함께 표시한다.
  *
  * 이 파일은 데이터만 담는다. 화면 구성은 features/ 아래 컴포넌트가 하드코딩으로 갖는다.
  */
@@ -21,8 +21,9 @@ const raw: Story = {
   subtitle: "새로운 길이 대한민국의 미래를 넓힙니다",
   kicker: "주요 정책",
   summary:
-    "부산에서 유럽으로 가는 뱃길은 지금까지 수에즈 운하를 지나 남쪽으로 크게 돌아갔다. " +
-    "정부는 2026년 하반기에 부산에서 로테르담까지 컨테이너선 북극항로 시범운항을 추진한다. " +
+    "부산에서 유럽으로 가는 뱃길은 지금까지 수에즈 운하나 희망봉을 지나 남쪽으로 크게 돌아갔다. " +
+    "북극을 가로지르면 로테르담까지 거리는 20,400km에서 13,000km로 줄어든다. " +
+    "정부는 2026년 하반기에 부산에서 로테르담까지 컨테이너선 시범운항을 추진한다. " +
     "배를 직접 움직여 두 항로가 어떻게 다른지 확인해 보라.",
   type: "achievement",
 
@@ -31,8 +32,9 @@ const raw: Story = {
       id: "nsr",
       name: "북극항로",
       isBaseline: false,
-      totalKm: 15000,
-      totalDays: 30,
+      totalKm: 13000,
+      totalDaysMin: 20,
+      totalDaysMax: 24,
       claimId: "claim-nsr-distance",
       waypoints: [
         {
@@ -48,7 +50,7 @@ const raw: Story = {
           name: "라페루즈 해협",
           lon: 142.0,
           lat: 45.8,
-          cumulativeKm: 1400,
+          cumulativeKm: 1200,
           note: "동해를 빠져나와 오호츠크해로 들어선다.",
         },
         {
@@ -56,7 +58,7 @@ const raw: Story = {
           name: "베링 해협",
           lon: -169.0,
           lat: 65.8,
-          cumulativeKm: 4700,
+          cumulativeKm: 4100,
           note: "태평양을 벗어나 북극해로 진입하는 관문.",
         },
         {
@@ -64,7 +66,7 @@ const raw: Story = {
           name: "동시베리아해",
           lon: 165.0,
           lat: 71.0,
-          cumulativeKm: 5600,
+          cumulativeKm: 4850,
           note: "여기부터 결빙 구간이다. 쇄빙 능력과 극지 운항 경험이 필요해진다.",
         },
         {
@@ -72,7 +74,7 @@ const raw: Story = {
           name: "랍테프해",
           lon: 130.0,
           lat: 76.0,
-          cumulativeKm: 7000,
+          cumulativeKm: 6050,
           note: "북위 76도. 항로에서 북극점에 가장 가까워지는 구간.",
         },
         {
@@ -80,7 +82,7 @@ const raw: Story = {
           name: "카라해",
           lon: 80.0,
           lat: 77.0,
-          cumulativeKm: 9000,
+          cumulativeKm: 7800,
           note: "러시아 북극권 연안. 제재 상황에 따라 운항 가능 여부가 갈리는 구간이다.",
         },
         {
@@ -88,7 +90,7 @@ const raw: Story = {
           name: "바렌츠해",
           lon: 40.0,
           lat: 73.0,
-          cumulativeKm: 10600,
+          cumulativeKm: 9200,
           note: "난류의 영향으로 연중 결빙이 적다. 사실상 북극 구간의 출구다.",
         },
         {
@@ -96,7 +98,7 @@ const raw: Story = {
           name: "노르웨이해",
           lon: 5.0,
           lat: 66.0,
-          cumulativeKm: 12800,
+          cumulativeKm: 11100,
           note: "북극해를 벗어나 유럽 항로로 합류한다.",
         },
         {
@@ -104,7 +106,7 @@ const raw: Story = {
           name: "로테르담",
           lon: 4.48,
           lat: 51.92,
-          cumulativeKm: 15000,
+          cumulativeKm: 13000,
           note: "도착. 유럽 최대 컨테이너 항만이자 시범운항의 종점이다.",
         },
       ],
@@ -113,8 +115,9 @@ const raw: Story = {
       id: "suez",
       name: "수에즈 항로",
       isBaseline: true,
-      totalKm: 22000,
-      totalDays: 40,
+      totalKm: 20400,
+      totalDaysMin: 30,
+      totalDaysMax: 34,
       claimId: "claim-suez-distance",
       waypoints: [
         { id: "busan-s", name: "부산", lon: 129.04, lat: 35.1, cumulativeKm: 0, note: "출발." },
@@ -123,7 +126,7 @@ const raw: Story = {
           name: "대만 해협",
           lon: 120.0,
           lat: 24.0,
-          cumulativeKm: 1500,
+          cumulativeKm: 1400,
           note: "동중국해를 따라 남하한다.",
         },
         {
@@ -131,34 +134,68 @@ const raw: Story = {
           name: "말라카 해협",
           lon: 100.3,
           lat: 2.0,
-          cumulativeKm: 4200,
+          cumulativeKm: 3900,
           note: "세계 물동량이 집중되는 병목 구간.",
         },
-        { id: "indian", name: "인도양", lon: 70.0, lat: 8.0, cumulativeKm: 7500, note: "적도 부근을 가로지른다." },
+        { id: "indian", name: "인도양", lon: 70.0, lat: 8.0, cumulativeKm: 7000, note: "적도 부근을 가로지른다." },
         {
           id: "aden",
           name: "아덴만",
           lon: 45.0,
           lat: 12.5,
-          cumulativeKm: 10500,
+          cumulativeKm: 9750,
           note: "해적 위험 구간으로 별도의 보안 비용이 든다.",
         },
-        { id: "redsea", name: "홍해", lon: 38.0, lat: 22.0, cumulativeKm: 11800, note: "좁고 긴 내해를 북상한다." },
+        { id: "redsea", name: "홍해", lon: 38.0, lat: 22.0, cumulativeKm: 10950, note: "좁고 긴 내해를 북상한다." },
         {
           id: "suez-canal",
           name: "수에즈 운하",
           lon: 32.5,
           lat: 30.5,
-          cumulativeKm: 12800,
+          cumulativeKm: 11850,
           note: "통항료가 발생하고, 정체 시 전 구간이 지연된다.",
         },
-        { id: "med", name: "지중해", lon: 15.0, lat: 36.0, cumulativeKm: 14500, note: "지중해를 서쪽으로 횡단한다." },
-        { id: "gibraltar", name: "지브롤터", lon: -5.6, lat: 36.0, cumulativeKm: 16400, note: "대서양으로 나선다." },
-        { id: "biscay", name: "비스케이만", lon: -8.0, lat: 46.0, cumulativeKm: 17700, note: "이베리아 반도를 돌아 북상." },
-        { id: "rotterdam-s", name: "로테르담", lon: 4.48, lat: 51.92, cumulativeKm: 22000, note: "도착." },
+        { id: "med", name: "지중해", lon: 15.0, lat: 36.0, cumulativeKm: 13450, note: "지중해를 서쪽으로 횡단한다." },
+        { id: "gibraltar", name: "지브롤터", lon: -5.6, lat: 36.0, cumulativeKm: 15200, note: "대서양으로 나선다." },
+        { id: "biscay", name: "비스케이만", lon: -8.0, lat: 46.0, cumulativeKm: 16400, note: "이베리아 반도를 돌아 북상." },
+        { id: "rotterdam-s", name: "로테르담", lon: 4.48, lat: 51.92, cumulativeKm: 20400, note: "도착." },
       ],
     },
   ],
+
+  comparisons: [
+    {
+      id: "cmp-nsr",
+      name: "북극항로 (북동항로)",
+      km: 13000,
+      daysMin: 20,
+      daysMax: 24,
+      highlight: true,
+      claimId: "claim-route-comparison",
+    },
+    {
+      id: "cmp-suez",
+      name: "수에즈 운하",
+      km: 20400,
+      daysMin: 30,
+      daysMax: 34,
+      highlight: false,
+      claimId: "claim-route-comparison",
+    },
+    {
+      id: "cmp-cape",
+      name: "희망봉",
+      km: 24000,
+      daysMin: 36,
+      daysMax: 40,
+      highlight: false,
+      claimId: "claim-route-comparison",
+    },
+  ],
+
+  comparisonNote:
+    "부산항에서 출발한 로테르담행 78,000톤 선박을 대상으로 7~10월 기준으로 분석한 값이다. " +
+    "북극항로는 결빙으로 연중 통항이 어려우므로, 이 수치는 통항 가능 기간의 조건부 비교다.",
 
   keyNumbers: [
     {
@@ -190,10 +227,27 @@ const raw: Story = {
       id: "kn-distance",
       label: "운항 거리 단축",
       prefix: "약",
-      value: "32",
+      value: "36",
       unit: "%",
-      caption: "부산 → 로테르담 기준",
+      caption: "20,400km → 13,000km",
       claimId: "claim-reduction",
+    },
+    {
+      id: "kn-km",
+      label: "단축 거리",
+      prefix: "약",
+      value: "7,400",
+      unit: "km",
+      caption: "수에즈 항로 대비",
+      claimId: "claim-reduction",
+    },
+    {
+      id: "kn-days",
+      label: "운항 일수",
+      value: "30~34 → 20~24",
+      unit: "일",
+      caption: "7~10월 기준",
+      claimId: "claim-route-comparison",
     },
   ],
 
@@ -223,7 +277,7 @@ const raw: Story = {
       title: "부산 → 로테르담 컨테이너선 시범운항",
       summary:
         "국내 민간 선사가 컨테이너선으로 부산에서 로테르담까지 북극항로 시범운항을 추진한다. 극지 운항 경험과 정보를 축적하는 것이 목적이다.",
-      claimIds: ["claim-trial-voyage"],
+      claimIds: ["claim-trial-voyage", "claim-nsr-distance"],
     },
     {
       id: "ev-2030",
@@ -299,27 +353,35 @@ const raw: Story = {
       verified: true,
     },
 
-    // ── 아래부터는 출처 미확정 ──────────────────────────────
+    {
+      id: "claim-route-comparison",
+      text:
+        "한국해양수산개발원이 부산항에서 출발한 로테르담행 78,000톤 선박을 대상으로 7~10월 기준 분석한 결과, 북극항로(북동항로)는 약 13,000km·20~24일, 수에즈 운하 경유는 약 20,400km·30~34일, 희망봉 경유는 약 24,000km·36~40일로 나타났다.",
+      assertionType: "FACT",
+      sourceIds: ["src-nanet-2025"],
+      verified: true,
+    },
     {
       id: "claim-nsr-distance",
-      text: "부산에서 로테르담까지 북극항로 경유 거리는 약 15,000km다.",
+      text: "부산에서 로테르담까지 북극항로(북동항로) 경유 거리는 약 13,000km, 소요 시간은 약 20~24일이다.",
       assertionType: "FACT",
-      sourceIds: ["src-pending-distance"],
-      verified: false,
+      sourceIds: ["src-nanet-2025"],
+      verified: true,
     },
     {
       id: "claim-suez-distance",
-      text: "부산에서 로테르담까지 수에즈 운하 경유 거리는 약 22,000km다.",
+      text: "부산에서 로테르담까지 수에즈 운하 경유 거리는 약 20,400km, 소요 시간은 약 30~34일이다.",
       assertionType: "FACT",
-      sourceIds: ["src-pending-distance"],
-      verified: false,
+      sourceIds: ["src-nanet-2025"],
+      verified: true,
     },
     {
       id: "claim-reduction",
-      text: "북극항로 이용 시 운항 거리가 약 7,000km, 약 32% 줄어든다.",
+      text:
+        "북극항로를 이용하면 수에즈 운하 경유 대비 운항 거리가 약 7,400km, 약 36% 줄어든다. (20,400km → 13,000km)",
       assertionType: "FACT",
-      sourceIds: ["src-pending-distance"],
-      verified: false,
+      sourceIds: ["src-nanet-2025"],
+      verified: true,
     },
   ],
 
@@ -337,12 +399,16 @@ const raw: Story = {
         "북극항로는 아시아와 유럽을 연결하는 최단거리 항로로서, 물류비용을 절감하고 조선·금융 등 전후방 산업이 동반 성장할 수 있는 기회로 여겨진다. (…) 하반기에 국내 민간 선사는 컨테이너선을 이용하여 부산에서 로테르담까지 북극항로 시범운항을 추진하여 극지운항 경험과 정보를 축적한다.",
     },
     {
-      id: "src-pending-distance",
-      title: "[출처 확정 필요] 부산–로테르담 항로별 거리·운항일수 비교 자료",
-      publisher: "미정",
-      type: "statistics",
-      license: "link-only",
-      archivedUrl: "https://example.invalid/pending-distance",
+      id: "src-nanet-2025",
+      title:
+        "데이터로 보는 북극항로 — 『Data&Law』 2025-9호(통권 제34호), 전문경력관 최경원",
+      url: "https://docviewer.nanet.go.kr/reader/viewer",
+      publisher: "국회도서관 법률정보실 국내법률정보과",
+      publishedAt: "2025-08-28",
+      type: "legislative",
+      license: "public",
+      quote:
+        "한국해양수산개발원이 부산항에서 출발한 로테르담(네덜란드)행 78,000톤의 선박을 대상으로 7~10월 기준으로 수에즈 운하, 희망봉, 북극항로(북동항로) 항로를 분석한 결과 북극항로의 거리와 시간이 가장 짧은 것으로 나타났다.",
     },
   ],
 };

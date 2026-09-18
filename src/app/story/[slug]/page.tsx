@@ -10,6 +10,7 @@ import { buildTrack } from "@/lib/geo/route-track";
 
 import { ScrollRouteScene } from "@/features/motion/ScrollRouteScene";
 import { KeyNumbers } from "@/features/story/KeyNumbers";
+import { RouteComparison } from "@/features/story/RouteComparison";
 import { Timeline } from "@/features/timeline/Timeline";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareButton } from "@/features/story/ShareButton";
@@ -55,6 +56,10 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
   // 경로 기하는 서버에서 화면 좌표로 구워 넘긴다. 클라이언트에 d3-geo가 필요 없다.
   const tracks = story.routes.map(buildTrack);
   const unverifiedCount = story.claims.filter((c) => !c.verified).length;
+
+  const distanceNumberIds = new Set(["kn-distance", "kn-km", "kn-days"]);
+  const distanceNumbers = story.keyNumbers.filter((n) => distanceNumberIds.has(n.id));
+  const supportNumbers = story.keyNumbers.filter((n) => !distanceNumberIds.has(n.id));
 
   // 도입부 단정에도 근거를 붙인다. 요약문이야말로 가장 많이 읽히는 주장이다.
   const heroClaims = (
@@ -158,8 +163,39 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
           </div>
         </section>
 
-        {/* ── 핵심 숫자 ──────────────────────────────────────── */}
-        <section className="mx-auto max-w-5xl border-t border-line px-5 pt-12">
+        {/* ── Scene: 항로 비교 ────────────────────────────────── */}
+        <section
+          data-scene="compare"
+          aria-labelledby="scene-compare"
+          className="mx-auto max-w-5xl scroll-mt-14 border-t border-line px-5 pt-12"
+        >
+          <h2
+            id="scene-compare"
+            className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl"
+          >
+            세 갈래 길
+          </h2>
+          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-text-secondary">
+            같은 목적지에 닿는 세 항로를 나란히 놓으면 차이가 분명해집니다.
+            막대 길이는 거리에 정비례합니다.
+          </p>
+
+          <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-14">
+            <RouteComparison
+              comparisons={story.comparisons}
+              claims={story.claims}
+              note={story.comparisonNote}
+            />
+            <KeyNumbers
+              numbers={distanceNumbers}
+              claims={story.claims}
+              className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1"
+            />
+          </div>
+        </section>
+
+        {/* ── 지원 규모 ──────────────────────────────────────── */}
+        <section className="mx-auto mt-20 max-w-5xl border-t border-line px-5 pt-12">
           <h2 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
             무엇이 준비되고 있나
           </h2>
@@ -167,9 +203,9 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
             북극항로를 운항하는 선사에 제공되는 지원과 혜택입니다.
           </p>
           <KeyNumbers
-            numbers={story.keyNumbers}
+            numbers={supportNumbers}
             claims={story.claims}
-            className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            className="mt-8 grid gap-4 sm:grid-cols-3"
           />
         </section>
 

@@ -104,10 +104,31 @@ export const routeSchema = z.object({
   isBaseline: z.boolean().default(false),
   waypoints: z.array(waypointSchema).min(2),
   totalKm: z.number(),
-  totalDays: z.number(),
+  /** 출처가 범위로 제시한 값은 범위 그대로 갖는다. */
+  totalDaysMin: z.number(),
+  totalDaysMax: z.number(),
   claimId: z.string(),
 });
 export type Route = z.infer<typeof routeSchema>;
+
+/**
+ * 항로 비교 막대.
+ *
+ * 지도에 올리지 못하는 비교군을 담는다. 희망봉 항로는 남위 34도를 지나는데,
+ * 북극 중심 투영은 북위 -10도에서 잘리므로 지도에 그리면 중간에 끊긴다.
+ * 지도가 못 보여주는 비교는 차트가 맡는다.
+ */
+export const routeComparisonSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  km: z.number().positive(),
+  daysMin: z.number().positive(),
+  daysMax: z.number().positive(),
+  /** 주인공 항로. 막대를 강조색으로 그린다. */
+  highlight: z.boolean().default(false),
+  claimId: z.string(),
+});
+export type RouteComparison = z.infer<typeof routeComparisonSchema>;
 
 export const storySchema = z.object({
   id: z.string(),
@@ -118,6 +139,9 @@ export const storySchema = z.object({
   summary: z.string(),
   type: z.enum(["achievement", "policy", "event"]),
   routes: z.array(routeSchema).default([]),
+  comparisons: z.array(routeComparisonSchema).default([]),
+  /** 비교의 전제 조건. 수치만 보여주고 조건을 숨기면 오도가 된다. */
+  comparisonNote: z.string().optional(),
   keyNumbers: z.array(keyNumberSchema).default([]),
   timeline: z.array(timelineEventSchema).default([]),
   claims: z.array(claimSchema).default([]),
@@ -151,6 +175,12 @@ export function validateStory(story: Story): string[] {
 
   for (const n of story.keyNumbers) checkClaimRef(`keyNumber "${n.id}"`, n.claimId);
   for (const r of story.routes) checkClaimRef(`route "${r.id}"`, r.claimId);
+  for (const c of story.comparisons) {
+    checkClaimRef(`comparison "${c.id}"`, c.claimId);
+    if (c.daysMin > c.daysMax) {
+      errors.push(`comparison "${c.id}" → daysMin이 daysMax보다 크다`);
+    }
+  }
   for (const e of story.timeline) {
     for (const cid of e.claimIds) checkClaimRef(`event "${e.id}"`, cid);
   }

@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef } from "react";
 import { useVisualState } from "@/lib/visual-state/store";
 import type { RouteTrack } from "@/lib/geo/route-track";
-import { positionOnTrack, progressFromPoint } from "@/lib/geo/track-math";
+import { elapsedDayRange, positionOnTrack, progressFromPoint } from "@/lib/geo/track-math";
 import type { MapBackground } from "@/lib/geo/land";
 
 /**
@@ -114,7 +114,7 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
   );
 
   const remainingKm = active.totalKm - position.km;
-  const elapsedDays = Math.round((position.km / active.totalKm) * active.totalDays);
+  const elapsedDays = elapsedDayRange(active, position.km);
 
   /**
    * 구간 라벨의 노출 규칙.
@@ -272,7 +272,7 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
             aria-valuemin={0}
             aria-valuemax={active.totalKm}
             aria-valuenow={position.km}
-            aria-valuetext={`부산에서 ${position.km.toLocaleString("ko-KR")}킬로미터, ${position.waypoint.name} 부근, ${elapsedDays}일차`}
+            aria-valuetext={`부산에서 ${position.km.toLocaleString("ko-KR")}킬로미터, ${position.waypoint.name} 부근, ${elapsedDays}차`}
             onKeyDown={handleKeyDown}
             transform={`translate(${position.x} ${position.y})`}
             style={{
@@ -291,14 +291,14 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
 
       {/* 스크린리더용 서술 — "Card First, Text Later"의 Text */}
       <p className="sr-only" aria-live="polite">
-        {`${active.name}. 부산에서 ${position.km.toLocaleString("ko-KR")}킬로미터 이동했고 ${remainingKm.toLocaleString("ko-KR")}킬로미터 남았습니다. 현재 ${position.waypoint.name} 부근이며 ${elapsedDays}일차입니다. 전체 ${active.totalKm.toLocaleString("ko-KR")}킬로미터, ${active.totalDays}일.`}
+        {`${active.name}. 부산에서 ${position.km.toLocaleString("ko-KR")}킬로미터 이동했고 ${remainingKm.toLocaleString("ko-KR")}킬로미터 남았습니다. 현재 ${position.waypoint.name} 부근이며 ${elapsedDays}차입니다. 전체 ${active.totalKm.toLocaleString("ko-KR")}킬로미터, ${active.totalDaysMin}~${active.totalDaysMax}일.`}
       </p>
 
       {!hideReadouts && (
         <figcaption className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-line bg-line">
           <Readout label="현재 위치" value={position.waypoint.name} />
           <Readout label="이동 거리" value={`${position.km.toLocaleString("ko-KR")} km`} />
-          <Readout label="운항 일수" value={`${elapsedDays}일`} />
+          <Readout label="운항 일수" value={elapsedDays} />
         </figcaption>
       )}
     </figure>

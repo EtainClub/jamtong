@@ -14,6 +14,7 @@ import { useVisualState, type SceneId } from "@/lib/visual-state/store";
 const SCENES: { id: SceneId; label: string }[] = [
   { id: "hero", label: "개요" },
   { id: "route", label: "항로" },
+  { id: "compare", label: "비교" },
   { id: "timeline", label: "경과" },
   { id: "share", label: "공유" },
 ];
