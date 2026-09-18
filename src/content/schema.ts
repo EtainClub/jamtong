@@ -549,3 +549,32 @@ export function validateGraph(graph: Graph, claimIds: Set<string>): string[] {
 
   return errors;
 }
+
+/* ────────────────────────────────────────────────────────────────
+ * 쇼츠 (직접 제작한 세로 영상)
+ *
+ * 영상 자체는 편집자가 만들어 넣는다. 앱은 그것을 재생하고, 근거를 붙이고,
+ * 더 깊은 스토리로 연결하는 일만 한다.
+ *
+ * 영상이라고 해서 근거 원칙이 느슨해지지 않는다. 짧은 영상일수록 맥락이
+ * 잘리므로 오히려 출처가 더 중요하다.
+ * ──────────────────────────────────────────────────────────────── */
+
+export const shortSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  summary: z.string().optional(),
+  /** 세로 영상 파일 경로. 9:16을 전제로 한다. */
+  videoUrl: z.string(),
+  /** 첫 프레임. 없으면 로딩 중 검은 화면이 보인다. */
+  posterUrl: z.string().optional(),
+  durationSec: z.number().positive().optional(),
+  categories: z.array(AchievementCategory).min(1),
+  /** ★ 불변식: 근거 없는 쇼츠는 올리지 않는다. */
+  claimIds: z.array(z.string()).min(1, "근거 없는 쇼츠는 허용되지 않는다"),
+  /** 더 깊이 볼 스토리가 있으면 연결한다. */
+  storySlug: z.string().optional(),
+  publishedAt: z.string(),
+});
+export type Short = z.infer<typeof shortSchema>;
+export type ShortInput = z.input<typeof shortSchema>;
