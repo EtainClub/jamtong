@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+/*
+ * 디자인 토큰 — Editorial / Documentary 방향 (설계서 34장).
+ * 지금은 "시스템"이 아니라 이 스토리를 만들며 내린 결정의 기록이다.
+ * 스토리 2개를 만든 뒤 여기서 디자인 시스템을 추출한다. (검토 문서 8장)
+ */
+:root {
+  --ink-900: #070d17;
+  --ink-800: #0b1220;
+  --ink-700: #111c2e;
+  --ink-600: #1a2740;
+  --ink-500: #24354f;
+
+  --text-primary: #e9eef6;
+  --text-secondary: #a7b6cc;
+  --text-muted: #6f819b;
+
+  --ice-400: #5cc8ec;
+  --ice-500: #34a9d4;
+  --ice-600: #1c7fa5;
+
+  --warm-400: #e6b25a;
+  --warm-500: #cf933a;
+
+  --line: rgba(233, 238, 246, 0.12);
+  --line-strong: rgba(233, 238, 246, 0.22);
+
+  --background: var(--ink-800);
+  --foreground: var(--text-primary);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-ink-900: var(--ink-900);
+  --color-ink-800: var(--ink-800);
+  --color-ink-700: var(--ink-700);
+  --color-ink-600: var(--ink-600);
+  --color-ink-500: var(--ink-500);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-ice-400: var(--ice-400);
+  --color-ice-500: var(--ice-500);
+  --color-ice-600: var(--ice-600);
+
+  --color-warm-400: var(--warm-400);
+  --color-warm-500: var(--warm-500);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+
+  /* 모션 규칙 (설계서 35장) */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  background: var(--background);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1;
+  text-wrap: pretty;
+}
+
+/* 숫자는 항상 표 정렬. 스크럽 중에 자릿수가 흔들리면 안 된다. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* 키보드 사용자에게만 보이는 포커스 링 (검토 문서 7.1) */
+:focus-visible {
+  outline: 2px solid var(--ice-400);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/*
+ * prefers-reduced-motion 존중.
+ * 모션 씬은 정적 요약으로 폴백하고, 장식 애니메이션은 전부 끈다.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+}

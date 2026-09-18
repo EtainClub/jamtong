@@ -1,0 +1,168 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import type { Claim, Source, SourceType } from "@/content/schema";
+import { useVisualState } from "@/lib/visual-state/store";
+
+/**
+ * 근거 Drawer (설계서 8장).
+ *
+ * 화면에는 "근거 N개"만 두고, 누를 때 자료를 편다.
+ * 여기서 FACT / CLAIM / INTERPRETATION / OPINION을 시각적으로 구분한다.
+ */
+
+const SOURCE_TYPE_LABEL: Record<SourceType, string> = {
+  official: "정부·공공 공식 자료",
+  statistics: "통계 자료",
+  legislative: "국회·의회 자료",
+  judicial: "판결·수사 자료",
+  interview: "인터뷰·발언",
+  press: "언론 보도",
+  research: "연구 자료",
+};
+
+const ASSERTION_STYLE: Record<Claim["assertionType"], { label: string; className: string }> = {
+  FACT: { label: "사실", className: "bg-ice-500/15 text-ice-400 ring-ice-500/30" },
+  CLAIM: { label: "주장", className: "bg-warm-400/15 text-warm-400 ring-warm-400/30" },
+  INTERPRETATION: { label: "해석", className: "bg-white/10 text-text-secondary ring-white/15" },
+  OPINION: { label: "의견", className: "bg-white/10 text-text-secondary ring-white/15" },
+};
+
+interface Props {
+  claims: Claim[];
+  sources: Source[];
+}
+
+export function EvidenceDrawer({ claims, sources }: Props) {
+  const openPanel = useVisualState((s) => s.openPanel);
+  const selectedClaimId = useVisualState((s) => s.selectedClaimId);
+  const closePanel = useVisualState((s) => s.closePanel);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const restoreTo = useRef<Element | null>(null);
+
+  const isOpen = openPanel === "evidence";
+  const claim = claims.find((c) => c.id === selectedClaimId) ?? null;
+
+  // 포커스 이동과 복귀. Drawer를 닫으면 누르기 전 자리로 돌아간다.
+  useEffect(() => {
+    if (isOpen) {
+      restoreTo.current = document.activeElement;
+      closeRef.current?.focus();
+    } else if (restoreTo.current instanceof HTMLElement) {
+      restoreTo.current.focus();
+      restoreTo.current = null;
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closePanel();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, closePanel]);
+
+  if (!isOpen || !claim) return null;
+
+  const claimSources = claim.sourceIds
+    .map((id) => sources.find((s) => s.id === id))
+    .filter((s): s is Source => Boolean(s));
+
+  const style = ASSERTION_STYLE[claim.assertionType];
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <button
+        type="button"
+        aria-label="근거 패널 닫기"
+        onClick={closePanel}
+        className="absolute inset-0 bg-ink-900/70 backdrop-blur-sm"
+      />
+
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label="관련 근거"
+        className="relative flex h-full w-full max-w-md flex-col overflow-y-auto border-l border-line bg-ink-700 shadow-2xl"
+      >
+        <header className="sticky top-0 flex items-start justify-between gap-4 border-b border-line bg-ink-700/95 px-6 py-5 backdrop-blur">
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-text-muted">관련 근거</p>
+            <p className="mt-1 text-sm text-text-secondary">
+              자료 {claimSources.length}개
+            </p>
+          </div>
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={closePanel}
+            className="rounded-md px-3 py-1.5 text-sm text-text-secondary transition-colors hover:bg-white/5 hover:text-text-primary"
+          >
+            닫기
+          </button>
+        </header>
+
+        <div className="px-6 py-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${style.className}`}
+            >
+              {style.label}
+            </span>
+            {!claim.verified && (
+              <span className="rounded-full bg-warm-400/15 px-2.5 py-1 text-[11px] font-semibold text-warm-400 ring-1 ring-warm-400/30">
+                편집팀 검증 전
+              </span>
+            )}
+          </div>
+
+          <p className="mt-4 text-[15px] leading-relaxed text-text-primary">{claim.text}</p>
+          {claim.assertedBy && (
+            <p className="mt-2 text-sm text-text-muted">— {claim.assertedBy}의 주장</p>
+          )}
+
+          <ul className="mt-8 space-y-3">
+            {claimSources.map((source) => (
+              <li
+                key={source.id}
+                className="rounded-lg border border-line bg-ink-600/60 p-4"
+              >
+                <p className="text-[11px] uppercase tracking-wider text-text-muted">
+                  {SOURCE_TYPE_LABEL[source.type]}
+                </p>
+                <p className="mt-1.5 text-sm font-medium leading-snug text-text-primary">
+                  {source.title}
+                </p>
+                <p className="mt-1 text-xs text-text-muted">
+                  {source.publisher}
+                  {source.publishedAt ? ` · ${source.publishedAt}` : ""}
+                </p>
+
+                {/* license가 link-only면 원문을 옮겨 싣지 않는다 (검토 문서 3장) */}
+                {source.quote && source.license !== "link-only" && (
+                  <blockquote className="mt-3 border-l-2 border-ice-600 pl-3 text-sm italic leading-relaxed text-text-secondary">
+                    {source.quote}
+                  </blockquote>
+                )}
+
+                {(source.url ?? source.archivedUrl) && (
+                  <a
+                    href={source.url ?? source.archivedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-ice-400 hover:text-ice-500"
+                  >
+                    원문 보기
+                    <span aria-hidden="true">↗</span>
+                    <span className="sr-only">(새 창)</span>
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+    </div>
+  );
+}
