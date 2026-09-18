@@ -6,6 +6,15 @@ import { getStory } from "@/content/stories";
 import { SCENES_BY_STORY } from "@/features/story/scenes";
 import { buildGrounding, SYSTEM_PROMPT } from "@/lib/agent/grounding";
 import { agentAnswerSchema, sanitizeActions } from "@/lib/agent/actions";
+import {
+  buildTopicIndex,
+  checkDailyBudget,
+  checkOrigin,
+  checkRate,
+  clientKey,
+  isOnTopic,
+  type GuardVerdict,
+} from "@/lib/agent/guard";
 
 /**
  * AI 안내 API (설계서 12~14·39·40장).
@@ -36,7 +45,16 @@ const MODEL = process.env.ASK_MODEL ?? "claude-haiku-4-5";
  */
 const SUPPORTS_EFFORT = !MODEL.startsWith("claude-haiku");
 
+/** 막힌 이유는 서버 로그에만 남긴다. 밖으로는 짧게만 알린다. */
+function refuse(verdict: Extract<GuardVerdict, { ok: false }>): Response {
+  console.warn(`[ask] 차단: ${verdict.reason}`);
+  return Response.json({ error: verdict.error }, { status: verdict.status });
+}
+
 export async function POST(request: Request) {
+  const origin = checkOrigin(request);
+  if (!origin.ok) return refuse(origin);
+
   let body: unknown;
   try {
     body = await request.json();
@@ -54,6 +72,35 @@ export async function POST(request: Request) {
   if (!story || !scenes) {
     return Response.json({ error: "알 수 없는 스토리입니다." }, { status: 404 });
   }
+
+  /*
+   * 주제 선별을 모델 호출 앞에 둔다.
+   *
+   * 스토리에 없는 말로만 된 질문은 어차피 답할 수 없다. 모델에게 물어
+   * "모릅니다"를 받아오는 대신 여기서 끝내면 비용이 0이고, 저비용 모델이
+   * 엉뚱하게 지어낼 여지도 함께 사라진다.
+   */
+  const topicIndex = buildTopicIndex(
+    story,
+    scenes.map((s) => s.label),
+  );
+  if (!isOnTopic(parsed.data.question, topicIndex)) {
+    console.info("[ask] 주제 밖 질문 — 모델을 부르지 않았습니다");
+    return Response.json({
+      grounded: false,
+      message:
+        "이 화면의 자료에서 다루는 내용이 아닙니다. 이 스토리에 대해 물어봐 주세요.",
+      actions: [],
+      claimIds: [],
+    });
+  }
+
+  // 여기부터는 실제로 돈이 든다. 한도를 먼저 본다.
+  const rate = checkRate(clientKey(request));
+  if (!rate.ok) return refuse(rate);
+
+  const budget = checkDailyBudget();
+  if (!budget.ok) return refuse(budget);
 
   const grounding = buildGrounding(story, scenes.map((s) => s.id));
 

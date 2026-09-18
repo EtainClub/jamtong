@@ -11,6 +11,7 @@ import { STORIES } from "../src/content/stories";
 import { SCENES_BY_STORY } from "../src/features/story/scenes";
 import { buildGrounding } from "../src/lib/agent/grounding";
 import { sanitizeActions, type AgentAction } from "../src/lib/agent/actions";
+import { buildTopicIndex, isOnTopic } from "../src/lib/agent/guard";
 
 let failed = false;
 
@@ -64,6 +65,54 @@ for (const story of STORIES) {
       ` · 맥락 약 ${tokens.toLocaleString("ko-KR")}자`,
   );
   console.log(`    버려진 액션: ${dropped.join(", ")}`);
+}
+
+/*
+ * 주제 선별 점검.
+ *
+ * 잘못 막는 쪽이 잘못 통과시키는 쪽보다 사용자에게 나쁘다. 통과해야 할
+ * 질문이 막히는지를 먼저 본다.
+ */
+const arctic = STORIES.find((s) => s.slug === "arctic-route")!;
+const index = buildTopicIndex(
+  arctic,
+  (SCENES_BY_STORY["arctic-route"] ?? []).map((s) => s.label),
+);
+
+const shouldPass = [
+  "얼마나 짧아지나요?",
+  "2026년에 무슨 일이 있나요?",
+  "러시아 제재가 왜 변수인가요?",
+  "이거 설명해줘",
+  "요약해줘",
+  "북극항로가 뭔가요?",
+  "쇄빙선 지원이 얼마인가요?",
+  "부산에서 얼마나 걸려요?",
+];
+
+const shouldBlock = [
+  "이재명 대통령의 고향이 어디인가요?",
+  "오늘 서울 날씨 알려줘",
+  "파이썬으로 퀵소트 짜줘",
+];
+
+console.log("\n주제 선별 (arctic-route)");
+for (const q of shouldPass) {
+  const ok = isOnTopic(q, index);
+  if (!ok) {
+    failed = true;
+    console.error(`  \u2717 통과해야 하는데 막혔다: "${q}"`);
+  } else {
+    console.log(`  \u2713 통과: "${q}"`);
+  }
+}
+for (const q of shouldBlock) {
+  const ok = isOnTopic(q, index);
+  if (ok) {
+    console.warn(`  \u26a0 막히지 않았다(모델이 판단하게 된다): "${q}"`);
+  } else {
+    console.log(`  \u2713 차단(비용 0): "${q}"`);
+  }
 }
 
 if (failed) {
