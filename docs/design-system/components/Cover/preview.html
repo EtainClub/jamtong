@@ -1,0 +1,53 @@
+<!-- @dsCard height=312 -->
+<style>
+  body { margin: 0; background: var(--ink-800); font-family: var(--font-sans); }
+  .wrap { position: relative; width: 960px; height: 312px; }
+  svg { display: block; width: 960px; height: 312px; }
+  .slab   { fill: var(--ink-700); }
+  .deep   { fill: var(--ink-600); }
+  .brand  { fill: var(--ice-400); }
+  .sunk   { fill: var(--ice-600); }
+  .warn   { fill: var(--warm-400); }
+  .cursor { stroke: var(--text-primary); stroke-width: 1.5; stroke-dasharray: 4 5; opacity: .6; }
+  .tick   { fill: var(--ice-400); }
+  .tick-late { fill: var(--warm-400); }
+  .name { fill: var(--text-primary); font-size: 120px; font-weight: 700; letter-spacing: -0.03em; }
+  .tagline { fill: var(--text-muted); font-size: 14px; font-weight: 500; }
+</style>
+
+<!--
+  블록: ink-700 slab 260×176 · ice-400 168×176 · ink-600 120×112 · warm-400 84×56 · ice-600 44×176
+  배치: 오른쪽 상자(x=480~940) 안 엇갈린 스택. 바닥선을 공유하고 높이가 다른 슬랩들이
+        왼쪽에서 오른쪽으로 낮아졌다가 warm 블록에서 다시 꺾인다 — 씬이 쌓이는 스토리 구조.
+  패턴: 세로 점선 하나가 블록 전체를 관통하고, 바닥에 눈금 점 아홉. 이 제품에서 가장
+        특징적인 것은 "타임라인 커서가 지도·관계도·차트를 동시에 움직인다"는 것이고,
+        블록을 가로지르는 커서 한 줄이 그 사실만을 그린다.
+  스케일: 변 260/176/168/120/112/84/56/44 = space-4(16) 배수. 모서리 radius-xl(12) ·
+          radius-full(눈금 점 r=4) · 커서 점선 4 5.
+-->
+<div class="wrap">
+  <svg viewBox="0 0 960 312" role="img" aria-label="잼통 디자인 시스템 표지">
+    <rect class="slab"  x="496" y="48"  width="260" height="176" rx="12" />
+    <rect class="brand" x="620" y="48"  width="168" height="176" rx="12" />
+    <rect class="deep"  x="772" y="112" width="120" height="112" rx="12" />
+    <rect class="sunk"  x="876" y="48"  width="44"  height="176" rx="12" />
+    <rect class="warn"  x="836" y="168" width="84"  height="56"  rx="12" />
+
+    <line class="cursor" x1="724" y1="24" x2="724" y2="256" />
+
+    <g>
+      <circle class="tick" cx="512" cy="248" r="4" />
+      <circle class="tick" cx="560" cy="248" r="4" />
+      <circle class="tick" cx="608" cy="248" r="4" />
+      <circle class="tick" cx="656" cy="248" r="4" />
+      <circle class="tick" cx="704" cy="248" r="4" />
+      <circle class="tick" cx="752" cy="248" r="4" />
+      <circle class="tick" cx="800" cy="248" r="4" />
+      <circle class="tick-late" cx="848" cy="248" r="4" />
+      <circle class="tick-late" cx="896" cy="248" r="4" />
+    </g>
+
+    <text class="name" x="48" y="188">잼통</text>
+    <text class="tagline" x="52" y="222">읽는 위키가 아니라 이해하는 위키</text>
+  </svg>
+</div>

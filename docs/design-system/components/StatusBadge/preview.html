@@ -1,0 +1,46 @@
+<!-- @dsCard group="상태" height=176 subtitle="진행 상태와 검증 상태" -->
+<style>
+  body {
+    margin: 0;
+    padding: 20px;
+    background: var(--ink-800);
+    font-family: var(--font-sans);
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 18px; }
+  .badge {
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  .done { background: rgba(52, 169, 212, 0.15); color: var(--ice-400); box-shadow: inset 0 0 0 1px rgba(52, 169, 212, 0.3); }
+  .ongoing { background: rgba(230, 178, 90, 0.15); color: var(--warm-400); box-shadow: inset 0 0 0 1px rgba(230, 178, 90, 0.3); }
+  .planned { background: rgba(233, 238, 246, 0.07); color: var(--text-muted); box-shadow: inset 0 0 0 1px rgba(233, 238, 246, 0.15); }
+  .tag { padding: 3px 9px; border-radius: var(--radius-full); background: rgba(233, 238, 246, 0.05); color: var(--text-muted); font-size: 11px; }
+  .card {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    background: var(--ink-700);
+  }
+  .card.pending { border-color: rgba(230, 178, 90, 0.25); }
+  .title { margin: 10px 0 0; color: var(--text-primary); font-size: 14px; font-weight: 700; }
+  .label { margin: 0 0 8px; color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; }
+</style>
+
+<p class="label">진행 상태</p>
+<div class="row">
+  <span class="badge done">완료</span>
+  <span class="badge ongoing">추진 중</span>
+  <span class="badge planned">계획</span>
+  <span class="tag">경제·물류</span>
+</div>
+
+<div class="card pending">
+  <div class="row" style="margin: 0">
+    <span class="badge planned">계획</span>
+    <span class="badge ongoing" style="background: rgba(230,178,90,.15)">검증 전</span>
+  </div>
+  <p class="title">미검증 항목은 테두리로도 구분합니다</p>
+</div>

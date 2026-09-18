@@ -1,0 +1,19 @@
+{
+  "v": 3,
+  "layout": "files",
+  "createdOnFiles": { "v": 1, "at": "2026-09-19T00:00:00Z" },
+  "title": "잼통",
+  "namespace": "Jamtong",
+  "libraries": [],
+  "sections": {},
+  "groups": [],
+  "assetGroups": {},
+  "blobs": {},
+  "docs": { "readme": "project/README.md", "sections": [] },
+  "lastChange": {
+    "by": "EtainClub",
+    "at": "2026-09-19T00:00:00Z",
+    "via": "Claude Code · EtainClub/jamtong",
+    "note": "스토리 셋에서 사후 추출한 첫 시스템 — 토큰 35개, 컴포넌트 6개"
+  }
+}

@@ -1,0 +1,40 @@
+<!-- @dsCard group="데이터" height=248 subtitle="비교 막대와 누적 막대" -->
+<style>
+  body { margin: 0; padding: 20px; background: var(--ink-800); font-family: var(--font-sans); }
+  .label { margin: 0 0 12px; color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; }
+  .row { margin-bottom: 14px; }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .name { font-size: 13px; font-weight: 600; }
+  .name.on { color: var(--ice-400); }
+  .name.off { color: var(--text-secondary); }
+  .val { color: var(--text-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .val b { color: var(--text-primary); font-weight: 700; }
+  .track { margin-top: 8px; height: 12px; border-radius: var(--radius-full); background: var(--ink-600); overflow: hidden; }
+  .fill { height: 100%; border-radius: var(--radius-full); }
+  .stack { display: flex; height: 36px; border-radius: var(--radius-lg); overflow: hidden; margin-top: 8px; }
+  .seg { display: grid; place-items: center; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .note { margin: 16px 0 0; padding-left: 14px; border-left: 2px solid var(--line-strong); color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+</style>
+
+<p class="label">비교 — 길이는 값에 정비례</p>
+<div class="row">
+  <div class="head"><span class="name on">북극항로</span><span class="val"><b>13,000 km</b> · 20~24일</span></div>
+  <div class="track"><div class="fill" style="width: 54%; background: var(--ice-400)"></div></div>
+</div>
+<div class="row">
+  <div class="head"><span class="name off">수에즈 운하</span><span class="val"><b>20,400 km</b> · 30~34일</span></div>
+  <div class="track"><div class="fill" style="width: 85%; background: var(--ink-500)"></div></div>
+</div>
+<div class="row">
+  <div class="head"><span class="name off">희망봉</span><span class="val"><b>24,000 km</b> · 36~40일</span></div>
+  <div class="track"><div class="fill" style="width: 100%; background: var(--ink-500)"></div></div>
+</div>
+
+<p class="label" style="margin-top: 22px">누적 — 한 전체의 구성</p>
+<div class="stack">
+  <div class="seg" style="width: 53.5%; background: var(--ice-400); color: var(--ink-900)">53.5%</div>
+  <div class="seg" style="width: 45.6%; background: var(--ink-500); color: var(--text-secondary)">45.6%</div>
+  <div class="seg" style="width: 0.9%; background: var(--warm-500)"></div>
+</div>
+
+<p class="note">78,000톤 선박, 7~10월 기준 분석값입니다. 전제를 숨기고 수치만 보여주면 오도가 됩니다.</p>
