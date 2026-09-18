@@ -13,7 +13,7 @@ import { useVisualState, type SceneId, type VisualState } from "./store";
  *   /story/arctic-route?scene=route&t=0.42&route=nsr&panel=evidence&claim=claim-days
  */
 
-const SCENES: SceneId[] = ["hero", "route", "timeline", "evidence"];
+const SCENES: SceneId[] = ["hero", "route", "timeline", "share"];
 
 function readFromParams(params: URLSearchParams): Partial<VisualState> {
   const patch: Partial<VisualState> = {};

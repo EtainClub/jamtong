@@ -26,9 +26,11 @@ const KEY_STEP_LARGE = 0.1;
 interface Props {
   tracks: RouteTrack[];
   background: MapBackground;
+  /** 스크롤 씬에서는 수치를 옆 패널이 갖는다. 지도 아래 표는 숨긴다. */
+  hideReadouts?: boolean;
 }
 
-export function RouteMap({ tracks, background }: Props) {
+export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
 
   const activeRouteId = useVisualState((s) => s.activeRouteId);
@@ -113,7 +115,24 @@ export function RouteMap({ tracks, background }: Props) {
 
   const remainingKm = active.totalKm - position.km;
   const elapsedDays = Math.round((position.km / active.totalKm) * active.totalDays);
-  const endpoints = [active.waypoints[0], active.waypoints[active.waypoints.length - 1]];
+
+  /**
+   * 구간 라벨의 노출 규칙.
+   *  - 기점·종점은 항상 보인다. 어디서 어디로 가는지가 먼저다.
+   *  - 중간 경유지는 배가 다가오면 떠오르고, 지나간 뒤에는 흐려진다.
+   *    처음부터 전부 띄우면 극지 구간이 글자로 뒤덮인다.
+   */
+  const labels = active.waypoints.map((wp) => {
+    if (wp.isEndpoint) return { wp, opacity: 1, current: false };
+
+    const distance = wp.km - position.km;
+    const current = Math.abs(distance) < 600;
+    const approaching = distance > 0 && distance < 1600;
+    const passed = distance <= 0;
+
+    const opacity = current ? 1 : approaching ? 0.45 : passed ? 0.32 : 0;
+    return { wp, opacity, current };
+  });
 
   return (
     <figure className="relative m-0">
@@ -216,20 +235,32 @@ export function RouteMap({ tracks, background }: Props) {
           })}
         </g>
 
-        {/* 기점·종점 라벨 — 어디서 어디로 가는지가 지도에서 바로 읽혀야 한다 */}
+        {/* 구간 라벨 */}
         <g aria-hidden="true" className="pointer-events-none">
-          {endpoints.map((wp) => (
-            <text
-              key={`label-${wp.id}`}
-              x={wp.x}
-              y={wp.y - 14}
-              textAnchor="middle"
-              className="fill-[var(--text-primary)] text-[15px] font-semibold"
-              style={{ paintOrder: "stroke", stroke: "var(--ink-900)", strokeWidth: 4 }}
-            >
-              {wp.name}
-            </text>
-          ))}
+          {labels.map(({ wp, opacity, current }) =>
+            opacity === 0 ? null : (
+              <text
+                key={`label-${wp.id}`}
+                x={wp.x}
+                y={wp.y - (current ? 26 : wp.isEndpoint ? 15 : 11)}
+                textAnchor="middle"
+                opacity={opacity}
+                className={
+                  wp.isEndpoint || current
+                    ? "fill-[var(--text-primary)] text-[15px] font-semibold"
+                    : "fill-[var(--text-secondary)] text-[11.5px] font-medium"
+                }
+                style={{
+                  paintOrder: "stroke",
+                  stroke: "var(--ink-900)",
+                  strokeWidth: wp.isEndpoint || current ? 4 : 3,
+                  transition: isScrubbing ? "none" : "opacity 260ms var(--ease-out-expo)",
+                }}
+              >
+                {wp.name}
+              </text>
+            ),
+          )}
         </g>
 
         {/* 배 — 키보드로도 조작되는 슬라이더 */}
@@ -263,20 +294,27 @@ export function RouteMap({ tracks, background }: Props) {
         {`${active.name}. 부산에서 ${position.km.toLocaleString("ko-KR")}킬로미터 이동했고 ${remainingKm.toLocaleString("ko-KR")}킬로미터 남았습니다. 현재 ${position.waypoint.name} 부근이며 ${elapsedDays}일차입니다. 전체 ${active.totalKm.toLocaleString("ko-KR")}킬로미터, ${active.totalDays}일.`}
       </p>
 
-      <figcaption className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-line bg-line">
-        <Readout label="현재 위치" value={position.waypoint.name} />
-        <Readout label="이동 거리" value={`${position.km.toLocaleString("ko-KR")} km`} />
-        <Readout label="운항 일수" value={`${elapsedDays}일`} />
-      </figcaption>
+      {!hideReadouts && (
+        <figcaption className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-line bg-line">
+          <Readout label="현재 위치" value={position.waypoint.name} />
+          <Readout label="이동 거리" value={`${position.km.toLocaleString("ko-KR")} km`} />
+          <Readout label="운항 일수" value={`${elapsedDays}일`} />
+        </figcaption>
+      )}
     </figure>
   );
 }
 
-function Readout({ label, value }: { label: string; value: string }) {
+export function Readout({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-ink-700 px-4 py-3">
-      <div className="text-[11px] uppercase tracking-wider text-text-muted">{label}</div>
-      <div className="tabular mt-1 text-lg font-semibold text-text-primary">{value}</div>
+    <div className="min-w-0 bg-ink-700 px-3 py-3">
+      <div className="truncate text-[11px] uppercase tracking-wider text-text-muted">
+        {label}
+      </div>
+      {/* 스크럽 중에 줄바꿈이 생기면 숫자가 위아래로 튄다. 한 줄로 고정한다. */}
+      <div className="tabular mt-1 whitespace-nowrap text-[15px] font-semibold text-text-primary">
+        {value}
+      </div>
     </div>
   );
 }

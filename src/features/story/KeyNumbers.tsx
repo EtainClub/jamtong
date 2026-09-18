@@ -12,12 +12,14 @@ import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 export function KeyNumbers({
   numbers,
   claims,
+  className = "grid gap-4",
 }: {
   numbers: KeyNumber[];
   claims: Claim[];
+  className?: string;
 }) {
   return (
-    <dl className="grid gap-4">
+    <dl className={className}>
       {numbers.map((number) => {
         const claim = claims.find((c) => c.id === number.claimId);
         if (!claim) return null;
@@ -25,7 +27,9 @@ export function KeyNumbers({
         return (
           <div
             key={number.id}
-            className="rounded-xl border border-line bg-ink-700 p-5"
+            className={`rounded-xl border bg-ink-700 p-5 ${
+              claim.verified ? "border-line" : "border-warm-400/25"
+            }`}
           >
             <dt className="text-sm text-text-secondary">{number.label}</dt>
             <dd className="mt-2 flex items-baseline gap-1 whitespace-nowrap">
@@ -42,8 +46,13 @@ export function KeyNumbers({
             {number.caption && (
               <p className="mt-1.5 text-xs text-text-muted">{number.caption}</p>
             )}
-            <div className="mt-4">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <EvidenceButton claimId={claim.id} count={claim.sourceIds.length} />
+              {!claim.verified && (
+                <span className="rounded-full bg-warm-400/15 px-2 py-1 text-[10px] font-semibold text-warm-400 ring-1 ring-warm-400/30">
+                  검증 전
+                </span>
+              )}
             </div>
           </div>
         );

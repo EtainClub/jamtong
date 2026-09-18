@@ -89,6 +89,11 @@ export const waypointSchema = z.object({
   lat: z.number().min(-90).max(90),
   /** 출발지 기준 누적 거리(km). 경로 보간과 수치 표시에 쓰인다. */
   cumulativeKm: z.number().min(0),
+  /**
+   * 이 구간에 도달했을 때 보여줄 한 줄 해설.
+   * 항로 자체에 대한 서술만 담는다. 근거가 필요한 주장은 Claim으로 분리한다.
+   */
+  note: z.string().optional(),
 });
 export type Waypoint = z.infer<typeof waypointSchema>;
 

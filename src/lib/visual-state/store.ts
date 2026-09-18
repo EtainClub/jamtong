@@ -10,8 +10,17 @@ import { create } from "zustand";
  * AI Visual Guide가 화면을 조작할 지점도 여기 하나로 모인다.
  */
 
-export type SceneId = "hero" | "route" | "timeline" | "evidence";
+export type SceneId = "hero" | "route" | "timeline" | "share";
 export type PanelId = "evidence" | null;
+
+/**
+ * 진행도를 누가 몰고 있는가.
+ *
+ * 기본은 스크롤이다. 사용자가 배를 잡거나 키로 움직이는 순간 "manual"로 바뀌고,
+ * 그때부터 스크롤은 진행도를 건드리지 않는다. 그러지 않으면 직접 맞춰 놓은 위치가
+ * 살짝만 스크롤해도 튕겨 나간다.
+ */
+export type ProgressSource = "scroll" | "manual";
 
 export interface VisualState {
   storyId: string | null;
@@ -31,11 +40,18 @@ export interface VisualState {
 
   /** 사용자가 드래그 중인지. 애니메이션 보간을 끄는 데 쓴다. */
   isScrubbing: boolean;
+
+  progressSource: ProgressSource;
 }
 
 export interface VisualActions {
   setScene: (sceneId: SceneId) => void;
+  /** 사용자 조작. 이 시점부터 스크롤은 진행도를 몰지 않는다. */
   setMotionProgress: (progress: number) => void;
+  /** 스크롤 구동. manual로 넘어간 뒤에는 무시된다. */
+  setScrollProgress: (progress: number) => void;
+  /** 스크롤에 다시 진행도를 맡긴다. */
+  followScroll: () => void;
   setActiveRoute: (routeId: string) => void;
   toggleBaseline: () => void;
   seekTimeline: (eventId: string | null) => void;
@@ -56,6 +72,7 @@ export const initialVisualState: VisualState = {
   openPanel: null,
   selectedClaimId: null,
   isScrubbing: false,
+  progressSource: "scroll",
 };
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
@@ -64,7 +81,17 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
   ...initialVisualState,
 
   setScene: (sceneId) => set({ sceneId }),
-  setMotionProgress: (progress) => set({ motionProgress: clamp01(progress) }),
+
+  setMotionProgress: (progress) =>
+    set({ motionProgress: clamp01(progress), progressSource: "manual" }),
+
+  setScrollProgress: (progress) =>
+    set((s) =>
+      s.progressSource === "manual" ? s : { motionProgress: clamp01(progress) },
+    ),
+
+  followScroll: () => set({ progressSource: "scroll" }),
+
   setActiveRoute: (activeRouteId) => set({ activeRouteId }),
   toggleBaseline: () => set((s) => ({ showBaseline: !s.showBaseline })),
   seekTimeline: (timelineCursor) => set({ timelineCursor }),
@@ -80,6 +107,7 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
       timelineCursor: null,
       openPanel: null,
       selectedClaimId: null,
+      progressSource: "scroll",
     }),
 
   hydrate: (patch) => set(patch),

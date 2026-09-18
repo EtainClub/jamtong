@@ -23,6 +23,10 @@ export interface TrackWaypoint {
   x: number;
   y: number;
   km: number;
+  /** 진행도가 이 구간에 닿으면 보여줄 해설. */
+  note?: string;
+  /** 기점·종점이면 true. 라벨을 항상 띄운다. */
+  isEndpoint: boolean;
 }
 
 export interface RouteTrack {
@@ -107,7 +111,8 @@ export function buildTrack(route: Route): RouteTrack {
     penDown = true;
   }
 
-  const waypoints: TrackWaypoint[] = route.waypoints.flatMap((wp) => {
+  const lastIndex = route.waypoints.length - 1;
+  const waypoints: TrackWaypoint[] = route.waypoints.flatMap((wp, index) => {
     const screen = projection([wp.lon, wp.lat]);
     if (!screen || !Number.isFinite(screen[0])) return [];
     return [
@@ -117,6 +122,8 @@ export function buildTrack(route: Route): RouteTrack {
         x: round(screen[0]),
         y: round(screen[1]),
         km: wp.cumulativeKm,
+        note: wp.note,
+        isEndpoint: index === 0 || index === lastIndex,
       },
     ];
   });
