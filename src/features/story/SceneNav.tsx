@@ -11,20 +11,17 @@ import { useVisualState, type SceneId } from "@/lib/visual-state/store";
  * 좌표이기도 하다. 그래서 지역 상태가 아니라 전역 상태에 둔다.
  */
 
-const SCENES: { id: SceneId; label: string }[] = [
-  { id: "hero", label: "개요" },
-  { id: "route", label: "항로" },
-  { id: "compare", label: "비교" },
-  { id: "timeline", label: "경과" },
-  { id: "share", label: "공유" },
-];
+export interface SceneNavItem {
+  id: SceneId;
+  label: string;
+}
 
-export function SceneNav() {
+export function SceneNav({ scenes }: { scenes: SceneNavItem[] }) {
   const sceneId = useVisualState((s) => s.sceneId);
   const setScene = useVisualState((s) => s.setScene);
 
   useEffect(() => {
-    const sections = SCENES.map(({ id }) =>
+    const sections = scenes.map(({ id }) =>
       document.querySelector<HTMLElement>(`[data-scene="${id}"]`),
     ).filter((el): el is HTMLElement => Boolean(el));
 
@@ -45,7 +42,7 @@ export function SceneNav() {
 
     for (const section of sections) observer.observe(section);
     return () => observer.disconnect();
-  }, [setScene]);
+  }, [scenes, setScene]);
 
   const goTo = (id: SceneId) => {
     const el = document.querySelector<HTMLElement>(`[data-scene="${id}"]`);
@@ -55,7 +52,7 @@ export function SceneNav() {
   return (
     <nav aria-label="스토리 구간" className="hidden sm:block">
       <ol className="flex items-center gap-1">
-        {SCENES.map((scene) => {
+        {scenes.map((scene) => {
           const isActive = scene.id === sceneId;
           return (
             <li key={scene.id}>

@@ -1,4 +1,4 @@
-import { storySchema, type Story } from "@/content/schema";
+import { storySchema, type StoryInput } from "@/content/schema";
 
 /**
  * 북극항로 — Sprint 1 검증용 스토리.
@@ -14,7 +14,7 @@ import { storySchema, type Story } from "@/content/schema";
  * 이 파일은 데이터만 담는다. 화면 구성은 features/ 아래 컴포넌트가 하드코딩으로 갖는다.
  */
 
-const raw: Story = {
+const raw: StoryInput = {
   id: "arctic-route",
   slug: "arctic-route",
   title: "북극항로",
@@ -26,6 +26,7 @@ const raw: Story = {
     "정부는 2026년 하반기에 부산에서 로테르담까지 컨테이너선 시범운항을 추진한다. " +
     "배를 직접 움직여 두 항로가 어떻게 다른지 확인해 보라.",
   type: "achievement",
+  publishStatus: "published",
 
   routes: [
     {

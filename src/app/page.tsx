@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { arcticRoute } from "@/content/stories/arctic-route/story";
+import { getPublishedStories } from "@/content/stories";
 
-const STORIES = [arcticRoute];
+const STORIES = getPublishedStories();
 
 export default function Home() {
   return (

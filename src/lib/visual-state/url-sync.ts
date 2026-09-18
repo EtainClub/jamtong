@@ -13,7 +13,15 @@ import { useVisualState, type SceneId, type VisualState } from "./store";
  *   /story/arctic-route?scene=route&t=0.42&route=nsr&panel=evidence&claim=claim-days
  */
 
-const SCENES: SceneId[] = ["hero", "route", "compare", "timeline", "share"];
+const SCENES: SceneId[] = [
+  "hero",
+  "route",
+  "compare",
+  "flow",
+  "counterpoint",
+  "timeline",
+  "share",
+];
 
 function readFromParams(params: URLSearchParams): Partial<VisualState> {
   const patch: Partial<VisualState> = {};
@@ -33,6 +41,9 @@ function readFromParams(params: URLSearchParams): Partial<VisualState> {
   const cursor = params.get("at");
   if (cursor) patch.timelineCursor = cursor;
 
+  const scenario = params.get("sc");
+  if (scenario) patch.activeScenarioId = scenario;
+
   const panel = params.get("panel");
   if (panel === "evidence") patch.openPanel = "evidence";
 
@@ -48,6 +59,7 @@ function writeToParams(state: VisualState): string {
   if (state.motionProgress > 0) p.set("t", state.motionProgress.toFixed(3));
   if (state.activeRouteId !== "nsr") p.set("route", state.activeRouteId);
   if (state.timelineCursor) p.set("at", state.timelineCursor);
+  if (state.activeScenarioId) p.set("sc", state.activeScenarioId);
   if (state.openPanel) p.set("panel", state.openPanel);
   if (state.selectedClaimId) p.set("claim", state.selectedClaimId);
   return p.toString();

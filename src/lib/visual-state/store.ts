@@ -10,7 +10,7 @@ import { create } from "zustand";
  * AI Visual Guide가 화면을 조작할 지점도 여기 하나로 모인다.
  */
 
-export type SceneId = "hero" | "route" | "compare" | "timeline" | "share";
+export type SceneId = "hero" | "route" | "compare" | "flow" | "counterpoint" | "timeline" | "share";
 export type PanelId = "evidence" | null;
 
 /**
@@ -35,6 +35,12 @@ export interface VisualState {
   /** 타임라인 커서. 연표 이벤트 id. */
   timelineCursor: string | null;
 
+  /**
+   * 자금 흐름에서 보고 있는 시나리오.
+   * "다른 구조였다면" 화면을 그대로 공유할 수 있어야 하므로 URL에 실린다.
+   */
+  activeScenarioId: string | null;
+
   openPanel: PanelId;
   selectedClaimId: string | null;
 
@@ -55,6 +61,7 @@ export interface VisualActions {
   setActiveRoute: (routeId: string) => void;
   toggleBaseline: () => void;
   seekTimeline: (eventId: string | null) => void;
+  setScenario: (scenarioId: string) => void;
   openEvidence: (claimId: string) => void;
   closePanel: () => void;
   setScrubbing: (scrubbing: boolean) => void;
@@ -69,6 +76,7 @@ export const initialVisualState: VisualState = {
   activeRouteId: "nsr",
   showBaseline: true,
   timelineCursor: null,
+  activeScenarioId: null,
   openPanel: null,
   selectedClaimId: null,
   isScrubbing: false,
@@ -95,6 +103,7 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
   setActiveRoute: (activeRouteId) => set({ activeRouteId }),
   toggleBaseline: () => set((s) => ({ showBaseline: !s.showBaseline })),
   seekTimeline: (timelineCursor) => set({ timelineCursor }),
+  setScenario: (activeScenarioId) => set({ activeScenarioId }),
 
   openEvidence: (claimId) => set({ openPanel: "evidence", selectedClaimId: claimId }),
   closePanel: () => set({ openPanel: null, selectedClaimId: null }),
@@ -105,6 +114,7 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
       sceneId: "hero",
       motionProgress: 0,
       timelineCursor: null,
+      activeScenarioId: null,
       openPanel: null,
       selectedClaimId: null,
       progressSource: "scroll",

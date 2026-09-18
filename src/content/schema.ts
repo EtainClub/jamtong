@@ -130,6 +130,63 @@ export const routeComparisonSchema = z.object({
 });
 export type RouteComparison = z.infer<typeof routeComparisonSchema>;
 
+/**
+ * 자금 흐름 (설계서 5장 "경제 → 돈의 흐름").
+ *
+ * 개발이익이 어디서 발생해 어디로 갔는지를 폭으로 보여준다.
+ * 시나리오를 바꾸면 같은 사업이 다른 구조였을 때 어떻게 달라지는지 비교된다.
+ *
+ * 설계 원칙: 노드는 **기관과 용처**만 담는다. 실존 개인은 올리지 않는다.
+ * 제도와 자금 흐름만으로 구조가 설명되며, 그것이 법적 노출도 줄인다.
+ * (설계 검토 문서 2.2)
+ */
+export const flowAllocationSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  /** 억 원 단위. 0도 유효한 값이다 — "환수 없음"이 곧 논지인 시나리오가 있다. */
+  amountEok: z.number().min(0),
+  kind: z.enum(["public", "private", "none"]),
+  detail: z.string().optional(),
+  claimId: z.string(),
+});
+export type FlowAllocation = z.infer<typeof flowAllocationSchema>;
+
+export const flowScenarioSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  summary: z.string(),
+  /** 실제로 추진된 구조인지, 비교를 위한 가정인지. 섞이면 안 된다. */
+  isActual: z.boolean(),
+  allocations: z.array(flowAllocationSchema).min(1),
+  claimId: z.string(),
+});
+export type FlowScenario = z.infer<typeof flowScenarioSchema>;
+
+export const moneyFlowSchema = z.object({
+  sourceLabel: z.string(),
+  unitLabel: z.string().default("억 원"),
+  scenarios: z.array(flowScenarioSchema).min(1),
+  /** 비교의 전제. 숨기면 오도가 된다. */
+  note: z.string().optional(),
+});
+export type MoneyFlow = z.infer<typeof moneyFlowSchema>;
+
+/**
+ * 쟁점과 답변 (설계 검토 문서 2.1).
+ *
+ * 관점을 가진 매체일수록 반론을 빼면 안 된다. 반론을 회피하면 그 자체가
+ * 공격 지점이 되고, 반론에 근거로 답하면 그것이 무기가 된다.
+ * 그래서 이 필드는 쟁점형 스토리에서 **스키마가 요구한다**.
+ */
+export const counterpointSchema = z.object({
+  id: z.string(),
+  question: z.string(),
+  response: z.string(),
+  /** 답변의 근거. 비어 있으면 렌더링하지 않는다. */
+  claimIds: z.array(z.string()).min(1, "반론에 대한 답변에도 근거가 필요하다"),
+});
+export type Counterpoint = z.infer<typeof counterpointSchema>;
+
 export const storySchema = z.object({
   id: z.string(),
   slug: z.string(),
@@ -138,16 +195,29 @@ export const storySchema = z.object({
   kicker: z.string(),
   summary: z.string(),
   type: z.enum(["achievement", "policy", "event"]),
+  /**
+   * draft는 프로덕션 빌드에서 차단된다(validateStory).
+   * 검증 전 골격이 실수로 공개되는 경로를 아예 없앤다.
+   */
+  publishStatus: z.enum(["draft", "published"]).default("draft"),
   routes: z.array(routeSchema).default([]),
   comparisons: z.array(routeComparisonSchema).default([]),
   /** 비교의 전제 조건. 수치만 보여주고 조건을 숨기면 오도가 된다. */
   comparisonNote: z.string().optional(),
   keyNumbers: z.array(keyNumberSchema).default([]),
   timeline: z.array(timelineEventSchema).default([]),
+  moneyFlow: moneyFlowSchema.optional(),
+  counterpoints: z.array(counterpointSchema).default([]),
   claims: z.array(claimSchema).default([]),
   sources: z.array(sourceSchema).default([]),
 });
 export type Story = z.infer<typeof storySchema>;
+
+/**
+ * 콘텐츠 파일이 쓰는 입력 타입.
+ * 기본값이 채워지기 전 형태이므로 default가 있는 필드를 생략할 수 있다.
+ */
+export type StoryInput = z.input<typeof storySchema>;
 
 /**
  * 참조 무결성 검사. 빌드/CI에서 실행한다.
@@ -183,6 +253,36 @@ export function validateStory(story: Story): string[] {
   }
   for (const e of story.timeline) {
     for (const cid of e.claimIds) checkClaimRef(`event "${e.id}"`, cid);
+  }
+
+  for (const flow of story.moneyFlow ? [story.moneyFlow] : []) {
+    for (const scenario of flow.scenarios) {
+      checkClaimRef(`scenario "${scenario.id}"`, scenario.claimId);
+      for (const allocation of scenario.allocations) {
+        checkClaimRef(`allocation "${allocation.id}"`, allocation.claimId);
+      }
+    }
+    if (!flow.scenarios.some((sc) => sc.isActual)) {
+      errors.push(`moneyFlow → 실제 구조(isActual)인 시나리오가 없다`);
+    }
+  }
+
+  for (const cp of story.counterpoints) {
+    for (const cid of cp.claimIds) checkClaimRef(`counterpoint "${cp.id}"`, cid);
+  }
+
+  // 쟁점형 스토리는 반론 섹션을 비워 둘 수 없다.
+  if (story.type === "event" && story.counterpoints.length === 0) {
+    errors.push(`story "${story.slug}" → 쟁점형 스토리에는 counterpoints가 필요하다`);
+  }
+
+  // 공개 스토리에 미검증 주장이 남아 있으면 빌드를 깬다.
+  if (story.publishStatus === "published") {
+    for (const claim of story.claims) {
+      if (!claim.verified) {
+        errors.push(`published 스토리에 미검증 claim이 있다: "${claim.id}"`);
+      }
+    }
   }
 
   for (const s of story.sources) {
