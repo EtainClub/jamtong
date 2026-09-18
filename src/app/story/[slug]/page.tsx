@@ -11,6 +11,8 @@ import { DraftBanner } from "@/features/story/DraftBanner";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareButton } from "@/features/story/ShareButton";
 import { SceneNav, type SceneNavItem } from "@/features/story/SceneNav";
+import { StoryViewSwitch, StoryViewToggle } from "@/features/story/StoryView";
+import { Eli5Section } from "@/features/eli5/Eli5Section";
 import { UrlSyncBoundary } from "@/features/story/UrlSyncBoundary";
 import { ArcticRouteLayout } from "@/features/story/layouts/ArcticRouteLayout";
 import { DaejangdongLayout } from "@/features/story/layouts/DaejangdongLayout";
@@ -123,8 +125,22 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
       <main id="main" className="flex-1 pb-24">
         <StoryHero story={story} highlights={heroHighlights} />
         <DraftBanner story={story} />
+
+        {story.eli5 && (
+          <div className="mx-auto max-w-5xl px-5 pb-8">
+            <StoryViewToggle />
+          </div>
+        )}
+
         <div className={story.publishStatus === "draft" ? "mt-12" : ""}>
-          <Layout story={story} />
+          <StoryViewSwitch
+            easy={
+              story.eli5 ? (
+                <Eli5Section eli5={story.eli5} claims={story.claims} />
+              ) : null
+            }
+            full={<Layout story={story} />}
+          />
         </div>
       </main>
 

@@ -298,6 +298,70 @@ const raw: StoryInput = {
    * 관계도 — 기관과 사업만으로 구성한다. 실존 개인은 올리지 않는다.
    * 모든 Edge는 이 스토리의 claim을 근거로 갖는다.
    */
+  /**
+   * 쉬운 설명. 장면마다 근거를 따로 매단다 — 쉽게 쓸수록 한 문장이 감당하는
+   * 주장이 커지기 때문이다.
+   */
+  eli5: {
+    intro:
+      "부산에서 유럽까지 배로 짐을 보내는 길이 바뀌려고 해요. 여섯 장면으로 나눠서 볼게요.",
+    scenes: [
+      {
+        id: "e-suez",
+        title: "지금은 아래로 크게 돌아가요",
+        say: "배가 남쪽으로 내려갔다가 수에즈 운하를 지나 유럽으로 올라가요. 길이 아주 길어요.",
+        art: "suez-long",
+        fact: { value: "20,400 km · 30~34일", tone: "warm" },
+        claimIds: ["claim-suez-distance"],
+      },
+      {
+        id: "e-arctic",
+        title: "북극 위로 가면 가까워요",
+        say: "지구 꼭대기를 가로지르면 훨씬 빨리 도착해요. 위로 넘어가는 게 지름길이에요.",
+        art: "arctic-short",
+        fact: { value: "13,000 km · 20~24일", tone: "ice" },
+        claimIds: ["claim-nsr-distance"],
+      },
+      {
+        id: "e-compare",
+        title: "얼마나 줄어드냐면요",
+        say: "길이는 7,400km, 시간은 열흘쯤 줄어요. 기름값도 그만큼 아껴요.",
+        art: "compare-bars",
+        fact: { value: "약 36% 단축", tone: "ice" },
+        claimIds: ["claim-reduction"],
+      },
+      {
+        id: "e-season",
+        title: "그런데 바다가 얼어요",
+        say: "북극 바다는 대부분 얼어 있어요. 얼음이 녹는 여름에만 배가 지나갈 수 있어요.",
+        art: "season",
+        fact: { value: "7월 ~ 10월", tone: "ice" },
+        claimIds: ["claim-route-comparison"],
+      },
+      {
+        id: "e-icebreaker",
+        title: "얼음 깨는 배가 필요해요",
+        say: "두꺼운 얼음을 밀고 갈 수 있는 특별한 배를 쇄빙선이라고 해요. 정부가 만드는 값을 도와줘요.",
+        art: "icebreaker",
+        fact: { value: "배 한 척당 최대 110억 원", tone: "ice" },
+        claimIds: ["claim-icebreaker-support"],
+      },
+      {
+        id: "e-trial",
+        title: "2026년에 한번 가봐요",
+        say: "우리나라 회사 배가 짐을 싣고 부산에서 로테르담까지 시험 삼아 가볼 예정이에요.",
+        art: "trial-voyage",
+        fact: { value: "하반기 시범운항", tone: "ice" },
+        claimIds: ["claim-trial-voyage"],
+      },
+    ],
+    caveat: {
+      text:
+        "아직 정해지지 않은 것도 있어요. 북극 바다의 일부는 러시아를 지나가야 해서, 러시아에 대한 제재가 어떻게 되느냐에 따라 이 길을 쓸 수 있을지가 달라져요.",
+      claimIds: ["claim-russia"],
+    },
+  },
+
   graph: {
     note:
       "해양수산부 「2026년도 업무계획」과 국회도서관 『Data&Law』에서 확인된 관계만 그렸다. " +

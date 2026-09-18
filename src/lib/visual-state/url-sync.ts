@@ -2,7 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useVisualState, type SceneId, type VisualState } from "./store";
+import {
+  useVisualState,
+  type SceneId,
+  type StoryView,
+  type VisualState,
+} from "./store";
 
 /**
  * VisualState ↔ URL 양방향 동기화. **단일 지점**이다.
@@ -27,6 +32,10 @@ const SCENES: SceneId[] = [
 
 function readFromParams(params: URLSearchParams): Partial<VisualState> {
   const patch: Partial<VisualState> = {};
+
+  // easy가 기본이므로 URL에는 full일 때만 실린다.
+  const view = params.get("view");
+  if (view === "full" || view === "easy") patch.storyView = view as StoryView;
 
   const scene = params.get("scene");
   if (scene && (SCENES as string[]).includes(scene)) patch.sceneId = scene as SceneId;
@@ -60,6 +69,7 @@ function readFromParams(params: URLSearchParams): Partial<VisualState> {
 
 function writeToParams(state: VisualState): string {
   const p = new URLSearchParams();
+  if (state.storyView === "full") p.set("view", "full");
   if (state.sceneId !== "hero") p.set("scene", state.sceneId);
   if (state.motionProgress > 0) p.set("t", state.motionProgress.toFixed(3));
   if (state.activeRouteId !== "nsr") p.set("route", state.activeRouteId);

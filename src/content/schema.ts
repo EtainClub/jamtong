@@ -251,6 +251,7 @@ export const storySchema = z.object({
   moneyFlow: moneyFlowSchema.optional(),
   landUse: landUseSchema.optional(),
   graph: z.lazy(() => graphSchema).optional(),
+  eli5: z.lazy(() => eli5Schema).optional(),
   counterpoints: z.array(counterpointSchema).default([]),
   claims: z.array(claimSchema).default([]),
   sources: z.array(sourceSchema).default([]),
@@ -331,6 +332,22 @@ export function validateStory(story: Story): string[] {
 
   if (story.graph) {
     for (const error of validateGraph(story.graph, claimIds)) errors.push(error);
+  }
+
+  if (story.eli5) {
+    for (const scene of story.eli5.scenes) {
+      for (const cid of scene.claimIds) checkClaimRef(`eli5 장면 "${scene.id}"`, cid);
+    }
+    for (const cid of story.eli5.caveat?.claimIds ?? []) {
+      checkClaimRef("eli5 단서", cid);
+    }
+    const seenArt = new Set<string>();
+    for (const scene of story.eli5.scenes) {
+      if (seenArt.has(scene.art)) {
+        errors.push(`eli5 → 삽화 "${scene.art}"가 두 장면에 쓰였다`);
+      }
+      seenArt.add(scene.art);
+    }
   }
 
   for (const cp of story.counterpoints) {
@@ -578,3 +595,51 @@ export const shortSchema = z.object({
 });
 export type Short = z.infer<typeof shortSchema>;
 export type ShortInput = z.input<typeof shortSchema>;
+
+/* ────────────────────────────────────────────────────────────────
+ * 쉬운 설명 (eli5)
+ *
+ * 같은 내용을 아무것도 모르는 사람에게 여섯 장면쯤으로 전한다.
+ *
+ * 장면마다 근거를 따로 매단다. 쉽게 쓸수록 한 문장이 감당하는 주장이 커지기
+ * 때문이다. "북극으로 가면 빨라요" 한 줄 뒤에는 거리 비교 자료가 있어야 한다.
+ * ──────────────────────────────────────────────────────────────── */
+
+/** 장면 삽화 키. 스토리별 SVG 컴포넌트 레지스트리와 맞춘다. */
+export const Eli5Art = z.enum([
+  "suez-long",
+  "arctic-short",
+  "compare-bars",
+  "season",
+  "icebreaker",
+  "trial-voyage",
+]);
+export type Eli5Art = z.infer<typeof Eli5Art>;
+
+export const eli5SceneSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  /** 한두 문장. 길어지면 쉬운 설명이 아니게 된다. */
+  say: z.string(),
+  art: Eli5Art,
+  fact: z
+    .object({
+      value: z.string(),
+      tone: z.enum(["ice", "warm"]).default("ice"),
+    })
+    .optional(),
+  /** ★ 불변식: 근거 없는 장면은 그리지 않는다. */
+  claimIds: z.array(z.string()).min(1, "근거 없는 eli5 장면은 허용되지 않는다"),
+});
+export type Eli5Scene = z.infer<typeof eli5SceneSchema>;
+
+export const eli5Schema = z.object({
+  intro: z.string(),
+  scenes: z.array(eli5SceneSchema).min(2),
+  /**
+   * 아직 정해지지 않은 것. 쉽게 설명한다고 확정되지 않은 것을 확정된 것처럼
+   * 전하면 안 되므로, 단서가 있는 주제에서는 이 칸을 채운다.
+   */
+  caveat: z.object({ text: z.string(), claimIds: z.array(z.string()).min(1) }).optional(),
+});
+export type Eli5 = z.infer<typeof eli5Schema>;

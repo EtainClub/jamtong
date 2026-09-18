@@ -14,6 +14,15 @@ export type SceneId = "hero" | "route" | "compare" | "land" | "flow" | "relation
 export type PanelId = "evidence" | null;
 
 /**
+ * 스토리를 어떤 깊이로 볼지.
+ *
+ * 기본은 "easy"다. 처음 들어온 사람에게 지도와 관계도를 먼저 들이밀면
+ * 대부분 무엇을 봐야 할지 모른 채 나간다. 여섯 장면으로 얼개를 잡은 뒤
+ * 직접 움직이는 쪽으로 넘어가는 순서가 낫다.
+ */
+export type StoryView = "easy" | "full";
+
+/**
  * 진행도를 누가 몰고 있는가.
  *
  * 기본은 스크롤이다. 사용자가 배를 잡거나 키로 움직이는 순간 "manual"로 바뀌고,
@@ -25,6 +34,7 @@ export type ProgressSource = "scroll" | "manual";
 export interface VisualState {
   storyId: string | null;
   sceneId: SceneId;
+  storyView: StoryView;
 
   /** 경로 위 진행도 0..1. 사용자가 배를 끌면 여기가 바뀐다. */
   motionProgress: number;
@@ -57,6 +67,7 @@ export interface VisualState {
 
 export interface VisualActions {
   setScene: (sceneId: SceneId) => void;
+  setStoryView: (view: StoryView) => void;
   /** 사용자 조작. 이 시점부터 스크롤은 진행도를 몰지 않는다. */
   setMotionProgress: (progress: number) => void;
   /** 스크롤 구동. manual로 넘어간 뒤에는 무시된다. */
@@ -79,6 +90,7 @@ export interface VisualActions {
 export const initialVisualState: VisualState = {
   storyId: null,
   sceneId: "hero",
+  storyView: "easy",
   motionProgress: 0,
   activeRouteId: "nsr",
   showBaseline: true,
@@ -98,6 +110,7 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
   ...initialVisualState,
 
   setScene: (sceneId) => set({ sceneId }),
+  setStoryView: (storyView) => set({ storyView }),
 
   setMotionProgress: (progress) =>
     set({ motionProgress: clamp01(progress), progressSource: "manual" }),
@@ -125,6 +138,7 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
   resetView: () =>
     set({
       sceneId: "hero",
+      storyView: "easy",
       motionProgress: 0,
       timelineCursor: null,
       activeScenarioId: null,
