@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://example.invalid"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://jamtong.kr"),
   title: {
     default: "이재명 업적 위키",
     template: "%s · 이재명 업적 위키",
