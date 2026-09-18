@@ -37,6 +37,7 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       { id: "route", label: "항로" },
       { id: "compare", label: "비교" },
       { id: "timeline", label: "경과" },
+      { id: "relations", label: "관계도" },
       { id: "share", label: "공유" },
     ],
     heroHighlights: [

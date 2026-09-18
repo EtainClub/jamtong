@@ -19,6 +19,7 @@ const SCENES: SceneId[] = [
   "compare",
   "land",
   "flow",
+  "relations",
   "counterpoint",
   "timeline",
   "share",
@@ -42,6 +43,9 @@ function readFromParams(params: URLSearchParams): Partial<VisualState> {
   const cursor = params.get("at");
   if (cursor) patch.timelineCursor = cursor;
 
+  const focus = params.get("focus");
+  if (focus) patch.focusedEntityId = focus;
+
   const scenario = params.get("sc");
   if (scenario) patch.activeScenarioId = scenario;
 
@@ -61,6 +65,7 @@ function writeToParams(state: VisualState): string {
   if (state.activeRouteId !== "nsr") p.set("route", state.activeRouteId);
   if (state.timelineCursor) p.set("at", state.timelineCursor);
   if (state.activeScenarioId) p.set("sc", state.activeScenarioId);
+  if (state.focusedEntityId) p.set("focus", state.focusedEntityId);
   if (state.openPanel) p.set("panel", state.openPanel);
   if (state.selectedClaimId) p.set("claim", state.selectedClaimId);
   return p.toString();

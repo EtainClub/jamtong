@@ -123,7 +123,7 @@ export function Timeline({ events, claims }: Props) {
                         isActive ? "text-text-primary" : "text-text-muted"
                       }`}
                     >
-                      {event.date}
+                      {event.displayDate ?? event.date}
                     </span>
                     <span
                       className={`mt-0.5 block text-xs leading-snug ${
@@ -145,7 +145,9 @@ export function Timeline({ events, claims }: Props) {
         aria-live="polite"
       >
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <span className="tabular text-2xl font-bold text-ice-400">{active.date}</span>
+          <span className="tabular text-2xl font-bold text-ice-400">
+            {active.displayDate ?? active.date}
+          </span>
           <h3 className="text-lg font-semibold text-text-primary">{active.title}</h3>
           {PRECISION_NOTE[active.datePrecision] && (
             <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] text-text-muted">

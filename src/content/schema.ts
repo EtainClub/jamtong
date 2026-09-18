@@ -73,7 +73,14 @@ export type KeyNumber = z.infer<typeof keyNumberSchema>;
 
 export const timelineEventSchema = z.object({
   id: z.string(),
-  date: z.string(),
+  /**
+   * 정렬·비교용 날짜. 반드시 ISO 형태(YYYY / YYYY-MM / YYYY-MM-DD)로 둔다.
+   * 관계도가 이 값으로 시점을 필터링하므로 "2026 상반기" 같은 표기를 여기 넣으면
+   * 문자열 비교가 어긋난다.
+   */
+  date: z.string().regex(/^\d{4}(-\d{2}){0,2}$/, "date는 YYYY[-MM[-DD]] 형식이어야 한다"),
+  /** 화면 표기가 date와 다를 때만 쓴다. 예: "2026 상반기", "2016~2019" */
+  displayDate: z.string().optional(),
   datePrecision: DatePrecision,
   title: z.string(),
   summary: z.string(),
@@ -243,6 +250,7 @@ export const storySchema = z.object({
   timeline: z.array(timelineEventSchema).default([]),
   moneyFlow: moneyFlowSchema.optional(),
   landUse: landUseSchema.optional(),
+  graph: z.lazy(() => graphSchema).optional(),
   counterpoints: z.array(counterpointSchema).default([]),
   claims: z.array(claimSchema).default([]),
   sources: z.array(sourceSchema).default([]),
@@ -319,6 +327,10 @@ export function validateStory(story: Story): string[] {
     if (story.landUse.sumToleranceSqm > 1 && !story.landUse.note) {
       errors.push("landUse → 오차를 1㎡ 넘게 허용하려면 note에 이유를 적어야 한다");
     }
+  }
+
+  if (story.graph) {
+    for (const error of validateGraph(story.graph, claimIds)) errors.push(error);
   }
 
   for (const cp of story.counterpoints) {
@@ -434,6 +446,104 @@ export function validateAchievements(collection: AchievementCollection): string[
       if (!claimIds.has(cid)) {
         errors.push(`성과 카드 "${item.id}" → 존재하지 않는 claim "${cid}"`);
       }
+    }
+  }
+
+  return errors;
+}
+
+/* ────────────────────────────────────────────────────────────────
+ * 관계도 (설계서 6·7장)
+ *
+ * 가장 중요한 규칙: **Edge에 반드시 의미가 있어야 한다.**
+ *   나쁜 예   A ───── B
+ *   좋은 예   A ──[2015 사업협약 · 근거 2건]──▶ B
+ *
+ * 그리고 관계는 시간에 따라 변한다. 타임라인 커서가 움직이면 그 시점에
+ * 존재하던 관계만 남는다. 이 둘의 결합이 이 제품의 차별점이다.
+ * ──────────────────────────────────────────────────────────────── */
+
+export const EntityKind = z.enum([
+  "government", // 정부·부처
+  "organization", // 공공기관·국제기구
+  "company", // 기업·민간사업자
+  "project", // 사업·프로젝트
+  "place", // 장소·항만·지역
+  "country", // 국가
+]);
+export type EntityKind = z.infer<typeof EntityKind>;
+
+export const entitySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  kind: EntityKind,
+  description: z.string().optional(),
+  /** 화면 중앙에 두고 나머지를 둘러 배치한다. 스토리당 하나만. */
+  isFocus: z.boolean().default(false),
+});
+export type Entity = z.infer<typeof entitySchema>;
+
+export const relationSchema = z.object({
+  id: z.string(),
+  fromId: z.string(),
+  toId: z.string(),
+  /** Edge에 붙는 의미. 비워 둘 수 없다. */
+  label: z.string().min(1, "의미 없는 Edge는 허용되지 않는다"),
+  /** 관계가 성립한 시점. 타임라인 필터의 기준이다. */
+  startDate: z.string(),
+  startPrecision: DatePrecision,
+  endDate: z.string().optional(),
+  assertionType: AssertionType,
+  assertedBy: z.string().optional(),
+  /** ★ 불변식: 근거 없는 관계는 그리지 않는다. */
+  claimIds: z.array(z.string()).min(1, "근거 없는 Relation은 허용되지 않는다"),
+  /** 양방향 협력이면 화살표를 양쪽에 둔다. */
+  bidirectional: z.boolean().default(false),
+});
+export type Relation = z.infer<typeof relationSchema>;
+
+export const graphSchema = z.object({
+  entities: z.array(entitySchema).min(2),
+  relations: z.array(relationSchema).min(1),
+  note: z.string().optional(),
+});
+export type Graph = z.infer<typeof graphSchema>;
+
+export function validateGraph(graph: Graph, claimIds: Set<string>): string[] {
+  const errors: string[] = [];
+  const entityIds = new Set(graph.entities.map((e) => e.id));
+
+  const focusCount = graph.entities.filter((e) => e.isFocus).length;
+  if (focusCount > 1) errors.push(`graph → isFocus 노드가 ${focusCount}개다 (최대 1개)`);
+
+  for (const relation of graph.relations) {
+    if (!entityIds.has(relation.fromId)) {
+      errors.push(`relation "${relation.id}" → 존재하지 않는 entity "${relation.fromId}"`);
+    }
+    if (!entityIds.has(relation.toId)) {
+      errors.push(`relation "${relation.id}" → 존재하지 않는 entity "${relation.toId}"`);
+    }
+    if (relation.fromId === relation.toId) {
+      errors.push(`relation "${relation.id}" → 자기 자신을 가리킨다`);
+    }
+    for (const cid of relation.claimIds) {
+      if (!claimIds.has(cid)) {
+        errors.push(`relation "${relation.id}" → 존재하지 않는 claim "${cid}"`);
+      }
+    }
+    if (relation.assertionType === "CLAIM" && !relation.assertedBy) {
+      errors.push(`relation "${relation.id}" → CLAIM인데 assertedBy가 없다`);
+    }
+    if (relation.endDate && relation.endDate < relation.startDate) {
+      errors.push(`relation "${relation.id}" → endDate가 startDate보다 이르다`);
+    }
+  }
+
+  // 어느 관계에도 등장하지 않는 노드는 빈 점으로 남는다.
+  const connected = new Set(graph.relations.flatMap((r) => [r.fromId, r.toId]));
+  for (const entity of graph.entities) {
+    if (!connected.has(entity.id)) {
+      errors.push(`entity "${entity.id}" → 어떤 relation에도 연결되지 않았다`);
     }
   }
 

@@ -5,6 +5,8 @@ import { ScrollRouteScene } from "@/features/motion/ScrollRouteScene";
 import { KeyNumbers } from "@/features/story/KeyNumbers";
 import { RouteComparison } from "@/features/story/RouteComparison";
 import { Timeline } from "@/features/timeline/Timeline";
+import { RelationshipBoard } from "@/features/relationship/RelationshipBoard";
+import { buildGraphLayout } from "@/lib/graph/layout";
 import { ShareButton } from "@/features/story/ShareButton";
 
 /**
@@ -17,6 +19,8 @@ export function ArcticRouteLayout({ story }: { story: Story }) {
   const background = getMapBackground();
   // 경로 기하는 서버에서 화면 좌표로 구워 넘긴다. 클라이언트에 d3-geo가 필요 없다.
   const tracks = story.routes.map(buildTrack);
+  // 관계도 배치도 서버에서 굽는다. d3-force가 클라이언트로 가지 않는다.
+  const graphLayout = story.graph ? buildGraphLayout(story.graph) : null;
 
   const distanceNumbers = story.keyNumbers.filter((n) => DISTANCE_NUMBER_IDS.has(n.id));
   const supportNumbers = story.keyNumbers.filter((n) => !DISTANCE_NUMBER_IDS.has(n.id));
@@ -113,6 +117,39 @@ export function ArcticRouteLayout({ story }: { story: Story }) {
           <Timeline events={story.timeline} claims={story.claims} />
         </div>
       </section>
+
+      {/* ── Scene: 관계도 ───────────────────────────────────── */}
+      {story.graph && graphLayout && (
+        <section
+          data-scene="relations"
+          aria-labelledby="scene-relations"
+          className="mx-auto mt-20 max-w-5xl scroll-mt-14 border-t border-line px-5 pt-12"
+        >
+          <h2
+            id="scene-relations"
+            className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl"
+          >
+            누가 무엇을 하고 있나
+          </h2>
+          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-text-secondary">
+            기관·사업·항만이 어떻게 연결되는지 봅니다.
+            <strong className="font-semibold text-text-primary">
+              {" "}
+              위 연표에서 시점을 옮기면 그때까지 성립한 관계만 남습니다.
+            </strong>{" "}
+            선 위에 커서를 올리면 무슨 관계이고 근거가 무엇인지 나타납니다.
+          </p>
+
+          <div className="mt-10">
+            <RelationshipBoard
+              graph={story.graph}
+              layout={graphLayout}
+              claims={story.claims}
+              timeline={story.timeline}
+            />
+          </div>
+        </section>
+      )}
 
       {/* ── Scene: 공유 ─────────────────────────────────────── */}
       <section

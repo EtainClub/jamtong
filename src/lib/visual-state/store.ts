@@ -10,7 +10,7 @@ import { create } from "zustand";
  * AI Visual Guide가 화면을 조작할 지점도 여기 하나로 모인다.
  */
 
-export type SceneId = "hero" | "route" | "compare" | "land" | "flow" | "counterpoint" | "timeline" | "share";
+export type SceneId = "hero" | "route" | "compare" | "land" | "flow" | "relations" | "counterpoint" | "timeline" | "share";
 export type PanelId = "evidence" | null;
 
 /**
@@ -41,6 +41,11 @@ export interface VisualState {
    */
   activeScenarioId: string | null;
 
+  /** 관계도에서 집중한 노드. 선택하면 그 노드에 걸린 관계만 남는다. */
+  focusedEntityId: string | null;
+  /** 관계도에서 커서를 올린 Edge. 의미와 근거를 띄운다. */
+  hoveredRelationId: string | null;
+
   openPanel: PanelId;
   selectedClaimId: string | null;
 
@@ -62,6 +67,8 @@ export interface VisualActions {
   toggleBaseline: () => void;
   seekTimeline: (eventId: string | null) => void;
   setScenario: (scenarioId: string) => void;
+  focusEntity: (entityId: string | null) => void;
+  hoverRelation: (relationId: string | null) => void;
   openEvidence: (claimId: string) => void;
   closePanel: () => void;
   setScrubbing: (scrubbing: boolean) => void;
@@ -77,6 +84,8 @@ export const initialVisualState: VisualState = {
   showBaseline: true,
   timelineCursor: null,
   activeScenarioId: null,
+  focusedEntityId: null,
+  hoveredRelationId: null,
   openPanel: null,
   selectedClaimId: null,
   isScrubbing: false,
@@ -105,6 +114,10 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
   seekTimeline: (timelineCursor) => set({ timelineCursor }),
   setScenario: (activeScenarioId) => set({ activeScenarioId }),
 
+  focusEntity: (entityId) =>
+    set((s) => ({ focusedEntityId: s.focusedEntityId === entityId ? null : entityId })),
+  hoverRelation: (hoveredRelationId) => set({ hoveredRelationId }),
+
   openEvidence: (claimId) => set({ openPanel: "evidence", selectedClaimId: claimId }),
   closePanel: () => set({ openPanel: null, selectedClaimId: null }),
   setScrubbing: (isScrubbing) => set({ isScrubbing }),
@@ -115,6 +128,8 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
       motionProgress: 0,
       timelineCursor: null,
       activeScenarioId: null,
+      focusedEntityId: null,
+      hoveredRelationId: null,
       openPanel: null,
       selectedClaimId: null,
       progressSource: "scroll",
