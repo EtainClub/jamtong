@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useVisualState, type SceneId } from "@/lib/visual-state/store";
+import type { SceneNavItem } from "./scenes";
 
 /**
  * 씬 내비게이션 + 스크롤 관찰자.
@@ -10,11 +11,6 @@ import { useVisualState, type SceneId } from "@/lib/visual-state/store";
  * 표시에만 쓰이지만, AI Visual Guide가 GO_TO_SCENE을 실행할 때 기준이 되는
  * 좌표이기도 하다. 그래서 지역 상태가 아니라 전역 상태에 둔다.
  */
-
-export interface SceneNavItem {
-  id: SceneId;
-  label: string;
-}
 
 export function SceneNav({ scenes }: { scenes: SceneNavItem[] }) {
   const sceneId = useVisualState((s) => s.sceneId);

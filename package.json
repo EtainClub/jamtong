@@ -9,9 +9,11 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "validate": "tsx scripts/validate-content.ts",
-    "check": "pnpm validate && pnpm typecheck && pnpm lint"
+    "check": "pnpm validate && pnpm agent:check && pnpm typecheck && pnpm lint",
+    "agent:check": "tsx scripts/agent-check.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.126.0",
     "d3-geo": "^3.1.1",
     "motion": "^13.4.0",
     "next": "16.3.5",

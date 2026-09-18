@@ -10,7 +10,9 @@ import { StoryHero } from "@/features/story/StoryHero";
 import { DraftBanner } from "@/features/story/DraftBanner";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareButton } from "@/features/story/ShareButton";
-import { SceneNav, type SceneNavItem } from "@/features/story/SceneNav";
+import { SceneNav } from "@/features/story/SceneNav";
+import { SCENES_BY_STORY } from "@/features/story/scenes";
+import { AskGuide } from "@/features/agent/AskGuide";
 import { StoryViewSwitch, StoryViewToggle } from "@/features/story/StoryView";
 import { Eli5Section } from "@/features/eli5/Eli5Section";
 import { UrlSyncBoundary } from "@/features/story/UrlSyncBoundary";
@@ -27,39 +29,34 @@ import { DaejangdongLayout } from "@/features/story/layouts/DaejangdongLayout";
 
 type LayoutConfig = {
   Layout: (props: { story: Story }) => React.ReactNode;
-  scenes: SceneNavItem[];
   heroHighlights?: { claimId: string; label: string }[];
+  /** AI 안내 패널을 열었을 때 먼저 보여줄 질문. */
+  askSuggestions: string[];
 };
 
 const LAYOUTS: Record<string, LayoutConfig> = {
   "arctic-route": {
     Layout: ArcticRouteLayout,
-    scenes: [
-      { id: "hero", label: "개요" },
-      { id: "route", label: "항로" },
-      { id: "compare", label: "비교" },
-      { id: "timeline", label: "경과" },
-      { id: "relations", label: "관계도" },
-      { id: "share", label: "공유" },
-    ],
     heroHighlights: [
       { claimId: "claim-shortest-route", label: "최단거리 항로" },
       { claimId: "claim-trial-voyage", label: "시범운항 계획" },
     ],
+    askSuggestions: [
+      "얼마나 짧아지나요?",
+      "2026년에 무슨 일이 있나요?",
+      "러시아 제재가 왜 변수인가요?",
+    ],
   },
   daejangdong: {
     Layout: DaejangdongLayout,
-    scenes: [
-      { id: "hero", label: "개요" },
-      { id: "timeline", label: "경과" },
-      { id: "land", label: "토지이용" },
-      { id: "flow", label: "자금 흐름" },
-      { id: "counterpoint", label: "쟁점" },
-      { id: "share", label: "공유" },
-    ],
     heroHighlights: [
       { claimId: "claim-combined-district", label: "결합 개발구역" },
       { claimId: "claim-land-use", label: "토지이용계획" },
+    ],
+    askSuggestions: [
+      "공공이 가져간 게 뭔가요?",
+      "민간개발이었으면 어떻게 달랐나요?",
+      "2014년에 무슨 결정이 있었나요?",
     ],
   },
 };
@@ -101,7 +98,8 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
     throw new Error(`콘텐츠 검증 실패 (${story.slug}):\n${errors.join("\n")}`);
   }
 
-  const { Layout, scenes, heroHighlights } = config;
+  const { Layout, heroHighlights, askSuggestions } = config;
+  const scenes = SCENES_BY_STORY[story.slug] ?? [];
 
   return (
     <>
@@ -144,6 +142,11 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
         </div>
       </main>
 
+      <AskGuide
+        storySlug={story.slug}
+        claims={story.claims}
+        suggestions={askSuggestions}
+      />
       <EvidenceDrawer claims={story.claims} sources={story.sources} />
     </>
   );
