@@ -1,6 +1,6 @@
 import { getPublishedStories } from "@/content/stories";
 import { ACHIEVEMENTS, ALL_CLAIMS, ALL_SOURCES } from "@/content/achievements";
-import { validateAchievements, type Achievement } from "@/content/schema";
+import { findScene, validateAchievements, type Achievement } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { HomeFeed, type HeroSlide } from "@/features/home/HomeFeed";
@@ -57,8 +57,11 @@ export default function Home() {
     subtitle: story.summary.split(". ")[0] + ".",
     href: `/story/${story.slug}`,
     note: "직접 움직여보기",
-    visual:
-      story.routes.length > 0 ? <ArcticHeroVisual routes={story.routes} /> : undefined,
+    // 지도 씬을 가진 스토리만 지도를 배경으로 쓴다.
+    visual: (() => {
+      const map = findScene(story, "route-map");
+      return map ? <ArcticHeroVisual routes={map.routes} /> : undefined;
+    })(),
   }));
 
   // 숫자가 있는 항목을 앞에 세운다. 카드 하나에 남는 것은 결국 숫자 하나다.

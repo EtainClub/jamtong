@@ -242,17 +242,12 @@ export const storySchema = z.object({
    * 검증 전 골격이 실수로 공개되는 경로를 아예 없앤다.
    */
   publishStatus: z.enum(["draft", "published"]).default("draft"),
-  routes: z.array(routeSchema).default([]),
-  comparisons: z.array(routeComparisonSchema).default([]),
-  /** 비교의 전제 조건. 수치만 보여주고 조건을 숨기면 오도가 된다. */
-  comparisonNote: z.string().optional(),
+  /** 스토리 전용 개념. 종류마다 데이터가 다르고, 전부 claimIds를 갖는다. */
+  scenes: z.lazy(() => z.array(storySceneSchema)).default([]),
   keyNumbers: z.array(keyNumberSchema).default([]),
   timeline: z.array(timelineEventSchema).default([]),
-  moneyFlow: moneyFlowSchema.optional(),
-  landUse: landUseSchema.optional(),
   graph: z.lazy(() => graphSchema).optional(),
   eli5: z.lazy(() => eli5Schema).optional(),
-  indexSeries: z.lazy(() => indexSeriesSchema).optional(),
   counterpoints: z.array(counterpointSchema).default([]),
   claims: z.array(claimSchema).default([]),
   sources: z.array(sourceSchema).default([]),
@@ -290,54 +285,20 @@ export function validateStory(story: Story): string[] {
   };
 
   for (const n of story.keyNumbers) checkClaimRef(`keyNumber "${n.id}"`, n.claimId);
-  for (const r of story.routes) checkClaimRef(`route "${r.id}"`, r.claimId);
-  for (const c of story.comparisons) {
-    checkClaimRef(`comparison "${c.id}"`, c.claimId);
-    if (c.daysMin > c.daysMax) {
-      errors.push(`comparison "${c.id}" → daysMin이 daysMax보다 크다`);
-    }
-  }
   for (const e of story.timeline) {
     for (const cid of e.claimIds) checkClaimRef(`event "${e.id}"`, cid);
   }
 
-  for (const flow of story.moneyFlow ? [story.moneyFlow] : []) {
-    for (const scenario of flow.scenarios) {
-      checkClaimRef(`scenario "${scenario.id}"`, scenario.claimId);
-      for (const allocation of scenario.allocations) {
-        checkClaimRef(`allocation "${allocation.id}"`, allocation.claimId);
-      }
-    }
-    if (!flow.scenarios.some((sc) => sc.isActual)) {
-      errors.push(`moneyFlow → 실제 구조(isActual)인 시나리오가 없다`);
-    }
-  }
-
-  if (story.landUse) {
-    checkClaimRef("landUse", story.landUse.claimId);
-    const sum = story.landUse.groups.reduce((t, g) => t + g.sharePercent, 0);
-    if (Math.abs(sum - 100) > 0.5) {
-      errors.push(`landUse → 최상위 구성비 합이 ${sum.toFixed(1)}%다 (100%여야 한다)`);
-    }
-    const area = story.landUse.groups.reduce((t, g) => t + g.areaSqm, 0);
-    const gap = Math.abs(area - story.landUse.totalSqm);
-    if (gap > story.landUse.sumToleranceSqm) {
-      errors.push(
-        `landUse → 구성 면적 합(${area})이 총면적(${story.landUse.totalSqm})과 ${gap.toFixed(1)}㎡ 다르다`,
-      );
-    }
-    if (story.landUse.sumToleranceSqm > 1 && !story.landUse.note) {
-      errors.push("landUse → 오차를 1㎡ 넘게 허용하려면 note에 이유를 적어야 한다");
-    }
+  // 씬 검사는 한 곳으로 모은다. 종류가 늘어도 여기는 그대로다.
+  const sceneIds = new Set<string>();
+  for (const scene of story.scenes) {
+    if (sceneIds.has(scene.id)) errors.push(`씬 id가 중복이다: "${scene.id}"`);
+    sceneIds.add(scene.id);
+    for (const error of validateScene(scene, checkClaimRef)) errors.push(error);
   }
 
   if (story.graph) {
     for (const error of validateGraph(story.graph, claimIds)) errors.push(error);
-  }
-
-  if (story.indexSeries) {
-    checkClaimRef("indexSeries", story.indexSeries.claimId);
-    for (const error of validateIndexSeries(story.indexSeries)) errors.push(error);
   }
 
   if (story.eli5) {
@@ -701,6 +662,133 @@ export function validateIndexSeries(series: IndexSeries): string[] {
     errors.push(
       "indexSeries → 마지막 점이 최고값이다. 구간을 자른 게 아니라면 note에 기준 시점을 밝혀야 한다",
     );
+  }
+
+  return errors;
+}
+
+/* ────────────────────────────────────────────────────────────────
+ * 씬 — 스토리 전용 개념의 확장 지점
+ *
+ * 스토리 셋을 만들고 나서 확인된 것:
+ *   북극항로 → 항로(공간)
+ *   대장동   → 토지·자금(몫)
+ *   주식시장 → 지수(시계열)
+ * 스토리마다 정확히 하나씩 새 개념을 들고 왔고, 하나도 재사용되지 않았다.
+ *
+ * 그래서 전용 개념을 최상위 필드로 붙이면 스키마가 스토리 수만큼 자란다.
+ * 여기 꽂게 하면 새 스토리가 storySchema를 건드리지 않는다.
+ *
+ * 더 중요한 이득: 모든 씬이 claimIds를 균일하게 갖는다. 전용 개념이 생길 때마다
+ * 4.2 불변식을 손으로 다시 배선하던 것을 한 곳에서 강제한다.
+ *
+ * 배치는 여전히 레이아웃이 하드코딩한다. 씬은 데이터의 단위이지
+ * 화면 구성의 단위가 아니다 — 그건 스토리가 더 쌓인 뒤에 판단할 일이다.
+ * ──────────────────────────────────────────────────────────────── */
+
+const sceneBase = {
+  id: z.string(),
+  /** 섹션 제목. 레이아웃이 그대로 쓴다. */
+  heading: z.string(),
+  /** 제목 아래 한두 문장. */
+  lede: z.string().optional(),
+  /** ★ 불변식: 근거 없는 씬은 렌더링하지 않는다. */
+  claimIds: z.array(z.string()).min(1, "근거 없는 씬은 허용되지 않는다"),
+};
+
+export const storySceneSchema = z.discriminatedUnion("kind", [
+  z.object({
+    ...sceneBase,
+    kind: z.literal("route-map"),
+    routes: z.array(routeSchema).min(1),
+  }),
+  z.object({
+    ...sceneBase,
+    kind: z.literal("route-compare"),
+    comparisons: z.array(routeComparisonSchema).min(2),
+    note: z.string().optional(),
+  }),
+  z.object({
+    ...sceneBase,
+    kind: z.literal("land-use"),
+    landUse: landUseSchema,
+  }),
+  z.object({
+    ...sceneBase,
+    kind: z.literal("money-flow"),
+    flow: moneyFlowSchema,
+  }),
+  z.object({
+    ...sceneBase,
+    kind: z.literal("index-series"),
+    series: indexSeriesSchema,
+  }),
+]);
+export type StoryScene = z.infer<typeof storySceneSchema>;
+export type SceneKind = StoryScene["kind"];
+
+/** 특정 종류의 씬을 타입이 맞게 꺼낸다. 히어로 비주얼처럼 한 종류만 필요한 곳에서 쓴다. */
+export function findScene<K extends SceneKind>(
+  story: Story,
+  kind: K,
+): Extract<StoryScene, { kind: K }> | undefined {
+  return story.scenes.find((s): s is Extract<StoryScene, { kind: K }> => s.kind === kind);
+}
+
+/** 씬 하나를 검사한다. 종류가 늘어도 호출부는 그대로다. */
+export function validateScene(
+  scene: StoryScene,
+  checkClaim: (owner: string, claimId: string) => void,
+): string[] {
+  const errors: string[] = [];
+  const where = `scene "${scene.id}"`;
+
+  for (const cid of scene.claimIds) checkClaim(where, cid);
+
+  switch (scene.kind) {
+    case "route-map":
+      for (const route of scene.routes) checkClaim(`${where} route "${route.id}"`, route.claimId);
+      break;
+
+    case "route-compare":
+      for (const c of scene.comparisons) {
+        checkClaim(`${where} comparison "${c.id}"`, c.claimId);
+        if (c.daysMin > c.daysMax) errors.push(`${where} → "${c.id}"의 daysMin이 daysMax보다 크다`);
+      }
+      break;
+
+    case "land-use": {
+      const { landUse } = scene;
+      const share = landUse.groups.reduce((t, g) => t + g.sharePercent, 0);
+      if (Math.abs(share - 100) > 0.5) {
+        errors.push(`${where} → 구성비 합이 ${share.toFixed(1)}%다 (100%여야 한다)`);
+      }
+      const area = landUse.groups.reduce((t, g) => t + g.areaSqm, 0);
+      const gap = Math.abs(area - landUse.totalSqm);
+      if (gap > landUse.sumToleranceSqm) {
+        errors.push(
+          `${where} → 면적 합(${area})이 총면적(${landUse.totalSqm})과 ${gap.toFixed(1)}㎡ 다르다`,
+        );
+      }
+      if (landUse.sumToleranceSqm > 1 && !landUse.note) {
+        errors.push(`${where} → 오차를 1㎡ 넘게 허용하려면 note에 이유를 적어야 한다`);
+      }
+      break;
+    }
+
+    case "money-flow":
+      for (const scenario of scene.flow.scenarios) {
+        checkClaim(`${where} scenario "${scenario.id}"`, scenario.claimId);
+        for (const a of scenario.allocations) checkClaim(`${where} allocation "${a.id}"`, a.claimId);
+      }
+      if (!scene.flow.scenarios.some((s) => s.isActual)) {
+        errors.push(`${where} → 실제 구조(isActual)인 시나리오가 없다`);
+      }
+      break;
+
+    case "index-series":
+      for (const error of validateIndexSeries(scene.series)) errors.push(`${where} → ${error}`);
+      break;
   }
 
   return errors;

@@ -1,4 +1,4 @@
-import type { Story } from "@/content/schema";
+import { findScene, type Story } from "@/content/schema";
 import type { ActionInventory } from "./actions";
 
 /**
@@ -65,9 +65,12 @@ export function buildGrounding(story: Story, availableScenes: string[]): Groundi
     lines.push("");
   }
 
-  if (story.routes.length > 0) {
+  const routeMap = findScene(story, "route-map");
+  const moneyFlow = findScene(story, "money-flow");
+
+  if (routeMap) {
     lines.push("## 항로 — SET_ROUTE의 targetId");
-    for (const route of story.routes) {
+    for (const route of routeMap.routes) {
       lines.push(
         `- ${route.id}: ${route.name}, ${route.totalKm.toLocaleString("ko-KR")}km, ${route.totalDaysMin}~${route.totalDaysMax}일`,
       );
@@ -75,9 +78,9 @@ export function buildGrounding(story: Story, availableScenes: string[]): Groundi
     lines.push("");
   }
 
-  if (story.moneyFlow) {
+  if (moneyFlow) {
     lines.push("## 자금 흐름 시나리오 — SET_SCENARIO의 targetId");
-    for (const scenario of story.moneyFlow.scenarios) {
+    for (const scenario of moneyFlow.flow.scenarios) {
       const total = scenario.allocations.reduce((sum, a) => sum + a.amountEok, 0);
       lines.push(
         `- ${scenario.id}: ${scenario.name} (공공 몫 ${total.toLocaleString("ko-KR")}억 원)`,
@@ -99,8 +102,8 @@ export function buildGrounding(story: Story, availableScenes: string[]): Groundi
       sceneIds: new Set(availableScenes),
       eventIds: new Set(story.timeline.map((e) => e.id)),
       entityIds: new Set(story.graph?.entities.map((e) => e.id) ?? []),
-      routeIds: new Set(story.routes.map((r) => r.id)),
-      scenarioIds: new Set(story.moneyFlow?.scenarios.map((s) => s.id) ?? []),
+      routeIds: new Set(routeMap?.routes.map((r) => r.id) ?? []),
+      scenarioIds: new Set(moneyFlow?.flow.scenarios.map((s) => s.id) ?? []),
       claimIds: new Set(story.claims.map((c) => c.id)),
     },
   };

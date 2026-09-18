@@ -31,28 +31,39 @@ const raw: StoryInput = {
   type: "event",
   publishStatus: "draft",
 
-  indexSeries: {
-    name: "코스피",
-    unit: "포인트",
-    claimId: "claim-index-series",
-    note:
-      "돌파·붕괴가 보도된 날의 지수대만 표시한 개략 시계열이다. 일별 종가 전체가 아니며, " +
-      "마지막 점(2026년 7월 29일) 이후 구간은 아직 반영하지 않았다. " +
-      "한국거래소 일별 종가로 대조한 뒤 확정한다.",
-    points: [
-      { date: "2025-06-11", value: 2900, milestone: true, label: "2,900선" },
-      { date: "2025-06-20", value: 3000, milestone: true, label: "3,000선 회복" },
-      { date: "2025-06-24", value: 3100, milestone: false },
-      { date: "2025-10-27", value: 4000, milestone: true, label: "4,000선" },
-      { date: "2026-01-22", value: 5000, milestone: true, label: "5,000선" },
-      { date: "2026-02-25", value: 6000, milestone: false },
-      { date: "2026-05-06", value: 7000, milestone: false },
-      { date: "2026-05-15", value: 8000, milestone: false },
-      { date: "2026-06-18", value: 9000, milestone: true, label: "9,000선 · 고점" },
-      { date: "2026-07-13", value: 7000, milestone: true, label: "7,000선 하회" },
-      { date: "2026-07-29", value: 6000, milestone: true, label: "6,000선 하회" },
-    ],
-  },
+  scenes: [
+    {
+      id: "index-series",
+      kind: "index-series",
+      heading: "지수는 오르고, 또 내렸습니다",
+      lede:
+        "오른 구간만 보여주면 자료가 아니라 선전물입니다. 고점 이후 되밀린 구간까지 함께 싣습니다. 아래 연표에서 시점을 옮기면 차트에도 그 시점이 찍힙니다.",
+      claimIds: ["claim-index-series", "claim-drawdown"],
+      series: {
+        name: "코스피",
+        unit: "포인트",
+        claimId: "claim-index-series",
+        note:
+          "돌파·붕괴가 보도된 날의 지수대만 표시한 개략 시계열이다. 일별 종가 전체가 아니며, " +
+          "마지막 점(2026년 7월 29일) 이후 구간은 아직 반영하지 않았다. " +
+          "한국거래소 일별 종가로 대조한 뒤 확정한다.",
+        points: [
+          { date: "2025-06-11", value: 2900, milestone: true, label: "2,900선" },
+          { date: "2025-06-20", value: 3000, milestone: true, label: "3,000선 회복" },
+          { date: "2025-06-24", value: 3100, milestone: false },
+          { date: "2025-10-27", value: 4000, milestone: true, label: "4,000선" },
+          { date: "2026-01-22", value: 5000, milestone: true, label: "5,000선" },
+          { date: "2026-02-25", value: 6000, milestone: false },
+          { date: "2026-05-06", value: 7000, milestone: false },
+          { date: "2026-05-15", value: 8000, milestone: false },
+          { date: "2026-06-18", value: 9000, milestone: true, label: "9,000선 · 고점" },
+          { date: "2026-07-13", value: 7000, milestone: true, label: "7,000선 하회" },
+          { date: "2026-07-29", value: 6000, milestone: true, label: "6,000선 하회" },
+        ],
+      },
+
+    },
+  ],
 
   keyNumbers: [
     {

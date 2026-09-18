@@ -36,136 +36,155 @@ const raw: StoryInput = {
   type: "event",
   publishStatus: "draft",
 
-  landUse: {
-    totalSqm: 917068.8,
-    claimId: "claim-land-use",
-    // 공개 표의 주거용지 소계가 제 하위 항목 합과 9㎡ 어긋난다. 자료에 적힌 값을
-    // 그대로 싣고 차이를 note에 밝힌다. 임의로 고치면 인용이 아니게 된다.
-    sumToleranceSqm: 10,
-    note:
-      "성남도시개발공사가 공개한 토지이용계획표다. 공공용지에는 공원·녹지·도로·학교 등 " +
-      "사업 완료 후 공공이 관리하는 용지가 포함된다. " +
-      "다만 공개된 표의 주거용지 소계(417,976.7㎡)는 하위 항목 합(417,967.7㎡)과 9㎡ 차이가 있다. " +
-      "여기서는 자료에 적힌 소계를 그대로 싣는다.",
-    groups: [
-      {
-        id: "lu-residential",
-        label: "주거용지",
-        areaSqm: 417976.7,
-        sharePercent: 45.6,
-        group: "residential",
-        detail: "아파트·연립·단독·준주거",
+  scenes: [
+    {
+      id: "land-use",
+      kind: "land-use",
+      heading: "땅은 어떻게 나뉘었나",
+      lede:
+        "금액을 따지기 전에 부지가 무엇으로 계획되었는지부터 봅니다. 인허가 고시에 실리는 값이라 다툼의 여지가 가장 적은 숫자입니다.",
+      claimIds: ["claim-land-use"],
+      landUse: {
+        totalSqm: 917068.8,
+        claimId: "claim-land-use",
+        // 공개 표의 주거용지 소계가 제 하위 항목 합과 9㎡ 어긋난다. 자료에 적힌 값을
+        // 그대로 싣고 차이를 note에 밝힌다. 임의로 고치면 인용이 아니게 된다.
+        sumToleranceSqm: 10,
+        note:
+          "성남도시개발공사가 공개한 토지이용계획표다. 공공용지에는 공원·녹지·도로·학교 등 " +
+          "사업 완료 후 공공이 관리하는 용지가 포함된다. " +
+          "다만 공개된 표의 주거용지 소계(417,976.7㎡)는 하위 항목 합(417,967.7㎡)과 9㎡ 차이가 있다. " +
+          "여기서는 자료에 적힌 소계를 그대로 싣는다.",
+        groups: [
+          {
+            id: "lu-residential",
+            label: "주거용지",
+            areaSqm: 417976.7,
+            sharePercent: 45.6,
+            group: "residential",
+            detail: "아파트·연립·단독·준주거",
+          },
+          {
+            id: "lu-commercial",
+            label: "상업시설용지",
+            areaSqm: 8353.5,
+            sharePercent: 0.9,
+            group: "commercial",
+          },
+          {
+            id: "lu-public",
+            label: "공공용지",
+            areaSqm: 490747.6,
+            sharePercent: 53.5,
+            group: "public",
+            detail: "공원·녹지·도로·학교 등",
+          },
+        ],
+        publicBreakdown: [
+          { id: "lu-green", label: "녹지", areaSqm: 168847.3, sharePercent: 18.4, group: "public" },
+          { id: "lu-road", label: "도로", areaSqm: 147175.9, sharePercent: 16.0, group: "public" },
+          { id: "lu-park", label: "공원", areaSqm: 109349.2, sharePercent: 11.9, group: "public" },
+          {
+            id: "lu-school",
+            label: "학교",
+            areaSqm: 19100.9,
+            sharePercent: 2.1,
+            group: "public",
+            detail: "초등학교 1, 중학교 1",
+          },
+          { id: "lu-detention", label: "저류지", areaSqm: 12217.7, sharePercent: 1.3, group: "public" },
+          { id: "lu-plaza", label: "공공공지", areaSqm: 8726.2, sharePercent: 1.0, group: "public" },
+          { id: "lu-kinder", label: "유치원", areaSqm: 4899.8, sharePercent: 0.5, group: "public" },
+          {
+            id: "lu-civic",
+            label: "커뮤니티시설(공공청사)",
+            areaSqm: 3482.5,
+            sharePercent: 0.4,
+            group: "public",
+          },
+          { id: "lu-welfare", label: "사회복지시설", areaSqm: 3142.7, sharePercent: 0.3, group: "public" },
+          { id: "lu-power", label: "전기공급설비", areaSqm: 3092.9, sharePercent: 0.3, group: "public" },
+          { id: "lu-culture", label: "복합문화시설", areaSqm: 1863.0, sharePercent: 0.2, group: "public" },
+          { id: "lu-parking", label: "주차장", areaSqm: 6182.3, sharePercent: 0.7, group: "public" },
+          { id: "lu-bus", label: "버스차고지", areaSqm: 1390.2, sharePercent: 0.2, group: "public" },
+          { id: "lu-religion", label: "종교시설", areaSqm: 1112.0, sharePercent: 0.1, group: "public" },
+          { id: "lu-telecom", label: "통신시설용지", areaSqm: 165.0, sharePercent: 0.1, group: "public" },
+        ],
       },
-      {
-        id: "lu-commercial",
-        label: "상업시설용지",
-        areaSqm: 8353.5,
-        sharePercent: 0.9,
-        group: "commercial",
-      },
-      {
-        id: "lu-public",
-        label: "공공용지",
-        areaSqm: 490747.6,
-        sharePercent: 53.5,
-        group: "public",
-        detail: "공원·녹지·도로·학교 등",
-      },
-    ],
-    publicBreakdown: [
-      { id: "lu-green", label: "녹지", areaSqm: 168847.3, sharePercent: 18.4, group: "public" },
-      { id: "lu-road", label: "도로", areaSqm: 147175.9, sharePercent: 16.0, group: "public" },
-      { id: "lu-park", label: "공원", areaSqm: 109349.2, sharePercent: 11.9, group: "public" },
-      {
-        id: "lu-school",
-        label: "학교",
-        areaSqm: 19100.9,
-        sharePercent: 2.1,
-        group: "public",
-        detail: "초등학교 1, 중학교 1",
-      },
-      { id: "lu-detention", label: "저류지", areaSqm: 12217.7, sharePercent: 1.3, group: "public" },
-      { id: "lu-plaza", label: "공공공지", areaSqm: 8726.2, sharePercent: 1.0, group: "public" },
-      { id: "lu-kinder", label: "유치원", areaSqm: 4899.8, sharePercent: 0.5, group: "public" },
-      {
-        id: "lu-civic",
-        label: "커뮤니티시설(공공청사)",
-        areaSqm: 3482.5,
-        sharePercent: 0.4,
-        group: "public",
-      },
-      { id: "lu-welfare", label: "사회복지시설", areaSqm: 3142.7, sharePercent: 0.3, group: "public" },
-      { id: "lu-power", label: "전기공급설비", areaSqm: 3092.9, sharePercent: 0.3, group: "public" },
-      { id: "lu-culture", label: "복합문화시설", areaSqm: 1863.0, sharePercent: 0.2, group: "public" },
-      { id: "lu-parking", label: "주차장", areaSqm: 6182.3, sharePercent: 0.7, group: "public" },
-      { id: "lu-bus", label: "버스차고지", areaSqm: 1390.2, sharePercent: 0.2, group: "public" },
-      { id: "lu-religion", label: "종교시설", areaSqm: 1112.0, sharePercent: 0.1, group: "public" },
-      { id: "lu-telecom", label: "통신시설용지", areaSqm: 165.0, sharePercent: 0.1, group: "public" },
-    ],
-  },
 
-  moneyFlow: {
-    sourceLabel: "대장동 개발이익",
-    unitLabel: "억 원",
-    note:
-      "이 그림은 개발이익 가운데 공공이 환수한 몫만 다룬다. 전체 개발이익 규모와 " +
-      "민간 배분액은 이 자료의 범위 밖이며, 왼쪽 기둥은 축척이 아니라 출처를 나타낸다. " +
-      "공공 환수분의 구성과 금액은 편집팀 검증 전 골격으로, 성남도시개발공사 제출 자료로 대조한 뒤 확정한다.",
-    scenarios: [
-      {
-        id: "sc-ppp",
-        name: "민관합동 (실제 추진된 구조)",
-        summary:
-          "성남도시개발공사가 사업에 참여해 개발이익 중 일부를 사전에 확정된 몫으로 환수했다.",
-        isActual: true,
-        claimId: "claim-ppp-structure",
-        allocations: [
+    },
+    {
+      id: "money-flow",
+      kind: "money-flow",
+      heading: "돈은 어디로 갔나",
+      lede:
+        "시나리오를 바꿔 보십시오. 같은 사업이 다른 구조였다면 공공으로 흐르는 몫이 어떻게 달라지는지 폭으로 나타납니다.",
+      claimIds: ["claim-recovery-total", "claim-recovery-breakdown"],
+      flow: {
+        sourceLabel: "대장동 개발이익",
+        unitLabel: "억 원",
+        note:
+          "이 그림은 개발이익 가운데 공공이 환수한 몫만 다룬다. 전체 개발이익 규모와 " +
+          "민간 배분액은 이 자료의 범위 밖이며, 왼쪽 기둥은 축척이 아니라 출처를 나타낸다. " +
+          "공공 환수분의 구성과 금액은 편집팀 검증 전 골격으로, 성남도시개발공사 제출 자료로 대조한 뒤 확정한다.",
+        scenarios: [
           {
-            id: "al-park",
-            label: "제1공단 공원 조성",
-            amountEok: 2561,
-            kind: "public",
-            detail: "도심 공원 조성 및 지하주차장",
-            claimId: "claim-recovery-breakdown",
+            id: "sc-ppp",
+            name: "민관합동 (실제 추진된 구조)",
+            summary:
+              "성남도시개발공사가 사업에 참여해 개발이익 중 일부를 사전에 확정된 몫으로 환수했다.",
+            isActual: true,
+            claimId: "claim-ppp-structure",
+            allocations: [
+              {
+                id: "al-park",
+                label: "제1공단 공원 조성",
+                amountEok: 2561,
+                kind: "public",
+                detail: "도심 공원 조성 및 지하주차장",
+                claimId: "claim-recovery-breakdown",
+              },
+              {
+                id: "al-infra",
+                label: "기반시설 조성",
+                amountEok: 1120,
+                kind: "public",
+                detail: "터널·도로 등 광역 기반시설",
+                claimId: "claim-recovery-breakdown",
+              },
+              {
+                id: "al-dividend",
+                label: "확정이익 배당",
+                amountEok: 1822,
+                kind: "public",
+                detail: "성남도시개발공사 우선주 배당",
+                claimId: "claim-recovery-breakdown",
+              },
+            ],
           },
           {
-            id: "al-infra",
-            label: "기반시설 조성",
-            amountEok: 1120,
-            kind: "public",
-            detail: "터널·도로 등 광역 기반시설",
-            claimId: "claim-recovery-breakdown",
-          },
-          {
-            id: "al-dividend",
-            label: "확정이익 배당",
-            amountEok: 1822,
-            kind: "public",
-            detail: "성남도시개발공사 우선주 배당",
-            claimId: "claim-recovery-breakdown",
-          },
-        ],
-      },
-      {
-        id: "sc-private",
-        name: "순수 민간개발 (LH 철수 후 예정되었던 경로)",
-        summary:
-          "LH가 사업에서 빠진 뒤 대장동은 민간개발로 넘어갈 상황이었다. 그 경로에서 공공이 환수하는 개발이익은 없다.",
-        isActual: false,
-        claimId: "claim-private-path",
-        allocations: [
-          {
-            id: "al-none",
-            label: "공공 환수",
-            amountEok: 0,
-            kind: "none",
-            detail: "민간개발에서 공공은 개발이익을 환수하지 않는다",
+            id: "sc-private",
+            name: "순수 민간개발 (LH 철수 후 예정되었던 경로)",
+            summary:
+              "LH가 사업에서 빠진 뒤 대장동은 민간개발로 넘어갈 상황이었다. 그 경로에서 공공이 환수하는 개발이익은 없다.",
+            isActual: false,
             claimId: "claim-private-path",
+            allocations: [
+              {
+                id: "al-none",
+                label: "공공 환수",
+                amountEok: 0,
+                kind: "none",
+                detail: "민간개발에서 공공은 개발이익을 환수하지 않는다",
+                claimId: "claim-private-path",
+              },
+            ],
           },
         ],
       },
-    ],
-  },
+
+    },
+  ],
 
   keyNumbers: [
     {

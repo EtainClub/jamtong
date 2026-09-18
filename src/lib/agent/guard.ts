@@ -147,7 +147,20 @@ export function buildTopicIndex(story: Story, sceneLabels: string[]): string {
     ...story.claims.map((c) => c.text),
     ...(story.graph?.entities.map((e) => e.name) ?? []),
     ...(story.graph?.relations.map((r) => r.label) ?? []),
-    ...story.routes.map((r) => r.name),
+    // 씬 종류마다 이름이 있는 자리가 다르다. 색인은 느슨해도 되므로 있는 것만 모은다.
+    ...story.scenes.flatMap((scene) => [
+      scene.heading,
+      scene.lede ?? "",
+      ...(scene.kind === "route-map" ? scene.routes.map((r) => r.name) : []),
+      ...(scene.kind === "route-compare" ? scene.comparisons.map((c) => c.name) : []),
+      ...(scene.kind === "land-use"
+        ? scene.landUse.groups.map((g) => g.label)
+        : []),
+      ...(scene.kind === "money-flow"
+        ? scene.flow.scenarios.map((sc) => `${sc.name} ${sc.summary}`)
+        : []),
+      ...(scene.kind === "index-series" ? [scene.series.name] : []),
+    ]),
     ...story.keyNumbers.map((n) => `${n.label} ${n.caption ?? ""}`),
     ...(story.eli5?.scenes.flatMap((s) => [s.title, s.say]) ?? []),
     ...story.counterpoints.flatMap((c) => [c.question, c.response]),
