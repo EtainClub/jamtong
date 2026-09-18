@@ -108,3 +108,12 @@ body {
     color: #000;
   }
 }
+
+/* 숏츠 스크롤러 — 막대가 보이면 세로 영상처럼 읽히지 않는다 */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
