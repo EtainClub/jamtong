@@ -18,6 +18,7 @@ import { Eli5Section } from "@/features/eli5/Eli5Section";
 import { UrlSyncBoundary } from "@/features/story/UrlSyncBoundary";
 import { ArcticRouteLayout } from "@/features/story/layouts/ArcticRouteLayout";
 import { DaejangdongLayout } from "@/features/story/layouts/DaejangdongLayout";
+import { StockMarketLayout } from "@/features/story/layouts/StockMarketLayout";
 
 /**
  * 스토리 페이지 = 공통 골격 + 스토리별 레이아웃 분기.
@@ -57,6 +58,18 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "공공이 가져간 게 뭔가요?",
       "민간개발이었으면 어떻게 달랐나요?",
       "2014년에 무슨 결정이 있었나요?",
+    ],
+  },
+  "stock-market": {
+    Layout: StockMarketLayout,
+    heroHighlights: [
+      { claimId: "claim-index-series", label: "지수 추이" },
+      { claimId: "claim-reform", label: "체질개선 방안" },
+    ],
+    askSuggestions: [
+      "지수가 왜 다시 내렸나요?",
+      "무슨 제도가 바뀌었나요?",
+      "2026년 3월에 무슨 발표가 있었나요?",
     ],
   },
 };

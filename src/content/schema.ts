@@ -252,6 +252,7 @@ export const storySchema = z.object({
   landUse: landUseSchema.optional(),
   graph: z.lazy(() => graphSchema).optional(),
   eli5: z.lazy(() => eli5Schema).optional(),
+  indexSeries: z.lazy(() => indexSeriesSchema).optional(),
   counterpoints: z.array(counterpointSchema).default([]),
   claims: z.array(claimSchema).default([]),
   sources: z.array(sourceSchema).default([]),
@@ -332,6 +333,11 @@ export function validateStory(story: Story): string[] {
 
   if (story.graph) {
     for (const error of validateGraph(story.graph, claimIds)) errors.push(error);
+  }
+
+  if (story.indexSeries) {
+    checkClaimRef("indexSeries", story.indexSeries.claimId);
+    for (const error of validateIndexSeries(story.indexSeries)) errors.push(error);
   }
 
   if (story.eli5) {
@@ -643,3 +649,59 @@ export const eli5Schema = z.object({
   caveat: z.object({ text: z.string(), claimIds: z.array(z.string()).min(1) }).optional(),
 });
 export type Eli5 = z.infer<typeof eli5Schema>;
+
+/* ────────────────────────────────────────────────────────────────
+ * 지수 시계열
+ *
+ * 세 번째 스토리가 들고 온 전용 개념. 공간(항로)도 몫(자금·면적)도 아닌
+ * **시간에 따른 한 숫자의 움직임**이다.
+ *
+ * 설계 원칙 하나를 스키마가 강제한다: 구간을 잘라낼 수 없다.
+ * 오른 데까지만 그리고 멈추면 그건 자료가 아니라 선전물이다.
+ * peak 이후 값이 있으면 그것도 반드시 실려야 한다(validateIndexSeries).
+ * ──────────────────────────────────────────────────────────────── */
+
+export const indexPointSchema = z.object({
+  /** 정렬·비교용 ISO 날짜. 연표 커서와 같은 축을 쓴다. */
+  date: z.string().regex(/^\d{4}(-\d{2}){0,2}$/, "date는 YYYY[-MM[-DD]] 형식이어야 한다"),
+  value: z.number(),
+  /** 눈금으로 표시할 지점인지. 돌파·붕괴처럼 의미가 있는 곳만. */
+  milestone: z.boolean().default(false),
+  label: z.string().optional(),
+});
+export type IndexPoint = z.infer<typeof indexPointSchema>;
+
+export const indexSeriesSchema = z.object({
+  name: z.string(),
+  unit: z.string(),
+  points: z.array(indexPointSchema).min(2),
+  claimId: z.string(),
+  /** 측정 조건. 종가 기준인지 장중인지 등. 숨기면 오도가 된다. */
+  note: z.string().optional(),
+});
+export type IndexSeries = z.infer<typeof indexSeriesSchema>;
+
+export function validateIndexSeries(series: IndexSeries): string[] {
+  const errors: string[] = [];
+  const sorted = [...series.points].every(
+    (p, i, all) => i === 0 || all[i - 1].date <= p.date,
+  );
+  if (!sorted) errors.push("indexSeries → points가 날짜순이 아니다");
+
+  /*
+   * 고점에서 끊었는지 본다.
+   *
+   * 마지막 점이 최고값이면 둘 중 하나다 — 정말 지금이 최고점이거나,
+   * 내려간 구간을 잘라냈거나. 후자를 막을 방법은 없지만, 적어도
+   * note에 왜 거기서 끝나는지 적게 만든다.
+   */
+  const last = series.points[series.points.length - 1];
+  const peak = Math.max(...series.points.map((p) => p.value));
+  if (last.value === peak && !series.note) {
+    errors.push(
+      "indexSeries → 마지막 점이 최고값이다. 구간을 자른 게 아니라면 note에 기준 시점을 밝혀야 한다",
+    );
+  }
+
+  return errors;
+}

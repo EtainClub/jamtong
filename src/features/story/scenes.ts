@@ -28,4 +28,11 @@ export const SCENES_BY_STORY: Record<string, SceneNavItem[]> = {
     { id: "counterpoint", label: "쟁점" },
     { id: "share", label: "공유" },
   ],
+ "stock-market": [
+    { id: "hero", label: "개요" },
+    { id: "series", label: "지수" },
+    { id: "timeline", label: "경과" },
+    { id: "counterpoint", label: "쟁점" },
+    { id: "share", label: "공유" },
+  ],
 };
