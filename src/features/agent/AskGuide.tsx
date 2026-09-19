@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import type { Claim } from "@/content/schema";
 import type { AgentAction } from "@/lib/agent/actions";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
+import { SCENES_BY_ACHIEVEMENT } from "@/features/achievement/scenes";
 import { runActions } from "./execute";
 
 /**
@@ -34,6 +35,21 @@ const ACTION_LABEL: Record<AgentAction["type"], string> = {
   OPEN_EVIDENCE: "근거 열기",
   RESET_VIEW: "처음으로",
 };
+
+/**
+ * 액션 칩에 목적지를 함께 적는다.
+ *
+ * "화면 이동"만 적혀 있으면 어디로 가는지 모른다. 맨 위에 있는 사람이
+ * GO_TO_SCENE(hero)를 누르면 아무 일도 일어나지 않는데, 라벨이 목적지를
+ * 숨기고 있으면 그게 고장으로 보인다. 실제로 그렇게 보고됐다.
+ */
+function actionLabel(action: AgentAction, slug: string): string {
+  const base = ACTION_LABEL[action.type];
+  if (action.type !== "GO_TO_SCENE" || !action.targetId) return base;
+
+  const scene = SCENES_BY_ACHIEVEMENT[slug]?.find((s) => s.id === action.targetId);
+  return scene ? `${base} · ${scene.label}` : base;
+}
 
 export function AskGuide({
   achievementSlug,
@@ -137,16 +153,30 @@ export function AskGuide({
             )}
 
             {answer.actions.length > 0 && (
-              <ul className="mt-3 flex flex-wrap gap-1.5">
-                {answer.actions.map((action, i) => (
-                  <li
-                    key={`${action.type}-${i}`}
-                    className="rounded-full bg-ink/12 px-2.5 py-1 text-[11px] font-medium text-navy"
-                  >
-                    {ACTION_LABEL[action.type]}
-                  </li>
-                ))}
-              </ul>
+              <>
+                {/*
+                 * 답이 오면 액션은 이미 한 번 실행된다. 그래도 버튼으로 두는 이유:
+                 * 그때 눈이 답변 글에 가 있으면 화면이 움직인 것을 놓친다. 다시
+                 * 누를 수 있어야 한다. 알약 모양으로 그려 놓고 눌리지 않게 두면
+                 * 그건 버튼이 아니라 거짓말이다.
+                 */}
+                <ul className="mt-3 flex flex-wrap gap-1.5">
+                  {answer.actions.map((action, i) => (
+                    <li key={`${action.type}-${i}`}>
+                      <button
+                        type="button"
+                        onClick={() => void runActions([action])}
+                        className="rounded-full border border-navy/25 bg-navy-tint px-2.5 py-1 text-[11px] font-medium text-navy transition-colors hover:border-navy/50 hover:bg-navy hover:text-eggshell"
+                      >
+                        {actionLabel(action, achievementSlug)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-1.5 text-[11px] text-ash">
+                  답변과 함께 한 번 실행했습니다. 다시 누르면 그 자리로 돌아갑니다.
+                </p>
+              </>
             )}
 
             {answer.claimIds.length > 0 && (
