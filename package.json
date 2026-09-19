@@ -11,6 +11,8 @@
     "validate": "tsx scripts/validate-content.ts",
     "check": "pnpm validate && pnpm agent:check && pnpm typecheck && pnpm lint",
     "agent:check": "tsx scripts/agent-check.ts",
+    "check:rules": "tsx --env-file=.env.local scripts/check-rules.ts",
+    "grant-admin": "tsx scripts/grant-admin.ts",
     "brand": "tsx scripts/build-brand.ts",
     "release": "tsx scripts/release.ts"
   },
@@ -39,6 +41,7 @@
     "d3-force": "^3.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "firebase-admin": "^14.4.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5"

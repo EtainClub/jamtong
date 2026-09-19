@@ -3,16 +3,47 @@ rules_version = '2';
 /*
  * 잼통 Firestore 규칙.
  *
- * 규칙은 하나다: 자기 것만 읽고 쓴다.
+ * 기본 규칙은 하나다: 자기 것만 읽고 쓴다.
  *
  * 이력이 users/{uid} 아래 있는 이유가 이것이다. 최상위에 두고 필드로 주인을
  * 가리면 목록 조회마다 그 필드를 검사해야 하고, 검사를 한 군데 빠뜨리면 남의
  * 기록이 열린다. 경로로 가르면 빠뜨릴 자리가 없다.
  *
  * 익명 계정도 uid를 가지므로 같은 규칙이 그대로 적용된다.
+ *
+ * ★ 예외가 하나 있다: feedback.
+ *   피드백은 누구나 읽는다. 공개인 것이 기능이기 때문이다 — 남이 무엇을
+ *   남겼는지 보이지 않으면 같은 말이 계속 쌓인다. 그래서 여기만 경로로
+ *   가르지 못하고 필드와 모양을 일일이 검사한다. 예외를 하나 두면 검사가
+ *   늘어난다는 것을 이 파일이 그대로 보여 준다.
  */
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    /**
+     * '나도요'로 인한 카운터 변화인가.
+     *
+     * agreeCount 한 칸만 움직여야 하고, 그 방향이 이 커밋에서 agrees 문서가
+     * 생겼는지 지워졌는지와 맞아야 한다. 짝을 맞추지 않으면 카운터만 올리는
+     * 요청이 통과한다.
+     */
+    function isAgreeDelta(id) {
+      let uid = request.auth.uid;
+      let agreePath = /databases/$(database)/documents/feedback/$(id)/agrees/$(uid);
+      let before = resource.data.agreeCount;
+      let after = request.resource.data.agreeCount;
+      return request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['agreeCount'])
+        && (
+          (after == before + 1 && !exists(agreePath) && existsAfter(agreePath))
+          || (after == before - 1 && exists(agreePath) && !existsAfter(agreePath))
+        );
+    }
 
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
@@ -34,6 +65,63 @@ service cloud.firestore {
       }
     }
 
+
+    /*
+     * 피드백 — 이 저장소에서 **공개로 읽는 유일한 것**이다.
+     *
+     * 공개인 것이 기능이다. 남들이 무엇을 남겼는지 보이지 않으면 같은 말이
+     * 계속 쌓인다. 그래서 목록은 누구나 읽고, 같은 생각이면 새로 쓰는 대신
+     * '나도요'를 누르게 한다.
+     *
+     * 익명이다. authorUid는 본인 삭제와 중복 '나도요'를 막는 데만 쓰고 화면에
+     * 내보내지 않는다. 다만 **규칙이 익명성을 보장하지는 않는다** — 문서를
+     * 직접 읽으면 uid가 보인다. 화면에 이름이 안 뜬다는 뜻이지 uid가 비밀이라는
+     * 뜻이 아니며, 그래서 uid로 사람을 되짚을 수 있는 것을 넣지 않는다.
+     */
+    match /feedback/{id} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 1000
+        && request.resource.data.kind in ['bug', 'idea', 'content', 'etc']
+        // 새 글은 늘 같은 자리에서 시작한다. 상태와 답변은 운영자만 만진다.
+        && request.resource.data.status == 'open'
+        && request.resource.data.agreeCount == 0
+        && request.resource.data.reply == null;
+
+      // 제 글은 지울 수 있다. 운영자는 무엇이든 지운다.
+      allow delete: if request.auth != null
+        && (resource.data.authorUid == request.auth.uid || isAdmin());
+
+      allow update: if isAdmin()
+        ? request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'reply', 'repliedAt'])
+          && request.resource.data.status in ['open', 'planned', 'done', 'wontfix']
+        : isAgreeDelta(id);
+
+      /*
+       * 나도요. 한 사람이 한 번만 누르도록 uid를 문서 id로 쓴다.
+       * 카운터는 부모 문서에 있고, 위 isAgreeDelta가 이 문서와 짝이 맞는지 본다.
+       */
+      match /agrees/{uid} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow create, delete: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    /*
+     * 운영자 명단. 콘솔에서 손으로 넣는다.
+     *
+     * 자기 문서만 읽게 해서 "내가 운영자인가"만 확인할 수 있고 명단 전체는
+     * 볼 수 없다. 쓰기는 아무에게도 열지 않는다 — 콘솔로만 바꾼다.
+     */
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
     // 그 밖의 모든 것은 닫는다. 열어야 할 것이 생기면 그때 이름을 적는다.
     match /{document=**} {
       allow read, write: if false;

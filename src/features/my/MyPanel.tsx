@@ -187,6 +187,29 @@ export function MyPanel() {
         </div>
       </section>
 
+      {/*
+        * 피드백으로 가는 문.
+        *
+        * 하단 탭에는 자리가 없어 여기에 둔다. MY는 '나와 잼통 사이'를 보는
+        * 자리이고, 바라는 것을 남기는 일도 거기 속한다.
+        */}
+      <section aria-labelledby="my-feedback" className="mt-9">
+        <h2 id="my-feedback" className="text-[15px] font-bold text-ink">
+          바라는 것 남기기
+        </h2>
+        <p className="mt-1.5 text-[12px] leading-relaxed text-ash">
+          불편한 곳이나 있었으면 하는 것을 남겨 주세요. 남긴 것은 모두에게 보이고,
+          같은 생각이 이미 있으면 ‘나도요’를 누르면 됩니다.
+        </p>
+        <Link
+          href="/feedback"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-card border border-stone bg-taupe px-5 py-3.5 text-sm font-semibold text-navy transition-colors hover:border-graphite"
+        >
+          피드백 보기
+          <span aria-hidden="true">→</span>
+        </Link>
+      </section>
+
       <section aria-labelledby="my-asks" className="mt-9">
         <h2 id="my-asks" className="text-[15px] font-bold text-ink">
           AI에게 물은 것 {asks ? `${asks.length}건` : ""}
