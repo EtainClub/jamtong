@@ -2,13 +2,22 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { Milestone, Category, Claim } from "@/content/schema";
+import type { Achievement, Milestone, Category, Claim } from "@/content/schema";
+import { PART_LABELS, achievementParts } from "@/content/achievements";
 import { ScrollArrow, useScroller } from "@/features/app/Scroller";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 
 /**
- * 홈 피드 — 히어로 캐러셀 + 주목 주제.
+ * 홈 피드.
+ *
+ * 순서에 의도가 있다: 히어로 → 업적 → 세부 성과.
+ * 단위는 업적이므로 업적이 먼저 오고, 한 부처 업무계획에서 뽑은 세부 성과는
+ * 그 아래에 소속을 밝혀 둔다. 둘을 같은 층에 늘어놓으면 무엇이 단위인지
+ * 보이지 않는다 — 예전 둘러보기가 그랬다.
+ *
+ * 초안 업적은 히어로에 세우지 않는다. 다만 목록에는 배지를 달아 보인다.
+ * 아직 다듬는 중이라는 것과 존재를 감추는 것은 다르다.
  *
  * 모바일 우선이다. 가로 스크롤 캐러셀은 scroll-snap으로 만든다.
  * 직접 만든 스와이프 핸들러보다 관성과 접근성이 브라우저 기본 동작으로 해결된다.
@@ -27,7 +36,7 @@ export interface HeroSlide {
 }
 
 const TABS: { id: string; label: string; match: (a: Milestone) => boolean }[] = [
-  { id: "all", label: "추천", match: () => true },
+  { id: "all", label: "전체", match: () => true },
   { id: "done", label: "주요 업적", match: (a) => a.status === "done" },
   {
     id: "social",
@@ -47,10 +56,12 @@ const TABS: { id: string; label: string; match: (a: Milestone) => boolean }[] = 
 
 export function HomeFeed({
   slides,
+  achievements,
   topics,
   claims,
 }: {
   slides: HeroSlide[];
+  achievements: Achievement[];
   topics: Milestone[];
   claims: Claim[];
 }) {
@@ -59,6 +70,14 @@ export function HomeFeed({
     const matcher = TABS.find((t) => t.id === tab) ?? TABS[0];
     return topics.filter(matcher.match).slice(0, 6);
   }, [tab, topics]);
+
+  const {
+    ref: achRef,
+    canPrev: achCanPrev,
+    canNext: achCanNext,
+    onScroll: onAchScroll,
+    page: pageAch,
+  } = useScroller<HTMLUListElement>();
 
   const {
     ref: topicsRef,
@@ -72,37 +91,84 @@ export function HomeFeed({
     <>
       <SearchField />
 
-      <nav aria-label="주제 분류" className="mt-3">
-        <ul className="no-scrollbar -mx-4 flex gap-1 overflow-x-auto px-4">
-          {TABS.map((item) => {
-            const active = item.id === tab;
-            return (
-              <li key={item.id} className="shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setTab(item.id)}
-                  aria-pressed={active}
-                  className={`relative px-3 py-2.5 text-sm font-semibold transition-colors ${
-                    active ? "text-ink" : "text-ash hover:text-smoke"
-                  }`}
-                >
-                  {item.label}
-                  {active && (
-                    <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-navy" />
-                  )}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
       <HeroCarousel slides={slides} />
+
+      <section aria-labelledby="home-achievements" className="mt-9">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2
+            id="home-achievements"
+            className="text-[17px] font-bold tracking-tight text-ink"
+          >
+            업적 {achievements.length}건
+          </h2>
+          <Link href="/explore" className="text-[12px] font-medium text-navy">
+            전체 보기
+          </Link>
+        </div>
+        <p className="mt-1 text-[12px] leading-relaxed text-ash">
+          업적 하나마다 일곱 가지를 갖춥니다. 채워진 것과 비어 있는 것이 그대로 보입니다.
+        </p>
+
+        <div className="relative">
+          <ul
+            ref={achRef}
+            onScroll={onAchScroll}
+            className="no-scrollbar -mx-4 mt-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1"
+          >
+            {achievements.map((achievement) => (
+              <li key={achievement.id} className="w-[210px] shrink-0 snap-start">
+                <AchievementCard achievement={achievement} />
+              </li>
+            ))}
+          </ul>
+          <ScrollArrow
+            dir={-1}
+            disabled={!achCanPrev}
+            onClick={() => pageAch(-1, 0.8)}
+            label="이전 업적"
+          />
+          <ScrollArrow
+            dir={1}
+            disabled={!achCanNext}
+            onClick={() => pageAch(1, 0.8)}
+            label="다음 업적"
+          />
+        </div>
+      </section>
 
       <section aria-labelledby="home-topics" className="mt-9">
         <h2 id="home-topics" className="text-[17px] font-bold tracking-tight text-ink">
-          지금, 이런 주제들이 주목받고 있어요
+          세부 성과
         </h2>
+        <p className="mt-1 text-[12px] leading-relaxed text-ash">
+          해양수산부 2026년 업무계획에서 뽑은 항목입니다. 아직 업적으로 묶이지 않았습니다.
+        </p>
+
+        {/* 분류 탭은 이 탭이 거르는 목록 바로 위에 둔다. 멀리 두면 무엇이 걸러졌는지 모른다. */}
+        <nav aria-label="분야 분류" className="mt-3">
+          <ul className="no-scrollbar -mx-4 flex gap-1 overflow-x-auto px-4">
+            {TABS.map((item) => {
+              const active = item.id === tab;
+              return (
+                <li key={item.id} className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setTab(item.id)}
+                    aria-pressed={active}
+                    className={`relative px-3 py-2 text-[13px] font-semibold transition-colors ${
+                      active ? "text-ink" : "text-ash hover:text-smoke"
+                    }`}
+                  >
+                    {item.label}
+                    {active && (
+                      <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-navy" />
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
         {filtered.length === 0 ? (
           <p className="mt-4 rounded-card border border-stone bg-taupe px-5 py-8 text-center text-sm text-smoke">
@@ -258,6 +324,56 @@ function HeroCard({ slide }: { slide: HeroSlide }) {
             {slide.note}
           </span>
         )}
+      </div>
+    </Link>
+  );
+}
+
+/**
+ * 업적 카드. 일곱 칸 중 몇 칸이 찼는지 함께 보인다.
+ *
+ * 둘러보기의 카드와 같은 판단을 쓰되, 홈은 가로로 흐르므로 더 좁다.
+ * 칸 이름을 다 적을 자리가 없어 점으로만 표시하고 개수를 따로 적는다.
+ */
+function AchievementCard({ achievement }: { achievement: Achievement }) {
+  const parts = achievementParts(achievement);
+  const ready = parts.filter(Boolean).length;
+
+  return (
+    <Link
+      href={`/achievement/${achievement.slug}`}
+      className="flex h-full flex-col rounded-card border border-stone bg-taupe p-3.5 transition-colors hover:border-graphite"
+    >
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px] font-bold text-navy">{achievement.kicker}</span>
+        {achievement.publishStatus === "draft" && (
+          <span className="rounded-full bg-pending-tint px-1.5 py-0.5 text-[9px] font-semibold text-pending">
+            초안
+          </span>
+        )}
+      </div>
+
+      <h3 className="mt-1.5 text-[14px] font-bold leading-snug text-ink">
+        {achievement.title}
+      </h3>
+      <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-smoke">
+        {achievement.subtitle}
+      </p>
+
+      <div className="mt-auto pt-3">
+        <div className="flex items-center gap-1" aria-hidden="true">
+          {parts.map((present, i) => (
+            <span
+              key={PART_LABELS[i]}
+              title={PART_LABELS[i]}
+              className={`h-1.5 w-1.5 rounded-full ${present ? "bg-ink" : "bg-stone"}`}
+            />
+          ))}
+        </div>
+        <p className="mt-2 text-[10px] text-ash">
+          <span className="tabular">{ready}</span>/7 구성 · 근거{" "}
+          <span className="tabular">{achievement.claims.length}</span>건
+        </p>
       </div>
     </Link>
   );

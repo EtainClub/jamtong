@@ -1,12 +1,11 @@
-import { getPublishedAchievements } from "@/content/achievements";
+import { ACHIEVEMENTS, getPublishedAchievements } from "@/content/achievements";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
-import { findScene, validateMilestones, type Milestone } from "@/content/schema";
+import { findScene, validateMilestones } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { HomeFeed, type HeroSlide } from "@/features/home/HomeFeed";
-import { ArcticHeroVisual, NumberHeroVisual } from "@/features/home/HeroVisuals";
+import { ArcticHeroVisual } from "@/features/home/HeroVisuals";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
-import { CATEGORY_LABEL } from "@/content/labels";
 
 /**
  * 홈 — 모바일 앱 화면.
@@ -15,26 +14,6 @@ import { CATEGORY_LABEL } from "@/content/labels";
  * 화면을 가운데 세운다. 넓은 화면용 레이아웃을 따로 만들면 두 벌을 관리하게 되고,
  * 정작 대다수가 쓰는 쪽이 부실해진다.
  */
-
-const TONES = ["ice", "warm", "deep"] as const;
-
-function toHeroSlide(item: Milestone, index: number): HeroSlide {
-  return {
-    id: item.id,
-    kicker: item.achievementSlug ? "주요 정책" : "주요 업적",
-    tag: CATEGORY_LABEL[item.categories[0]],
-    title: item.title,
-    subtitle: item.summary,
-    href: item.achievementSlug ? `/achievement/${item.achievementSlug}` : "/explore",
-    note: item.highlight?.value,
-    visual: (
-      <NumberHeroVisual
-        value={item.highlight?.value ?? CATEGORY_LABEL[item.categories[0]]}
-        tone={TONES[index % TONES.length]}
-      />
-    ),
-  };
-}
 
 export default function Home() {
   const stories = getPublishedAchievements();
@@ -64,12 +43,14 @@ export default function Home() {
     })(),
   }));
 
-  // 숫자가 있는 항목을 앞에 세운다. 카드 하나에 남는 것은 결국 숫자 하나다.
-  const highlighted = MILESTONES.filter((a) => a.highlight && a.status !== "planned")
-    .concat(MILESTONES.filter((a) => a.highlight && a.status === "planned"))
-    .slice(0, 4);
-
-  const slides = [...achievementSlides, ...highlighted.map(toHeroSlide)].slice(0, 5);
+  /*
+   * 히어로는 공개된 업적만 세운다.
+   *
+   * 예전에는 자리가 빈다고 세부 성과 카드로 채웠다. 그러면 업적과 성과가 같은
+   * 층에 놓여 무엇이 단위인지 보이지 않는다. 바로 아래 업적 줄이 전체를 보이고,
+   * 세부 성과는 그 아래에 소속을 밝혀 따로 둔다.
+   */
+  const slides = achievementSlides;
 
   const topics = MILESTONES.filter((a) => a.status !== "planned");
 
@@ -78,7 +59,12 @@ export default function Home() {
       <AppTopBar />
 
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-8">
-        <HomeFeed slides={slides} topics={topics} claims={ALL_CLAIMS} />
+        <HomeFeed
+          slides={slides}
+          achievements={ACHIEVEMENTS}
+          topics={topics}
+          claims={ALL_CLAIMS}
+        />
       </main>
 
       <BottomNav />

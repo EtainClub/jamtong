@@ -23,7 +23,7 @@ import { DaejangdongLayout } from "@/features/achievement/layouts/DaejangdongLay
 import { StockMarketLayout } from "@/features/achievement/layouts/StockMarketLayout";
 import { SeongnamWelfareLayout } from "@/features/achievement/layouts/SeongnamWelfareLayout";
 import { SeongnamDebtLayout } from "@/features/achievement/layouts/SeongnamDebtLayout";
-import { NarrativeLayout, type NarrativeCopy } from "@/features/achievement/layouts/NarrativeLayout";
+import { NarrativeLayout } from "@/features/achievement/layouts/NarrativeLayout";
 
 /**
  * 스토리 페이지 = 공통 골격 + 스토리별 레이아웃 분기.
