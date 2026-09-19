@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "validate": "tsx scripts/validate-content.ts",
     "check": "pnpm validate && pnpm agent:check && pnpm typecheck && pnpm lint",
-    "agent:check": "tsx scripts/agent-check.ts"
+    "agent:check": "tsx scripts/agent-check.ts",
+    "brand": "tsx scripts/build-brand.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.126.0",
