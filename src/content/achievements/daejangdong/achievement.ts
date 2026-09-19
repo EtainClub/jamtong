@@ -193,6 +193,24 @@ const raw: AchievementInput = {
   ],
 
   /**
+   * ⑦ 쇼츠.
+   *
+   * 영상 제목은 유튜브에 올라간 그대로 쓴다. 우리가 부르고 싶은 대로 바꾸면
+   * 누르고 들어간 사람이 다른 영상을 만난다.
+   */
+  shorts: [
+    {
+      id: "short-dj-01",
+      title: "이재명의 묘수! 대장동 공공환수의 비밀, 결합개발방식",
+      summary:
+        "대장동과 제1공단을 하나의 구역으로 묶은 구조를 설명합니다. 환수 금액은 성남시의 계산이며, 근거에서 어떻게 셈한 것인지 확인할 수 있습니다.",
+      youtubeId: "OAbltn_4z0c",
+      claimIds: ["claim-combined-district", "claim-first-park", "claim-recovery-total"],
+      publishedAt: "2026-09-19",
+    },
+  ],
+
+  /**
    * ④ 관계도.
    *
    * 노드에 실존 개인을 올리지 않는다(설계 검토 문서 2.2). 이 사업에서 다툼이

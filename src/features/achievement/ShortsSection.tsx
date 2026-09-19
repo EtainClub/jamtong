@@ -13,7 +13,10 @@ import { EvidenceButton } from "@/features/evidence/EvidenceButton";
  */
 
 function Frame({ short, claims }: { short: Short; claims: Claim[] }) {
-  const claim = claims.find((c) => c.id === short.claimIds[0]);
+  // 영상 하나가 여러 주장을 건드리면 그 전부에 근거가 붙어야 한다.
+  const cited = short.claimIds
+    .map((id) => claims.find((c) => c.id === id))
+    .filter((c): c is Claim => Boolean(c));
 
   return (
     <figure className="m-0">
@@ -36,9 +39,15 @@ function Frame({ short, claims }: { short: Short; claims: Claim[] }) {
           <p className="mt-1.5 text-[13px] leading-relaxed text-smoke">{short.summary}</p>
         )}
         {/* 짧을수록 맥락이 잘린다. 근거는 영상 옆에 늘 붙어 있어야 한다. */}
-        {claim && (
-          <div className="mt-3">
-            <EvidenceButton claimId={claim.id} count={claim.sourceIds.length} />
+        {cited.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {cited.map((claim) => (
+              <EvidenceButton
+                key={claim.id}
+                claimId={claim.id}
+                count={claim.sourceIds.length}
+              />
+            ))}
           </div>
         )}
       </figcaption>
