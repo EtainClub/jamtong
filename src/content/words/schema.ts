@@ -63,6 +63,29 @@ export const WordArt = z.enum([
   "blind-spot", // 아동과 노인 사이에 빈 자리
   "hard-how", // 무엇은 분명한데 어떻게가 어렵다
   "from-field", // 탁상이 아니라 현장에서
+  // 개혁론
+  "same-dream", // 36년 전과 지금, 같은 목표
+  "slow-road", // 빠른 길은 되돌아오고 느린 길은 닿는다
+  "careful-steps", // 절차와 공감을 밟아 간다
+  "power-weight", // 권한이 커지면 책임도 커진다
+  "not-war", // 선거는 전쟁이 아니다
+  // 유가
+  "pump-steady", // 주유소 가격판이 잠잠하다
+  "many-suppliers", // 사 오는 곳을 늘렸다
+  "cap-gap", // 국제가는 뛰는데 국내가는 눌렸다
+  "still-risk", // 그래도 아직 위험하다
+  // 발달장애인 돌봄
+  "father-worry", // 아버지의 마지막 걱정
+  "not-alone", // 부모가 없어도 혼자 남지 않게
+  "care-24", // 하루 종일 곁을 지킨다
+  "step-on", // 한 걸음씩, 멈추지 않고
+  // 부동산
+  "rate-watch", // 금리를 눈여겨보라
+  "auction-up", // 연체와 경매가 늘고 있다
+  "build-fast", // 빨리 많이 짓겠다
+  "two-loans", // 공급을 늘리는 돈과 수요를 늘리는 돈은 다르다
+  "spread-out", // 수도권 집중을 흩는다
+  "safety-net", // 값이 무너지면 공공이 받는다
 ]);
 export type WordArt = z.infer<typeof WordArt>;
 
