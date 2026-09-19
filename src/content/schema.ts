@@ -710,6 +710,50 @@ export const eli5Schema = z.object({
 export type Eli5 = z.infer<typeof eli5Schema>;
 
 /* ────────────────────────────────────────────────────────────────
+ * 수량 추이
+ *
+ * 문서로 확인된 시점들을 지나며 한 수치가 변한다. 빚이 줄고, 세월이 쌓이고,
+ * 대상이 넓어진다. 지수 시계열과 다른 점은 **촘촘한 값이 없다는 것**이다.
+ * 시계열은 매일의 종가가 있지만, 행정 기록은 선언한 날과 끝낸 날만 남는다.
+ *
+ * 그래서 이 씬은 자료가 있는 시점만 주장하고, 그 사이는 잇기만 한다.
+ * 사이 값을 자료처럼 내보이지 않는 일이 이 씬의 전부다 — 화면에서 큰 숫자가
+ * 흐르더라도, 근거가 붙는 것은 언제나 시점의 값이다.
+ * ──────────────────────────────────────────────────────────────── */
+export const quantityCheckpointSchema = z.object({
+  id: z.string(),
+  /** 화면에 그대로 적는 날짜. "2010년 7월"처럼 자료의 정밀도를 따른다. */
+  displayDate: z.string(),
+  title: z.string(),
+  /** 그 시점의 값. 자료에 적힌 값이어야 한다. */
+  amount: z.number().min(0),
+  caption: z.string().optional(),
+  /** 이 시점에 띄울 삽화. 쉬운 설명과 같은 그림을 쓴다. */
+  art: Eli5Art.optional(),
+  claimId: z.string(),
+});
+export type QuantityCheckpoint = z.infer<typeof quantityCheckpointSchema>;
+
+export const quantityTrackSchema = z.object({
+  /** 무엇을 세는지. "성남시가 갚아야 할 빚". */
+  label: z.string(),
+  unit: z.string(),
+  /** 느는 이야기인가 주는 이야기인가. 색과 문구가 갈린다. */
+  direction: z.enum(["up", "down"]),
+  /** 막대의 기준값. 보통 최댓값이다. */
+  max: z.number().positive(),
+  checkpoints: z.array(quantityCheckpointSchema).min(2, "시점이 둘은 있어야 추이가 된다"),
+  /**
+   * 값의 성격에 단서가 필요할 때.
+   *
+   * 시점 사이 값이 자료에 없다는 사실은 렌더러가 늘 적는다. 여기에는 그
+   * 업적에만 해당하는 사정을 적는다 — 날짜에서 계산한 값이라든지.
+   */
+  note: z.string().optional(),
+});
+export type QuantityTrack = z.infer<typeof quantityTrackSchema>;
+
+/* ────────────────────────────────────────────────────────────────
  * 지수 시계열
  *
  * 세 번째 스토리가 들고 온 전용 개념. 공간(항로)도 몫(자금·면적)도 아닌
@@ -821,6 +865,11 @@ export const sceneSchema = z.discriminatedUnion("kind", [
     kind: z.literal("index-series"),
     series: indexSeriesSchema,
   }),
+  z.object({
+    ...sceneBase,
+    kind: z.literal("quantity-track"),
+    track: quantityTrackSchema,
+  }),
 ]);
 export type Scene = z.infer<typeof sceneSchema>;
 export type SceneKind = Scene["kind"];
@@ -891,6 +940,26 @@ export function validateScene(
     case "index-series":
       for (const error of validateIndexSeries(scene.series)) errors.push(`${where} → ${error}`);
       break;
+
+    case "quantity-track": {
+      const { track } = scene;
+      for (const cp of track.checkpoints) {
+        checkClaim(`${where} checkpoint "${cp.id}"`, cp.claimId);
+        if (cp.amount > track.max) {
+          errors.push(`${where} → "${cp.id}"의 값(${cp.amount})이 max(${track.max})보다 크다`);
+        }
+      }
+      // 줄어드는 이야기인데 늘어나 있으면 direction이 틀렸거나 시점 순서가 틀렸다.
+      const first = track.checkpoints[0].amount;
+      const last = track.checkpoints[track.checkpoints.length - 1].amount;
+      if (track.direction === "down" && last > first) {
+        errors.push(`${where} → direction이 "down"인데 마지막 값이 첫 값보다 크다`);
+      }
+      if (track.direction === "up" && last < first) {
+        errors.push(`${where} → direction이 "up"인데 마지막 값이 첫 값보다 작다`);
+      }
+      break;
+    }
   }
 
   return errors;

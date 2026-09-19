@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useReveal } from "@/features/motion/useReveal";
 import type { Claim, MoneyFlow as Flow } from "@/content/schema";
 import { useVisualState } from "@/lib/visual-state/store";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function MoneyFlow({ flow, claims }: Props) {
+  const { ref, shown } = useReveal<HTMLElement>();
   const activeScenarioId = useVisualState((s) => s.activeScenarioId);
   const setScenario = useVisualState((s) => s.setScenario);
 
@@ -73,7 +75,7 @@ export function MoneyFlow({ flow, claims }: Props) {
   const scenarioClaim = claims.find((c) => c.id === scenario.claimId);
 
   return (
-    <figure className="m-0">
+    <figure ref={ref} className="m-0">
       {/* 시나리오 전환 — 실제 구조와 가정을 명확히 구분해 표시한다 */}
       <div
         role="radiogroup"
@@ -123,6 +125,20 @@ export function MoneyFlow({ flow, claims }: Props) {
             <stop offset="0%" stopColor="var(--navy-tint)" stopOpacity={0.5} />
             <stop offset="100%" stopColor="var(--navy)" stopOpacity={0.75} />
           </linearGradient>
+          {/*
+           * 화면에 들어오면 돈이 왼쪽에서 오른쪽으로 흘러든다.
+           * 몫의 크기는 처음부터 정해져 있고, 움직이는 것은 드러나는 범위다.
+           * 값을 애니메이션하면 중간 프레임이 자료처럼 보인다.
+           */}
+          <clipPath id="flow-reveal">
+            <rect
+              x={0}
+              y={0}
+              height={VIEW.height}
+              width={shown ? VIEW.width : 0}
+              style={{ transition: "width 1100ms var(--ease-out-expo)" }}
+            />
+          </clipPath>
         </defs>
 
         {/* 출처 기둥 */}
@@ -149,6 +165,7 @@ export function MoneyFlow({ flow, claims }: Props) {
           전체 규모는 이 자료의 범위 밖
         </text>
 
+        <g clipPath="url(#flow-reveal)">
         {geometry.bands.map(({ allocation, height, sourceY, targetY }) => {
           const isEmpty = allocation.amountEok === 0;
           const h = Math.max(height, isEmpty ? 0 : 1);
@@ -216,6 +233,7 @@ export function MoneyFlow({ flow, claims }: Props) {
             </g>
           );
         })}
+        </g>
       </svg>
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-stone bg-taupe px-5 py-4">

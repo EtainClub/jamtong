@@ -6,6 +6,7 @@ import { ScrollRouteScene } from "@/features/motion/ScrollRouteScene";
 import { RouteComparison } from "@/features/achievement/RouteComparison";
 import { CompositionBreakdown } from "@/features/achievement/CompositionBreakdown";
 import { MoneyFlow } from "@/features/motion/MoneyFlow";
+import { QuantityTrack } from "@/features/motion/QuantityTrack";
 import { IndexSeriesChart } from "@/features/series/IndexSeriesChart";
 import type { TimelineEvent } from "@/content/schema";
 
@@ -48,6 +49,9 @@ export function SceneRenderer({
 
     case "money-flow":
       return <MoneyFlow flow={scene.flow} claims={claims} />;
+
+    case "quantity-track":
+      return <QuantityTrack track={scene.track} claims={claims} />;
 
     case "index-series":
       return (

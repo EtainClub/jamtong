@@ -36,6 +36,55 @@ const raw: AchievementInput = {
 
   scenes: [
     {
+      id: "shrink",
+      kind: "quantity-track",
+      heading: "빚이 줄어드는 것을 봅니다",
+      lede:
+        "선언한 날과 끝냈다고 밝힌 날, 두 시점이 자료로 남아 있습니다. 스크롤하면 그 사이를 지나갑니다.",
+      claimIds: ["claim-moratorium", "claim-graduation", "claim-zero"],
+      track: {
+        label: "성남시가 갚아야 한다고 밝힌 빚",
+        unit: "억 원",
+        direction: "down",
+        max: 7285,
+        note:
+          "2014년의 7,285억과 2018년의 '채무 제로'는 서로 다른 셈이다. 여기서는 " +
+          "모라토리엄이 대상으로 삼은 비공식 부채만 따라간다.",
+        checkpoints: [
+          {
+            id: "qt-inherit",
+            displayDate: "2010년 7월",
+            title: "갚아야 할 돈이 7,285억 원",
+            amount: 7285,
+            caption:
+              "판교특별회계 전입금 5,400억 원과 예산에 잡히지 않은 의무금 1,885억 원. 장부에 제대로 잡혀 있지도 않은 돈이었습니다.",
+            art: "inherited-debt",
+            claimId: "claim-moratorium",
+          },
+          {
+            id: "qt-declare",
+            displayDate: "2010년 7월",
+            title: "못 갚겠다고 먼저 말했다",
+            amount: 7285,
+            caption:
+              "숨기지 않고 '지금은 못 내니 미루겠다'고 알렸습니다. 이것이 모라토리엄 선언입니다. 선언했다고 빚이 줄지는 않습니다.",
+            art: "declare-moratorium",
+            claimId: "claim-moratorium",
+          },
+          {
+            id: "qt-graduate",
+            displayDate: "2014년 1월 27일",
+            title: "3년 6개월 만에 모두 정리",
+            amount: 0,
+            caption:
+              "사업 투자순위를 조정하고 예산을 깎아 갚았습니다. 성남시는 기자회견에서 7,285억 원을 모두 정리했다고 밝혔습니다.",
+            art: "paid-off",
+            claimId: "claim-graduation",
+          },
+        ],
+      },
+    },
+    {
       id: "flow",
       kind: "money-flow",
       heading: "7,285억은 무엇으로 이뤄져 있었나",

@@ -36,12 +36,24 @@ export function NarrativeLayout({
   achievement: Achievement;
   copy: NarrativeCopy;
 }) {
+  const motion = findScene(achievement, "quantity-track");
   const composition = findScene(achievement, "composition");
   const graphLayout = achievement.graph ? buildGraphLayout(achievement.graph) : null;
 
   return (
     <>
-      <Section scene="timeline" heading={copy.timelineHeading} lede={copy.timelineLede} first>
+      {/* 전용 모션 씬. 있으면 연표보다 먼저 온다 — 움직임이 먼저 붙잡는다. */}
+      {motion && (
+        <Section scene="motion" heading={motion.heading} lede={motion.lede} first>
+          <SceneRenderer
+            scene={motion}
+            claims={achievement.claims}
+            timeline={achievement.timeline}
+          />
+        </Section>
+      )}
+
+      <Section scene="timeline" heading={copy.timelineHeading} lede={copy.timelineLede} first={!motion}>
         <Timeline events={achievement.timeline} claims={achievement.claims} />
       </Section>
 

@@ -53,6 +53,7 @@ export const SCENES_BY_ACHIEVEMENT: Record<string, SceneNavItem[]> = {
     { id: "share", label: "공유" },
   ],
   "seongnam-debt": [
+    { id: "motion", label: "모션" },
     { id: "timeline", label: "경과" },
     { id: "flow", label: "빚의 구성" },
     { id: "relations", label: "관계도" },
@@ -61,6 +62,7 @@ export const SCENES_BY_ACHIEVEMENT: Record<string, SceneNavItem[]> = {
     { id: "share", label: "공유" },
   ],
   "seongnam-hospital": [
+    { id: "motion", label: "모션" },
     { id: "timeline", label: "경과" },
     { id: "relations", label: "관계도" },
     { id: "counterpoint", label: "쟁점" },

@@ -15,16 +15,28 @@ import { buildGraphLayout } from "@/lib/graph/layout";
  * 서로 다른 셈이라는 것도 보이지 않는다.
  */
 export function SeongnamDebtLayout({ achievement }: { achievement: Achievement }) {
+  const motion = findScene(achievement, "quantity-track");
   const flow = findScene(achievement, "money-flow");
   const graphLayout = achievement.graph ? buildGraphLayout(achievement.graph) : null;
 
   return (
     <>
+      {/* 움직임이 먼저 붙잡는다. 막대가 0까지 줄어드는 것을 본 뒤에 연표를 읽는다. */}
+      {motion && (
+        <Section scene="motion" heading={motion.heading} lede={motion.lede} first>
+          <SceneRenderer
+            scene={motion}
+            claims={achievement.claims}
+            timeline={achievement.timeline}
+          />
+        </Section>
+      )}
+
       <Section
         scene="timeline"
         heading="선언하고, 갚고, 다시 갚았다"
         lede="시점을 옮기면 그때 무엇이 남아 있었는지가 나타납니다. 2014년과 2018년은 서로 다른 셈입니다."
-        first
+        first={!motion}
       >
         <Timeline events={achievement.timeline} claims={achievement.claims} />
       </Section>

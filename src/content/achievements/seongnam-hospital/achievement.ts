@@ -35,7 +35,87 @@ const raw: AchievementInput = {
 
   headlineKeyNumberId: "kn-years",
 
-  scenes: [],
+  scenes: [
+    {
+      id: "wait",
+      kind: "quantity-track",
+      heading: "17년이 흐르는 것을 봅니다",
+      lede:
+        "문 닫힌 병원을 다시 세우는 데 걸린 시간입니다. 스크롤하면 그 세월을 지나갑니다.",
+      claimIds: ["claim-closure", "claim-petition", "claim-passed", "claim-groundbreak", "claim-open"],
+      track: {
+        label: "병원이 문을 닫은 뒤 흐른 시간",
+        unit: "년",
+        direction: "up",
+        max: 17,
+        note:
+          "값은 자료에 적힌 날짜들에서 계산한 햇수다. 2003년 폐업을 0년으로 둔다. " +
+          "'몇 년이 걸렸다'는 수치가 따로 실린 자료가 있는 것은 아니다.",
+        checkpoints: [
+          {
+            id: "qt-closed",
+            displayDate: "2003년",
+            title: "두 병원이 문을 닫았다",
+            amount: 0,
+            caption:
+              "인하병원과 중앙병원이 잇따라 문을 닫았습니다. 성남 본시가지에 종합병원이 없어졌습니다.",
+            art: "hospital-closed",
+            claimId: "claim-closure",
+          },
+          {
+            id: "qt-committee",
+            displayDate: "2003년 11월 7일",
+            title: "시민이 추진위를 꾸렸다",
+            amount: 0,
+            caption:
+              "각계각층의 성남 시민이 모여 성남시립병원설립범시민추진위원회를 구성했습니다.",
+            art: "citizens-petition",
+            claimId: "claim-closure",
+          },
+          {
+            id: "qt-rejected",
+            displayDate: "2004년 3월 · 2005년",
+            title: "주민발의 조례안이 두 번 부결됐다",
+            amount: 2,
+            caption:
+              "시민이 직접 발의한 조례안이 성남시의회에서 부결됐습니다. 이듬해 다시 올렸지만 또 부결됐습니다.",
+            art: "rejected-twice",
+            claimId: "claim-petition",
+          },
+          {
+            id: "qt-passed",
+            displayDate: "2006년 3월 15일",
+            title: "세 번째에 만장일치로 가결",
+            amount: 3,
+            caption:
+              "제133회 성남시의회에서 성남시립병원 설립 조례가 만장일치로 가결됐습니다.",
+            art: "passed-third",
+            claimId: "claim-passed",
+          },
+          {
+            id: "qt-ground",
+            displayDate: "2013년 11월 14일",
+            title: "가결로부터 7년 뒤에야 첫 삽",
+            amount: 10,
+            caption:
+              "연면적 81,510㎡에 22개 진료과와 43개 진료실, 501병상을 수용하는 규모로 기공식이 열렸습니다.",
+            art: "ground-broken",
+            claimId: "claim-groundbreak",
+          },
+          {
+            id: "qt-open",
+            displayDate: "2020년 5월 6일",
+            title: "509병상으로 진료를 시작했다",
+            amount: 17,
+            caption:
+              "22개 진료과와 전문의 69명으로 진료를 시작했습니다. 정식 개원식은 코로나19로 미뤄져 7월에 온라인으로 열렸습니다.",
+            art: "hospital-open",
+            claimId: "claim-open",
+          },
+        ],
+      },
+    },
+  ],
   shorts: [],
 
   eli5: {

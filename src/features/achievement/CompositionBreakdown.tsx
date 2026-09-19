@@ -1,5 +1,8 @@
+"use client";
+
 import type { Claim, Composition } from "@/content/schema";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
+import { useReveal } from "@/features/motion/useReveal";
 
 /**
  * 구성 — 전체가 무엇으로 이루어져 있나.
@@ -31,6 +34,7 @@ export function CompositionBreakdown({
   composition: Composition;
   claims: Claim[];
 }) {
+  const { ref, shown } = useReveal<HTMLElement>();
   const claim = claims.find((c) => c.id === composition.claimId);
   const { unit } = composition;
   // 전체와 내역이 다른 것을 셀 수 있다. 학생 수를 나눈 뒤 학교 수를 펴는 식이다.
@@ -38,7 +42,7 @@ export function CompositionBreakdown({
   const maxBreakdown = Math.max(...composition.breakdown.map((i) => i.amount), 1);
 
   return (
-    <figure className="m-0">
+    <figure ref={ref} className="m-0">
       <div className="flex items-baseline justify-between gap-4">
         <span className="text-sm text-smoke">{composition.totalLabel}</span>
         <span className="tabular text-sm font-semibold text-ink">
@@ -52,7 +56,10 @@ export function CompositionBreakdown({
           <div
             key={group.id}
             className={`${TONE[group.tone].bar} flex items-center justify-center`}
-            style={{ width: `${group.sharePercent}%` }}
+            style={{
+              width: shown ? `${group.sharePercent}%` : "0%",
+              transition: "width 900ms var(--ease-out-expo)",
+            }}
             title={`${group.label} ${group.sharePercent}%`}
           >
             {group.sharePercent >= 12 && (
@@ -100,7 +107,10 @@ export function CompositionBreakdown({
                 <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-stone">
                   <div
                     className="h-full rounded-full bg-navy"
-                    style={{ width: `${(item.amount / maxBreakdown) * 100}%` }}
+                    style={{
+                      width: shown ? `${(item.amount / maxBreakdown) * 100}%` : "0%",
+                      transition: "width 900ms var(--ease-out-expo)",
+                    }}
                   />
                 </div>
               </li>
