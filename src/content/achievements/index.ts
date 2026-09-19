@@ -78,3 +78,42 @@ export function achievementParts(achievement: Achievement): boolean[] {
     achievement.shorts.length > 0,
   ];
 }
+
+/**
+ * 목록 카드가 쓰는 것만 뽑은 것.
+ *
+ * 홈 피드는 클라이언트 컴포넌트라, 여기에 Achievement를 통째로 넘기면 그 업적의
+ * 근거·출처 인용문·쉬운 설명·관계도·반론이 전부 직렬화돼 첫 화면에 실린다.
+ * 홈에서 아무도 읽지 않는 것들이고, 업적을 하나 더할 때마다 함께 커진다.
+ * 실제로 홈 HTML이 628KB까지 갔다 — assertionType 244회, 인용문 69회.
+ *
+ * 카드가 쓰는 것은 일곱 가지뿐이다. 서버에서 그만큼만 뽑아 넘긴다.
+ */
+export interface AchievementCardData {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  kicker: string;
+  isDraft: boolean;
+  /** 일곱 칸의 충족 여부. 화면이 다시 계산하지 않도록 여기서 정한다. */
+  parts: boolean[];
+  claimCount: number;
+  sourceCount: number;
+}
+
+export function toCardData(achievement: Achievement): AchievementCardData {
+  return {
+    id: achievement.id,
+    slug: achievement.slug,
+    title: achievement.title,
+    subtitle: achievement.subtitle,
+    kicker: achievement.kicker,
+    isDraft: achievement.publishStatus === "draft",
+    parts: achievementParts(achievement),
+    claimCount: achievement.claims.length,
+    sourceCount: achievement.sources.length,
+  };
+}
+
+export const ACHIEVEMENT_CARDS: AchievementCardData[] = ACHIEVEMENTS.map(toCardData);

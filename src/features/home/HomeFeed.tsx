@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import type { Achievement, Milestone, Category, Claim } from "@/content/schema";
-import { PART_LABELS, achievementParts } from "@/content/achievements";
+import type { Milestone, Category, Claim } from "@/content/schema";
+import { PART_LABELS, type AchievementCardData } from "@/content/achievements";
 import { ScrollArrow, useScroller } from "@/features/app/Scroller";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
@@ -59,18 +59,40 @@ export function HomeFeed({
   slides,
   achievements,
   topics,
-  searchIndex,
+
   claims,
 }: {
   slides: HeroSlide[];
-  achievements: Achievement[];
+  achievements: AchievementCardData[];
   topics: Milestone[];
-  searchIndex: SearchEntry[];
+
   claims: Claim[];
 }) {
+  const [tab, setTab] = useState("all");
   const [query, setQuery] = useState("");
   const q = query.trim();
-  const [tab, setTab] = useState("all");
+
+  /*
+   * 검색 인덱스는 첫 화면에 실어 보내지 않는다(41KB). 검색창을 건드릴 때
+   * 한 번 받아 두고, 그 뒤로는 브라우저 안에서 즉시 찾는다.
+   * 받아 오지 못해도 사이트의 나머지는 그대로 동작한다.
+   */
+  const [index, setIndex] = useState<SearchEntry[] | null>(null);
+  const loading = useRef(false);
+
+  const ensureIndex = useCallback(async () => {
+    if (index || loading.current) return;
+    loading.current = true;
+    try {
+      const res = await fetch("/api/search-index");
+      if (res.ok) setIndex((await res.json()) as SearchEntry[]);
+    } catch {
+      // 검색만 동작하지 않는다. 나머지는 그대로다.
+    } finally {
+      loading.current = false;
+    }
+  }, [index]);
+
   const filtered = useMemo(() => {
     const matcher = TABS.find((t) => t.id === tab) ?? TABS[0];
     return topics.filter(matcher.match).slice(0, 6);
@@ -94,14 +116,14 @@ export function HomeFeed({
 
   return (
     <>
-      <SearchField value={query} onChange={setQuery} />
+      <SearchField value={query} onChange={setQuery} onActivate={ensureIndex} />
 
       {/*
        * 찾는 동안에는 피드를 걷는다. 결과 아래에 히어로와 목록이 그대로 남으면
        * 무엇이 결과인지 알 수 없다.
        */}
       {q ? (
-        <SearchResults query={q} index={searchIndex} />
+        <SearchResults query={q} index={index} />
       ) : (
         <>
 
@@ -226,9 +248,12 @@ export function HomeFeed({
 function SearchField({
   value,
   onChange,
+  onActivate,
 }: {
   value: string;
   onChange: (next: string) => void;
+  /** 검색을 시작하려는 첫 신호. 이때 인덱스를 받아 둔다. */
+  onActivate: () => void;
 }) {
   return (
     <form
@@ -249,7 +274,11 @@ function SearchField({
       <input
         type="search"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onFocus={onActivate}
+        onChange={(e) => {
+          onActivate();
+          onChange(e.target.value);
+        }}
         placeholder="궁금한 주제나 키워드를 검색해보세요"
         className="w-full rounded-full border border-stone bg-taupe py-3 pl-10 pr-10 text-sm text-ink placeholder:text-ash focus:border-graphite focus:outline-none"
       />
@@ -276,10 +305,20 @@ function SearchField({
  * 찾는 동안에는 피드를 걷는다. 결과 아래에 히어로와 목록이 그대로 남아 있으면
  * 무엇이 결과인지 알 수 없다.
  */
-function SearchResults({ query, index }: { query: string; index: SearchEntry[] }) {
-  const hits = useMemo(() => search(index, query), [index, query]);
+function SearchResults({ query, index }: { query: string; index: SearchEntry[] | null }) {
+  // 인덱스가 아직 오지 않았으면 "없다"가 아니라 "불러오는 중"이다.
+  const pending = index === null;
+  const hits = useMemo(() => (index ? search(index, query) : []), [index, query]);
 
   if (hits.length === 0) {
+  if (pending) {
+    return (
+      <p className="mt-8 text-[13px] text-ash" aria-live="polite">
+        검색 준비 중…
+      </p>
+    );
+  }
+
     return (
       <section aria-live="polite" className="mt-8">
         <p className="text-[15px] font-semibold text-ink">
@@ -424,8 +463,8 @@ function HeroCard({ slide }: { slide: HeroSlide }) {
  * 둘러보기의 카드와 같은 판단을 쓰되, 홈은 가로로 흐르므로 더 좁다.
  * 칸 이름을 다 적을 자리가 없어 점으로만 표시하고 개수를 따로 적는다.
  */
-function AchievementCard({ achievement }: { achievement: Achievement }) {
-  const parts = achievementParts(achievement);
+function AchievementCard({ achievement }: { achievement: AchievementCardData }) {
+  const { parts } = achievement;
   const ready = parts.filter(Boolean).length;
 
   return (
@@ -435,7 +474,7 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
     >
       <div className="flex items-center gap-1.5">
         <span className="text-[10px] font-bold text-navy">{achievement.kicker}</span>
-        {achievement.publishStatus === "draft" && (
+        {achievement.isDraft && (
           <span className="rounded-full bg-pending-tint px-1.5 py-0.5 text-[9px] font-semibold text-pending">
             초안
           </span>
@@ -461,7 +500,7 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
         </div>
         <p className="mt-2 text-[10px] text-ash">
           <span className="tabular">{ready}</span>/7 구성 · 근거{" "}
-          <span className="tabular">{achievement.claims.length}</span>건
+          <span className="tabular">{achievement.claimCount}</span>건
         </p>
       </div>
     </Link>

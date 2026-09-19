@@ -11,7 +11,8 @@ import type { Route } from "@/content/schema";
  */
 
 export function ArcticHeroVisual({ routes }: { routes: Route[] }) {
-  const background = getMapBackground();
+  // 카드는 지도의 일부만 작게 보여준다. 소수점까지 실을 이유가 없다.
+  const background = getMapBackground(0);
   const tracks = routes.map(buildTrack);
   const active = tracks.find((t) => !t.isBaseline) ?? tracks[0];
   const baseline = tracks.find((t) => t.isBaseline);

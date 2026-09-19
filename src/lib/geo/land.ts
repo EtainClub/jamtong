@@ -18,19 +18,29 @@ export interface MapBackground {
   arcticCircle: string;
 }
 
-let cached: MapBackground | null = null;
 
 /**
- * path 좌표를 소수점 첫째 자리로 자른다.
+ * path 좌표의 자릿수를 줄인다.
+ *
  * 760px 화면에서 0.1px 차이는 보이지 않는데, 자르지 않으면 좌표 하나가
  * 17자리까지 늘어나 HTML이 배로 커진다.
+ *
+ * precision 0은 히어로 카드용이다. 카드는 지도의 일부만, 그것도 작게 보여주므로
+ * 소수점이 필요 없다. 같은 경로를 소수점까지 실으면 첫 화면에만 수십 KB가
+ * 더 붙는다 — RSC 페이로드와 HTML에 각각 한 번씩 들어가므로 두 배로 문다.
  */
-function compact(d: string | null): string {
-  return (d ?? "").replace(/(-?\d+\.\d)\d+/g, "$1");
+function compact(d: string | null, precision: 0 | 1): string {
+  const text = d ?? "";
+  return precision === 0
+    ? text.replace(/(-?\d+)\.\d+/g, "$1")
+    : text.replace(/(-?\d+\.\d)\d+/g, "$1");
 }
 
-export function getMapBackground(): MapBackground {
-  if (cached) return cached;
+const cache = new Map<number, MapBackground>();
+
+export function getMapBackground(precision: 0 | 1 = 1): MapBackground {
+  const hit = cache.get(precision);
+  if (hit) return hit;
 
   const path = createPathBuilder();
   const topology = topo as unknown as Topology<{ land: GeometryCollection }>;
@@ -42,11 +52,12 @@ export function getMapBackground(): MapBackground {
   // 북위 66.5° — 북극권 경계. 항로가 어디를 지나는지 한눈에 보이게 한다.
   const arctic = geoCircle().center([0, 90]).radius(23.5).precision(1)();
 
-  cached = {
-    land: compact(path(land)),
-    graticule: compact(path(graticule)),
-    arcticCircle: compact(path(arctic)),
+  const value: MapBackground = {
+    land: compact(path(land), precision),
+    graticule: compact(path(graticule), precision),
+    arcticCircle: compact(path(arctic), precision),
   };
 
-  return cached;
+  cache.set(precision, value);
+  return value;
 }

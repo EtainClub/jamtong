@@ -1,10 +1,10 @@
-import { ACHIEVEMENTS, getPublishedAchievements } from "@/content/achievements";
+import { ACHIEVEMENT_CARDS, getPublishedAchievements } from "@/content/achievements";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import { findScene, validateMilestones } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { HomeFeed, type HeroSlide } from "@/features/home/HomeFeed";
-import { SEARCH_INDEX } from "@/content/search";
+
 import { ArcticHeroVisual, NumberHeroVisual } from "@/features/home/HeroVisuals";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 
@@ -75,9 +75,9 @@ export default function Home() {
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-8">
         <HomeFeed
           slides={slides}
-          achievements={ACHIEVEMENTS}
+          achievements={ACHIEVEMENT_CARDS}
           topics={topics}
-          searchIndex={SEARCH_INDEX}
+
           claims={ALL_CLAIMS}
         />
       </main>
