@@ -140,7 +140,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-cm-01",
+      title: "급식카드로 왜 편의점만 갔을까",
+      summary:
+        "금액만 올려서는 한 끼가 되지 않습니다. 쓸 곳과 카드 모양까지 고친 세 가지를 다룹니다.",
+      youtubeId: "QQfmV-MQwkE",
+      claimIds: ["claim-frozen", "claim-6000", "claim-card", "claim-design"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:
