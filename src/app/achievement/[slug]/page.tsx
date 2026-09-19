@@ -13,7 +13,7 @@ import { EvidenceStatus } from "@/features/achievement/EvidenceStatus";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareButton } from "@/features/achievement/ShareButton";
 import { SceneNav } from "@/features/achievement/SceneNav";
-import { SCENES_BY_ACHIEVEMENT } from "@/features/achievement/scenes";
+import { scenesFor } from "@/features/achievement/scenes";
 import { AskGuide } from "@/features/agent/AskGuide";
 import { ViewSwitch, ViewToggle } from "@/features/achievement/ViewSwitch";
 import { Eli5Section } from "@/features/eli5/Eli5Section";
@@ -195,10 +195,7 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
   }
 
   const { Layout, heroHighlights, askSuggestions } = config;
-  // 쇼츠가 없는 업적에 "쇼츠" 탭이 뜨면 눌러도 갈 곳이 없다.
-  const scenes = (SCENES_BY_ACHIEVEMENT[achievement.slug] ?? []).filter(
-    (scene) => scene.id !== "shorts" || achievement.shorts.length > 0,
-  );
+  const scenes = scenesFor(achievement);
 
   return (
     <>

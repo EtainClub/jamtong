@@ -8,7 +8,7 @@
  * 통과하지 못하면 화면에 닿지 않는다.
  */
 import { ACHIEVEMENTS } from "../src/content/achievements";
-import { SCENES_BY_ACHIEVEMENT } from "../src/features/achievement/scenes";
+import { scenesFor } from "../src/features/achievement/scenes";
 import { buildGrounding } from "../src/lib/agent/grounding";
 import { sanitizeActions, type AgentAction } from "../src/lib/agent/actions";
 import { buildTopicIndex, isOnTopic } from "../src/lib/agent/guard";
@@ -16,8 +16,8 @@ import { buildTopicIndex, isOnTopic } from "../src/lib/agent/guard";
 let failed = false;
 
 for (const achievement of ACHIEVEMENTS) {
-  const scenes = SCENES_BY_ACHIEVEMENT[achievement.slug];
-  if (!scenes) {
+  const scenes = scenesFor(achievement);
+  if (scenes.length === 0) {
     failed = true;
     console.error(`✗ ${achievement.slug} → 씬 목록이 등록되지 않았다`);
     continue;
@@ -76,7 +76,7 @@ for (const achievement of ACHIEVEMENTS) {
 const arctic = ACHIEVEMENTS.find((s) => s.slug === "arctic-route")!;
 const index = buildTopicIndex(
   arctic,
-  (SCENES_BY_ACHIEVEMENT["arctic-route"] ?? []).map((s) => s.label),
+  scenesFor(arctic).map((s) => s.label),
 );
 
 const shouldPass = [

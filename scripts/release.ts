@@ -113,6 +113,22 @@ function main() {
   }
 
   const tag = lastTag();
+
+  /*
+   * 버전은 이정표다. 통과하지 않는 나무에 이정표를 박으면 그 번호가 무엇을
+   * 뜻하는지 알 수 없게 된다. v0.4.0이 agent:check 실패를 안은 채 배포된 적이
+   * 있어서 여기에 문을 둔다. --dry 는 아무것도 쓰지 않으므로 건너뛴다.
+   */
+  if (!dry) {
+    console.log("pnpm check …");
+    try {
+      execFileSync("pnpm", ["check"], { stdio: ["ignore", "inherit", "inherit"] });
+    } catch {
+      console.error("\ncheck를 통과하지 못했다. 고치고 다시 할 것.");
+      process.exit(1);
+    }
+    console.log("");
+  }
   const entries = commitsSince(tag);
   const bump = forced ?? decide(entries);
 

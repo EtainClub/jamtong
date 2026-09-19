@@ -3,7 +3,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 
 import { getAchievement } from "@/content/achievements";
-import { SCENES_BY_ACHIEVEMENT } from "@/features/achievement/scenes";
+import { scenesFor } from "@/features/achievement/scenes";
 import { buildGrounding, SYSTEM_PROMPT } from "@/lib/agent/grounding";
 import { agentAnswerSchema, sanitizeActions } from "@/lib/agent/actions";
 import {
@@ -68,8 +68,8 @@ export async function POST(request: Request) {
   }
 
   const achievement = getAchievement(parsed.data.achievementSlug);
-  const scenes = SCENES_BY_ACHIEVEMENT[parsed.data.achievementSlug];
-  if (!achievement || !scenes) {
+  const scenes = achievement ? scenesFor(achievement) : [];
+  if (!achievement || scenes.length === 0) {
     return Response.json({ error: "알 수 없는 스토리입니다." }, { status: 404 });
   }
 
