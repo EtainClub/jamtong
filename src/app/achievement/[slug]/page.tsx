@@ -23,6 +23,7 @@ import { DaejangdongLayout } from "@/features/achievement/layouts/DaejangdongLay
 import { StockMarketLayout } from "@/features/achievement/layouts/StockMarketLayout";
 import { SeongnamWelfareLayout } from "@/features/achievement/layouts/SeongnamWelfareLayout";
 import { SeongnamDebtLayout } from "@/features/achievement/layouts/SeongnamDebtLayout";
+import { SeongnamHospitalLayout } from "@/features/achievement/layouts/SeongnamHospitalLayout";
 
 /**
  * 스토리 페이지 = 공통 골격 + 스토리별 레이아웃 분기.
@@ -62,6 +63,18 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "공공이 가져간 게 뭔가요?",
       "민간개발이었으면 어떻게 달랐나요?",
       "2014년에 무슨 결정이 있었나요?",
+    ],
+  },
+  "seongnam-hospital": {
+    Layout: SeongnamHospitalLayout,
+    heroHighlights: [
+      { claimId: "claim-first", label: "전국 첫 주민발의" },
+      { claimId: "claim-groundbreak", label: "가결 7년 뒤 착공" },
+    ],
+    askSuggestions: [
+      "누가 만들자고 했나요?",
+      "왜 17년이나 걸렸나요?",
+      "언제 문을 열었나요?",
     ],
   },
   "seongnam-debt": {

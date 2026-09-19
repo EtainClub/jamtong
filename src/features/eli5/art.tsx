@@ -624,6 +624,137 @@ function DebtZero() {
   );
 }
 
+/* ── 성남시의료원 ─────────────────────────────────────────── */
+
+function HospitalClosed() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="동네 병원 두 곳이 문을 닫았다">
+      <rect x={52} y={78} width={100} height={98} rx={10} fill="var(--stone)" />
+      <rect x={168} y={78} width={100} height={98} rx={10} fill="var(--stone)" />
+      <g fill="var(--ash)">
+        <rect x={94} y={100} width={16} height={44} rx={3} />
+        <rect x={80} y={114} width={44} height={16} rx={3} />
+        <rect x={210} y={100} width={16} height={44} rx={3} />
+        <rect x={196} y={114} width={44} height={16} rx={3} />
+      </g>
+      <g stroke="var(--burgundy)" strokeWidth={7} strokeLinecap="round">
+        <path d="M66 92 L138 162" />
+        <path d="M182 92 L254 162" />
+      </g>
+      <text x={160} y={56} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">병원 두 곳이 한꺼번에</text>
+      <text x={160} y={210} textAnchor="middle" fontSize={13} fill="var(--ash)">아프면 멀리 가야 했어요</text>
+    </svg>
+  );
+}
+
+function CitizensPetition() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="시민들이 이름을 모아 조례를 발의했다">
+      <g fill="var(--navy)">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <circle key={i} cx={58 + (i % 3) * 38} cy={92 + Math.floor(i / 3) * 40} r={14} />
+        ))}
+      </g>
+      <path d="M168 122 H206" stroke="var(--navy)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M200 113 L212 122 L200 131 Z" fill="var(--navy)" />
+      <rect x={222} y={78} width={74} height={92} rx={10} fill="var(--canvas)"
+            stroke="var(--navy)" strokeWidth={2.5} />
+      <g stroke="var(--ash)" strokeWidth={3} strokeLinecap="round">
+        <path d="M236 102 H282" />
+        <path d="M236 118 H282" />
+        <path d="M236 134 H268" />
+      </g>
+      <text x={259} y={64} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">조례안</text>
+      <text x={160} y={210} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">시민이 직접 냈어요</text>
+      <text x={160} y={230} textAnchor="middle" fontSize={12} fill="var(--ash)">전국에서 처음</text>
+    </svg>
+  );
+}
+
+function RejectedTwice() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="조례안이 두 번 부결됐다">
+      {[0, 1].map((i) => (
+        <g key={i} transform={`translate(${44 + i * 132} 70)`}>
+          <rect width={92} height={100} rx={10} fill="var(--burgundy-tint)"
+                stroke="var(--burgundy)" strokeWidth={2} />
+          <g stroke="var(--burgundy)" strokeWidth={6} strokeLinecap="round">
+            <path d="M30 34 L62 66" />
+            <path d="M62 34 L30 66" />
+          </g>
+          <text x={46} y={92} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">
+            {i === 0 ? "2004" : "2005"}
+          </text>
+        </g>
+      ))}
+      <text x={160} y={52} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">두 번 퇴짜</text>
+      <text x={160} y={210} textAnchor="middle" fontSize={13} fill="var(--ash)">그래도 포기하지 않았어요</text>
+    </svg>
+  );
+}
+
+function PassedThird() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="세 번째에 만장일치로 통과됐다">
+      <rect x={70} y={62} width={180} height={110} rx={14} fill="var(--navy-tint)"
+            stroke="var(--navy)" strokeWidth={2.5} />
+      <path d="M116 116 L144 146 L206 84" fill="none" stroke="var(--navy)" strokeWidth={12}
+            strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={44} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">세 번째, 만장일치</text>
+      <text x={160} y={206} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--navy)">2006년 3월 15일</text>
+      <text x={160} y={228} textAnchor="middle" fontSize={12} fill="var(--ash)">한 명도 반대하지 않았어요</text>
+    </svg>
+  );
+}
+
+function GroundBroken() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="조례 통과 7년 만에 기공식이 열렸다">
+      <rect x={20} y={140} width={280} height={44} rx={8} fill="var(--taupe)" />
+      <path d="M40 140 H90" stroke="var(--ash)" strokeWidth={3} strokeDasharray="7 7" />
+      <text x={64} y={126} textAnchor="middle" fontSize={12} fill="var(--ash)">2006</text>
+      <path d="M100 162 H236" stroke="var(--ash)" strokeWidth={3} strokeLinecap="round"
+            strokeDasharray="8 8" />
+      <text x={168} y={126} textAnchor="middle" fontSize={22} fontWeight={900} fill="var(--burgundy)">7년</text>
+      <text x={168} y={210} textAnchor="middle" fontSize={12} fill="var(--ash)">아무 일도 일어나지 않았어요</text>
+      <g transform="translate(252 108)">
+        <path d="M0 52 L0 12" stroke="var(--navy)" strokeWidth={6} strokeLinecap="round" />
+        <path d="M-14 12 L14 12 L8 -4 L-8 -4 Z" fill="var(--navy)" />
+      </g>
+      <text x={258} y={126} textAnchor="middle" fontSize={12} fill="var(--navy)">2013</text>
+    </svg>
+  );
+}
+
+function HospitalOpen() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="509병상 22개 진료과로 문을 열었다">
+      <rect x={72} y={58} width={176} height={118} rx={12} fill="var(--navy)" />
+      <g fill="var(--canvas)">
+        <rect x={150} y={78} width={20} height={58} rx={4} />
+        <rect x={131} y={97} width={58} height={20} rx={4} />
+      </g>
+      <g fill="var(--navy-tint)">
+        {[0, 1, 2, 3].map((i) => (
+          <rect key={i} x={88 + i * 12} y={144} width={8} height={18} rx={2} />
+        ))}
+        {[0, 1, 2, 3].map((i) => (
+          <rect key={`r${i}`} x={188 + i * 12} y={144} width={8} height={18} rx={2} />
+        ))}
+      </g>
+      <text x={160} y={206} textAnchor="middle" fontSize={26} fontWeight={900} fill="var(--navy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>509병상</text>
+      <text x={160} y={230} textAnchor="middle" fontSize={12} fill="var(--ash)">진료과 22개 · 2020년</text>
+    </svg>
+  );
+}
+
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -659,4 +790,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "tighten-belt": TightenBelt,
   "paid-off": PaidOff,
   "debt-zero": DebtZero,
+
+  "hospital-closed": HospitalClosed,
+  "citizens-petition": CitizensPetition,
+  "rejected-twice": RejectedTwice,
+  "passed-third": PassedThird,
+  "ground-broken": GroundBroken,
+  "hospital-open": HospitalOpen,
 };
