@@ -10,7 +10,7 @@ import { create } from "zustand";
  * AI Visual Guide가 화면을 조작할 지점도 여기 하나로 모인다.
  */
 
-export type SceneId = "hero" | "route" | "compare" | "land" | "flow" | "series" | "relations" | "counterpoint" | "timeline" | "share";
+export type SceneId = "hero" | "route" | "compare" | "land" | "flow" | "series" | "relations" | "counterpoint" | "timeline" | "shorts" | "share";
 export type PanelId = "evidence" | null;
 
 /**

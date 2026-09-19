@@ -245,6 +245,8 @@ export const storySchema = z.object({
   /** 스토리 전용 개념. 종류마다 데이터가 다르고, 전부 claimIds를 갖는다. */
   scenes: z.lazy(() => z.array(storySceneSchema)).default([]),
   keyNumbers: z.array(keyNumberSchema).default([]),
+  /** ⑦ 쇼츠. 이 업적을 짧게 전하는 세로 영상. 정의는 아래에 있어 lazy로 건다. */
+  shorts: z.lazy(() => z.array(shortSchema)).default([]),
   /**
    * 공유 카드에 실을 대표 수치. 생략하면 keyNumbers의 첫 항목을 쓴다.
    * 화면에 놓는 순서와 "이 스토리를 한 숫자로 말하면"이 늘 같지는 않다.
@@ -549,30 +551,33 @@ export function validateGraph(graph: Graph, claimIds: Set<string>): string[] {
 }
 
 /* ────────────────────────────────────────────────────────────────
- * 쇼츠 (직접 제작한 세로 영상)
+ * 쇼츠 — 업적 하나를 짧게 전하는 세로 영상 (구성요소 ⑦)
  *
- * 영상 자체는 편집자가 만들어 넣는다. 앱은 그것을 재생하고, 근거를 붙이고,
- * 더 깊은 스토리로 연결하는 일만 한다.
+ * 영상은 편집자가 유튜브에 올리고, 여기에는 id만 적는다. 저장소에 영상을 두면
+ * 몇 편 만에 무거워지고 빌드도 같이 느려진다. 유튜브에 원본이 있으면 그쪽
+ * 유입도 생긴다.
  *
- * 영상이라고 해서 근거 원칙이 느슨해지지 않는다. 짧은 영상일수록 맥락이
- * 잘리므로 오히려 출처가 더 중요하다.
+ * 쇼츠는 전역 목록이 아니라 **업적에 속한다.** 목록으로 따로 늘어놓으면
+ * 업적이 단위로 보이지 않는다. 한 업적 페이지 안에서 나머지 여섯 구성요소와
+ * 함께 놓인다.
+ *
+ * 영상이라고 근거 원칙이 느슨해지지 않는다. 짧을수록 맥락이 잘리므로
+ * 오히려 출처가 더 중요하다.
  * ──────────────────────────────────────────────────────────────── */
 
 export const shortSchema = z.object({
   id: z.string(),
   title: z.string(),
   summary: z.string().optional(),
-  /** 세로 영상 파일 경로. 9:16을 전제로 한다. */
-  videoUrl: z.string(),
-  /** 첫 프레임. 없으면 로딩 중 검은 화면이 보인다. */
-  posterUrl: z.string().optional(),
+  /**
+   * 유튜브 영상 id. URL이 아니라 id만 적는다 —
+   * youtube.com/shorts/<id>, youtu.be/<id>, watch?v=<id> 가 모두 같은 영상이다.
+   */
+  youtubeId: z.string().regex(/^[\w-]{11}$/, "유튜브 영상 id는 11자다"),
   durationSec: z.number().positive().optional(),
-  categories: z.array(AchievementCategory).min(1),
   /** ★ 불변식: 근거 없는 쇼츠는 올리지 않는다. */
   claimIds: z.array(z.string()).min(1, "근거 없는 쇼츠는 허용되지 않는다"),
-  /** 더 깊이 볼 스토리가 있으면 연결한다. */
-  storySlug: z.string().optional(),
-  publishedAt: z.string(),
+  publishedAt: z.string().optional(),
 });
 export type Short = z.infer<typeof shortSchema>;
 export type ShortInput = z.input<typeof shortSchema>;

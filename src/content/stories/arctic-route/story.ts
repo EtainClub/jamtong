@@ -217,6 +217,28 @@ const raw: StoryInput = {
     },
   ],
 
+  /**
+   * ⑦ 쇼츠. 유튜브에 올린 뒤 id만 적는다.
+   *
+   *   youtube.com/shorts/AbCdEfGhIjK  →  youtubeId: "AbCdEfGhIjK"
+   *
+   * claimIds는 영상에서 말한 내용의 근거다. 짧을수록 맥락이 잘리므로
+   * 근거 없는 쇼츠는 스키마가 거부한다.
+   *
+   *   shorts: [
+   *     {
+   *       id: "short-arctic-01",
+   *       title: "부산에서 유럽까지, 7,400km를 줄인다",
+   *       summary: "수에즈 항로와 나란히 놓고 봅니다.",
+   *       youtubeId: "AbCdEfGhIjK",
+   *       durationSec: 42,
+   *       claimIds: ["claim-reduction"],
+   *       publishedAt: "2026-09-19",
+   *     },
+   *   ],
+   */
+  shorts: [],
+
   // 카드에 실을 한 숫자. 화면 순서상 첫 항목은 건조 지원금이지만,
   // 이 스토리를 한 줄로 말하면 "얼마나 짧아지나"다.
   headlineKeyNumberId: "kn-distance",

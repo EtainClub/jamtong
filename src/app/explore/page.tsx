@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getPublishedStories } from "@/content/stories";
 import { ACHIEVEMENTS, ALL_CLAIMS, ALL_SOURCES } from "@/content/achievements";
-import { SHORTS } from "@/content/shorts";
 import { CATEGORY_LABEL, STATUS_LABEL, formatDate } from "@/content/labels";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
@@ -46,42 +45,6 @@ export default function ExplorePage() {
           </ul>
         </section>
 
-        <section aria-labelledby="ex-shorts" className="mt-9">
-          <h2 id="ex-shorts" className="text-[15px] font-bold text-ink">
-            쇼츠
-          </h2>
-          {SHORTS.length === 0 ? (
-            <p className="mt-3 rounded-card border border-dashed border-stone bg-taupe/50 px-5 py-7 text-center text-[13px] leading-relaxed text-ash">
-              아직 등록된 쇼츠가 없습니다.
-              <br />
-              세로 영상을 <code className="text-smoke">public/shorts/</code>에 두고
-              <br />
-              <code className="text-smoke">src/content/shorts</code>에 등록하면 여기 나옵니다.
-            </p>
-          ) : (
-            <ul className="no-scrollbar -mx-4 mt-3 flex gap-3 overflow-x-auto px-4">
-              {SHORTS.map((short) => (
-                <li key={short.id} className="w-[150px] shrink-0">
-                  <div className="aspect-[9/16] overflow-hidden rounded-card border border-stone bg-stone">
-                    {short.posterUrl && (
-                      // 쇼츠 포스터는 편집자가 올린 고정 자산이라 최적화 파이프라인이 필요 없다.
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={short.posterUrl}
-                        alt=""
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </div>
-                  <p className="mt-2 text-[12px] font-semibold leading-snug text-ink">
-                    {short.title}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
 
         <section aria-labelledby="ex-done" className="mt-9">
           <h2 id="ex-done" className="text-[15px] font-bold text-ink">

@@ -18,6 +18,7 @@ export const SCENES_BY_STORY: Record<string, SceneNavItem[]> = {
     { id: "compare", label: "비교" },
     { id: "timeline", label: "경과" },
     { id: "relations", label: "관계도" },
+    { id: "shorts", label: "쇼츠" },
     { id: "share", label: "공유" },
   ],
   daejangdong: [
@@ -26,6 +27,7 @@ export const SCENES_BY_STORY: Record<string, SceneNavItem[]> = {
     { id: "land", label: "토지이용" },
     { id: "flow", label: "자금 흐름" },
     { id: "counterpoint", label: "쟁점" },
+    { id: "shorts", label: "쇼츠" },
     { id: "share", label: "공유" },
   ],
  "stock-market": [
@@ -33,6 +35,7 @@ export const SCENES_BY_STORY: Record<string, SceneNavItem[]> = {
     { id: "series", label: "지수" },
     { id: "timeline", label: "경과" },
     { id: "counterpoint", label: "쟁점" },
+    { id: "shorts", label: "쇼츠" },
     { id: "share", label: "공유" },
   ],
 };

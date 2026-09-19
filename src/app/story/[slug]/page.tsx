@@ -7,6 +7,8 @@ import { STORIES, getStory } from "@/content/stories";
 import { validateStory, type Story } from "@/content/schema";
 
 import { StoryHero } from "@/features/story/StoryHero";
+import { StorySection } from "@/features/story/StorySection";
+import { ShortsSection } from "@/features/story/ShortsSection";
 import { DraftBanner } from "@/features/story/DraftBanner";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareButton } from "@/features/story/ShareButton";
@@ -112,7 +114,10 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
   }
 
   const { Layout, heroHighlights, askSuggestions } = config;
-  const scenes = SCENES_BY_STORY[story.slug] ?? [];
+  // 쇼츠가 없는 업적에 "쇼츠" 탭이 뜨면 눌러도 갈 곳이 없다.
+  const scenes = (SCENES_BY_STORY[story.slug] ?? []).filter(
+    (scene) => scene.id !== "shorts" || story.shorts.length > 0,
+  );
 
   return (
     <>
@@ -150,7 +155,21 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
                 <Eli5Section eli5={story.eli5} claims={story.claims} />
               ) : null
             }
-            full={<Layout story={story} />}
+            full={
+              <>
+                <Layout story={story} />
+                {/* ⑦ 쇼츠. 업적마다 따로 붙이면 빠뜨리는 곳이 생기므로 여기서 한 번에 건다. */}
+                {story.shorts.length > 0 && (
+                  <StorySection
+                    scene="shorts"
+                    heading="짧게 보기"
+                    lede="이 업적을 1분 안에 전하는 영상입니다. 영상에서 말한 내용의 근거도 함께 있습니다."
+                  >
+                    <ShortsSection shorts={story.shorts} claims={story.claims} />
+                  </StorySection>
+                )}
+              </>
+            }
           />
         </div>
       </main>
