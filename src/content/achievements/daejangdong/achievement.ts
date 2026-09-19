@@ -48,17 +48,19 @@ const raw: AchievementInput = {
   scenes: [
     {
       id: "land-use",
-      kind: "land-use",
+      kind: "composition",
       heading: "땅은 어떻게 나뉘었나",
       lede:
         "금액을 따지기 전에 부지가 무엇으로 계획되었는지부터 봅니다. 인허가 고시에 실리는 값이라 다툼의 여지가 가장 적은 숫자입니다.",
       claimIds: ["claim-land-use"],
-      landUse: {
-        totalSqm: 917068.8,
+      composition: {
+        total: 917068.8,
+        unit: "㎡",
+        totalLabel: "전체 사업 면적",
         claimId: "claim-land-use",
         // 공개 표의 주거용지 소계가 제 하위 항목 합과 9㎡ 어긋난다. 자료에 적힌 값을
         // 그대로 싣고 차이를 note에 밝힌다. 임의로 고치면 인용이 아니게 된다.
-        sumToleranceSqm: 10,
+        sumTolerance: 10,
         note:
           "성남도시개발공사가 공개한 토지이용계획표다. 공공용지에는 공원·녹지·도로·학교 등 " +
           "사업 완료 후 공공이 관리하는 용지가 포함된다. " +
@@ -66,58 +68,59 @@ const raw: AchievementInput = {
           "여기서는 자료에 적힌 소계를 그대로 싣는다.",
         groups: [
           {
+            id: "lu-public",
+            label: "공공용지",
+            amount: 490747.6,
+            sharePercent: 53.5,
+            tone: "primary",
+            detail: "공원·녹지·도로·학교 등",
+          },
+          {
             id: "lu-residential",
             label: "주거용지",
-            areaSqm: 417976.7,
+            amount: 417976.7,
             sharePercent: 45.6,
-            group: "residential",
+            tone: "neutral",
             detail: "아파트·연립·단독·준주거",
           },
           {
             id: "lu-commercial",
             label: "상업시설용지",
-            areaSqm: 8353.5,
+            amount: 8353.5,
             sharePercent: 0.9,
-            group: "commercial",
-          },
-          {
-            id: "lu-public",
-            label: "공공용지",
-            areaSqm: 490747.6,
-            sharePercent: 53.5,
-            group: "public",
-            detail: "공원·녹지·도로·학교 등",
+            tone: "accent",
           },
         ],
-        publicBreakdown: [
-          { id: "lu-green", label: "녹지", areaSqm: 168847.3, sharePercent: 18.4, group: "public" },
-          { id: "lu-road", label: "도로", areaSqm: 147175.9, sharePercent: 16.0, group: "public" },
-          { id: "lu-park", label: "공원", areaSqm: 109349.2, sharePercent: 11.9, group: "public" },
+        breakdownLabel: "공공용지 내역",
+        breakdown: [
+          { id: "lu-green", label: "녹지", amount: 168847.3, sharePercent: 18.4, tone: "primary" },
+          { id: "lu-road", label: "도로", amount: 147175.9, sharePercent: 16.0, tone: "primary" },
+          { id: "lu-park", label: "공원", amount: 109349.2, sharePercent: 11.9, tone: "primary" },
           {
             id: "lu-school",
             label: "학교",
-            areaSqm: 19100.9,
+            amount: 19100.9,
             sharePercent: 2.1,
-            group: "public",
+            tone: "primary",
             detail: "초등학교 1, 중학교 1",
           },
-          { id: "lu-detention", label: "저류지", areaSqm: 12217.7, sharePercent: 1.3, group: "public" },
-          { id: "lu-plaza", label: "공공공지", areaSqm: 8726.2, sharePercent: 1.0, group: "public" },
-          { id: "lu-kinder", label: "유치원", areaSqm: 4899.8, sharePercent: 0.5, group: "public" },
+          { id: "lu-detention", label: "저류지", amount: 12217.7, sharePercent: 1.3, tone: "primary" },
+          { id: "lu-plaza", label: "공공공지", amount: 8726.2, sharePercent: 1.0, tone: "primary" },
+          { id: "lu-kinder", label: "유치원", amount: 4899.8, sharePercent: 0.5, tone: "primary" },
           {
             id: "lu-civic",
             label: "커뮤니티시설(공공청사)",
-            areaSqm: 3482.5,
+            amount: 3482.5,
             sharePercent: 0.4,
-            group: "public",
+            tone: "primary",
           },
-          { id: "lu-welfare", label: "사회복지시설", areaSqm: 3142.7, sharePercent: 0.3, group: "public" },
-          { id: "lu-power", label: "전기공급설비", areaSqm: 3092.9, sharePercent: 0.3, group: "public" },
-          { id: "lu-culture", label: "복합문화시설", areaSqm: 1863.0, sharePercent: 0.2, group: "public" },
-          { id: "lu-parking", label: "주차장", areaSqm: 6182.3, sharePercent: 0.7, group: "public" },
-          { id: "lu-bus", label: "버스차고지", areaSqm: 1390.2, sharePercent: 0.2, group: "public" },
-          { id: "lu-religion", label: "종교시설", areaSqm: 1112.0, sharePercent: 0.1, group: "public" },
-          { id: "lu-telecom", label: "통신시설용지", areaSqm: 165.0, sharePercent: 0.1, group: "public" },
+          { id: "lu-welfare", label: "사회복지시설", amount: 3142.7, sharePercent: 0.3, tone: "primary" },
+          { id: "lu-power", label: "전기공급설비", amount: 3092.9, sharePercent: 0.3, tone: "primary" },
+          { id: "lu-culture", label: "복합문화시설", amount: 1863.0, sharePercent: 0.2, tone: "primary" },
+          { id: "lu-parking", label: "주차장", amount: 6182.3, sharePercent: 0.7, tone: "primary" },
+          { id: "lu-bus", label: "버스차고지", amount: 1390.2, sharePercent: 0.2, tone: "primary" },
+          { id: "lu-religion", label: "종교시설", amount: 1112.0, sharePercent: 0.1, tone: "primary" },
+          { id: "lu-telecom", label: "통신시설용지", amount: 165.0, sharePercent: 0.1, tone: "primary" },
         ],
       },
 

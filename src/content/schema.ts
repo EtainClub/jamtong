@@ -184,39 +184,57 @@ export const moneyFlowSchema = z.object({
 export type MoneyFlow = z.infer<typeof moneyFlowSchema>;
 
 /**
- * 토지이용 구성.
+ * 구성 — "전체가 무엇으로 이루어져 있나".
  *
- * 금액 자료가 없을 때 "공공이 무엇을 가져갔는가"를 면적으로 보여준다.
- * 인허가 고시에 실리는 값이라 금액보다 검증이 쉽고 다툼의 여지도 적다.
+ * 원래 대장동의 토지이용 전용이었다(면적 ㎡ 고정, 주거/상업/공공 분류 고정).
+ * 무상급식의 학교 수·학생 수에 같은 그림이 필요해지면서 단위와 분류를 열었다.
+ * 종류를 하나 더 만드는 대신 있던 것을 넓힌다 — 같은 그림을 두 번 그리면
+ * 둘이 갈라진다.
+ *
+ * tone은 의미가 아니라 강조다. 논지가 되는 몫에 primary를 준다.
+ * 대장동에서는 공공용지가, 무상급식에서는 이 시정이 넓힌 몫이 그 자리다.
  */
-export const landUseItemSchema = z.object({
+export const compositionItemSchema = z.object({
   id: z.string(),
   label: z.string(),
-  areaSqm: z.number().min(0),
+  amount: z.number().min(0),
   sharePercent: z.number().min(0).max(100),
-  group: z.enum(["residential", "commercial", "public"]),
+  tone: z.enum(["primary", "neutral", "accent"]).default("neutral"),
   detail: z.string().optional(),
 });
-export type LandUseItem = z.infer<typeof landUseItemSchema>;
+export type CompositionItem = z.infer<typeof compositionItemSchema>;
 
-export const landUseSchema = z.object({
-  totalSqm: z.number().positive(),
-  /** 최상위 구성. 합이 100%가 되어야 한다. */
-  groups: z.array(landUseItemSchema).min(1),
-  /** 공공용지 내역. 무엇이 공공 몫인지 항목으로 보여준다. */
-  publicBreakdown: z.array(landUseItemSchema).default([]),
+export const compositionSchema = z.object({
+  total: z.number().positive(),
+  /** 단위. "㎡", "명", "곳" 처럼 숫자 뒤에 그대로 붙는다. */
+  unit: z.string(),
+  /** 전체를 무엇이라 부를지. "전체 사업 면적", "무상급식 대상 학생". */
+  totalLabel: z.string(),
+  /** 최상위 구성. 합이 100%가 되어야 한다. 그리는 순서는 여기 적은 순서다. */
+  groups: z.array(compositionItemSchema).min(1),
+  /** 한 몫을 더 펴 보일 때. 비어 있으면 그리지 않는다. */
+  breakdown: z.array(compositionItemSchema).default([]),
+  /** 그 내역이 무엇의 내역인지. breakdown이 있으면 필요하다. */
+  breakdownLabel: z.string().optional(),
+  /**
+   * 내역의 단위. 생략하면 unit을 쓴다.
+   *
+   * 전체와 내역이 다른 것을 셀 수 있다. 무상급식은 학생 수를 나눈 뒤 학교 수를
+   * 편다. 여기가 없으면 학교 78곳이 "78 명"으로 나온다.
+   */
+  breakdownUnit: z.string().optional(),
   claimId: z.string(),
   note: z.string().optional(),
   /**
-   * 면적 합과 총면적의 허용 오차(㎡).
+   * 항목 합과 전체의 허용 오차(단위 그대로).
    *
    * 1차 자료가 제 하위 항목과 어긋나는 경우가 있다. 그때는 자료에 적힌 값을
    * 그대로 싣되 오차를 명시적으로 선언하게 한다. 조용히 눈감지 않는다.
-   * 1㎡를 넘게 열어 두려면 note에 이유를 적어야 한다.
+   * 1을 넘게 열어 두려면 note에 이유를 적어야 한다.
    */
-  sumToleranceSqm: z.number().min(0).default(1),
+  sumTolerance: z.number().min(0).default(1),
 });
-export type LandUse = z.infer<typeof landUseSchema>;
+export type Composition = z.infer<typeof compositionSchema>;
 
 /**
  * 쟁점과 답변 (설계 검토 문서 2.1).
@@ -790,8 +808,8 @@ export const sceneSchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     ...sceneBase,
-    kind: z.literal("land-use"),
-    landUse: landUseSchema,
+    kind: z.literal("composition"),
+    composition: compositionSchema,
   }),
   z.object({
     ...sceneBase,
@@ -837,21 +855,25 @@ export function validateScene(
       }
       break;
 
-    case "land-use": {
-      const { landUse } = scene;
-      const share = landUse.groups.reduce((t, g) => t + g.sharePercent, 0);
+    case "composition": {
+      const { composition } = scene;
+      const share = composition.groups.reduce((t, g) => t + g.sharePercent, 0);
       if (Math.abs(share - 100) > 0.5) {
         errors.push(`${where} → 구성비 합이 ${share.toFixed(1)}%다 (100%여야 한다)`);
       }
-      const area = landUse.groups.reduce((t, g) => t + g.areaSqm, 0);
-      const gap = Math.abs(area - landUse.totalSqm);
-      if (gap > landUse.sumToleranceSqm) {
+      const sum = composition.groups.reduce((t, g) => t + g.amount, 0);
+      const gap = Math.abs(sum - composition.total);
+      if (gap > composition.sumTolerance) {
         errors.push(
-          `${where} → 면적 합(${area})이 총면적(${landUse.totalSqm})과 ${gap.toFixed(1)}㎡ 다르다`,
+          `${where} → 항목 합(${sum})이 전체(${composition.total})와 ` +
+            `${gap.toFixed(1)}${composition.unit} 다르다`,
         );
       }
-      if (landUse.sumToleranceSqm > 1 && !landUse.note) {
-        errors.push(`${where} → 오차를 1㎡ 넘게 허용하려면 note에 이유를 적어야 한다`);
+      if (composition.sumTolerance > 1 && !composition.note) {
+        errors.push(`${where} → 오차를 1 넘게 허용하려면 note에 이유를 적어야 한다`);
+      }
+      if (composition.breakdown.length > 0 && !composition.breakdownLabel) {
+        errors.push(`${where} → breakdown이 있으면 breakdownLabel이 필요하다`);
       }
       break;
     }

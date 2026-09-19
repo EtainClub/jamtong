@@ -13,9 +13,9 @@ import { achievementSchema, type AchievementInput } from "@/content/schema";
  * 자란 기록**으로 쓴다. 이 시정의 몫은 2013년 의무교육 전면 확대다.
  * 시작도 완성도 남의 몫이라고 적는 편이, 전부 제 몫이라고 적는 것보다 강하다.
  *
- * ⚠ 모션 씬이 없다. 5/7이다.
- *   "무엇으로 이루어져 있나"를 비율로 보이는 씬이 필요한데, 지금 있는 land-use는
- *   면적 전용이라 학교 수에 쓸 수 없다. 억지로 끼우지 않고 비워 둔다.
+ * 모션 자리에는 구성 씬을 둔다. 자료가 학교 수와 학생 수를 학교급별로 갈라
+ * 적어 두었고, 둘 다 합이 정확히 맞는다(78+72+46+36=232, 81,195+26,499=107,694).
+ * 근거에 있는 분해만 그린다.
  */
 
 const raw: AchievementInput = {
@@ -37,7 +37,52 @@ const raw: AchievementInput = {
 
   headlineKeyNumberId: "kn-students",
 
-  scenes: [],
+  scenes: [
+    {
+      id: "composition",
+      kind: "composition",
+      heading: "누가 급식을 받고 있나",
+      lede:
+        "2018년 2학기, 고등학교까지 채워진 시점의 구성입니다. 이 시정이 넓힌 몫은 초·중학교입니다.",
+      claimIds: ["claim-scale", "claim-highschool"],
+      composition: {
+        total: 107694,
+        unit: "명",
+        totalLabel: "무상급식을 받는 학생",
+        claimId: "claim-scale",
+        note:
+          "고등학교 확대 이전의 196개교 8만1,195명에 2018년 2학기 고등학교 36개교 " +
+          "2만6,499명을 더한 수다. 초등학교와 중학교를 가른 값은 자료에 없어 " +
+          "의무교육 대상으로 묶었다. 이 시정의 몫은 그 묶음이다.",
+        groups: [
+          {
+            id: "co-compulsory",
+            label: "의무교육 대상",
+            amount: 81195,
+            sharePercent: 75.4,
+            tone: "primary",
+            detail: "사립유치원·초·중 196개교",
+          },
+          {
+            id: "co-high",
+            label: "고등학교",
+            amount: 26499,
+            sharePercent: 24.6,
+            tone: "neutral",
+            detail: "36개교 · 2018년 2학기",
+          },
+        ],
+        breakdownLabel: "학교 232곳의 구성",
+        breakdownUnit: "곳",
+        breakdown: [
+          { id: "co-kinder", label: "사립유치원", amount: 78, sharePercent: 33.6, tone: "primary" },
+          { id: "co-elem", label: "초등학교", amount: 72, sharePercent: 31.0, tone: "primary" },
+          { id: "co-middle", label: "중학교", amount: 46, sharePercent: 19.8, tone: "primary" },
+          { id: "co-highschool", label: "고등학교", amount: 36, sharePercent: 15.5, tone: "neutral" },
+        ],
+      },
+    },
+  ],
   shorts: [],
 
   eli5: {

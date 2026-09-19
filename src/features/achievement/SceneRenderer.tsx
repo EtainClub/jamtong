@@ -4,7 +4,7 @@ import { buildTrack } from "@/lib/geo/route-track";
 
 import { ScrollRouteScene } from "@/features/motion/ScrollRouteScene";
 import { RouteComparison } from "@/features/achievement/RouteComparison";
-import { LandUseBreakdown } from "@/features/achievement/LandUseBreakdown";
+import { CompositionBreakdown } from "@/features/achievement/CompositionBreakdown";
 import { MoneyFlow } from "@/features/motion/MoneyFlow";
 import { IndexSeriesChart } from "@/features/series/IndexSeriesChart";
 import type { TimelineEvent } from "@/content/schema";
@@ -43,8 +43,8 @@ export function SceneRenderer({
         />
       );
 
-    case "land-use":
-      return <LandUseBreakdown landUse={scene.landUse} claims={claims} />;
+    case "composition":
+      return <CompositionBreakdown composition={scene.composition} claims={claims} />;
 
     case "money-flow":
       return <MoneyFlow flow={scene.flow} claims={claims} />;

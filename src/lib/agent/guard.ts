@@ -182,8 +182,8 @@ export function buildTopicIndex(achievement: Achievement, sceneLabels: string[])
       scene.lede ?? "",
       ...(scene.kind === "route-map" ? scene.routes.map((r) => r.name) : []),
       ...(scene.kind === "route-compare" ? scene.comparisons.map((c) => c.name) : []),
-      ...(scene.kind === "land-use"
-        ? scene.landUse.groups.map((g) => g.label)
+      ...(scene.kind === "composition"
+        ? scene.composition.groups.map((g) => g.label)
         : []),
       ...(scene.kind === "money-flow"
         ? scene.flow.scenarios.map((sc) => `${sc.name} ${sc.summary}`)

@@ -16,7 +16,7 @@ import { buildGraphLayout } from "@/lib/graph/layout";
  * 아무것도 판단할 수 없다.
  */
 export function DaejangdongLayout({ achievement }: { achievement: Achievement }) {
-  const landUse = findScene(achievement, "land-use");
+  const composition = findScene(achievement, "composition");
   const flow = findScene(achievement, "money-flow");
   const graphLayout = achievement.graph ? buildGraphLayout(achievement.graph) : null;
 
@@ -31,8 +31,8 @@ export function DaejangdongLayout({ achievement }: { achievement: Achievement })
         <Timeline events={achievement.timeline} claims={achievement.claims} />
       </Section>
 
-      {landUse && (
-        <Section scene="land" heading={landUse.heading} lede={landUse.lede}>
+      {composition && (
+        <Section scene="land" heading={composition.heading} lede={composition.lede}>
           <SceneWithAside
             aside={
               <KeyNumbers
@@ -42,7 +42,7 @@ export function DaejangdongLayout({ achievement }: { achievement: Achievement })
               />
             }
           >
-            <SceneRenderer scene={landUse} claims={achievement.claims} timeline={achievement.timeline} />
+            <SceneRenderer scene={composition} claims={achievement.claims} timeline={achievement.timeline} />
           </SceneWithAside>
         </Section>
       )}

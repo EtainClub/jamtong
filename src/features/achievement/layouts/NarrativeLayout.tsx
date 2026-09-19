@@ -1,6 +1,7 @@
-import type { Achievement } from "@/content/schema";
+import { findScene, type Achievement } from "@/content/schema";
 import { Counterpoints } from "@/features/achievement/Counterpoints";
 import { KeyNumbers } from "@/features/achievement/KeyNumbers";
+import { SceneRenderer } from "@/features/achievement/SceneRenderer";
 import { Section } from "@/features/achievement/Section";
 import { ShareSection } from "@/features/achievement/ShareSection";
 import { Timeline } from "@/features/timeline/Timeline";
@@ -35,6 +36,7 @@ export function NarrativeLayout({
   achievement: Achievement;
   copy: NarrativeCopy;
 }) {
+  const composition = findScene(achievement, "composition");
   const graphLayout = achievement.graph ? buildGraphLayout(achievement.graph) : null;
 
   return (
@@ -49,6 +51,17 @@ export function NarrativeLayout({
             numbers={achievement.keyNumbers}
             claims={achievement.claims}
             className="grid gap-4 sm:grid-cols-3"
+          />
+        </Section>
+      )}
+
+      {/* 전용 모션은 없지만 구성 씬은 있을 수 있다. 수치를 보인 직후가 제자리다. */}
+      {composition && (
+        <Section scene="composition" heading={composition.heading} lede={composition.lede}>
+          <SceneRenderer
+            scene={composition}
+            claims={achievement.claims}
+            timeline={achievement.timeline}
           />
         </Section>
       )}
