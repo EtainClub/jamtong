@@ -254,6 +254,33 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "몇 명을 조사했나요?",
     ],
   },
+  "judicial-reform": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "통과, 공포, 그리고 아직 오지 않은 것",
+          timelineLede:
+            "시점을 옮기면 그때 무엇이 시행돼 있었는지가 나타납니다. 셋의 시행 시점이 서로 다릅니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "2026년 9월 19일 기준입니다.",
+          relationsHeading: "다시 볼 길이 어디로 났나",
+          relationsLede:
+            "대법원에서 끝나던 길이 어디로 이어졌는지 봅니다. 반대한 쪽도 함께 그립니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-pass", label: "3법 공포" },
+      { claimId: "claim-bench", label: "대법관 증원" },
+    ],
+    askSuggestions: [
+      "세 법이 각각 무엇인가요?",
+      "언제부터 시행되나요?",
+      "어떤 반대가 있었나요?",
+    ],
+  },
   "prosecution-reform": {
     Layout: (props) => (
       <NarrativeLayout

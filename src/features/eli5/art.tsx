@@ -2293,6 +2293,137 @@ function PrNotYet() {
     </svg>
   );
 }
+
+/* ── 사법개혁 3법 ────────────────────────────────────────────── */
+
+/** 세 단계 계단 끝에 막힌 벽 — 대법원에서 끝난다. */
+function JrFinal() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="1심 2심 3심을 거쳐 대법원에서 끝나고 더 갈 길이 없는 모습">
+      {[{ x: 34, h: 40 }, { x: 108, h: 66 }, { x: 182, h: 96 }].map((s, i) => (
+        <g key={s.x}>
+          <rect x={s.x} y={186 - s.h} width={62} height={s.h} rx={4}
+                fill="var(--navy)" opacity={0.35 + i * 0.25} />
+          <text x={s.x + 31} y={176 - s.h} textAnchor="middle" fontSize={11} fill="var(--ash)">
+            {i + 1}심
+          </text>
+        </g>
+      ))}
+      <rect x={258} y={62} width={16} height={124} rx={3} fill="var(--burgundy)" />
+      <path d="M250 96 L282 128 M282 96 L250 128" stroke="var(--burgundy)"
+            strokeWidth={3.5} strokeLinecap="round" />
+      <text x={160} y={216} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        여기서 끝이었다
+      </text>
+    </svg>
+  );
+}
+
+/** 벽에 문이 생긴다 — 헌재로 가는 길. */
+function JrConstitution() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="막혀 있던 길 옆으로 헌법재판소로 가는 문이 열린 모습">
+      <rect x={30} y={96} width={92} height={72} rx={5} fill="var(--navy)" opacity={0.75} />
+      <text x={76} y={138} textAnchor="middle" fontSize={12.5} {...LABEL} fill="var(--eggshell)">
+        대법원
+      </text>
+      <path d="M130 132 H176" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M168 124 L178 132 L168 140" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M190 168 V104 L236 76 L282 104 V168 Z" fill="none"
+            stroke="var(--burgundy)" strokeWidth={3} strokeLinejoin="round" />
+      {[206, 236, 266].map((x) => (
+        <rect key={x} x={x - 5} y={116} width={10} height={52} fill="var(--burgundy)" opacity={0.55} />
+      ))}
+      <text x={236} y={196} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--burgundy)">
+        헌법재판소
+      </text>
+      <text x={160} y={222} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        재판소원 · 2026년 3월 12일
+      </text>
+    </svg>
+  );
+}
+
+/** 저울이 억지로 기울어져 있고 그 위에 처벌 표시. */
+function JrDistort() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="법을 고의로 비틀면 처벌받는다는 것을 나타낸 기울어진 저울">
+      <path d="M160 52 V168" stroke="var(--graphite)" strokeWidth={5} strokeLinecap="round" />
+      <path d="M96 66 L224 96" stroke="var(--graphite)" strokeWidth={5} strokeLinecap="round" />
+      <path d="M96 66 L78 110 H114 Z" fill="var(--burgundy)" opacity={0.85} />
+      <path d="M224 96 L206 140 H242 Z" fill="var(--stone)" />
+      <rect x={126} y={168} width={68} height={12} rx={4} fill="var(--graphite)" />
+      {/* 비트는 손 */}
+      <path d="M60 78 C44 62, 52 44, 72 46" fill="none" stroke="var(--burgundy)"
+            strokeWidth={3} strokeLinecap="round" strokeDasharray="4 5" />
+      <text x={160} y={206} textAnchor="middle" fontSize={19} {...LABEL} fill="var(--burgundy)">
+        10년 이하
+      </text>
+      <text x={160} y={226} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        징역 · 자격정지
+      </text>
+    </svg>
+  );
+}
+
+/** 법대에 앉은 사람들 — 열넷에서 스물여섯으로. */
+function JrBench() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="대법관이 열네 명에서 스물여섯 명으로 늘어나는 모습">
+      {Array.from({ length: 26 }, (_, i) => {
+        const x = 26 + (i % 13) * 22;
+        const y = i < 13 ? 96 : 146;
+        const now = i < 14;
+        return (
+          <g key={i}>
+            <circle cx={x} cy={y} r={6.5} fill={now ? "var(--navy)" : "none"}
+                    stroke={now ? "none" : "var(--stone)"} strokeWidth={2} />
+            <path d={`M${x - 8} ${y + 20} C${x - 7} ${y + 9}, ${x + 7} ${y + 9}, ${x + 8} ${y + 20} Z`}
+                  fill={now ? "var(--navy)" : "none"}
+                  stroke={now ? "none" : "var(--stone)"} strokeWidth={2} />
+          </g>
+        );
+      })}
+      <rect x={20} y={190} width={280} height={9} rx={3} fill="var(--graphite)" opacity={0.7} />
+      <text x={160} y={224} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        14명 → 26명 (2028~2030)
+      </text>
+    </svg>
+  );
+}
+
+/** 세 갈래가 한 점을 향한다. */
+function JrThree() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="세 법이 판결을 다시 보게 한다는 한 방향을 향하는 그림">
+      {[
+        { x: 46, label: "법왜곡죄" },
+        { x: 160, label: "재판소원" },
+        { x: 274, label: "대법관 증원" },
+      ].map((s) => (
+        <g key={s.label}>
+          <rect x={s.x - 46} y={54} width={92} height={34} rx={6}
+                fill="var(--navy)" opacity={0.8} />
+          <text x={s.x} y={76} textAnchor="middle" fontSize={11.5} {...LABEL} fill="var(--eggshell)">
+            {s.label}
+          </text>
+          <path d={`M${s.x} 88 L160 140`} stroke="var(--navy)" strokeWidth={2.5}
+                strokeLinecap="round" opacity={0.6} />
+        </g>
+      ))}
+      <circle cx={160} cy={156} r={17} fill="var(--burgundy)" />
+      <text x={160} y={196} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        판결을 다시 본다
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -2409,4 +2540,10 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "pr-newoffice": PrNewOffice,
   "pr-staffing": PrStaffing,
   "pr-notyet": PrNotYet,
+
+  "jr-final": JrFinal,
+  "jr-constitution": JrConstitution,
+  "jr-distort": JrDistort,
+  "jr-bench": JrBench,
+  "jr-three": JrThree,
 };
