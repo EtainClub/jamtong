@@ -217,6 +217,10 @@ const raw: StoryInput = {
     },
   ],
 
+  // 카드에 실을 한 숫자. 화면 순서상 첫 항목은 건조 지원금이지만,
+  // 이 스토리를 한 줄로 말하면 "얼마나 짧아지나"다.
+  headlineKeyNumberId: "kn-distance",
+
   keyNumbers: [
     {
       id: "kn-icebreaker",

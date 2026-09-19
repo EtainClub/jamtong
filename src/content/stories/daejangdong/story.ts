@@ -224,7 +224,7 @@ const raw: StoryInput = {
       prefix: "약",
       value: "5,503",
       unit: "억 원",
-      caption: "금액 출처 확정 전",
+      caption: "성남시의 계산 · 현금 배당은 1,822억",
       claimId: "claim-recovery-total",
     },
   ],

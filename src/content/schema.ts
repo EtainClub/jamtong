@@ -245,6 +245,11 @@ export const storySchema = z.object({
   /** 스토리 전용 개념. 종류마다 데이터가 다르고, 전부 claimIds를 갖는다. */
   scenes: z.lazy(() => z.array(storySceneSchema)).default([]),
   keyNumbers: z.array(keyNumberSchema).default([]),
+  /**
+   * 공유 카드에 실을 대표 수치. 생략하면 keyNumbers의 첫 항목을 쓴다.
+   * 화면에 놓는 순서와 "이 스토리를 한 숫자로 말하면"이 늘 같지는 않다.
+   */
+  headlineKeyNumberId: z.string().optional(),
   timeline: z.array(timelineEventSchema).default([]),
   graph: z.lazy(() => graphSchema).optional(),
   eli5: z.lazy(() => eli5Schema).optional(),
@@ -324,6 +329,15 @@ export function validateStory(story: Story): string[] {
   // 쟁점형 스토리는 반론 섹션을 비워 둘 수 없다.
   if (story.type === "event" && story.counterpoints.length === 0) {
     errors.push(`story "${story.slug}" → 쟁점형 스토리에는 counterpoints가 필요하다`);
+  }
+
+  if (
+    story.headlineKeyNumberId &&
+    !story.keyNumbers.some((k) => k.id === story.headlineKeyNumberId)
+  ) {
+    errors.push(
+      `story "${story.slug}" → headlineKeyNumberId "${story.headlineKeyNumberId}"에 해당하는 keyNumber가 없다`,
+    );
   }
 
   // 공개 스토리에 미검증 주장이 남아 있으면 빌드를 깬다.

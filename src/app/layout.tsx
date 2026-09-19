@@ -25,6 +25,10 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     siteName: "이재명 업적 위키",
   },
+  // 카드가 작게 뜨면 숫자가 안 읽힌다. 큰 카드로 고정한다.
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
