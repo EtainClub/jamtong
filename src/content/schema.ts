@@ -774,11 +774,35 @@ export const indexPointSchema = z.object({
 });
 export type IndexPoint = z.infer<typeof indexPointSchema>;
 
+/**
+ * 제도 축.
+ *
+ * 지수와 같은 시간축 위에 놓이는 두 번째 줄기다. 이 업적의 논지가 "지수는
+ * 되밀렸지만 제도는 남는다"인데, 지수만 그리면 그 논지가 화면에 없다.
+ *
+ * ★ 시행과 발표를 한 칸에 세지 않는다.
+ *   법률로 시행된 것과 방안으로 발표된 것은 무게가 다르다. 섞어 세면 제도 수가
+ *   부풀려지고, 되돌릴 수 있는 것을 되돌릴 수 없는 것처럼 보이게 한다.
+ */
+export const instrumentSchema = z.object({
+  id: z.string(),
+  date: z.string().regex(/^\d{4}(-\d{2}){0,2}$/, "date는 YYYY[-MM[-DD]] 형식이어야 한다"),
+  displayDate: z.string(),
+  label: z.string(),
+  status: z.enum(["enacted", "announced"]),
+  /** 법률 번호처럼 그 제도를 특정하는 문구. */
+  detail: z.string().optional(),
+  claimId: z.string(),
+});
+export type Instrument = z.infer<typeof instrumentSchema>;
+
 export const indexSeriesSchema = z.object({
   name: z.string(),
   unit: z.string(),
   points: z.array(indexPointSchema).min(2),
   claimId: z.string(),
+  /** 같은 시간축 위의 제도들. 비어 있으면 지수만 그린다. */
+  instruments: z.array(instrumentSchema).default([]),
   /** 측정 조건. 종가 기준인지 장중인지 등. 숨기면 오도가 된다. */
   note: z.string().optional(),
 });
@@ -938,6 +962,9 @@ export function validateScene(
       break;
 
     case "index-series":
+      for (const inst of scene.series.instruments) {
+        checkClaim(`${where} instrument "${inst.id}"`, inst.claimId);
+      }
       for (const error of validateIndexSeries(scene.series)) errors.push(`${where} → ${error}`);
       break;
 
