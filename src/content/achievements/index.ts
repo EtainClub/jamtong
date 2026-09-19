@@ -5,6 +5,7 @@ import { stockMarket } from "./stock-market/achievement";
 import { seongnamWelfare } from "./seongnam-welfare/achievement";
 import { seongnamDebt } from "./seongnam-debt/achievement";
 import { seongnamHospital } from "./seongnam-hospital/achievement";
+import { seongnamMeals } from "./seongnam-meals/achievement";
 
 /**
  * 업적 레지스트리.
@@ -19,6 +20,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   seongnamWelfare,
   seongnamDebt,
   seongnamHospital,
+  seongnamMeals,
 ];
 
 export function getAchievement(slug: string): Achievement | undefined {

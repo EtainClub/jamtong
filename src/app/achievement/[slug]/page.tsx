@@ -23,7 +23,7 @@ import { DaejangdongLayout } from "@/features/achievement/layouts/DaejangdongLay
 import { StockMarketLayout } from "@/features/achievement/layouts/StockMarketLayout";
 import { SeongnamWelfareLayout } from "@/features/achievement/layouts/SeongnamWelfareLayout";
 import { SeongnamDebtLayout } from "@/features/achievement/layouts/SeongnamDebtLayout";
-import { SeongnamHospitalLayout } from "@/features/achievement/layouts/SeongnamHospitalLayout";
+import { NarrativeLayout, type NarrativeCopy } from "@/features/achievement/layouts/NarrativeLayout";
 
 /**
  * 스토리 페이지 = 공통 골격 + 스토리별 레이아웃 분기.
@@ -65,8 +65,50 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "2014년에 무슨 결정이 있었나요?",
     ],
   },
+  "seongnam-meals": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "1학년에서 모든 학년까지, 11년",
+          timelineLede:
+            "시점을 옮기면 그때 누가 포함돼 있었는지가 나타납니다. 시작한 시정과 넓힌 시정과 완성한 시정이 다릅니다.",
+          numbersHeading: "얼마나 넓어졌나",
+          numbersLede: "고등학교까지 포함한 뒤의 규모입니다.",
+          relationsHeading: "어디까지 갔나",
+          relationsLede:
+            "한 정책이 어디까지 넓어졌는지 봅니다. 위 연표에서 시점을 옮기면 그때까지 포함된 대상만 남습니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-expand", label: "의무교육 전면" },
+      { claimId: "claim-scale", label: "지원 규모" },
+    ],
+    askSuggestions: [
+      "언제부터 공짜였나요?",
+      "고등학교는 언제부터인가요?",
+      "몇 명이 받나요?",
+    ],
+  },
   "seongnam-hospital": {
-    Layout: SeongnamHospitalLayout,
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "17년이 걸렸습니다",
+          timelineLede:
+            "시점을 옮기면 그때 무엇이 멈춰 있었는지가 나타납니다. 조례가 통과되고도 7년이 비어 있습니다.",
+          numbersHeading: "무엇이 지어졌나",
+          numbersLede: "문을 열었을 때의 규모입니다.",
+          relationsHeading: "누가 만들었나",
+          relationsLede:
+            "가운데가 성남시민입니다. 발의한 쪽과 통과시킨 쪽, 지은 쪽이 각각 다릅니다. 위 연표에서 시점을 옮기면 그때까지 성립한 관계만 남습니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
     heroHighlights: [
       { claimId: "claim-first", label: "전국 첫 주민발의" },
       { claimId: "claim-groundbreak", label: "가결 7년 뒤 착공" },

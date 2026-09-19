@@ -755,6 +755,121 @@ function HospitalOpen() {
   );
 }
 
+/* ── 성남시 무상급식 ──────────────────────────────────────── */
+
+function TrayBase({ children }: { children: React.ReactNode }) {
+  return (
+    <g>
+      <rect x={96} y={86} width={128} height={86} rx={12} fill="var(--stone)" />
+      <circle cx={132} cy={112} r={16} fill="var(--taupe)" />
+      <circle cx={176} cy={112} r={16} fill="var(--taupe)" />
+      <rect x={112} y={136} width={96} height={22} rx={8} fill="var(--taupe)" />
+      {children}
+    </g>
+  );
+}
+
+function LunchPay() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="예전에는 급식비를 냈다">
+      <TrayBase>{null}</TrayBase>
+      <circle cx={232} cy={78} r={26} fill="var(--burgundy)" />
+      <text x={232} y={86} textAnchor="middle" fontSize={22} fontWeight={900} fill="var(--canvas)">₩</text>
+      <text x={160} y={62} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">급식비를 냈어요</text>
+      <text x={160} y={204} textAnchor="middle" fontSize={13} fill="var(--ash)">형편이 어려우면 눈치가 보였어요</text>
+    </svg>
+  );
+}
+
+function FirstGradeOnly() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="처음에는 초등학교 1학년만 무상급식이었다">
+      <text x={160} y={48} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">초등학교</text>
+      {[1, 2, 3, 4, 5, 6].map((g, i) => (
+        <g key={g}>
+          <rect x={26 + i * 46} y={78} width={38} height={72} rx={8}
+                fill={i === 0 ? "var(--navy)" : "var(--stone)"} />
+          <text x={45 + i * 46} y={120} textAnchor="middle" fontSize={15} fontWeight={800}
+                fill={i === 0 ? "var(--canvas)" : "var(--ash)"}>{g}</text>
+        </g>
+      ))}
+      <text x={45} y={176} textAnchor="middle" fontSize={12} fontWeight={700} fill="var(--navy)">무상</text>
+      <text x={160} y={210} textAnchor="middle" fontSize={13} fill="var(--ash)">2007년, 아주 작게 시작했어요</text>
+    </svg>
+  );
+}
+
+function StepByStep() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="해마다 조금씩 대상을 넓혔다">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <rect key={i} x={26 + i * 56} y={162 - i * 24} width={44} height={24 + i * 24}
+              rx={6} fill="var(--navy)" opacity={0.35 + i * 0.16} />
+      ))}
+      <text x={48} y={204} textAnchor="middle" fontSize={12} fill="var(--ash)">2007</text>
+      <text x={272} y={204} textAnchor="middle" fontSize={12} fill="var(--ash)">2013</text>
+      <text x={160} y={52} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">한 학년씩, 한 학교씩</text>
+      <text x={160} y={230} textAnchor="middle" fontSize={12} fill="var(--ash)">한 번에 다 한 게 아니에요</text>
+    </svg>
+  );
+}
+
+function AllCompulsory() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="초등학교와 중학교 전체가 무상급식이 됐다">
+      <rect x={24} y={76} width={128} height={92} rx={14} fill="var(--navy)" />
+      <text x={88} y={116} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--canvas)">초등학교</text>
+      <text x={88} y={142} textAnchor="middle" fontSize={13} fill="var(--navy-tint)">전 학년</text>
+      <rect x={168} y={76} width={128} height={92} rx={14} fill="var(--navy)" />
+      <text x={232} y={116} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--canvas)">중학교</text>
+      <text x={232} y={142} textAnchor="middle" fontSize={13} fill="var(--navy-tint)">전 학년</text>
+      <text x={160} y={52} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">2013년, 의무교육 전체</text>
+      <text x={160} y={206} textAnchor="middle" fontSize={13} fill="var(--ash)">모두 공짜로 먹게 됐어요</text>
+    </svg>
+  );
+}
+
+function HighSchoolToo() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="고등학교까지 확대된 것은 2018년 2학기다">
+      <rect x={22} y={92} width={84} height={64} rx={12} fill="var(--navy)" />
+      <text x={64} y={130} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--canvas)">초·중</text>
+      <path d="M118 124 H166" stroke="var(--ash)" strokeWidth={3} strokeLinecap="round"
+            strokeDasharray="8 7" />
+      <path d="M160 115 L172 124 L160 133 Z" fill="var(--ash)" />
+      <rect x={186} y={92} width={110} height={64} rx={12} fill="var(--pending-tint)"
+            stroke="var(--pending)" strokeWidth={2} />
+      <text x={241} y={122} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--pending)">고등학교</text>
+      <text x={241} y={142} textAnchor="middle" fontSize={11} fill="var(--pending)">2018년 2학기</text>
+      <text x={160} y={62} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">고등학교는 나중이에요</text>
+      <text x={160} y={200} textAnchor="middle" fontSize={13} fill="var(--ash)">그때는 시장이 바뀐 뒤였어요</text>
+    </svg>
+  );
+}
+
+function LunchCount() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="약 10만 7천 명이 무상급식을 받는다">
+      <text x={160} y={62} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">공짜로 점심을 먹는 아이들</text>
+      <text x={160} y={132} textAnchor="middle" fontSize={44} fontWeight={900} fill="var(--navy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>107,694</text>
+      <text x={160} y={158} textAnchor="middle" fontSize={15} fill="var(--smoke)">명</text>
+      <g fill="var(--navy)" opacity={0.28}>
+        {Array.from({ length: 14 }, (_, i) => (
+          <circle key={i} cx={40 + i * 18.5} cy={192} r={7} />
+        ))}
+      </g>
+      <text x={160} y={224} textAnchor="middle" fontSize={12} fill="var(--ash)">유치원부터 고등학교까지</text>
+    </svg>
+  );
+}
+
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -797,4 +912,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "passed-third": PassedThird,
   "ground-broken": GroundBroken,
   "hospital-open": HospitalOpen,
+
+  "lunch-pay": LunchPay,
+  "first-grade-only": FirstGradeOnly,
+  "step-by-step": StepByStep,
+  "all-compulsory": AllCompulsory,
+  "high-school-too": HighSchoolToo,
+  "lunch-count": LunchCount,
 };

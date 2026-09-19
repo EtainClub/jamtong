@@ -650,6 +650,13 @@ export const Eli5Art = z.enum([
   "passed-third",
   "ground-broken",
   "hospital-open",
+
+  "lunch-pay",
+  "first-grade-only",
+  "step-by-step",
+  "all-compulsory",
+  "high-school-too",
+  "lunch-count",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 
