@@ -67,6 +67,33 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "2014년에 무슨 결정이 있었나요?",
     ],
   },
+  "gyeonggi-child-meal": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "세 가지를 차례로 고쳤다",
+          timelineLede:
+            "시점을 옮기면 그때 무엇이 달라져 있었는지가 나타납니다. 금액과 사용처와 카드 모양은 서로 다른 문제였습니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "보도로 확인된 것만 적었습니다.",
+          relationsHeading: "한 끼를 막고 있던 것들",
+          relationsLede:
+            "돈이 모자란 것, 쓸 데가 없는 것, 눈치가 보이는 것. 셋은 서로 다른 문제이고 각각 다르게 풀렸습니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-6000", label: "단가 인상" },
+      { claimId: "claim-card", label: "사용처 확대" },
+    ],
+    askSuggestions: [
+      "급식단가가 얼마나 올랐나요?",
+      "왜 편의점에서만 썼나요?",
+      "카드 모양을 왜 바꿨나요?",
+    ],
+  },
   "gyeonggi-construction": {
     Layout: (props) => (
       <NarrativeLayout

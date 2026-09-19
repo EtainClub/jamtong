@@ -1658,6 +1658,170 @@ function BidDrop() {
     </svg>
   );
 }
+
+/* ── 경기도 아동급식 ─────────────────────────────────────────── */
+
+/** 4,500원으로 살 수 있는 것. 접시가 거의 비어 있고 연도가 멈춰 있다. */
+function MealCheap() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="4,500원에 묶여 있던 한 끼. 접시가 거의 비어 있다">
+      <ellipse cx={160} cy={132} rx={76} ry={26} fill="var(--stone)" opacity={0.5} />
+      <ellipse cx={160} cy={126} rx={76} ry={26} fill="var(--canvas)"
+               stroke="var(--graphite)" strokeWidth={2.5} />
+      <ellipse cx={144} cy={124} rx={15} ry={7} fill="var(--stone)" />
+      <text x={160} y={188} textAnchor="middle" fontSize={26} {...LABEL} fill="var(--burgundy)">
+        4,500원
+      </text>
+      <text x={160} y={212} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        2012년부터 그대로
+      </text>
+      <path d="M62 62 H258" stroke="var(--stone)" strokeWidth={3} strokeLinecap="round" />
+      <circle cx={62} cy={62} r={6} fill="var(--graphite)" />
+      <circle cx={258} cy={62} r={6} fill="var(--graphite)" />
+      <text x={62} y={46} textAnchor="middle" fontSize={11} fill="var(--ash)">2012</text>
+      <text x={258} y={46} textAnchor="middle" fontSize={11} fill="var(--ash)">2018</text>
+    </svg>
+  );
+}
+
+/** 편의점이 대부분. 같은 간판이 줄지어 서고 식당은 둘뿐. */
+function MealConvenience() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="카드를 받는 가게 대부분이 편의점이고 식당은 몇 곳뿐인 모습">
+      {Array.from({ length: 8 }, (_, i) => {
+        const x = 32 + (i % 4) * 50;
+        const y = i < 4 ? 66 : 128;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={38} height={44} rx={3} fill="var(--stone)" />
+            <rect x={x + 4} y={y + 6} width={30} height={9} rx={2} fill="var(--graphite)" opacity={0.6} />
+          </g>
+        );
+      })}
+      <rect x={236} y={66} width={44} height={44} rx={3} fill="var(--navy)" opacity={0.85} />
+      <rect x={236} y={128} width={44} height={44} rx={3} fill="var(--navy)" opacity={0.85} />
+      <text x={116} y={200} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--graphite)">
+        편의점 8,900
+      </text>
+      <text x={258} y={200} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">
+        식당 2,600
+      </text>
+      <text x={160} y={226} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        열에 여덟이 편의점
+      </text>
+    </svg>
+  );
+}
+
+/** 밥값이 오른다. 접시가 차오르고 금액이 커진다. */
+function MealRaise() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="급식단가가 4,500원에서 6,000원으로 오르고 접시가 채워지는 모습">
+      <ellipse cx={90} cy={112} rx={52} ry={19} fill="var(--canvas)"
+               stroke="var(--graphite)" strokeWidth={2} />
+      <ellipse cx={80} cy={110} rx={12} ry={6} fill="var(--stone)" />
+      <text x={90} y={156} textAnchor="middle" fontSize={16} {...LABEL} fill="var(--ash)">4,500</text>
+
+      <path d="M152 112 H186" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M178 104 L188 112 L178 120" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+
+      <ellipse cx={244} cy={112} rx={58} ry={21} fill="var(--canvas)"
+               stroke="var(--navy)" strokeWidth={2.5} />
+      <ellipse cx={226} cy={108} rx={16} ry={8} fill="var(--navy)" opacity={0.7} />
+      <ellipse cx={258} cy={112} rx={13} ry={7} fill="var(--navy)" opacity={0.5} />
+      <ellipse cx={242} cy={120} rx={11} ry={6} fill="var(--burgundy)" opacity={0.5} />
+      <text x={244} y={158} textAnchor="middle" fontSize={20} {...LABEL} fill="var(--navy)">6,000</text>
+      <text x={160} y={200} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        33% 올렸다
+      </text>
+      <text x={160} y={222} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        광역지자체 가운데 가장 높은 수준
+      </text>
+    </svg>
+  );
+}
+
+/** 쓸 곳이 넓어진다. 작은 점 무리가 화면을 덮는 점 무리로. */
+function MealAnywhere() {
+  const many = Array.from({ length: 60 }, (_, i) => [
+    176 + ((i * 37) % 128),
+    58 + ((i * 53) % 116),
+  ] as const);
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="쓸 수 있는 식당이 3,500곳에서 18만 곳으로 늘어난 모습">
+      {[[52, 96], [66, 112], [44, 122], [62, 136]].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r={5} fill="var(--stone)" />
+      ))}
+      <text x={56} y={172} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ash)">3,500</text>
+      <path d="M100 116 H144" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M136 108 L146 116 L136 124" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      {many.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r={3.5} fill="var(--navy)" opacity={0.65} />
+      ))}
+      <text x={240} y={196} textAnchor="middle" fontSize={18} {...LABEL} fill="var(--navy)">
+        18만 곳
+      </text>
+      <text x={160} y={224} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        모든 일반음식점에서
+      </text>
+    </svg>
+  );
+}
+
+/** 같은 모양의 카드 둘. 어느 쪽이 급식카드인지 알 수 없다. */
+function MealSameCard() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="급식카드를 일반 체크카드와 같은 모양으로 바꿔 구별되지 않는 모습">
+      {[40, 174].map((x) => (
+        <g key={x}>
+          <rect x={x} y={78} width={106} height={66} rx={8} fill="var(--navy)" />
+          <rect x={x + 12} y={96} width={20} height={15} rx={2} fill="var(--eggshell)" opacity={0.75} />
+          <path d={`M${x + 12} 128 H${x + 86}`} stroke="var(--eggshell)" strokeWidth={3}
+                strokeLinecap="round" opacity={0.7} />
+        </g>
+      ))}
+      <text x={93} y={170} textAnchor="middle" fontSize={12} fill="var(--ash)">체크카드</text>
+      <text x={227} y={170} textAnchor="middle" fontSize={12} fill="var(--ash)">급식카드</text>
+      <text x={160} y={206} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        구별되지 않는다
+      </text>
+      <text x={160} y={228} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        눈치 볼 일이 없어진다
+      </text>
+    </svg>
+  );
+}
+
+/** 식당 자리에 앉아 먹는다. 제대로 차려진 한 상. */
+function MealTable() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="식당에 앉아 제대로 차려진 한 끼를 먹는 모습">
+      <rect x={38} y={140} width={244} height={12} rx={4} fill="var(--graphite)" opacity={0.75} />
+      <path d="M70 152 V196 M250 152 V196" stroke="var(--graphite)" strokeWidth={6} strokeLinecap="round" />
+      <ellipse cx={160} cy={126} rx={62} ry={20} fill="var(--canvas)"
+               stroke="var(--navy)" strokeWidth={2.5} />
+      <ellipse cx={138} cy={122} rx={17} ry={8} fill="var(--navy)" opacity={0.7} />
+      <ellipse cx={176} cy={124} rx={14} ry={7} fill="var(--burgundy)" opacity={0.55} />
+      <ellipse cx={158} cy={134} rx={12} ry={6} fill="var(--navy)" opacity={0.4} />
+      <circle cx={84} cy={122} r={11} fill="var(--stone)" />
+      <circle cx={236} cy={122} r={11} fill="var(--stone)" />
+      {/* 앉은 아이 */}
+      <circle cx={160} cy={62} r={17} fill="var(--navy)" />
+      <path d="M134 104 C136 76, 184 76, 186 104 Z" fill="var(--navy)" />
+      <text x={160} y={222} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        앉아서 먹는 한 끼
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -1742,4 +1906,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "paper-check": PaperCheck,
   "paper-caught": PaperCaught,
   "bid-drop": BidDrop,
+
+  "meal-cheap": MealCheap,
+  "meal-convenience": MealConvenience,
+  "meal-raise": MealRaise,
+  "meal-anywhere": MealAnywhere,
+  "meal-samecard": MealSameCard,
+  "meal-table": MealTable,
 };

@@ -718,6 +718,14 @@ export const Eli5Art = z.enum([
   "paper-check",
   "paper-caught",
   "bid-drop",
+
+  // 경기도 아동급식
+  "meal-cheap",
+  "meal-convenience",
+  "meal-raise",
+  "meal-anywhere",
+  "meal-samecard",
+  "meal-table",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 
