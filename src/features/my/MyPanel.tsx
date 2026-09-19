@@ -17,7 +17,7 @@ import { deleteAsk, listAsks, type AskRecord } from "@/lib/firebase/history";
  * 물었는지 다시 읽어야 알 수 있다. 무엇에 대해 물었는지가 먼저다.
  */
 export function MyPanel() {
-  const { user, ready, configured, ensureUser, signInWithGoogle, signOutUser, rename } =
+  const { user, ready, configured, linkBlock, ensureUser, signInWithGoogle, switchToGoogle, signOutUser, rename } =
     useAuth();
   const [asks, setAsks] = useState<AskRecord[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -125,13 +125,14 @@ export function MyPanel() {
               </button>
             </div>
           </div>
-
           <div className="mt-4 flex flex-wrap gap-2">
             {anonymous ? (
               <button
                 type="button"
                 onClick={() =>
-                  void signInWithGoogle().catch(() => setError("로그인하지 못했습니다."))
+                  void signInWithGoogle().catch((e: { code?: string }) =>
+                    setError(`로그인하지 못했습니다. (${e?.code ?? "알 수 없는 오류"})`),
+                  )
                 }
                 className="rounded-full border border-stone bg-canvas px-4 py-2 text-sm font-medium text-smoke transition-colors hover:border-graphite hover:text-navy"
               >
@@ -147,6 +148,33 @@ export function MyPanel() {
               </button>
             )}
           </div>
+
+          {/*
+           * 연결이 거부된 경우. 두 번째 팝업을 같은 클릭으로 열 수 없으므로
+           * 사정을 적고 한 번 더 누르게 한다 — 그래야 브라우저가 막지 않는다.
+           */}
+          {linkBlock === "already-in-use" && (
+            <div className="mt-3 rounded-card border border-pending bg-pending-tint p-3.5">
+              <p className="text-[13px] font-semibold leading-relaxed text-pending">
+                그 구글 계정으로 이미 만든 기록이 있습니다.
+              </p>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-smoke">
+                그래서 지금 이력에 계정을 붙일 수 없습니다. 그 계정으로 들어가면
+                거기 쌓인 이력이 보이고, 지금 익명으로 쌓은 것은 보이지 않게 됩니다.
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  void switchToGoogle().catch((e: { code?: string }) =>
+                    setError(`로그인하지 못했습니다. (${e?.code ?? "알 수 없는 오류"})`),
+                  )
+                }
+                className="mt-3 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-eggshell"
+              >
+                그 계정으로 들어가기
+              </button>
+            </div>
+          )}
 
           {anonymous && (
             <p className="mt-3 border-l-2 border-stone pl-3 text-[12px] leading-relaxed text-ash">

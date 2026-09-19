@@ -40,3 +40,38 @@ env:
     value: "500"
     availability:
       - RUNTIME
+
+  # 파이어베이스 웹 설정. 브라우저로 그대로 나가는 값이라 비밀이 아니다 —
+  # 이 키를 지키는 것은 숨김이 아니라 Firestore 규칙과 승인된 도메인이다.
+  # NEXT_PUBLIC_*은 빌드 때 코드에 박히므로 BUILD에 반드시 열어야 한다.
+  # 이걸 빠뜨려서 배포본의 MY가 "설정이 없습니다"로 떴다.
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyAiOmcgkQN5U0vMkwIvQ90sYVLxtawKeng
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: jamtong.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: jamtong
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: jamtong.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "179902214678"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: 1:179902214678:web:0a0c66a6ff35566eac3b37
+    availability:
+      - BUILD
+      - RUNTIME
