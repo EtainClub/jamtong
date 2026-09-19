@@ -514,6 +514,116 @@ function CaseDropped() {
   );
 }
 
+/* ── 성남시 모라토리엄 ────────────────────────────────────── */
+
+function InheritedDebt() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="새 시정이 물려받은 빚 7,285억 원">
+      <rect x={44} y={96} width={232} height={72} rx={16} fill="var(--burgundy-tint)"
+            stroke="var(--burgundy)" strokeWidth={2} />
+      <text x={160} y={70} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">물려받은 빚</text>
+      <text x={160} y={144} textAnchor="middle" fontSize={34} fontWeight={900} fill="var(--burgundy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>7,285억</text>
+      <text x={160} y={198} textAnchor="middle" fontSize={12} fill="var(--ash)">장부에 제대로 적혀 있지도 않았어요</text>
+    </svg>
+  );
+}
+
+function WrongPocket() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="판교 개발용으로 모아 둔 돈을 다른 사업에 썼다">
+      <rect x={20} y={74} width={104} height={96} rx={16} fill="var(--navy-tint)"
+            stroke="var(--navy)" strokeWidth={2} strokeDasharray="8 6" />
+      <text x={72} y={108} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">판교</text>
+      <text x={72} y={126} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">지으라고</text>
+      <text x={72} y={146} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">모아 둔 돈</text>
+      <path d="M132 104 H176" stroke="var(--burgundy)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M170 95 L182 104 L170 113 Z" fill="var(--burgundy)" />
+      <path d="M132 142 H176" stroke="var(--burgundy)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M170 133 L182 142 L170 151 Z" fill="var(--burgundy)" />
+      <rect x={190} y={80} width={106} height={46} rx={12} fill="var(--stone)" />
+      <text x={243} y={108} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--graphite)">시청 건물</text>
+      <rect x={190} y={120} width={106} height={46} rx={12} fill="var(--stone)" />
+      <text x={243} y={148} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--graphite)">길 넓히기</text>
+      <text x={160} y={206} textAnchor="middle" fontSize={22} fontWeight={900} fill="var(--burgundy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>5,400억</text>
+      <text x={160} y={228} textAnchor="middle" fontSize={12} fill="var(--ash)">나중에 채워 넣어야 하는 돈</text>
+    </svg>
+  );
+}
+
+function DeclareMoratorium() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="못 갚는다고 먼저 알렸다">
+      <rect x={58} y={62} width={204} height={96} rx={20} fill="var(--pending-tint)"
+            stroke="var(--pending)" strokeWidth={2.5} />
+      <path d="M140 158 L156 186 L172 158 Z" fill="var(--pending-tint)" stroke="var(--pending)"
+            strokeWidth={2.5} strokeLinejoin="round" />
+      <path d="M142 158 H170" stroke="var(--pending-tint)" strokeWidth={4} />
+      <text x={160} y={102} textAnchor="middle" fontSize={17} {...LABEL} fill="var(--pending)">지금은 못 갚아요</text>
+      <text x={160} y={130} textAnchor="middle" fontSize={14} fill="var(--pending)">미뤄 주세요</text>
+      <text x={160} y={216} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">2010년 7월 · 모라토리엄</text>
+    </svg>
+  );
+}
+
+function TightenBelt() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="예산을 깎아 빚을 갚아 나갔다">
+      <text x={18} y={52} fontSize={13} fontWeight={600} fill="var(--smoke)">갚아야 할 돈이 줄어드는 동안</text>
+      {[0, 1, 2, 3].map((i) => (
+        <g key={i}>
+          <rect x={22 + i * 74} y={172 - i * 0} width={54} height={10} rx={5} fill="var(--stone)" />
+          <rect x={22 + i * 74} y={76} width={54} height={96 - i * 26} rx={8} fill="var(--burgundy)"
+                opacity={1 - i * 0.18} transform={`translate(0 ${i * 26})`} />
+        </g>
+      ))}
+      <text x={49} y={204} textAnchor="middle" fontSize={12} fill="var(--ash)">2010</text>
+      <text x={271} y={204} textAnchor="middle" fontSize={12} fill="var(--ash)">2013</text>
+      <text x={160} y={230} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">3년 6개월</text>
+    </svg>
+  );
+}
+
+function PaidOff() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="미뤄 뒀던 빚을 모두 정리했다">
+      <circle cx={160} cy={116} r={62} fill="var(--navy-tint)" />
+      <path d="M128 118 L150 142 L196 92" fill="none" stroke="var(--navy)" strokeWidth={11}
+            strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={210} textAnchor="middle" fontSize={22} fontWeight={900} fill="var(--navy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>7,285억 정리</text>
+      <text x={160} y={232} textAnchor="middle" fontSize={12} fill="var(--ash)">2014년 1월 27일</text>
+    </svg>
+  );
+}
+
+function DebtZero() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="일반회계 빚을 모두 갚고 9억 원만 남았다">
+      <text x={160} y={52} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">일반회계 빚</text>
+      <rect x={30} y={70} width={120} height={44} rx={10} fill="var(--stone)" />
+      <text x={90} y={99} textAnchor="middle" fontSize={17} fontWeight={800} fill="var(--graphite)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>190억</text>
+      <path d="M164 92 H196" stroke="var(--ash)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M190 83 L202 92 L190 101 Z" fill="var(--ash)" />
+      <rect x={212} y={70} width={78} height={44} rx={10} fill="var(--navy)" />
+      <text x={251} y={99} textAnchor="middle" fontSize={20} fontWeight={900} fill="var(--canvas)">0</text>
+      <text x={160} y={156} textAnchor="middle" fontSize={13} fill="var(--smoke)">다만 이만큼은 남았어요</text>
+      <rect x={120} y={168} width={80} height={34} rx={17} fill="var(--pending-tint)" />
+      <text x={160} y={191} textAnchor="middle" fontSize={15} fontWeight={800} fill="var(--pending)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>9억</text>
+      <text x={160} y={224} textAnchor="middle" fontSize={11} fill="var(--ash)">나라 돈으로 자동으로 갚아지는 몫</text>
+    </svg>
+  );
+}
+
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -542,4 +652,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "three-together": ThreeTogether,
   "gov-block": GovBlock,
   "case-dropped": CaseDropped,
+
+  "inherited-debt": InheritedDebt,
+  "wrong-pocket": WrongPocket,
+  "declare-moratorium": DeclareMoratorium,
+  "tighten-belt": TightenBelt,
+  "paid-off": PaidOff,
+  "debt-zero": DebtZero,
 };

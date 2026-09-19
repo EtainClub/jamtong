@@ -3,6 +3,7 @@ import { arcticRoute } from "./arctic-route/achievement";
 import { daejangdong } from "./daejangdong/achievement";
 import { stockMarket } from "./stock-market/achievement";
 import { seongnamWelfare } from "./seongnam-welfare/achievement";
+import { seongnamDebt } from "./seongnam-debt/achievement";
 
 /**
  * 업적 레지스트리.
@@ -15,6 +16,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   daejangdong,
   stockMarket,
   seongnamWelfare,
+  seongnamDebt,
 ];
 
 export function getAchievement(slug: string): Achievement | undefined {

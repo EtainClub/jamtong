@@ -22,6 +22,7 @@ import { ArcticRouteLayout } from "@/features/achievement/layouts/ArcticRouteLay
 import { DaejangdongLayout } from "@/features/achievement/layouts/DaejangdongLayout";
 import { StockMarketLayout } from "@/features/achievement/layouts/StockMarketLayout";
 import { SeongnamWelfareLayout } from "@/features/achievement/layouts/SeongnamWelfareLayout";
+import { SeongnamDebtLayout } from "@/features/achievement/layouts/SeongnamDebtLayout";
 
 /**
  * 스토리 페이지 = 공통 골격 + 스토리별 레이아웃 분기.
@@ -61,6 +62,18 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "공공이 가져간 게 뭔가요?",
       "민간개발이었으면 어떻게 달랐나요?",
       "2014년에 무슨 결정이 있었나요?",
+    ],
+  },
+  "seongnam-debt": {
+    Layout: SeongnamDebtLayout,
+    heroHighlights: [
+      { claimId: "claim-moratorium", label: "선언한 빚" },
+      { claimId: "claim-graduation", label: "3년 6개월" },
+    ],
+    askSuggestions: [
+      "무슨 빚이었나요?",
+      "왜 모라토리엄을 선언했나요?",
+      "정말 다 갚았나요?",
     ],
   },
   "seongnam-welfare": {

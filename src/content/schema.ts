@@ -636,6 +636,13 @@ export const Eli5Art = z.enum([
   "three-together",
   "gov-block",
   "case-dropped",
+
+  "inherited-debt",
+  "wrong-pocket",
+  "declare-moratorium",
+  "tighten-belt",
+  "paid-off",
+  "debt-zero",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 
