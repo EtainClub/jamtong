@@ -606,6 +606,13 @@ export const Eli5Art = z.enum([
   "land-split",
   "old-factory-park",
   "two-counts",
+
+  "up-down",
+  "many-owners",
+  "burn-share",
+  "share-premium",
+  "penalty",
+  "exit-gate",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

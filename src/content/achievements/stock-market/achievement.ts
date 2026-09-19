@@ -69,6 +69,77 @@ const raw: AchievementInput = {
     },
   ],
 
+  /**
+   * ① 쉬운 설명.
+   *
+   * 주식을 모르는 사람에게 "코리아 디스카운트"부터 꺼내면 아무것도 전해지지
+   * 않는다. 이 업적이 실제로 바꾼 것은 **회사가 주주를 어떻게 대해야 하는가**의
+   * 규칙이므로, 규칙 하나하나를 그림으로 보인다.
+   *
+   * 지수를 첫 장면에 두되 성적표로 쓰지 않는다. 오른 것도 내린 것도 함께 놓고,
+   * 마지막 단서에서 지수와 제도를 분리해야 한다고 밝힌다. 쉬운 설명이라고
+   * 유리한 구간만 보이면 그건 설명이 아니라 선전이다.
+   */
+  eli5: {
+    intro:
+      "주식시장에서 규칙 몇 가지가 바뀌었어요. 무엇이 어떻게 달라졌는지 여섯 장면으로 볼게요.",
+    scenes: [
+      {
+        id: "e-sm-index",
+        title: "값은 올랐다가 다시 내렸어요",
+        say: "주식 값을 한 숫자로 모은 것을 지수라고 해요. 3,021에서 9,063까지 올랐다가 5,663으로 내려왔어요.",
+        art: "up-down",
+        fact: { value: "3,021 → 9,063 → 5,663", tone: "warm" },
+        claimIds: ["claim-index-series"],
+      },
+      {
+        id: "e-sm-duty",
+        title: "회사를 맡은 사람이 주주도 챙겨야 해요",
+        say: "회사를 이끄는 사람을 이사라고 해요. 원래는 회사만 챙기면 됐는데, 이제는 주식을 가진 사람 모두를 공평하게 대해야 해요.",
+        art: "many-owners",
+        fact: { value: "2025년 7월 법이 바뀜", tone: "ice" },
+        claimIds: ["claim-duty"],
+      },
+      {
+        id: "e-sm-buyback",
+        title: "회사가 자기 주식을 사면 없애야 해요",
+        say: "사두고 갖고만 있으면 나중에 다시 내놓을 수 있어요. 그러면 내 몫이 다시 줄어요. 이제는 1년 안에 없애야 해요.",
+        art: "burn-share",
+        fact: { value: "2026년 3월 법이 바뀜", tone: "ice" },
+        claimIds: ["claim-buyback"],
+      },
+      {
+        id: "e-sm-mto",
+        title: "회사를 통째로 살 땐 작은 주주도 챙겨요",
+        say: "회사를 사는 쪽은 큰 주주 것만 비싸게 사고 작은 주주는 두고 갔어요. 작은 주주도 같이 팔 수 있게 하자는 규칙을 만들고 있어요.",
+        art: "share-premium",
+        fact: { value: "아직 만드는 중", tone: "warm" },
+        claimIds: ["claim-mto"],
+      },
+      {
+        id: "e-sm-penalty",
+        title: "값을 속여 올리면 크게 물어내요",
+        say: "일부러 값을 올려 돈을 벌면, 번 돈의 두 배까지 물어내야 해요. 최대 5년 동안 주식을 사고팔 수도 없어요.",
+        art: "penalty",
+        fact: { value: "번 돈의 2배 · 최대 5년", tone: "warm" },
+        claimIds: ["claim-manipulation"],
+      },
+      {
+        id: "e-sm-delisting",
+        title: "속이 빈 회사는 더 빨리 내보내요",
+        say: "돈도 못 벌고 값도 아주 싼 회사가 오래 남아 있으면 시장을 믿기 어려워요. 내보내는 기준을 더 엄하게 했어요.",
+        art: "exit-gate",
+        fact: { value: "2026년 2월 발표", tone: "ice" },
+        claimIds: ["claim-delisting"],
+      },
+    ],
+    caveat: {
+      text:
+        "지수가 오르내린 것을 제도의 성적표로 읽으면 안 돼요. 지수는 금리와 환율, 다른 나라 시장처럼 정책 밖의 일에도 크게 움직여요. 규칙이 바뀐 것과 값이 움직인 것은 따로 봐야 해요.",
+      claimIds: ["claim-index-series", "claim-drawdown"],
+    },
+  },
+
   keyNumbers: [
     {
       id: "kn-peak",

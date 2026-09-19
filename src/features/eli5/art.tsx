@@ -265,6 +265,137 @@ function TwoCounts() {
   );
 }
 
+/* ── 주식시장 ─────────────────────────────────────────────── */
+
+function UpDown() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="주가지수가 3천에서 9천까지 올랐다가 5천6백대로 내려온 모양">
+      <path d="M26 186 L96 150 L168 52 L232 132 L296 168" fill="none"
+            stroke="var(--navy)" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M168 52 L232 132 L296 168" fill="none"
+            stroke="var(--burgundy)" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={26} cy={186} r={7} fill="var(--navy)" />
+      <circle cx={168} cy={52} r={9} fill="var(--navy)" />
+      <circle cx={296} cy={168} r={7} fill="var(--burgundy)" />
+      <text x={26} y={212} textAnchor="start" fontSize={13} {...LABEL} fill="var(--smoke)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>3,021</text>
+      <text x={168} y={36} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--navy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>9,063</text>
+      <text x={296} y={196} textAnchor="end" fontSize={13} {...LABEL} fill="var(--burgundy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>5,663</text>
+      <text x={160} y={232} textAnchor="middle" fontSize={12} fill="var(--ash)">올랐다가 다시 내려왔어요</text>
+    </svg>
+  );
+}
+
+function ManyOwners() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="회사를 맡은 사람이 회사만이 아니라 주주도 챙기게 됐다">
+      <rect x={124} y={30} width={72} height={44} rx={12} fill="var(--ink)" />
+      <text x={160} y={58} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--canvas)">이사</text>
+      <path d="M144 82 L104 122" stroke="var(--ash)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M176 82 L216 122" stroke="var(--navy)" strokeWidth={4.5} strokeLinecap="round" />
+      <rect x={44} y={128} width={116} height={50} rx={12} fill="var(--stone)" />
+      <text x={102} y={159} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--graphite)">회사</text>
+      <rect x={172} y={128} width={116} height={50} rx={12} fill="var(--navy)" />
+      <text x={230} y={159} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--canvas)">주주 모두</text>
+      <text x={102} y={200} textAnchor="middle" fontSize={12} fill="var(--ash)">원래도 챙겼어요</text>
+      <text x={230} y={200} textAnchor="middle" fontSize={12} fontWeight={700} fill="var(--navy)">이제 같이 챙겨요</text>
+    </svg>
+  );
+}
+
+function BurnShare() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="회사가 사들인 자기 주식을 1년 안에 없애야 한다">
+      <rect x={22} y={92} width={80} height={56} rx={10} fill="var(--stone)" />
+      <text x={62} y={126} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--graphite)">회사</text>
+      <path d="M112 120 H156" stroke="var(--ash)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M150 111 L162 120 L150 129 Z" fill="var(--ash)" />
+      <rect x={170} y={92} width={66} height={56} rx={10} fill="var(--navy-tint)"
+            stroke="var(--navy)" strokeWidth={2} />
+      <text x={203} y={118} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">자기</text>
+      <text x={203} y={137} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">주식</text>
+      <path d="M248 120 H286" stroke="var(--burgundy)" strokeWidth={3.5} strokeLinecap="round" />
+      <g stroke="var(--burgundy)" strokeWidth={5} strokeLinecap="round">
+        <path d="M280 104 L302 136" />
+        <path d="M302 104 L280 136" />
+      </g>
+      <text x={160} y={62} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">사들이면 없애기</text>
+      <text x={160} y={192} textAnchor="middle" fontSize={13} fontWeight={700} fill="var(--navy)">1년 안에</text>
+      <text x={160} y={216} textAnchor="middle" fontSize={12} fill="var(--ash)">갖고만 있으면 나중에 다시 풀 수 있어요</text>
+    </svg>
+  );
+}
+
+function SharePremium() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="회사를 살 때 큰 주주뿐 아니라 작은 주주의 주식도 사야 한다">
+      <rect x={18} y={54} width={92} height={46} rx={12} fill="var(--burgundy-tint)" />
+      <text x={64} y={83} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--burgundy)">큰 주주</text>
+      <g fill="var(--stone)">
+        <circle cx={34} cy={158} r={15} />
+        <circle cx={70} cy={158} r={15} />
+        <circle cx={106} cy={158} r={15} />
+      </g>
+      <text x={70} y={196} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--graphite)">작은 주주들</text>
+      <rect x={210} y={94} width={92} height={56} rx={14} fill="var(--navy)" />
+      <text x={256} y={128} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--canvas)">사는 쪽</text>
+      <path d="M118 78 C170 78, 176 112, 206 118" fill="none" stroke="var(--burgundy)"
+            strokeWidth={4} strokeLinecap="round" />
+      <path d="M124 156 C170 156, 178 138, 206 130" fill="none" stroke="var(--navy)"
+            strokeWidth={4} strokeLinecap="round" strokeDasharray="8 7" />
+      <text x={160} y={228} textAnchor="middle" fontSize={12} fill="var(--ash)">작은 주주도 같이 팔 수 있게</text>
+    </svg>
+  );
+}
+
+function Penalty() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="값을 속여 올리면 번 돈의 두 배까지 물어내고 최대 5년 거래가 막힌다">
+      <text x={92} y={52} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--smoke)">번 돈</text>
+      <rect x={58} y={62} width={68} height={38} rx={10} fill="var(--stone)" />
+      <text x={92} y={88} textAnchor="middle" fontSize={16} fontWeight={800} fill="var(--graphite)">1</text>
+      <text x={92} y={140} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--smoke)">물어낼 돈</text>
+      <rect x={24} y={150} width={136} height={38} rx={10} fill="var(--burgundy)" />
+      <text x={92} y={176} textAnchor="middle" fontSize={16} fontWeight={800} fill="var(--canvas)">2배까지</text>
+      <line x1={188} y1={44} x2={188} y2={196} stroke="var(--stone)" strokeWidth={2} />
+      <circle cx={250} cy={110} r={44} fill="none" stroke="var(--burgundy)" strokeWidth={6} />
+      <path d="M220 80 L280 140" stroke="var(--burgundy)" strokeWidth={6} strokeLinecap="round" />
+      <text x={250} y={180} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--burgundy)">최대 5년</text>
+      <text x={250} y={202} textAnchor="middle" fontSize={12} fill="var(--ash)">주식 못 삼</text>
+    </svg>
+  );
+}
+
+function ExitGate() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="속이 빈 회사를 시장에서 더 빨리 내보낸다">
+      <rect x={18} y={60} width={150} height={120} rx={16} fill="var(--taupe)"
+            stroke="var(--stone)" strokeWidth={2} />
+      <text x={93} y={48} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--smoke)">주식시장</text>
+      <g fill="var(--navy)">
+        <rect x={40} y={104} width={26} height={54} rx={6} />
+        <rect x={78} y={90} width={26} height={68} rx={6} />
+        <rect x={116} y={116} width={26} height={42} rx={6} />
+      </g>
+      <path d="M182 120 H244" stroke="var(--burgundy)" strokeWidth={4} strokeLinecap="round" />
+      <path d="M238 110 L252 120 L238 130 Z" fill="var(--burgundy)" />
+      <rect x={258} y={96} width={26} height={48} rx={6} fill="none"
+            stroke="var(--burgundy)" strokeWidth={2.5} strokeDasharray="6 5" />
+      <text x={271} y={166} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--burgundy)">속이 빈</text>
+      <text x={271} y={184} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--burgundy)">회사</text>
+      <text x={160} y={218} textAnchor="middle" fontSize={13} fill="var(--ash)">더 빨리 내보내요</text>
+    </svg>
+  );
+}
+
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -279,4 +410,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "land-split": LandSplit,
   "old-factory-park": OldFactoryPark,
   "two-counts": TwoCounts,
+
+  "up-down": UpDown,
+  "many-owners": ManyOwners,
+  "burn-share": BurnShare,
+  "share-premium": SharePremium,
+  penalty: Penalty,
+  "exit-gate": ExitGate,
 };
