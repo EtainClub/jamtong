@@ -60,15 +60,16 @@ function entries(): ChronologyEntry[] {
     }
   }
 
+  // 최근이 위로 온다. 지금에서 거슬러 읽는 편이 연대기의 기본 읽기다.
   // 날짜가 같으면 업적 이름으로 갈라 순서를 고정한다. 렌더가 흔들리지 않게.
   return out.sort(
-    (a, b) => a.date.localeCompare(b.date) || a.achievement.slug.localeCompare(b.achievement.slug),
+    (a, b) => b.date.localeCompare(a.date) || a.achievement.slug.localeCompare(b.achievement.slug),
   );
 }
 
 export const CHRONOLOGY: ChronologyEntry[] = entries();
 
-/** 연도로 묶는다. 화면이 다시 묶지 않도록 여기서 한다. */
+/** 연도로 묶는다. 화면이 다시 묶지 않도록 여기서 한다. 최근 연도가 먼저다. */
 export const CHRONOLOGY_BY_YEAR: { year: number; entries: ChronologyEntry[] }[] = (() => {
   const years = new Map<number, ChronologyEntry[]>();
   for (const entry of CHRONOLOGY) {
@@ -78,7 +79,7 @@ export const CHRONOLOGY_BY_YEAR: { year: number; entries: ChronologyEntry[] }[] 
     else years.set(year, [entry]);
   }
   return [...years.entries()]
-    .sort((a, b) => a[0] - b[0])
+    .sort((a, b) => b[0] - a[0])
     .map(([year, list]) => ({ year, entries: list }));
 })();
 
@@ -92,6 +93,14 @@ export const UPCOMING: Milestone[] = MILESTONES.filter((m) => m.status !== "done
   a.date.localeCompare(b.date),
 );
 
+/**
+ * 연대기가 걸친 햇수.
+ *
+ * 정렬 순서에서 뽑지 않는다. 표시 순서가 뒤집혀도 범위는 그대로여야 한다.
+ */
 export const CHRONOLOGY_SPAN = CHRONOLOGY.length
-  ? { from: yearOf(CHRONOLOGY[0].date), to: yearOf(CHRONOLOGY[CHRONOLOGY.length - 1].date) }
+  ? {
+      from: Math.min(...CHRONOLOGY.map((e) => yearOf(e.date))),
+      to: Math.max(...CHRONOLOGY.map((e) => yearOf(e.date))),
+    }
   : null;
