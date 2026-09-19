@@ -192,6 +192,77 @@ const raw: AchievementInput = {
     },
   ],
 
+  /**
+   * ① 쉬운 설명.
+   *
+   * 이 주제는 이름만 들어도 이미 한쪽 이야기를 들은 사람이 많다. 그래서
+   * 반박부터 하지 않고 **무슨 일이 있었는지 순서대로** 놓는다.
+   * 빈 땅 → 나라가 손을 뗌 → 시가 절반을 쥠 → 땅의 절반이 모두의 것 →
+   * 옛 공장이 공원 → 돈 이야기.
+   *
+   * 마지막 장면에서 금액을 사실로 적지 않는다. 쉽게 쓸수록 한 문장이 감당하는
+   * 주장이 커지므로, 다툼이 있는 숫자는 쉬운 설명에서 더 조심해야 한다.
+   */
+  eli5: {
+    intro:
+      "대장동 이야기는 복잡하게 들리지만, 무슨 일이 있었는지는 여섯 장면이면 돼요.",
+    scenes: [
+      {
+        id: "e-dj-land",
+        title: "여기 큰 빈 땅이 있었어요",
+        say: "성남 대장동에 아파트를 지을 수 있는 넓은 땅이 있었어요. 축구장 130개쯤 되는 크기예요.",
+        art: "empty-land",
+        fact: { value: "917,068.8 ㎡", tone: "ice" },
+        claimIds: ["claim-overview"],
+      },
+      {
+        id: "e-dj-lh",
+        title: "나라가 하려다 그만뒀어요",
+        say: "원래는 나라가 직접 개발하려고 했는데 2010년에 손을 뗐어요. 그러면 민간 회사가 맡게 돼요.",
+        art: "lh-exit",
+        fact: { value: "2010년", tone: "warm" },
+        claimIds: ["claim-lh-exit"],
+      },
+      {
+        id: "e-dj-share",
+        title: "시가 절반을 쥐고 같이 했어요",
+        say: "성남시 공사가 사업 회사의 절반과 한 주를 가졌어요. 한 주가 더 많으면 중요한 결정을 할 수 있어요.",
+        art: "half-share",
+        fact: { value: "절반 + 1주", tone: "ice" },
+        claimIds: ["claim-ppp-structure"],
+      },
+      {
+        id: "e-dj-land-split",
+        title: "땅의 절반 넘게 모두의 것이 됐어요",
+        say: "공원과 길과 학교로 쓰는 땅이 절반을 넘어요. 이건 허가 서류에 적혀 있어서 다툴 일이 없어요.",
+        art: "land-split",
+        fact: { value: "53.5%", tone: "ice" },
+        claimIds: ["claim-land-use"],
+      },
+      {
+        id: "e-dj-park",
+        title: "옛 공장 자리가 공원이 됐어요",
+        say: "대장동에서 번 돈으로 도심에 있던 낡은 공장 터를 공원으로 바꿨어요. 두 곳을 하나로 묶은 거예요.",
+        art: "old-factory-park",
+        fact: { value: "46,615 ㎡", tone: "ice" },
+        claimIds: ["claim-first-park", "claim-combined-district"],
+      },
+      {
+        id: "e-dj-money",
+        title: "돈 이야기는 말이 갈려요",
+        say: "성남시는 5,503억을 돌려받았다고 봐요. 그런데 어디까지 세느냐에 따라 숫자가 달라져요. 현금으로 받은 건 1,822억이고, 나머지는 공원과 길처럼 물건으로 받았어요.",
+        art: "two-counts",
+        fact: { value: "세는 방식에 따라 다름", tone: "warm" },
+        claimIds: ["claim-recovery-total", "claim-recovery-breakdown"],
+      },
+    ],
+    caveat: {
+      text:
+        "금액은 확정된 사실이 아니라 성남시의 계산이에요. 땅 넓이와 절차는 허가 서류로 확인되지만, 돈을 얼마나 돌려받았는지는 아직 공개된 공식 자료가 없어 보도에 기대고 있어요.",
+      claimIds: ["claim-recovery-total"],
+    },
+  },
+
   keyNumbers: [
     {
       id: "kn-public-share",

@@ -599,6 +599,13 @@ export const Eli5Art = z.enum([
   "season",
   "icebreaker",
   "trial-voyage",
+
+  "empty-land",
+  "lh-exit",
+  "half-share",
+  "land-split",
+  "old-factory-park",
+  "two-counts",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

@@ -141,6 +141,130 @@ function TrialVoyage() {
   );
 }
 
+/* ── 대장동 ───────────────────────────────────────────────── */
+
+function EmptyLand() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="성남 대장동의 빈 땅. 전체 91만 제곱미터">
+      <rect x={26} y={44} width={268} height={150} rx={18}
+            fill="var(--taupe)" stroke="var(--ash)" strokeWidth={2.5} strokeDasharray="10 8" />
+      <g fill="var(--stone)">
+        <path d="M74 150 L96 130 L118 150 V172 H74 Z" />
+        <path d="M134 150 L156 130 L178 150 V172 H134 Z" />
+        <path d="M194 150 L216 130 L238 150 V172 H194 Z" />
+      </g>
+      <text x={160} y={32} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">성남 대장동</text>
+      <text x={160} y={106} textAnchor="middle" fontSize={30} fontWeight={900} fill="var(--navy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>91만 ㎡</text>
+      <text x={160} y={218} textAnchor="middle" fontSize={13} fill="var(--ash)">아파트를 지을 수 있는 땅</text>
+    </svg>
+  );
+}
+
+function LhExit() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="나라가 하려던 개발을 그만두고 민간이 맡게 된 상황">
+      <rect x={24} y={76} width={112} height={78} rx={16} fill="var(--taupe)"
+            stroke="var(--ash)" strokeWidth={2} strokeDasharray="8 7" />
+      <text x={80} y={112} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ash)">나라</text>
+      <text x={80} y={134} textAnchor="middle" fontSize={12} fill="var(--ash)">(LH)</text>
+      <g stroke="var(--burgundy)" strokeWidth={5} strokeLinecap="round">
+        <path d="M56 88 L104 142" />
+        <path d="M104 88 L56 142" />
+      </g>
+      <path d="M150 115 H196" stroke="var(--ash)" strokeWidth={3} strokeLinecap="round"
+            strokeDasharray="7 7" />
+      <path d="M190 106 L202 115 L190 124 Z" fill="var(--ash)" />
+      <rect x={210} y={76} width={86} height={78} rx={16} fill="var(--burgundy-tint)" />
+      <text x={253} y={122} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--burgundy)">민간</text>
+      <text x={160} y={196} textAnchor="middle" fontSize={13} fill="var(--smoke)">2010년, 나라가 손을 뗐어요</text>
+    </svg>
+  );
+}
+
+function HalfShare() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="성남시 공사가 회사 지분의 절반과 한 주를 가진 구조">
+      <circle cx={160} cy={112} r={76} fill="var(--burgundy-tint)" />
+      {/* 절반보다 아주 조금 더. 그 한 주가 결정권을 가른다. */}
+      <path d="M160 36 A76 76 0 0 1 163 188 Z" fill="var(--navy)" />
+      <text x={92} y={222} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">성남시 공사</text>
+      <text x={238} y={222} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">민간</text>
+      <text x={160} y={106} textAnchor="middle" fontSize={26} fontWeight={900} fill="var(--canvas)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>절반</text>
+      <text x={160} y={132} textAnchor="middle" fontSize={16} fontWeight={800} fill="var(--canvas)">+ 한 주</text>
+    </svg>
+  );
+}
+
+function LandSplit() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="땅의 53.5퍼센트가 공원 도로 학교 같은 모두의 땅이 됐다">
+      <text x={18} y={54} fontSize={13} fontWeight={600} fill="var(--smoke)">땅을 나눠 보면</text>
+      <g>
+        <rect x={18} y={68} width={158} height={54} rx={8} fill="var(--navy)" />
+        <rect x={180} y={68} width={122} height={54} rx={8} fill="var(--stone)" />
+      </g>
+      <text x={97} y={102} textAnchor="middle" fontSize={20} fontWeight={900} fill="var(--canvas)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>53.5%</text>
+      <text x={241} y={102} textAnchor="middle" fontSize={16} fontWeight={800} fill="var(--graphite)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>45.6%</text>
+      <text x={97} y={146} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">모두의 땅</text>
+      <text x={97} y={166} textAnchor="middle" fontSize={12} fill="var(--smoke)">공원 · 도로 · 학교</text>
+      <text x={241} y={146} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--graphite)">집 짓는 땅</text>
+      <text x={160} y={212} textAnchor="middle" fontSize={13} fill="var(--ash)">절반이 넘어요</text>
+    </svg>
+  );
+}
+
+function OldFactoryPark() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="옛 공장 자리가 공원으로 바뀌었다">
+      <g fill="var(--stone)">
+        <rect x={26} y={104} width={84} height={64} rx={6} />
+        <rect x={40} y={76} width={16} height={30} rx={4} />
+        <rect x={68} y={84} width={16} height={22} rx={4} />
+      </g>
+      <text x={68} y={192} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ash)">옛 공장</text>
+      <path d="M134 136 H186" stroke="var(--navy)" strokeWidth={4} strokeLinecap="round" />
+      <path d="M180 126 L194 136 L180 146 Z" fill="var(--navy)" />
+      <g fill="var(--navy)">
+        <circle cx={232} cy={112} r={26} />
+        <rect x={228} y={132} width={8} height={30} rx={3} />
+        <circle cx={278} cy={128} r={18} />
+        <rect x={275} y={142} width={6} height={22} rx={3} />
+      </g>
+      <text x={252} y={192} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">공원</text>
+      <text x={160} y={222} textAnchor="middle" fontSize={13} fill="var(--ash)">도심 한복판이에요</text>
+    </svg>
+  );
+}
+
+function TwoCounts() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="돌려받은 돈을 어디까지 세느냐에 따라 숫자가 달라진다">
+      <text x={18} y={50} fontSize={13} fontWeight={600} fill="var(--smoke)">성남시가 세는 방식</text>
+      <rect x={18} y={60} width={284} height={40} rx={10} fill="var(--navy)" />
+      <text x={290} y={86} textAnchor="end" fontSize={17} fontWeight={800} fill="var(--canvas)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>5,503억</text>
+
+      <text x={18} y={140} fontSize={13} fontWeight={600} fill="var(--smoke)">이 중 현금으로 받은 것</text>
+      <rect x={18} y={150} width={94} height={40} rx={10} fill="var(--navy-tint)" />
+      <text x={100} y={176} textAnchor="end" fontSize={17} fontWeight={800} fill="var(--navy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>1,822억</text>
+      <text x={124} y={176} fontSize={12} fill="var(--ash)">나머지는 공원·길처럼 물건으로</text>
+
+      <text x={160} y={224} textAnchor="middle" fontSize={13} fill="var(--burgundy)">어디까지 세느냐로 말이 갈려요</text>
+    </svg>
+  );
+}
+
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -148,4 +272,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   season: Season,
   icebreaker: Icebreaker,
   "trial-voyage": TrialVoyage,
+
+  "empty-land": EmptyLand,
+  "lh-exit": LhExit,
+  "half-share": HalfShare,
+  "land-split": LandSplit,
+  "old-factory-park": OldFactoryPark,
+  "two-counts": TwoCounts,
 };
