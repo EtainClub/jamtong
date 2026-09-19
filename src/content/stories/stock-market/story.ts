@@ -3,10 +3,13 @@ import { storySchema, type StoryInput } from "@/content/schema";
 /**
  * 주식시장 개선 — Sprint 3. 세 번째 스토리.
  *
- * ⚠ publishStatus: "draft"
- *   **모든 수치가 미검증이다.** 출발점이 나무위키였고, 그건 사용자 편집 위키라
- *   우리 근거 체계에 들어갈 수 없다. 단서 목록으로만 썼다.
- *   sources[]의 `src-need-*`가 각 항목에 필요한 1차 자료를 적어 둔 자리다.
+ * 출처
+ *   출발점은 나무위키였지만 그건 사용자 편집 위키라 우리 근거 체계에 들어갈 수 없다.
+ *   단서 목록으로만 쓰고, 항목마다 1차 자료를 찾아 붙였다.
+ *   - 제도: 국가법령정보센터(상법 개정이유), 금융위원회 보도자료 5건, 기획재정부
+ *   - 지수: 한국거래소 정보데이터시스템. 다만 조회 화면이라 특정 시점을 고정 인용할 수
+ *     없어, 날짜별 수치는 같은 날 보도로 대조했다. 이 스토리에서 press를 쓴 곳은
+ *     지수 종가뿐이고 제도 서술에는 쓰지 않았다.
  *
  * 이 스토리를 고른 이유는 두 가지다.
  *
@@ -26,10 +29,11 @@ const raw: StoryInput = {
   kicker: "주요 정책",
   summary:
     "한국 주식시장은 오래 '코리아 디스카운트'라 불리는 저평가를 겪었다. " +
-    "정부는 이사의 충실의무 확대, 자사주 소각, 상장폐지 제도 개편 등으로 구조를 손보고 있다. " +
+    "이사의 충실의무 확대와 자사주 소각 의무화는 상법 개정으로 이미 시행됐고, 상장폐지 제도와 " +
+    "불공정거래 제재도 개편됐다. " +
     "지수는 크게 올랐다가 2026년 7월 이후 되밀렸다. 오른 구간과 내린 구간을 함께 본다.",
   type: "event",
-  publishStatus: "draft",
+  publishStatus: "published",
 
   scenes: [
     {
@@ -78,18 +82,17 @@ const raw: StoryInput = {
       id: "kn-drawdown",
       label: "고점 대비 하락",
       prefix: "약",
-      value: "33",
+      value: "37.5",
       unit: "%",
-      caption: "9,000 → 6,000 (2026년 7월 29일)",
+      caption: "9,063.84 → 5,663.24 (2026년 7월 29일 종가)",
       claimId: "claim-drawdown",
     },
     {
       id: "kn-marketcap",
-      label: "시가총액",
-      prefix: "약",
-      value: "3,020",
+      label: "유가증권시장 시가총액",
+      value: "3,476.8",
       unit: "조 원",
-      caption: "2025년 7월 10일 사상 첫 3천조 돌파",
+      caption: "2025년 말 · 전년 말 대비 77.2% 증가",
       claimId: "claim-marketcap",
     },
   ],
@@ -144,6 +147,16 @@ const raw: StoryInput = {
       claimIds: ["claim-reform"],
     },
     {
+      id: "sm-mto",
+      date: "2026-09",
+      displayDate: "2026년 9월",
+      datePrecision: "month",
+      title: "의무공개매수 도입 추진",
+      summary:
+        "경영권이 바뀔 때 일반주주도 경영권 프리미엄을 나눠 받도록 하는 자본시장법 개정이 논의되고 있다.",
+      claimIds: ["claim-mto"],
+    },
+    {
       id: "sm-peak",
       date: "2026-06-18",
       displayDate: "2026년 6월",
@@ -159,7 +172,7 @@ const raw: StoryInput = {
       datePrecision: "day",
       title: "6,000선 하회",
       summary:
-        "7월 13일 7,000선이 무너졌고, 29일에는 6,000선도 하회했다. 고점 대비 약 33% 하락이다.",
+        "7월 13일 7,000선이 무너졌고, 29일 종가 5,663.24로 6,000선도 내줬다. 고점 대비 약 37.5% 하락이다.",
       claimIds: ["claim-drawdown"],
     },
   ],
@@ -169,7 +182,7 @@ const raw: StoryInput = {
       id: "sm-cp-fall",
       question: "지수가 결국 되밀렸는데 개선이라고 할 수 있나?",
       response:
-        "지수와 제도는 분리해서 봐야 한다. 지수는 금리·환율·해외 증시 등 정책 밖 요인에 크게 좌우되고, 실제로 고점 대비 약 33% 하락했다. 반면 이사 충실의무 확대, 자사주 소각, 상장폐지 요건 강화 같은 제도 변화는 지수와 무관하게 남는다. 이 스토리가 다루는 것은 후자이며, 지수는 그 배경으로만 싣는다.",
+        "지수와 제도는 분리해서 봐야 한다. 지수는 금리·환율·해외 증시 등 정책 밖 요인에 크게 좌우되고, 실제로 고점 대비 약 37.5% 하락했다. 반면 이사 충실의무 확대, 자사주 소각, 상장폐지 요건 강화 같은 제도 변화는 지수와 무관하게 남는다. 이 스토리가 다루는 것은 후자이며, 지수는 그 배경으로만 싣는다.",
       claimIds: ["claim-drawdown", "claim-reform"],
     },
     {
@@ -192,129 +205,240 @@ const raw: StoryInput = {
     {
       id: "claim-index-series",
       text:
-        "코스피는 2025년 6월 3,000선을 회복한 뒤 2026년 6월 18일 9,000선까지 올랐고, 이후 하락해 2026년 7월 29일 6,000선을 하회했다.",
+        "코스피는 2025년 6월 20일 종가 3,021.84로 3년 6개월 만에 3,000선을 회복했고, " +
+        "2026년 6월 18일 종가 9,063.84로 사상 처음 9,000선을 넘었다. " +
+        "이후 하락해 2026년 7월 29일 종가 5,663.24로 6,000선을 내주었다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-krx"],
-      verified: false,
+      sourceIds: ["src-krx-index", "src-kospi-3000", "src-kospi-9000", "src-kospi-5663"],
+      verified: true,
     },
     {
       id: "claim-drawdown",
-      text: "코스피는 고점 9,000선 대비 약 33% 하락해 2026년 7월 29일 6,000선을 하회했다.",
+      text:
+        "코스피는 고점(2026년 6월 18일 종가 9,063.84) 대비 2026년 7월 29일 종가 5,663.24까지 " +
+        "약 37.5% 하락했다. 같은 날 유가증권·코스닥 두 시장에 이틀 연속 서킷브레이커가 발동했다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-krx"],
-      verified: false,
+      sourceIds: ["src-krx-index", "src-kospi-9000", "src-kospi-5663"],
+      verified: true,
     },
     {
       id: "claim-marketcap",
-      text: "2025년 7월 10일 유가증권시장 시가총액이 사상 처음 3,000조 원을 넘어 약 3,020조 원을 기록했다.",
+      text:
+        "유가증권시장 시가총액은 2024년 말 1,962조 1,000억 원에서 2025년 말 3,476조 8,000억 원으로 " +
+        "77.2% 늘어 사상 처음 3,000조 원을 넘었다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-krx"],
-      verified: false,
+      sourceIds: ["src-krx-index", "src-marketcap-2025"],
+      verified: true,
     },
     {
       id: "claim-duty",
       text:
-        "이사의 충실의무 대상을 회사에서 주주까지 확대하는 상법 개정이 추진되었다.",
+        "2025년 7월 22일 법률 제20991호로 상법이 개정되어, 이사가 직무를 수행할 때 회사뿐 아니라 " +
+        "총주주의 이익을 보호하고 전체 주주의 이익을 공평하게 대우하도록 하는 조항이 신설되었다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-assembly"],
-      verified: false,
+      sourceIds: ["src-law-commercial"],
+      verified: true,
     },
     {
       id: "claim-buyback",
-      text: "자사주 소각 의무화와 경영권 프리미엄 공유를 포함한 상법 개정이 추진되고 있다.",
+      text:
+        "2026년 3월 6일 법률 제21448호로 상법이 개정되어, 회사가 자기주식을 취득한 경우 " +
+        "1년 이내에 소각할 의무가 부과되었다. 임직원 보상 등의 경우에는 주주총회 승인에 따라 " +
+        "예외적인 보유와 처분이 허용된다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-assembly"],
-      verified: false,
+      sourceIds: ["src-law-commercial"],
+      verified: true,
+    },
+    {
+      id: "claim-mto",
+      text:
+        "경영권 변경 시 일반주주도 경영권 프리미엄을 나눠 받도록 하는 의무공개매수 제도가 " +
+        "자본시장법 개정으로 추진되고 있다. 정부는 매수 의무 범위를 경영권 지분을 포함해 " +
+        "총 50%+1주 이상으로 하는 안을 제시했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-fsc-mto"],
+      verified: true,
     },
     {
       id: "claim-manipulation",
       text:
-        "주가조작에 대해 부당이득 대비 과징금과 최대 5년의 자본시장 거래 제한을 포함한 제재가 도입되었다.",
+        "불공정거래 행위자에게 부당이득의 최대 2배까지 과징금을 부과할 수 있고, " +
+        "2025년 4월 23일부터는 금융투자상품 거래와 상장사 임원 선임·재임을 최대 5년까지 " +
+        "제한하는 명령이 시행되었다. 2025년 7월 9일에는 주가조작 근절 합동대응단 설치를 담은 " +
+        "「자본시장 불공정거래 근절 실천방안」이 발표되었다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-fsc-manipulation"],
-      verified: false,
+      sourceIds: ["src-fsc-sanction", "src-fsc-unfair"],
+      verified: true,
     },
     {
       id: "claim-capgains",
       text:
-        "주식 양도소득세 대주주 기준을 50억 원에서 10억 원으로 낮추려던 안이 2025년 9월 15일 철회되어 현행 기준이 유지되었다.",
+        "정부는 2025년 9월 15일 주식 양도소득세 과세 대상 대주주 기준을 현행 종목당 50억 원으로 " +
+        "유지한다고 밝혔다. 7월 세제개편안 발표 이후 이어진 논의 끝에 나온 결정이다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-moef"],
-      verified: false,
+      sourceIds: ["src-korea-capgains"],
+      verified: true,
     },
     {
       id: "claim-transactiontax",
-      text: "증권거래세율을 0.15%에서 0.2%로 인상하는 안이 2025년 세제개편안에 포함되었다.",
+      text:
+        "2025년 7월 31일 발표된 2025년 세제개편안에 증권거래세율 환원이 포함되었다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-moef"],
-      verified: false,
+      sourceIds: ["src-moef-tax-2025"],
+      verified: true,
     },
     {
       id: "claim-delisting",
       text:
-        "2026년 2월 12일 집중관리기간 운영과 상장폐지 요건 강화를 포함한 상장폐지 제도 개편이 발표되었다.",
+        "2026년 2월 12일 금융위원회와 한국거래소가 「부실기업 신속·엄정 퇴출을 위한 상장폐지 개혁 방안」을 " +
+        "발표했다. 2026년 2월부터 2027년 6월까지 상장폐지 집중관리기간을 운영하고, " +
+        "시가총액 기준을 2026년 7월 150억 원에서 200억 원으로, 2027년 1월 300억 원으로 강화한다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-fsc-delisting"],
-      verified: false,
+      sourceIds: ["src-fsc-delisting"],
+      verified: true,
     },
     {
       id: "claim-reform",
       text:
-        "2026년 3월 18일 신뢰·주주보호·혁신·시장접근성을 축으로 하는 자본시장 체질개선 방안이 발표되었다.",
+        "2026년 3월 18일 금융위원회가 신뢰·주주보호·혁신·시장접근성 제고의 4대 정책방향을 담은 " +
+        "자본시장 체질개선 방안을 발표했다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-fsc-reform"],
-      verified: false,
+      sourceIds: ["src-fsc-reform"],
+      verified: true,
     },
   ],
 
   sources: [
     {
-      id: "src-need-krx",
-      title: "[필요] 코스피 일별 종가·시가총액 시계열 — 한국거래소 정보데이터시스템",
-      publisher: "미정",
+      id: "src-krx-index",
+      title: "주가지수·시가총액 통계 — KRX 정보데이터시스템",
+      url: "https://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC03010202",
+      publisher: "한국거래소",
       type: "statistics",
+      // 조회 화면이라 특정 시점을 고정 인용할 수 없다. 숫자의 출처는 여기이고,
+      // 날짜별 확인은 아래 보도자료로 대조한다.
       license: "link-only",
-      archivedUrl: "https://example.invalid/need/krx",
     },
     {
-      id: "src-need-assembly",
-      title: "[필요] 상법 개정안 의안 원문 — 국회 의안정보시스템 또는 국가법령정보센터",
-      publisher: "미정",
+      id: "src-kospi-3000",
+      title: "코스피, 3000선 돌파…3년 6개월만",
+      url: "https://www.seoul.co.kr/news/economy/securities/2025/06/20/20250620800005",
+      publisher: "서울신문",
+      publishedAt: "2025-06-20",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-kospi-9000",
+      title: "코스피 '9000' 시대 개막…종가 9063.84 마감",
+      url: "https://www.asiae.co.kr/article/2026061816204217852",
+      publisher: "아시아경제",
+      publishedAt: "2026-06-18",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-kospi-5663",
+      title: "[속보] 코스피 5.9%↓ 5663 마감…'6000피' 밑으로",
+      url: "https://www.kmib.co.kr/article/view.asp?arcid=9000000244&code=61141211&sid1=eco",
+      publisher: "국민일보",
+      publishedAt: "2026-07-29",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-marketcap-2025",
+      title: "올해 76% 뛴 코스피, G20·OECD 1위…시총 첫 3000조 돌파",
+      url: "https://www.hankyung.com/article/2025123033346",
+      publisher: "한국경제",
+      publishedAt: "2025-12-30",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-law-commercial",
+      title: "상법 — 전체 제정·개정이유 (법률 제20991호·제21448호)",
+      url: "https://www.law.go.kr/LSW/lsRvsRsnListP.do?lsId=001702&chrClsCd=010202&lsRvsGubun=all",
+      publisher: "법제처 국가법령정보센터",
       type: "legislative",
-      license: "link-only",
-      archivedUrl: "https://example.invalid/need/assembly",
+      license: "public",
+      quote:
+        "이사는 그 직무를 수행함에 있어 회사뿐만 아니라 총주주의 이익을 보호하고 전체 주주의 이익을 공평하게 대우하도록 (…) " +
+        "회사가 자기주식을 취득한 경우 1년 이내에 소각할 의무를 부과하고, 임직원 보상 등의 경우 주주총회의 승인에 따라 " +
+        "자기주식의 예외적인 보유 또는 처분을 허용",
     },
     {
-      id: "src-need-fsc-reform",
-      title: "[필요] 자본시장 체질개선 방안 보도자료 (2026-03-18) — 금융위원회",
-      publisher: "미정",
+      id: "src-fsc-sanction",
+      title: "불법공매도 제재수단이 도입됩니다 — 「자본시장과 금융투자업에 관한 법률」 하위규정 개정",
+      url: "https://www.fsc.go.kr/po010101/84365",
+      publisher: "금융위원회",
       type: "official",
-      license: "link-only",
-      archivedUrl: "https://example.invalid/need/fsc-reform",
+      license: "public",
+      quote:
+        "불공정거래·불법공매도 행위를 한 자의 상장사등 임원으로서의 선임·재임을 위반행위의 내용·정도, 기간·횟수, " +
+        "취득한 이익 규모를 고려하여 최대 5년의 범위에서 제한할 수 있도록 규정",
     },
     {
-      id: "src-need-fsc-delisting",
-      title: "[필요] 상장폐지 제도 개편 보도자료 (2026-02-12) — 금융위원회·한국거래소",
-      publisher: "미정",
+      id: "src-fsc-unfair",
+      title: "불공정거래를 신속적발, 엄정제재하여 주가조작의 유인을 근본적으로 차단하겠습니다",
+      url: "https://www.fsc.go.kr/no010101/84892",
+      publisher: "금융위원회·금융감독원·한국거래소",
+      publishedAt: "2025-07-09",
       type: "official",
-      license: "link-only",
-      archivedUrl: "https://example.invalid/need/fsc-delisting",
+      license: "public",
+      quote: "과징금(최대 부당이득의 2배)",
     },
     {
-      id: "src-need-fsc-manipulation",
-      title: "[필요] 불공정거래 제재 강화 보도자료 — 금융위원회·증권선물위원회",
-      publisher: "미정",
+      id: "src-fsc-mto",
+      title: "신주우선배정 및 의무공개매수 제도와 관련한 정부입장 설명",
+      url: "https://fsc.go.kr/no010102/86503",
+      publisher: "금융위원회",
       type: "official",
-      license: "link-only",
-      archivedUrl: "https://example.invalid/need/fsc-manipulation",
+      license: "public",
+      quote:
+        "경영권 지분을 포함하여 총 50%+1주 이상을 매수하도록 의무를 부과",
     },
     {
-      id: "src-need-moef",
-      title: "[필요] 2025년 세제개편안 및 대주주 기준 관련 발표 — 기획재정부",
-      publisher: "미정",
+      id: "src-moef-tax-2025",
+      title: "2025년 세제개편안 발표",
+      url: "https://mofe.go.kr/nw/nes/detailNesDtaView.do?menuNo=4010100&searchNttId1=MOSF_000000000074687",
+      publisher: "기획재정부",
+      publishedAt: "2025-07-31",
       type: "official",
+      // 본문은 첨부 PDF에 있다. 페이지 자체에는 인용할 문장이 없다.
       license: "link-only",
-      archivedUrl: "https://example.invalid/need/moef",
+    },
+    {
+      id: "src-korea-capgains",
+      title: "주식 양도세 대주주 기준, 현행 '종목당 50억 원 이상' 유지",
+      url: "https://www.korea.kr/news/policyNewsView.do?newsId=148949309",
+      publisher: "기획재정부 (대한민국 정책브리핑)",
+      publishedAt: "2025-09-15",
+      type: "official",
+      license: "public",
+      quote: "주식 양도세 대주주 기준, 현행 '종목당 50억 원 이상' 유지",
+    },
+    {
+      id: "src-fsc-delisting",
+      title: "부실기업 신속·엄정 퇴출을 위한 상장폐지 개혁 방안",
+      url: "https://www.fsc.go.kr/no010101/86273",
+      publisher: "금융위원회·한국거래소",
+      publishedAt: "2026-02-12",
+      type: "official",
+      license: "public",
+      quote:
+        "'26.2월~'27.6월 상장폐지 집중관리기간 운영 (…) 시가총액 기준을 '26.7월 150억원 → 200억원, " +
+        "'27.1월 200억원 → 300억원으로 강화",
+    },
+    {
+      id: "src-fsc-reform",
+      title: "위기에 강한, 국민이 믿는 자본시장 — 자본시장 체질개선을 일관되게 추진합니다",
+      url: "https://fsc.go.kr/no010101/86493",
+      publisher: "금융위원회",
+      publishedAt: "2026-03-18",
+      type: "official",
+      license: "public",
+      quote: "신뢰, 주주보호, 혁신, 시장접근성 제고의 4대 정책방향",
     },
   ],
 };
