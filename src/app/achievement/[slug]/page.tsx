@@ -67,6 +67,33 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "2014년에 무슨 결정이 있었나요?",
     ],
   },
+  "gyeonggi-or-cctv": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "한 병원에서 전국 법까지, 3년",
+          timelineLede:
+            "시점을 옮기면 그때까지 어디에 달려 있었는지가 나타납니다. 마지막 시점은 병원이 아니라 법입니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "보도로 확인된 것만 적었습니다.",
+          relationsHeading: "어떻게 법이 됐나",
+          relationsLede:
+            "한 지자체가 먼저 해 본 것이 어떻게 전국의 법이 됐는지 봅니다. 반대한 쪽도 함께 그립니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-first", label: "전국 최초 설치" },
+      { claimId: "claim-law", label: "전국 의무화" },
+    ],
+    askSuggestions: [
+      "언제 어디서 처음 했나요?",
+      "환자들은 촬영에 동의했나요?",
+      "의료계는 왜 반대했나요?",
+    ],
+  },
   "gyeonggi-shincheonji": {
     Layout: (props) => (
       <NarrativeLayout

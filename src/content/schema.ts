@@ -702,6 +702,14 @@ export const Eli5Art = z.enum([
   "covid-list",
   "covid-calls",
   "covid-speed",
+
+  // 경기도 수술실 CCTV
+  "or-closed",
+  "or-firstcam",
+  "or-consent",
+  "or-sixhospitals",
+  "or-private",
+  "or-nationwide",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

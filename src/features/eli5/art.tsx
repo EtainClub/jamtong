@@ -1353,6 +1353,160 @@ function CovidSpeed() {
     </svg>
   );
 }
+
+/* ── 경기도 수술실 CCTV ──────────────────────────────────────── */
+
+/** 닫힌 수술실 문. 안은 보이지 않고 밖에서 기다린다. */
+function OrClosed() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="닫힌 수술실 문 밖에서 가족이 기다리는 모습">
+      <rect x={150} y={44} width={140} height={152} rx={4}
+            fill="var(--stone)" stroke="var(--graphite)" strokeWidth={2.5} />
+      <path d="M220 44 V196" stroke="var(--graphite)" strokeWidth={2.5} />
+      <rect x={176} y={60} width={88} height={22} rx={3} fill="var(--navy)" />
+      <text x={220} y={76} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">
+        수술 중
+      </text>
+      {/* 기다리는 사람 */}
+      <circle cx={72} cy={112} r={16} fill="var(--graphite)" />
+      <path d="M50 188 C52 150, 92 150, 94 188 Z" fill="var(--graphite)" />
+      <text x={72} y={214} textAnchor="middle" fontSize={12} fill="var(--ash)">가족</text>
+      <text x={220} y={216} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        안은 볼 수 없다
+      </text>
+    </svg>
+  );
+}
+
+/** 첫 카메라 하나. 병원 한 채 위에 렌즈가 달린다. */
+function OrFirstCam() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="한 병원 수술실에 처음으로 카메라를 단 모습">
+      <rect x={116} y={112} width={88} height={78} rx={4} fill="var(--navy)" opacity={0.85} />
+      <path d="M150 140 H170 M160 130 V150" stroke="var(--eggshell)" strokeWidth={5} strokeLinecap="round" />
+      <text x={160} y={210} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--ink)">
+        안성병원
+      </text>
+      {/* 카메라 */}
+      <rect x={134} y={54} width={52} height={28} rx={5} fill="var(--graphite)" />
+      <circle cx={160} cy={68} r={9} fill="var(--canvas)" />
+      <circle cx={160} cy={68} r={4} fill="var(--burgundy)" />
+      <path d="M160 82 V112" stroke="var(--graphite)" strokeWidth={3} />
+      <path d="M128 92 L192 92" stroke="var(--burgundy)" strokeWidth={2}
+            strokeDasharray="3 4" opacity={0.7} />
+      <text x={244} y={68} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">
+        전국 최초
+      </text>
+    </svg>
+  );
+}
+
+/** 촬영 여부는 환자가 정한다. 열 칸 중 일곱만 켜져 있다. */
+function OrConsent() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="열 명 중 일곱 명 정도가 촬영에 동의했음을 나타낸 그림">
+      {Array.from({ length: 10 }, (_, i) => {
+        const on = i < 7;
+        const x = 34 + (i % 5) * 56;
+        const y = i < 5 ? 84 : 146;
+        return (
+          <g key={i}>
+            <circle cx={x} cy={y} r={15} fill={on ? "var(--navy)" : "var(--stone)"} />
+            {on && <circle cx={x} cy={y} r={6} fill="var(--eggshell)" />}
+          </g>
+        );
+      })}
+      <text x={160} y={206} textAnchor="middle" fontSize={22} {...LABEL} fill="var(--navy)">
+        67%
+      </text>
+      <text x={160} y={226} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        환자가 찍어 달라고 한 비율
+      </text>
+    </svg>
+  );
+}
+
+/** 여섯 병원. 같은 카메라가 여섯 채 위에 얹힌다. */
+function OrSixHospitals() {
+  const xs = [42, 92, 142, 192, 242, 280] as const;
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="경기도의료원 산하 여섯 개 병원으로 넓어진 모습">
+      {xs.map((x) => (
+        <g key={x}>
+          <rect x={x - 17} y={120} width={34} height={62} rx={3} fill="var(--navy)" opacity={0.85} />
+          <path d={`M${x - 6} 142 H${x + 6} M${x} 136 V148`}
+                stroke="var(--eggshell)" strokeWidth={3} strokeLinecap="round" />
+          <rect x={x - 11} y={92} width={22} height={13} rx={3} fill="var(--graphite)" />
+          <circle cx={x} cy={98} r={3.5} fill="var(--burgundy)" />
+          <path d={`M${x} 105 V120`} stroke="var(--graphite)" strokeWidth={2} />
+        </g>
+      ))}
+      <text x={160} y={212} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        경기도의료원 여섯 곳
+      </text>
+    </svg>
+  );
+}
+
+/** 민간병원에 설치비를 보탠다. 돈의 60%가 도에서, 나머지는 병원이. */
+function OrPrivate() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="민간 병원 설치비의 약 60퍼센트를 경기도가 보탠 모습">
+      <rect x={30} y={98} width={148} height={40} rx={6} fill="var(--navy)" />
+      <rect x={178} y={98} width={98} height={40} rx={6} fill="var(--stone)" />
+      <text x={104} y={124} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--eggshell)">
+        경기도 60%
+      </text>
+      <text x={227} y={124} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--graphite)">
+        병원
+      </text>
+      <text x={104} y={84} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">
+        3,000만 원
+      </text>
+      <text x={160} y={176} textAnchor="middle" fontSize={22} {...LABEL} fill="var(--ink)">
+        12곳
+      </text>
+      <text x={160} y={200} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        민간 병원급 의료기관
+      </text>
+    </svg>
+  );
+}
+
+/** 법이 됐다. 경기도 한 조각에서 전국으로 번지는 도장. */
+function OrNationwide() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="경기도에서 시작한 것이 전국 법으로 확대된 모습">
+      <rect x={44} y={92} width={54} height={54} rx={5} fill="var(--navy)" />
+      <text x={71} y={124} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">
+        경기
+      </text>
+      <path d="M108 119 H150" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M142 111 L152 119 L142 127" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <rect x={162} y={70} width={112} height={98} rx={6}
+            fill="var(--canvas)" stroke="var(--burgundy)" strokeWidth={3} />
+      <text x={218} y={108} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--burgundy)">
+        의료법
+      </text>
+      <text x={218} y={132} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        전국 의무화
+      </text>
+      <text x={218} y={152} textAnchor="middle" fontSize={11} fill="var(--ash)">
+        2021. 8. 31.
+      </text>
+      <text x={160} y={210} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        먼저 하고, 법이 따라왔다
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -1423,4 +1577,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "covid-list": CovidList,
   "covid-calls": CovidCalls,
   "covid-speed": CovidSpeed,
+
+  "or-closed": OrClosed,
+  "or-firstcam": OrFirstCam,
+  "or-consent": OrConsent,
+  "or-sixhospitals": OrSixHospitals,
+  "or-private": OrPrivate,
+  "or-nationwide": OrNationwide,
 };
