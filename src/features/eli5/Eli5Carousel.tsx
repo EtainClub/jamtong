@@ -18,10 +18,18 @@ export function Eli5Carousel({
   eli5,
   claims,
   onOpenFull,
+  below,
 }: {
   eli5: Eli5;
   claims: Claim[];
   onOpenFull: () => void;
+  /**
+   * 쉬운 카드와 “직접 움직여보기” 사이에 끼울 것. 쇼츠가 여기 들어간다.
+   *
+   * 마지막 버튼은 원문으로 넘어가는 문이므로 늘 맨 아래여야 한다. 쇼츠를
+   * 그 아래 두면 문을 지나친 뒤에 영상이 나온다.
+   */
+  below?: React.ReactNode;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -152,6 +160,8 @@ export function Eli5Carousel({
       {eli5.caveat && (
         <Caveat text={eli5.caveat.text} claimIds={eli5.caveat.claimIds} claims={claims} />
       )}
+
+      {below}
 
       <button
         type="button"

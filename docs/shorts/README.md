@@ -33,7 +33,7 @@
 
 | 업적 | 대본 | 상태 |
 | --- | --- | --- |
-| 성남시 3대 무상복지 | [seongnam-welfare.md](seongnam-welfare.md) | 영상 없음 |
+| 성남시 3대 무상복지 | [seongnam-welfare.md](seongnam-welfare.md) | 등록됨 |
 | 성남시 모라토리엄 | [seongnam-debt.md](seongnam-debt.md) | 등록됨 |
 | 성남시의료원 | [seongnam-hospital.md](seongnam-hospital.md) | 영상 없음 |
 | 성남시 무상급식 | [seongnam-meals.md](seongnam-meals.md) | 등록됨 |

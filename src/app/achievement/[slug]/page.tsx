@@ -602,6 +602,46 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
   const { Layout, heroHighlights, askSuggestions } = config;
   const scenes = scenesFor(achievement);
 
+  /*
+   * ⑦ 쇼츠. 업적마다 따로 붙이면 빠뜨리는 곳이 생기므로 여기서 한 번에 건다.
+   *
+   * 두 보기 모두에서 앞쪽에 둔다. 1분짜리 영상이 이 업적으로 들어오는 가장
+   * 짧은 문이고, 맨 아래에 묻어 두면 대부분은 그 문을 지나친다.
+   *   쉬운 보기 — 쉬운 카드 바로 밑, "직접 움직여보기" 위
+   *   원문 보기 — 보기 전환 바로 밑, 본문보다 위
+   *
+   * 껍데기를 둘로 나눈 이유: 쉬운 보기의 쇼츠는 캐러셀 안에 들어가는데,
+   * Section은 제 폭(max-w-5xl)과 좌우 여백을 다시 잡는다. 그대로 넣으면
+   * 쉬운 카드보다 안쪽으로 밀려 두 덩어리의 세로선이 어긋난다.
+   */
+  const SHORTS_HEADING = "짧게 보기";
+  const SHORTS_LEDE =
+    "이 업적을 1분 안에 전하는 영상입니다. 영상에서 말한 내용의 근거도 함께 있습니다.";
+  const hasShorts = achievement.shorts.length > 0;
+  const shortsFrames = (
+    <ShortsSection shorts={achievement.shorts} claims={achievement.claims} />
+  );
+
+  const shortsFull = hasShorts ? (
+    <Section scene="shorts" heading={SHORTS_HEADING} lede={SHORTS_LEDE} first>
+      {shortsFrames}
+    </Section>
+  ) : null;
+
+  const shortsEasy = hasShorts ? (
+    <section
+      data-scene="shorts"
+      aria-labelledby="sec-shorts-easy"
+      className="mt-8 scroll-mt-14 border-t border-stone pt-8"
+    >
+      <h2 id="sec-shorts-easy" className="text-xl font-light tracking-[-0.02em] text-ink">
+        {SHORTS_HEADING}
+      </h2>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-smoke">{SHORTS_LEDE}</p>
+      <div className="mt-6">{shortsFrames}</div>
+    </section>
+  ) : null;
+
   return (
     <>
       <Suspense fallback={null}>
@@ -639,22 +679,17 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
           <ViewSwitch
             easy={
               achievement.eli5 ? (
-                <Eli5Section eli5={achievement.eli5} claims={achievement.claims} />
+                <Eli5Section
+                  eli5={achievement.eli5}
+                  claims={achievement.claims}
+                  below={shortsEasy}
+                />
               ) : null
             }
             full={
               <>
+                {shortsFull}
                 <Layout achievement={achievement} />
-                {/* ⑦ 쇼츠. 업적마다 따로 붙이면 빠뜨리는 곳이 생기므로 여기서 한 번에 건다. */}
-                {achievement.shorts.length > 0 && (
-                  <Section
-                    scene="shorts"
-                    heading="짧게 보기"
-                    lede="이 업적을 1분 안에 전하는 영상입니다. 영상에서 말한 내용의 근거도 함께 있습니다."
-                  >
-                    <ShortsSection shorts={achievement.shorts} claims={achievement.claims} />
-                  </Section>
-                )}
               </>
             }
           />

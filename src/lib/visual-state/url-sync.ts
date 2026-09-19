@@ -5,7 +5,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   useVisualState,
   type SceneId,
-  type ViewMode,
   type VisualState,
 } from "./store";
 
@@ -34,9 +33,15 @@ const SCENES: SceneId[] = [
 function readFromParams(params: URLSearchParams): Partial<VisualState> {
   const patch: Partial<VisualState> = {};
 
-  // easy가 기본이므로 URL에는 full일 때만 실린다.
+  /*
+   * 보기 방식. easy가 기본이므로 URL에는 full일 때만 실린다.
+   *
+   * ★ 파라미터가 없으면 easy로 **되돌린다**. 비워 두면 안 된다.
+   *   스토어는 업적 사이를 건너 살아 있어서, 앞 업적에서 원문 보기를 켜 두면
+   *   다음 업적도 원문으로 열렸다. 업적을 새로 열 때는 늘 쉬운 설명부터다.
+   */
   const view = params.get("view");
-  if (view === "full" || view === "easy") patch.viewMode = view as ViewMode;
+  patch.viewMode = view === "full" ? "full" : "easy";
 
   const scene = params.get("scene");
   if (scene && (SCENES as string[]).includes(scene)) patch.sceneId = scene as SceneId;

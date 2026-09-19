@@ -94,7 +94,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-sw-01",
+      title: "3대 복지와 대법원 소송의 결말",
+      summary:
+        "교복·산후조리·청년배당 셋을 시가 맡았고, 정부가 막았고, 대법원까지 갔습니다.",
+      youtubeId: "5I5CK0vJz3c",
+      claimIds: ["claim-three", "claim-mohw", "claim-lawsuit", "claim-withdraw"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:
