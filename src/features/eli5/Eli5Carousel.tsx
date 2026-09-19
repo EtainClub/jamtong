@@ -1,15 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
 import type { Claim, Eli5 } from "@/content/schema";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
+import { CardCarousel } from "@/features/carousel/CardCarousel";
 import { ELI5_ART } from "./art";
 
 /**
  * 쉬운 설명 캐러셀.
  *
- * 한 화면에 한 장면만 둔다. 여러 장면을 세로로 늘어놓으면 결국 읽는 글이 되고,
- * 쉬운 설명의 이점이 사라진다.
+ * 넘기는 방식은 CardCarousel이 갖고, 여기는 카드 속만 그린다. 언행의
+ * 쉽게 보기가 같은 껍데기를 쓴다 — 두 벌로 두면 한쪽에서 스냅을 고치고
+ * 다른 쪽을 잊는다.
  *
  * 마지막 장면 다음에는 원문으로 넘어가는 문을 둔다. 쉬운 설명은 입구이지
  * 종착지가 아니다.
@@ -31,24 +32,6 @@ export function Eli5Carousel({
    */
   below?: React.ReactNode;
 }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [index, setIndex] = useState(0);
-  const total = eli5.scenes.length;
-
-  const goTo = (next: number) => {
-    const track = trackRef.current;
-    if (!track) return;
-    const clamped = Math.max(0, Math.min(total - 1, next));
-    track.scrollTo({ left: clamped * track.clientWidth, behavior: "smooth" });
-  };
-
-  const onScroll = () => {
-    const track = trackRef.current;
-    if (!track) return;
-    const next = Math.round(track.scrollLeft / track.clientWidth);
-    setIndex((current) => (current === next ? current : next));
-  };
-
   return (
     <section aria-labelledby="eli5-heading">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ash">
@@ -58,36 +41,20 @@ export function Eli5Carousel({
         {eli5.intro}
       </p>
 
-      <div className="mt-5 overflow-hidden rounded-card-lg border border-stone bg-taupe">
-        <div
-          ref={trackRef}
-          onScroll={onScroll}
-          tabIndex={0}
-          role="group"
-          aria-label={`장면 ${total}개. 좌우 화살표 키로 넘길 수 있어요.`}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowRight") {
-              e.preventDefault();
-              goTo(index + 1);
-            } else if (e.key === "ArrowLeft") {
-              e.preventDefault();
-              goTo(index - 1);
-            }
-          }}
-          className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto focus:outline-none"
+      <div className="mt-5">
+        <CardCarousel
+          items={eli5.scenes}
+          label={`장면 ${eli5.scenes.length}개. 좌우 화살표 키로 넘길 수 있어요.`}
+          itemLabel={(i) => `${i + 1}번 장면`}
         >
-          {eli5.scenes.map((scene, i) => {
+          {(scene, i, total) => {
             const Art = ELI5_ART[scene.art];
             const supporting = scene.claimIds
               .map((id) => claims.find((c) => c.id === id))
               .filter((c): c is Claim => Boolean(c));
 
             return (
-              <div
-                key={scene.id}
-                className="w-full shrink-0 snap-start snap-always p-5"
-                aria-label={`${i + 1}번 장면`}
-              >
+              <>
                 <div className="aspect-[4/3] w-full">
                   <Art />
                 </div>
@@ -121,40 +88,10 @@ export function Eli5Carousel({
                     />
                   )}
                 </div>
-              </div>
+              </>
             );
-          })}
-        </div>
-
-        <div className="flex items-center justify-between gap-4 border-t border-stone px-4 py-3">
-          <NavButton label="이전 장면" disabled={index === 0} onClick={() => goTo(index - 1)}>
-            <path d="M15 5 8 12l7 7" />
-          </NavButton>
-
-          <div className="flex gap-1.5" role="tablist" aria-label="장면 선택">
-            {eli5.scenes.map((scene, i) => (
-              <button
-                key={scene.id}
-                type="button"
-                role="tab"
-                aria-label={`${i + 1}번 장면`}
-                aria-selected={i === index}
-                onClick={() => goTo(i)}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === index ? "w-5 bg-navy" : "w-1.5 bg-stone"
-                }`}
-              />
-            ))}
-          </div>
-
-          <NavButton
-            label="다음 장면"
-            disabled={index === total - 1}
-            onClick={() => goTo(index + 1)}
-          >
-            <path d="m9 5 7 7-7 7" />
-          </NavButton>
-        </div>
+          }}
+        </CardCarousel>
       </div>
 
       {eli5.caveat && (
@@ -197,41 +134,5 @@ function Caveat({
         </div>
       )}
     </div>
-  );
-}
-
-function NavButton({
-  label,
-  disabled,
-  onClick,
-  children,
-}: {
-  label: string;
-  disabled: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      disabled={disabled}
-      onClick={onClick}
-      className="grid h-10 w-10 place-items-center rounded-full border border-stone text-smoke transition-colors hover:border-graphite hover:text-navy disabled:opacity-30 disabled:hover:border-stone disabled:hover:text-smoke"
-    >
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        {children}
-      </svg>
-    </button>
   );
 }
