@@ -31,16 +31,16 @@ export function Counterpoints({
         return (
           <li
             key={cp.id}
-            className="rounded-xl border border-line bg-ink-700 p-6"
+            className="rounded-card border border-stone bg-taupe p-6"
           >
-            <h3 className="flex gap-3 text-[17px] font-semibold leading-snug text-text-primary">
-              <span aria-hidden="true" className="shrink-0 text-warm-400">
+            <h3 className="flex gap-3 text-[17px] font-semibold leading-snug text-ink">
+              <span aria-hidden="true" className="shrink-0 text-burgundy">
                 Q
               </span>
               {cp.question}
             </h3>
-            <p className="mt-3 flex gap-3 text-[15px] leading-relaxed text-text-secondary">
-              <span aria-hidden="true" className="shrink-0 font-semibold text-ice-400">
+            <p className="mt-3 flex gap-3 text-[15px] leading-relaxed text-smoke">
+              <span aria-hidden="true" className="shrink-0 font-semibold text-navy">
                 A
               </span>
               <span>{cp.response}</span>

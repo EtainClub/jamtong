@@ -19,11 +19,11 @@ export function DraftBanner({ story }: { story: Story }) {
       className="mx-auto mt-10 max-w-5xl px-5"
       aria-label="검증 상태"
     >
-      <div className="rounded-xl border border-warm-400/30 bg-warm-400/[0.07] px-5 py-5">
-        <p className="text-sm font-semibold text-warm-400">
+      <div className="rounded-card border border-pending/30 bg-pending-tint px-5 py-5">
+        <p className="text-sm font-semibold text-pending">
           검증 전 골격입니다 — 공개 전 단계
         </p>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-secondary">
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-smoke">
           화면 구성과 흐름을 검토하기 위한 초안입니다. 수치·연표·구조 설명
           {pending.length}건이 아직 1차 자료로 대조되지 않았고, 이 상태로는
           공개 목록에 오르지 않습니다.
@@ -31,13 +31,13 @@ export function DraftBanner({ story }: { story: Story }) {
 
         {needed.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+            <p className="text-xs font-semibold uppercase tracking-wider text-ash">
               필요한 자료
             </p>
             <ul className="mt-2 space-y-1.5">
               {needed.map((source) => (
-                <li key={source.id} className="text-sm leading-relaxed text-text-secondary">
-                  <span aria-hidden="true" className="mr-2 text-warm-400">
+                <li key={source.id} className="text-sm leading-relaxed text-smoke">
+                  <span aria-hidden="true" className="mr-2 text-pending">
                     ·
                   </span>
                   {source.title.replace(/^\[필요\]\s*/, "")}

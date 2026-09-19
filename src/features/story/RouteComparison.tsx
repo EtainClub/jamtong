@@ -35,15 +35,15 @@ export function RouteComparison({
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                 <span
                   className={`text-sm font-semibold ${
-                    route.highlight ? "text-ice-400" : "text-text-secondary"
+                    route.highlight ? "text-navy" : "text-smoke"
                   }`}
                 >
                   {route.name}
                 </span>
-                <span className="tabular text-sm text-text-muted">
+                <span className="tabular text-sm text-ash">
                   <span
                     className={`font-semibold ${
-                      route.highlight ? "text-text-primary" : "text-text-secondary"
+                      route.highlight ? "text-ink" : "text-smoke"
                     }`}
                   >
                     {route.km.toLocaleString("ko-KR")} km
@@ -53,10 +53,10 @@ export function RouteComparison({
                 </span>
               </div>
 
-              <div className="mt-2 h-3 overflow-hidden rounded-full bg-ink-600">
+              <div className="mt-2 h-3 overflow-hidden rounded-full bg-taupe">
                 <div
                   className={`h-full rounded-full ${
-                    route.highlight ? "bg-ice-400" : "bg-ink-500"
+                    route.highlight ? "bg-navy" : "bg-ash"
                   }`}
                   style={{ width: `${width}%` }}
                 />
@@ -68,7 +68,7 @@ export function RouteComparison({
 
       {/* 전제 조건. 수치만 보여주고 조건을 숨기면 오도가 된다. */}
       {note && (
-        <figcaption className="mt-6 border-l-2 border-line-strong pl-4 text-[13px] leading-relaxed text-text-muted">
+        <figcaption className="mt-6 border-l-2 border-ash pl-4 text-[13px] leading-relaxed text-ash">
           {note}
         </figcaption>
       )}

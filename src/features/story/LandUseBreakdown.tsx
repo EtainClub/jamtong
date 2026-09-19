@@ -12,13 +12,14 @@ import { EvidenceButton } from "@/features/evidence/EvidenceButton";
  * 자료와 다른 숫자가 화면에 뜬다.
  */
 
+// onBar은 막대 안에 얹는 글자색이다. 막대가 진하면 밝게, 옅으면 진하게.
 const GROUP_STYLE: Record<
   LandUse["groups"][number]["group"],
-  { bar: string; dot: string; text: string }
+  { bar: string; dot: string; text: string; onBar: string }
 > = {
-  public: { bar: "bg-ice-400", dot: "bg-ice-400", text: "text-ice-400" },
-  residential: { bar: "bg-ink-500", dot: "bg-ink-500", text: "text-text-secondary" },
-  commercial: { bar: "bg-warm-500/70", dot: "bg-warm-500/70", text: "text-text-secondary" },
+  public: { bar: "bg-navy", dot: "bg-navy", text: "text-navy", onBar: "text-eggshell" },
+  residential: { bar: "bg-stone", dot: "bg-stone", text: "text-smoke", onBar: "text-graphite" },
+  commercial: { bar: "bg-burgundy", dot: "bg-burgundy", text: "text-burgundy", onBar: "text-eggshell" },
 };
 
 const fmt = (n: number) => n.toLocaleString("ko-KR", { maximumFractionDigits: 1 });
@@ -40,8 +41,8 @@ export function LandUseBreakdown({
   return (
     <figure className="m-0">
       <div className="flex items-baseline justify-between gap-4">
-        <span className="text-sm text-text-secondary">전체 사업 면적</span>
-        <span className="tabular text-sm font-semibold text-text-primary">
+        <span className="text-sm text-smoke">전체 사업 면적</span>
+        <span className="tabular text-sm font-semibold text-ink">
           {fmt(landUse.totalSqm)} ㎡
         </span>
       </div>
@@ -57,9 +58,7 @@ export function LandUseBreakdown({
           >
             {group.sharePercent >= 12 && (
               <span
-                className={`tabular text-xs font-bold ${
-                  group.group === "public" ? "text-ink-900" : "text-text-secondary"
-                }`}
+                className={`tabular text-xs font-bold ${GROUP_STYLE[group.group].onBar}`}
               >
                 {group.sharePercent}%
               </span>
@@ -78,7 +77,7 @@ export function LandUseBreakdown({
             <span className={`font-medium ${GROUP_STYLE[group.group].text}`}>
               {group.label}
             </span>
-            <span className="tabular ml-auto shrink-0 text-text-muted">
+            <span className="tabular ml-auto shrink-0 text-ash">
               {fmt(group.areaSqm)} ㎡ · {group.sharePercent}%
             </span>
           </li>
@@ -87,26 +86,26 @@ export function LandUseBreakdown({
 
       {landUse.publicBreakdown.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-ash">
             공공용지 내역
           </h3>
           <ul className="mt-4 space-y-2.5">
             {landUse.publicBreakdown.map((item) => (
               <li key={item.id}>
                 <div className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="text-text-secondary">
+                  <span className="text-smoke">
                     {item.label}
                     {item.detail && (
-                      <span className="ml-2 text-xs text-text-muted">{item.detail}</span>
+                      <span className="ml-2 text-xs text-ash">{item.detail}</span>
                     )}
                   </span>
-                  <span className="tabular shrink-0 text-text-muted">
+                  <span className="tabular shrink-0 text-ash">
                     {fmt(item.areaSqm)} ㎡
                   </span>
                 </div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink-600">
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-stone">
                   <div
-                    className="h-full rounded-full bg-ice-600"
+                    className="h-full rounded-full bg-navy"
                     style={{ width: `${(item.areaSqm / maxPublic) * 100}%` }}
                   />
                 </div>
@@ -117,7 +116,7 @@ export function LandUseBreakdown({
       )}
 
       {landUse.note && (
-        <figcaption className="mt-6 border-l-2 border-line-strong pl-4 text-[13px] leading-relaxed text-text-muted">
+        <figcaption className="mt-6 border-l-2 border-ash pl-4 text-[13px] leading-relaxed text-ash">
           {landUse.note}
         </figcaption>
       )}

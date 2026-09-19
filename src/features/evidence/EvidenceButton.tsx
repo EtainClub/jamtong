@@ -22,7 +22,7 @@ export function EvidenceButton({
     <button
       type="button"
       onClick={() => openEvidence(claimId)}
-      className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary transition-colors hover:border-ice-600 hover:bg-ice-500/10 hover:text-ice-400"
+      className="inline-flex items-center gap-1.5 rounded-full border border-stone bg-transparent px-2.5 py-1 text-[11px] font-medium text-smoke transition-colors hover:border-graphite hover:bg-navy-tint hover:text-navy"
     >
       <span aria-hidden="true">◆</span>
       {label ? `${label} · 근거 ${count}` : `근거 ${count}개`}

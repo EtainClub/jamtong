@@ -1,56 +1,47 @@
-<!-- @dsCard group="데이터" height=200 subtitle="검증된 수치와 미검증 수치" -->
+<!-- @dsCard group="데이터" height=224 subtitle="검증된 수치와 미검증 수치" -->
 <style>
   body {
-    margin: 0;
-    padding: 20px;
-    background: var(--ink-800);
-    font-family: var(--font-sans);
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    margin: 0; padding: 32px; background: var(--eggshell); font-family: var(--font-ui);
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
   }
-  .card { padding: 20px; border: 1px solid var(--line); border-radius: var(--radius-xl); background: var(--ink-700); }
-  .card.pending { border-color: rgba(230, 178, 90, 0.25); }
-  .label { color: var(--text-secondary); font-size: 13px; }
+  .card { padding: 32px; border: 1px solid var(--stone); border-radius: var(--radius-card); background: var(--taupe); }
+  .card.pending { border-color: var(--pending); background: var(--eggshell); }
+  .label { color: var(--smoke); font-size: 14px; }
   .value {
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-    margin-top: 8px;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
+    display: flex; align-items: baseline; gap: 6px; margin-top: 14px;
+    white-space: nowrap; font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   }
-  .prefix { color: var(--text-muted); font-size: 13px; font-weight: 500; }
-  .num { color: var(--text-primary); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  .unit { color: var(--ice-400); font-size: 17px; font-weight: 600; }
-  .caption { margin: 7px 0 0; color: var(--text-muted); font-size: 11px; }
-  .foot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .prefix { color: var(--ash); font-family: var(--font-ui); font-size: 14px; }
+  .num { color: var(--ink); font-family: var(--font-display); font-size: 32px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.13; }
+  .unit { color: var(--smoke); font-family: var(--font-ui); font-size: 16px; }
+  .cap { margin: 10px 0 0; color: var(--ash); font-size: 12px; }
+  .foot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
   .chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 10px; border: 1px solid var(--line); border-radius: var(--radius-full);
-    background: rgba(255,255,255,.04); color: var(--text-secondary); font-size: 11px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+    border: 1px solid var(--stone); border-radius: var(--radius-pill);
+    background: var(--eggshell); color: var(--graphite); font-size: 12px; font-weight: 500;
   }
-  .chip span { color: var(--ice-400); }
-  .pend { padding: 4px 8px; border-radius: var(--radius-full); background: rgba(230,178,90,.15); color: var(--warm-400); font-size: 10px; font-weight: 700; }
+  .dot { width: 5px; height: 5px; border-radius: var(--radius-pill); background: var(--navy); }
+  .pend { padding: 5px 12px; border-radius: var(--radius-pill); background: var(--pending-tint); color: var(--pending); font-size: 11px; font-weight: 600; }
 </style>
 
 <div class="card">
   <div class="label">운항 거리 단축</div>
   <div class="value"><span class="prefix">약</span><span class="num">36</span><span class="unit">%</span></div>
-  <p class="caption">20,400km → 13,000km</p>
-  <div class="foot"><span class="chip"><span>◆</span>근거 1개</span></div>
+  <p class="cap">20,400km → 13,000km</p>
+  <div class="foot"><span class="chip"><span class="dot"></span>근거 1건</span></div>
 </div>
 
 <div class="card">
   <div class="label">극지항해 선박 건조 지원</div>
   <div class="value"><span class="prefix">최대</span><span class="num">110</span><span class="unit">억 원</span></div>
-  <p class="caption">쇄빙선 등 1척당</p>
-  <div class="foot"><span class="chip"><span>◆</span>근거 1개</span></div>
+  <p class="cap">쇄빙선 등 1척당</p>
+  <div class="foot"><span class="chip"><span class="dot"></span>근거 1건</span></div>
 </div>
 
 <div class="card pending">
   <div class="label">공공 환수 규모</div>
   <div class="value"><span class="prefix">약</span><span class="num">5,503</span><span class="unit">억 원</span></div>
-  <p class="caption">금액 출처 확정 전</p>
-  <div class="foot"><span class="chip"><span>◆</span>근거 1개</span><span class="pend">검증 전</span></div>
+  <p class="cap">금액 출처 확정 전</p>
+  <div class="foot"><span class="chip"><span class="dot"></span>근거 1건</span><span class="pend">검증 전</span></div>
 </div>

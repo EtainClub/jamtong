@@ -27,9 +27,9 @@ export const STATUS_LABEL: Record<AchievementStatus, string> = {
 };
 
 export const STATUS_STYLE: Record<AchievementStatus, string> = {
-  done: "bg-ice-500/15 text-ice-400 ring-ice-500/30",
-  ongoing: "bg-warm-400/15 text-warm-400 ring-warm-400/30",
-  planned: "bg-white/[0.07] text-text-muted ring-white/15",
+  done: "bg-ink text-eggshell ring-ink",
+  ongoing: "bg-taupe text-graphite ring-stone",
+  planned: "bg-transparent text-smoke ring-stone",
 };
 
 export const SOURCE_TYPE_LABEL: Record<SourceType, string> = {

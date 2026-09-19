@@ -33,7 +33,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="주요 메뉴"
-      className="sticky bottom-0 z-40 border-t border-line bg-ink-800/95 backdrop-blur"
+      className="sticky bottom-0 z-40 border-t border-stone bg-canvas/95 backdrop-blur"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="mx-auto flex max-w-[560px] items-stretch">
@@ -46,7 +46,7 @@ export function BottomNav() {
                 <span
                   aria-disabled="true"
                   title="준비 중"
-                  className="flex cursor-not-allowed flex-col items-center gap-1 py-2.5 text-text-muted/45"
+                  className="flex cursor-not-allowed flex-col items-center gap-1 py-2.5 text-ash/45"
                 >
                   {tab.icon}
                   <span className="text-[10px] font-medium">{tab.label}</span>
@@ -61,7 +61,7 @@ export function BottomNav() {
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center gap-1 py-2.5 transition-colors ${
-                  active ? "text-ice-400" : "text-text-muted hover:text-text-secondary"
+                  active ? "text-navy" : "text-ash hover:text-smoke"
                 }`}
               >
                 {tab.icon}

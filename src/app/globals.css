@@ -1,89 +1,119 @@
+/* 한글 본문 서체. 구글 폰트에 없어 서브셋 CDN에서 받는다. */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 @import "tailwindcss";
 
 /*
- * 디자인 토큰 — Editorial / Documentary 방향 (설계서 34장).
- * 지금은 "시스템"이 아니라 이 스토리를 만들며 내린 결정의 기록이다.
- * 스토리 2개를 만든 뒤 여기서 디자인 시스템을 추출한다. (검토 문서 8장)
+ * 디자인 토큰 — ElevenLabs 기반, 이재명 팔레트.
+ *
+ * 표면·타이포·간격·반경·그림자는 ElevenLabs 값을 그대로 받았고,
+ * 색은 취임 선서 사진에서 뽑았다(남색 정장, 버건디 넥타이).
+ *
+ * 가장 중요한 규칙: UI는 무채색, 색은 데이터에만.
+ * 버튼·카드·테두리·탭은 잉크와 회색으로만 만든다. navy와 burgundy는
+ * 지도의 항로, 차트의 선, 관계도의 간선, 비교 막대에만 쓴다.
+ * 그래서 화면에 색이 보이면 그건 언제나 자료다.
  */
 :root {
-  --ink-900: #070d17;
-  --ink-800: #0b1220;
-  --ink-700: #111c2e;
-  --ink-600: #1a2740;
-  --ink-500: #24354f;
+  /* 표면 — ElevenLabs 원값 */
+  --eggshell: #fdfcfc;
+  --taupe: #f5f3f1;
+  --stone: #ebe8e4;
 
-  --text-primary: #e9eef6;
-  --text-secondary: #a7b6cc;
-  --text-muted: #6f819b;
+  /* 잉크 — ElevenLabs 원값 */
+  --ink: #000000;
+  --graphite: #44403b;
+  --smoke: #777169;
+  --ash: #a59f97;
 
-  --ice-400: #5cc8ec;
-  --ice-500: #34a9d4;
-  --ice-600: #1c7fa5;
+  /* 데이터 — 사진에서 */
+  --navy: #16366b;
+  --navy-tint: #e3e9f4;
+  --burgundy: #8a2233;
+  --burgundy-tint: #f6e6e8;
 
-  --warm-400: #e6b25a;
-  --warm-500: #cf933a;
+  /* 검증 전. 오류가 아니라 "아직 출처가 확정되지 않음" */
+  --pending: #8a6a12;
+  --pending-tint: #f6f0df;
 
-  --line: rgba(233, 238, 246, 0.12);
-  --line-strong: rgba(233, 238, 246, 0.22);
+  /*
+   * 지도 표면. 바다와 육지는 자료가 아니라 바탕이므로 navy를 쓰지 않는다.
+   * 항로(navy)와 대조 항로(burgundy)가 그 위에서 유일한 색이어야 한다.
+   */
+  --map-sea-top: #e9eff8;
+  --map-sea: #d2dcec;
+  --map-land: #f3f0ed;
+  --map-land-edge: rgba(22, 54, 107, 0.28);
+  --map-grid: rgba(22, 54, 107, 0.13);
 
-  --background: var(--ink-800);
-  --foreground: var(--text-primary);
-}
+  --canvas: var(--eggshell);
+  --text: var(--ink);
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-
-  --color-ink-900: var(--ink-900);
-  --color-ink-800: var(--ink-800);
-  --color-ink-700: var(--ink-700);
-  --color-ink-600: var(--ink-600);
-  --color-ink-500: var(--ink-500);
-
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
-
-  --color-ice-400: var(--ice-400);
-  --color-ice-500: var(--ice-500);
-  --color-ice-600: var(--ice-600);
-
-  --color-warm-400: var(--warm-400);
-  --color-warm-500: var(--warm-500);
-
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
-
-  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
-    "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
-
-  /* 모션 규칙 (설계서 35장) */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-eggshell: var(--eggshell);
+  --color-taupe: var(--taupe);
+  --color-stone: var(--stone);
+
+  --color-ink: var(--ink);
+  --color-graphite: var(--graphite);
+  --color-smoke: var(--smoke);
+  --color-ash: var(--ash);
+
+  --color-navy: var(--navy);
+  --color-navy-tint: var(--navy-tint);
+  --color-burgundy: var(--burgundy);
+  --color-burgundy-tint: var(--burgundy-tint);
+
+  --color-pending: var(--pending);
+  --color-pending-tint: var(--pending-tint);
+
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* 반경은 역할을 말한다 — ElevenLabs 원값 */
+  --radius-input: 4px;
+  --radius-sm: 10px;
+  --radius-card: 20px;
+  --radius-card-lg: 24px;
+  --radius-pill: 9999px;
+}
+
 html {
-  background: var(--background);
+  background: var(--canvas);
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--canvas);
+  color: var(--text);
   font-family: var(--font-sans);
   font-feature-settings: "tnum" 1;
   text-wrap: pretty;
 }
 
-/* 숫자는 항상 표 정렬. 스크럽 중에 자릿수가 흔들리면 안 된다. */
+/* 숫자는 표 정렬. 스크럽 중에 자릿수가 흔들리면 읽을 수 없다. */
 .tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
-/* 키보드 사용자에게만 보이는 포커스 링 (검토 문서 7.1) */
+/* 스크롤 막대를 감춰야 세로 영상처럼 읽히는 자리 */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 키보드 사용자에게만 보이는 포커스 링 */
 :focus-visible {
-  outline: 2px solid var(--ice-400);
-  outline-offset: 3px;
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
   border-radius: 2px;
 }
 
@@ -107,13 +137,4 @@ body {
     background: #fff;
     color: #000;
   }
-}
-
-/* 숏츠 스크롤러 — 막대가 보이면 세로 영상처럼 읽히지 않는다 */
-.no-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
 }

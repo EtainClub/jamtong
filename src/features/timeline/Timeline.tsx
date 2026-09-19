@@ -83,11 +83,11 @@ export function Timeline({ events, claims }: Props) {
         {/* 축 */}
         <div
           aria-hidden="true"
-          className="absolute left-0 right-0 top-[11px] h-px bg-line-strong"
+          className="absolute left-0 right-0 top-[11px] h-px bg-ash"
         />
         <div
           aria-hidden="true"
-          className="absolute left-0 top-[11px] h-px bg-ice-500 transition-all duration-300"
+          className="absolute left-0 top-[11px] h-px bg-ink transition-all duration-300"
           style={{
             width: `${(activeIndex / Math.max(1, events.length - 1)) * 100}%`,
           }}
@@ -111,23 +111,23 @@ export function Timeline({ events, claims }: Props) {
                     aria-hidden="true"
                     className={`h-[22px] w-[22px] shrink-0 rounded-full border-2 transition-all ${
                       isActive
-                        ? "border-ice-400 bg-ice-400 scale-110"
+                        ? "border-navy bg-navy scale-110"
                         : isPassed
-                          ? "border-ice-500 bg-ink-700"
-                          : "border-ink-500 bg-ink-700 group-hover:border-ink-500"
+                          ? "border-graphite bg-taupe"
+                          : "border-stone bg-taupe group-hover:border-stone"
                     }`}
                   />
                   <span className="min-w-0">
                     <span
                       className={`tabular block text-sm font-semibold ${
-                        isActive ? "text-text-primary" : "text-text-muted"
+                        isActive ? "text-ink" : "text-ash"
                       }`}
                     >
                       {event.displayDate ?? event.date}
                     </span>
                     <span
                       className={`mt-0.5 block text-xs leading-snug ${
-                        isActive ? "text-text-secondary" : "text-text-muted"
+                        isActive ? "text-smoke" : "text-ash"
                       }`}
                     >
                       {event.title}
@@ -141,21 +141,21 @@ export function Timeline({ events, claims }: Props) {
       </div>
 
       <div
-        className="mt-8 rounded-xl border border-line bg-ink-700 p-6"
+        className="mt-8 rounded-card border border-stone bg-taupe p-6"
         aria-live="polite"
       >
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <span className="tabular text-2xl font-bold text-ice-400">
+          <span className="tabular text-2xl font-light tracking-[-0.02em] text-navy">
             {active.displayDate ?? active.date}
           </span>
-          <h3 className="text-lg font-semibold text-text-primary">{active.title}</h3>
+          <h3 className="text-lg font-semibold text-ink">{active.title}</h3>
           {PRECISION_NOTE[active.datePrecision] && (
-            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] text-text-muted">
+            <span className="rounded-full bg-taupe px-2 py-0.5 text-[11px] text-ash">
               {PRECISION_NOTE[active.datePrecision]}
             </span>
           )}
         </div>
-        <p className="mt-3 text-[15px] leading-relaxed text-text-secondary">{active.summary}</p>
+        <p className="mt-3 text-[15px] leading-relaxed text-smoke">{active.summary}</p>
 
         {activeClaims.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">

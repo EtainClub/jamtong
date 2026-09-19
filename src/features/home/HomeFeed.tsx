@@ -74,12 +74,12 @@ export function HomeFeed({
                   onClick={() => setTab(item.id)}
                   aria-pressed={active}
                   className={`relative px-3 py-2.5 text-sm font-semibold transition-colors ${
-                    active ? "text-text-primary" : "text-text-muted hover:text-text-secondary"
+                    active ? "text-ink" : "text-ash hover:text-smoke"
                   }`}
                 >
                   {item.label}
                   {active && (
-                    <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-ice-400" />
+                    <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-navy" />
                   )}
                 </button>
               </li>
@@ -91,12 +91,12 @@ export function HomeFeed({
       <HeroCarousel slides={slides} />
 
       <section aria-labelledby="home-topics" className="mt-9">
-        <h2 id="home-topics" className="text-[17px] font-bold tracking-tight text-text-primary">
+        <h2 id="home-topics" className="text-[17px] font-bold tracking-tight text-ink">
           지금, 이런 주제들이 주목받고 있어요
         </h2>
 
         {filtered.length === 0 ? (
-          <p className="mt-4 rounded-xl border border-line bg-ink-700 px-5 py-8 text-center text-sm text-text-secondary">
+          <p className="mt-4 rounded-card border border-stone bg-taupe px-5 py-8 text-center text-sm text-smoke">
             이 분류에 해당하는 주제가 아직 없습니다.
           </p>
         ) : (
@@ -123,7 +123,7 @@ function SearchField() {
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted"
+        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ash"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="11" cy="11" r="7" />
@@ -133,7 +133,7 @@ function SearchField() {
       <input
         type="search"
         placeholder="궁금한 주제나 키워드를 검색해보세요"
-        className="w-full rounded-full border border-line bg-ink-700 py-3 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-ice-600 focus:outline-none"
+        className="w-full rounded-full border border-stone bg-taupe py-3 pl-10 pr-4 text-sm text-ink placeholder:text-ash focus:border-graphite focus:outline-none"
       />
     </form>
   );
@@ -171,7 +171,7 @@ function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               key={slide.id}
               aria-hidden="true"
               className={`h-1.5 rounded-full transition-all ${
-                i === index ? "w-5 bg-ice-400" : "w-1.5 bg-white/20"
+                i === index ? "w-5 bg-navy" : "w-1.5 bg-stone"
               }`}
             />
           ))}
@@ -188,31 +188,31 @@ function HeroCard({ slide }: { slide: HeroSlide }) {
   return (
     <Link
       href={slide.href}
-      className="group relative block aspect-[4/5] overflow-hidden rounded-2xl border border-line bg-ink-700 sm:aspect-[16/10]"
+      className="group relative block aspect-[4/5] overflow-hidden rounded-card-lg border border-stone bg-taupe sm:aspect-[16/10]"
     >
       <div className="absolute inset-0">{slide.visual}</div>
-      {/* 글자를 읽히게 하는 최소한의 어둠. 비주얼을 다 덮지는 않는다. */}
+      {/* 글자를 읽히게 하는 최소한의 빛. 비주얼을 다 덮지는 않는다. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/55 to-ink-900/5"
+        className="absolute inset-0 bg-gradient-to-t from-eggshell via-eggshell/85 to-eggshell/10"
       />
 
       <div className="relative flex h-full flex-col justify-end p-5">
         <div className="flex flex-wrap gap-1.5">
-          <span className="rounded bg-ice-500 px-2 py-0.5 text-[10px] font-bold text-ink-900">
+          <span className="rounded bg-ink px-2 py-0.5 text-[10px] font-bold text-eggshell">
             {slide.kicker}
           </span>
-          <span className="rounded bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white/85 backdrop-blur">
+          <span className="rounded bg-stone px-2 py-0.5 text-[10px] font-semibold text-graphite">
             {slide.tag}
           </span>
         </div>
 
-        <h3 className="mt-3 text-[26px] font-bold leading-[1.25] tracking-tight text-white">
+        <h3 className="mt-3 text-[26px] font-light leading-[1.25] tracking-[-0.02em] text-ink">
           {slide.title}
         </h3>
-        <p className="mt-2 text-[13px] leading-relaxed text-white/70">{slide.subtitle}</p>
+        <p className="mt-2 text-[13px] leading-relaxed text-graphite">{slide.subtitle}</p>
 
-        <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-2 text-xs font-semibold text-white backdrop-blur transition-colors group-hover:bg-white/20">
+        <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 text-xs font-semibold text-eggshell transition-colors group-hover:bg-graphite">
           자세히 보기
           <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
             →
@@ -220,7 +220,7 @@ function HeroCard({ slide }: { slide: HeroSlide }) {
         </span>
 
         {slide.note && (
-          <span className="absolute right-5 top-5 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-semibold text-white/85 backdrop-blur">
+          <span className="absolute right-5 top-5 rounded-full bg-eggshell/90 px-2.5 py-1 text-[10px] font-semibold text-graphite ring-1 ring-stone backdrop-blur">
             {slide.note}
           </span>
         )}
@@ -234,26 +234,26 @@ function TopicCard({ item, claims }: { item: Achievement; claims: Claim[] }) {
   const href = item.storySlug ? `/story/${item.storySlug}` : "/explore";
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-line bg-ink-700 p-3.5">
-      <span className="text-[10px] font-bold text-ice-400">
+    <div className="flex h-full flex-col rounded-card border border-stone bg-taupe p-3.5">
+      <span className="text-[10px] font-bold text-navy">
         {CATEGORY_LABEL[item.categories[0]]}
       </span>
       <Link href={href} className="mt-1.5 block">
-        <h3 className="text-[13px] font-bold leading-snug text-text-primary">{item.title}</h3>
+        <h3 className="text-[13px] font-bold leading-snug text-ink">{item.title}</h3>
       </Link>
 
       {item.highlight ? (
-        <p className="tabular mt-2.5 text-lg font-bold leading-none text-text-primary">
+        <p className="tabular mt-2.5 text-lg font-bold leading-none text-ink">
           {item.highlight.value}
         </p>
       ) : (
-        <p className="mt-2 line-clamp-3 text-[11px] leading-relaxed text-text-muted">
+        <p className="mt-2 line-clamp-3 text-[11px] leading-relaxed text-ash">
           {item.summary}
         </p>
       )}
 
       <div className="mt-auto pt-3">
-        <span className="text-[10px] text-text-muted">{STATUS_LABEL[item.status]}</span>
+        <span className="text-[10px] text-ash">{STATUS_LABEL[item.status]}</span>
         {claim && (
           <div className="mt-2">
             <EvidenceButton claimId={claim.id} count={claim.sourceIds.length} />

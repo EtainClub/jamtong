@@ -81,18 +81,18 @@ export function ScrollRouteScene({ tracks, background }: Props) {
 
             {/* 구간 해설 — 스크롤에 따라 바뀌는 자막 */}
             <div
-              className="min-h-[104px] rounded-xl border border-line bg-ink-700 p-5"
+              className="min-h-[104px] rounded-card border border-stone bg-taupe p-5"
               aria-live="polite"
             >
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-ice-400">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-navy">
                 {position.waypoint.name}
               </p>
-              <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
+              <p className="mt-2 text-[15px] leading-relaxed text-smoke">
                 {position.waypoint.note ?? "항로를 따라 이동 중입니다."}
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line">
+            <div className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-stone bg-stone">
               <Readout label="이동 거리" value={`${position.km.toLocaleString("ko-KR")} km`} />
               <Readout label="운항 일수" value={elapsedDays} />
               <Readout
@@ -105,12 +105,12 @@ export function ScrollRouteScene({ tracks, background }: Props) {
               <button
                 type="button"
                 onClick={followScroll}
-                className="w-full rounded-lg border border-line bg-ink-700 px-4 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:border-ice-600 hover:text-ice-400"
+                className="w-full rounded-full border border-stone bg-taupe px-4 py-2.5 text-sm font-medium text-smoke transition-colors hover:border-graphite hover:text-navy"
               >
                 스크롤에 다시 맡기기
               </button>
             ) : (
-              <p className="px-1 text-xs leading-relaxed text-text-muted">
+              <p className="px-1 text-xs leading-relaxed text-ash">
                 스크롤하면 배가 나아갑니다. 직접 끌거나 화살표 키로 움직일 수도 있습니다.
               </p>
             )}

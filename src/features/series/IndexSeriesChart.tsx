@@ -133,12 +133,12 @@ export function IndexSeriesChart({
       >
         <defs>
           <linearGradient id="rise" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--ice-400)" stopOpacity={0.28} />
-            <stop offset="100%" stopColor="var(--ice-400)" stopOpacity={0} />
+            <stop offset="0%" stopColor="var(--navy)" stopOpacity={0.28} />
+            <stop offset="100%" stopColor="var(--navy)" stopOpacity={0} />
           </linearGradient>
           <linearGradient id="fall" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--warm-400)" stopOpacity={0.24} />
-            <stop offset="100%" stopColor="var(--warm-400)" stopOpacity={0} />
+            <stop offset="0%" stopColor="var(--burgundy)" stopOpacity={0.24} />
+            <stop offset="100%" stopColor="var(--burgundy)" stopOpacity={0} />
           </linearGradient>
         </defs>
 
@@ -149,14 +149,14 @@ export function IndexSeriesChart({
               y1={tick.y}
               x2={VIEW.width - PAD.right}
               y2={tick.y}
-              stroke="var(--line)"
+              stroke="var(--stone)"
               strokeWidth={1}
             />
             <text
               x={PAD.left - 10}
               y={tick.y + 4}
               textAnchor="end"
-              className="tabular fill-[var(--text-muted)] text-[11px]"
+              className="tabular fill-[var(--ash)] font-mono text-[11px]"
             >
               {tick.value.toLocaleString("ko-KR")}
             </text>
@@ -178,7 +178,7 @@ export function IndexSeriesChart({
         <polyline
           points={line}
           fill="none"
-          stroke="var(--ice-400)"
+          stroke="var(--navy)"
           strokeWidth={2.5}
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -187,7 +187,7 @@ export function IndexSeriesChart({
           <polyline
             points={areaAfter.map((n) => `${n.x},${n.y}`).join(" ")}
             fill="none"
-            stroke="var(--warm-400)"
+            stroke="var(--burgundy)"
             strokeWidth={2.5}
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -201,8 +201,8 @@ export function IndexSeriesChart({
                 cx={node.x}
                 cy={node.y}
                 r={4}
-                fill={toTime(node.date) > toTime(peak.date) ? "var(--warm-400)" : "var(--ice-400)"}
-                stroke="var(--ink-800)"
+                fill={toTime(node.date) > toTime(peak.date) ? "var(--burgundy)" : "var(--navy)"}
+                stroke="var(--canvas)"
                 strokeWidth={1.5}
               />
               {node.showLabel && (
@@ -210,8 +210,8 @@ export function IndexSeriesChart({
                   x={node.x}
                   y={node.labelBelow ? node.y + 18 : node.y - 12}
                   textAnchor={node.anchor}
-                  className="fill-[var(--text-secondary)] text-[10.5px] font-medium"
-                  style={{ paintOrder: "stroke", stroke: "var(--ink-800)", strokeWidth: 3 }}
+                  className="fill-[var(--smoke)] text-[10.5px] font-medium"
+                  style={{ paintOrder: "stroke", stroke: "var(--canvas)", strokeWidth: 3 }}
                 >
                   {node.label}
                 </text>
@@ -227,7 +227,7 @@ export function IndexSeriesChart({
               y1={PAD.top - 8}
               x2={cursor.x}
               y2={geometry.baseline}
-              stroke="var(--text-primary)"
+              stroke="var(--ink)"
               strokeWidth={1}
               strokeDasharray="3 3"
               opacity={0.55}
@@ -242,7 +242,7 @@ export function IndexSeriesChart({
                     ? "start"
                     : "middle"
               }
-              className="fill-[var(--text-primary)] text-[11px] font-semibold"
+              className="fill-[var(--ink)] text-[11px] font-semibold"
             >
               {cursor.label}
             </text>
@@ -252,7 +252,7 @@ export function IndexSeriesChart({
         <text
           x={geometry.nodes[0].x}
           y={VIEW.height - 12}
-          className="tabular fill-[var(--text-muted)] text-[11px]"
+          className="tabular fill-[var(--ash)] font-mono text-[11px]"
         >
           {geometry.nodes[0].date}
         </text>
@@ -260,13 +260,13 @@ export function IndexSeriesChart({
           x={last.x}
           y={VIEW.height - 12}
           textAnchor="end"
-          className="tabular fill-[var(--text-muted)] text-[11px]"
+          className="tabular fill-[var(--ash)] font-mono text-[11px]"
         >
           {last.date}
         </text>
       </svg>
 
-      <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+      <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-stone bg-stone sm:grid-cols-3">
         <Cell label="고점" value={`${peak.value.toLocaleString("ko-KR")} ${series.unit}`} tone="ice" />
         <Cell label="최근" value={`${last.value.toLocaleString("ko-KR")} ${series.unit}`} tone={fellBack ? "warm" : "ice"} />
         {cursor && (
@@ -279,7 +279,7 @@ export function IndexSeriesChart({
       </div>
 
       {series.note && (
-        <figcaption className="mt-5 border-l-2 border-line-strong pl-4 text-[13px] leading-relaxed text-text-muted">
+        <figcaption className="mt-5 border-l-2 border-ash pl-4 text-[13px] leading-relaxed text-ash">
           {series.note}
         </figcaption>
       )}
@@ -303,10 +303,10 @@ function Cell({
   tone: "ice" | "warm" | "plain";
 }) {
   const color =
-    tone === "ice" ? "text-ice-400" : tone === "warm" ? "text-warm-400" : "text-text-primary";
+    tone === "ice" ? "text-navy" : tone === "warm" ? "text-burgundy" : "text-ink";
   return (
-    <div className="bg-ink-700 px-4 py-3">
-      <div className="truncate text-[11px] uppercase tracking-wider text-text-muted">{label}</div>
+    <div className="bg-taupe px-4 py-3">
+      <div className="truncate text-[11px] uppercase tracking-wider text-ash">{label}</div>
       <div className={`tabular mt-1 whitespace-nowrap text-lg font-bold ${color}`}>{value}</div>
     </div>
   );

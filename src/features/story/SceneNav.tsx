@@ -56,10 +56,10 @@ export function SceneNav({ scenes }: { scenes: SceneNavItem[] }) {
                 type="button"
                 onClick={() => goTo(scene.id)}
                 aria-current={isActive ? "true" : undefined}
-                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                className={`rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors ${
                   isActive
-                    ? "bg-ice-500/15 text-ice-400"
-                    : "text-text-muted hover:bg-white/5 hover:text-text-secondary"
+                    ? "bg-ink/15 text-navy"
+                    : "text-ash hover:bg-taupe hover:text-smoke"
                 }`}
               >
                 {scene.label}

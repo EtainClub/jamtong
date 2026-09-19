@@ -28,18 +28,18 @@ export function StorySection({
     <section
       data-scene={scene}
       aria-labelledby={headingId}
-      className={`mx-auto max-w-5xl scroll-mt-14 border-t border-line px-5 pt-12 ${
+      className={`mx-auto max-w-5xl scroll-mt-14 border-t border-stone px-5 pt-12 ${
         first ? "" : "mt-20"
       }`}
     >
       <h2
         id={headingId}
-        className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl"
+        className="text-2xl font-light tracking-[-0.02em] text-ink sm:text-3xl"
       >
         {heading}
       </h2>
       {lede && (
-        <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-text-secondary">
+        <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-smoke">
           {lede}
         </p>
       )}

@@ -78,7 +78,7 @@ export function MoneyFlow({ flow, claims }: Props) {
       <div
         role="radiogroup"
         aria-label="자금 흐름 시나리오"
-        className="flex flex-col gap-1 rounded-xl border border-line bg-ink-700 p-1.5 sm:flex-row"
+        className="flex flex-col gap-1 rounded-card border border-stone bg-taupe p-1.5 sm:flex-row"
       >
         {flow.scenarios.map((option) => {
           const isActive = option.id === scenario.id;
@@ -89,16 +89,16 @@ export function MoneyFlow({ flow, claims }: Props) {
               role="radio"
               aria-checked={isActive}
               onClick={() => setScenario(option.id)}
-              className={`flex-1 rounded-lg px-4 py-2.5 text-left transition-colors ${
+              className={`flex-1 rounded-full px-4 py-2.5 text-left transition-colors ${
                 isActive
-                  ? "bg-ink-500/70 text-text-primary"
-                  : "text-text-muted hover:bg-white/5 hover:text-text-secondary"
+                  ? "bg-stone/70 text-ink"
+                  : "text-ash hover:bg-taupe hover:text-smoke"
               }`}
             >
               <span className="flex items-center gap-2 text-sm font-semibold">
                 {option.name}
                 {!option.isActual && (
-                  <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-text-muted">
+                  <span className="rounded-full bg-taupe px-1.5 py-0.5 text-[10px] font-medium text-ash">
                     가정
                   </span>
                 )}
@@ -108,7 +108,7 @@ export function MoneyFlow({ flow, claims }: Props) {
         })}
       </div>
 
-      <p className="mt-4 text-[15px] leading-relaxed text-text-secondary" aria-live="polite">
+      <p className="mt-4 text-[15px] leading-relaxed text-smoke" aria-live="polite">
         {scenario.summary}
       </p>
 
@@ -120,8 +120,8 @@ export function MoneyFlow({ flow, claims }: Props) {
       >
         <defs>
           <linearGradient id="flow-public" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="var(--ice-600)" stopOpacity={0.5} />
-            <stop offset="100%" stopColor="var(--ice-400)" stopOpacity={0.75} />
+            <stop offset="0%" stopColor="var(--navy-tint)" stopOpacity={0.5} />
+            <stop offset="100%" stopColor="var(--navy)" stopOpacity={0.75} />
           </linearGradient>
         </defs>
 
@@ -132,19 +132,19 @@ export function MoneyFlow({ flow, claims }: Props) {
           width={SOURCE_W}
           height={geometry.usableHeight}
           rx={3}
-          fill="var(--ink-500)"
+          fill="var(--stone)"
         />
         <text
           x={SOURCE_X}
           y={18}
-          className="fill-[var(--text-secondary)] text-[14px] font-medium"
+          className="fill-[var(--smoke)] text-[14px] font-medium"
         >
           {flow.sourceLabel}
         </text>
         <text
           x={SOURCE_X}
           y={32}
-          className="fill-[var(--text-muted)] text-[11.5px]"
+          className="fill-[var(--ash)] text-[11.5px]"
         >
           전체 규모는 이 자료의 범위 밖
         </text>
@@ -171,7 +171,7 @@ export function MoneyFlow({ flow, claims }: Props) {
                   y1={TOP + geometry.usableHeight / 2}
                   x2={TARGET_X + TARGET_W}
                   y2={TOP + geometry.usableHeight / 2}
-                  stroke="var(--ink-500)"
+                  stroke="var(--ash)"
                   strokeWidth={1.5}
                   strokeDasharray="6 6"
                 />
@@ -188,7 +188,7 @@ export function MoneyFlow({ flow, claims }: Props) {
                     width={TARGET_W}
                     height={h}
                     rx={3}
-                    fill="var(--ice-400)"
+                    fill="var(--navy)"
                   />
                 </>
               )}
@@ -198,8 +198,8 @@ export function MoneyFlow({ flow, claims }: Props) {
                 y={(isEmpty ? TOP + geometry.usableHeight / 2 : targetY + h / 2) + 5}
                 className={
                   isEmpty
-                    ? "fill-[var(--text-muted)] text-[14px] font-medium"
-                    : "fill-[var(--text-primary)] text-[14px] font-semibold"
+                    ? "fill-[var(--ash)] text-[14px] font-medium"
+                    : "fill-[var(--ink)] text-[14px] font-semibold"
                 }
               >
                 {allocation.label}
@@ -207,7 +207,7 @@ export function MoneyFlow({ flow, claims }: Props) {
               <text
                 x={TARGET_X + TARGET_W + 16}
                 y={(isEmpty ? TOP + geometry.usableHeight / 2 : targetY + h / 2) + 24}
-                className="tabular fill-[var(--text-muted)] text-[13px]"
+                className="tabular fill-[var(--ash)] font-mono text-[13px]"
               >
                 {allocation.amountEok.toLocaleString("ko-KR")}
                 {flow.unitLabel}
@@ -218,18 +218,18 @@ export function MoneyFlow({ flow, claims }: Props) {
         })}
       </svg>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-ink-700 px-5 py-4">
-        <span className="text-sm text-text-secondary">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-stone bg-taupe px-5 py-4">
+        <span className="text-sm text-smoke">
           {scenario.isActual ? "공공 환수 합계" : "이 경로에서 공공 환수"}
         </span>
-        <span className="tabular text-2xl font-bold text-text-primary">
+        <span className="tabular text-2xl font-light tracking-[-0.02em] text-ink">
           {geometry.total.toLocaleString("ko-KR")}
-          <span className="ml-1 text-base font-semibold text-ice-400">{flow.unitLabel}</span>
+          <span className="ml-1 text-base font-semibold text-navy">{flow.unitLabel}</span>
         </span>
       </div>
 
       {flow.note && (
-        <figcaption className="mt-5 border-l-2 border-line-strong pl-4 text-[13px] leading-relaxed text-text-muted">
+        <figcaption className="mt-5 border-l-2 border-ash pl-4 text-[13px] leading-relaxed text-ash">
           {flow.note}
         </figcaption>
       )}

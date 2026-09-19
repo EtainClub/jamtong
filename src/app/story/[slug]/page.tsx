@@ -120,11 +120,11 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
         <UrlSyncBoundary storyId={story.id} />
       </Suspense>
 
-      <header className="sticky top-0 z-40 h-14 border-b border-line bg-ink-800/85 backdrop-blur">
+      <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-full max-w-5xl items-center justify-between gap-4 px-5">
           <Link
             href="/"
-            className="shrink-0 text-sm font-semibold text-text-secondary transition-colors hover:text-text-primary"
+            className="shrink-0 text-sm font-semibold text-smoke transition-colors hover:text-ink"
           >
             이재명 업적 위키
           </Link>

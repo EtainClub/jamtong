@@ -21,16 +21,16 @@ export function StoryHero({
       data-scene="hero"
       className="mx-auto max-w-5xl scroll-mt-14 px-5 pt-14 pb-12 sm:pt-20"
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-400">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy">
         {story.kicker}
       </p>
-      <h1 className="mt-4 text-4xl font-bold leading-[1.15] tracking-tight text-text-primary sm:text-6xl">
+      <h1 className="mt-4 text-4xl font-light leading-[1.15] tracking-[-0.02em] text-ink sm:text-6xl">
         {story.title}
       </h1>
-      <p className="mt-4 text-xl font-medium leading-snug text-text-secondary sm:text-2xl">
+      <p className="mt-4 text-xl font-medium leading-snug text-smoke sm:text-2xl">
         {story.subtitle}
       </p>
-      <p className="mt-6 max-w-2xl text-[15px] leading-relaxed text-text-secondary sm:text-base">
+      <p className="mt-6 max-w-2xl text-[15px] leading-relaxed text-smoke sm:text-base">
         {story.summary}
       </p>
 

@@ -28,12 +28,12 @@ import { EvidenceButton } from "@/features/evidence/EvidenceButton";
  */
 
 const KIND_STYLE: Record<EntityKind, { fill: string; ring: string }> = {
-  government: { fill: "var(--ice-500)", ring: "var(--ice-400)" },
-  organization: { fill: "var(--ink-500)", ring: "var(--ice-600)" },
-  company: { fill: "var(--ink-500)", ring: "var(--warm-500)" },
-  project: { fill: "var(--ink-600)", ring: "var(--ice-600)" },
-  place: { fill: "var(--ink-600)", ring: "var(--line-strong)" },
-  country: { fill: "var(--ink-500)", ring: "var(--warm-400)" },
+  government: { fill: "var(--navy-tint)", ring: "var(--navy)" },
+  organization: { fill: "var(--navy-tint)", ring: "var(--navy-tint)" },
+  company: { fill: "var(--burgundy-tint)", ring: "var(--burgundy)" },
+  project: { fill: "var(--taupe)", ring: "var(--stone)" },
+  place: { fill: "var(--taupe)", ring: "var(--ash)" },
+  country: { fill: "var(--burgundy-tint)", ring: "var(--burgundy-tint)" },
 };
 
 const KIND_LABEL: Record<EntityKind, string> = {
@@ -111,7 +111,7 @@ export function RelationshipBoard({ graph, layout, claims, timeline }: Props) {
             markerHeight="5"
             orient="auto-start-reverse"
           >
-            <path d="M0,1 L9,5 L0,9 z" fill="var(--ice-500)" />
+            <path d="M0,1 L9,5 L0,9 z" fill="var(--navy)" />
           </marker>
         </defs>
 
@@ -149,7 +149,7 @@ export function RelationshipBoard({ graph, layout, claims, timeline }: Props) {
                   y1={from.y}
                   x2={to.x}
                   y2={to.y}
-                  stroke={isHovered ? "var(--ice-400)" : "var(--ice-600)"}
+                  stroke={isHovered ? "var(--navy)" : "var(--ash)"}
                   strokeWidth={isHovered ? 2.4 : 1.4}
                   // 점선 = 확인된 사실이 아니라 주장·해석 (설계 검토 4.1)
                   strokeDasharray={isClaim ? "5 4" : undefined}
@@ -192,7 +192,7 @@ export function RelationshipBoard({ graph, layout, claims, timeline }: Props) {
                 className="cursor-pointer"
               >
                 {isFocused && (
-                  <circle r={radius + 9} fill="none" stroke="var(--ice-400)" strokeWidth={1.5} />
+                  <circle r={radius + 9} fill="none" stroke="var(--navy)" strokeWidth={1.5} />
                 )}
                 <circle
                   r={radius}
@@ -203,7 +203,7 @@ export function RelationshipBoard({ graph, layout, claims, timeline }: Props) {
                 <text
                   textAnchor="middle"
                   y={4}
-                  className={`pointer-events-none fill-[var(--text-primary)] font-semibold ${
+                  className={`pointer-events-none fill-[var(--ink)] font-semibold ${
                     entity.isFocus
                       ? "text-[14px]"
                       : entity.name.length > 8
@@ -225,23 +225,23 @@ export function RelationshipBoard({ graph, layout, claims, timeline }: Props) {
 
       {/* Edge 설명 — 선을 클릭하지 않아도 의미가 보여야 한다 */}
       <figcaption
-        className="mt-4 min-h-[112px] rounded-xl border border-line bg-ink-700 p-5"
+        className="mt-4 min-h-[112px] rounded-card border border-stone bg-taupe p-5"
         aria-live="polite"
       >
         {hovered ? (
           <RelationDetail relation={hovered} entityById={entityById} claims={claims} />
         ) : (
-          <p className="text-sm leading-relaxed text-text-muted">
+          <p className="text-sm leading-relaxed text-ash">
             선 위에 커서를 올리면 어떤 관계인지, 언제 생겼는지, 근거가 무엇인지 나타납니다.
             노드를 누르면 그 기관에 걸린 관계만 남습니다.
           </p>
         )}
       </figcaption>
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-text-muted">
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ash">
         <span className="flex items-center gap-1.5">
           <svg width="22" height="6" aria-hidden="true">
-            <line x1="0" y1="3" x2="22" y2="3" stroke="var(--ice-600)" strokeWidth="1.6" />
+            <line x1="0" y1="3" x2="22" y2="3" stroke="var(--ash)" strokeWidth="1.6" />
           </svg>
           확인된 사실
         </span>
@@ -252,7 +252,7 @@ export function RelationshipBoard({ graph, layout, claims, timeline }: Props) {
               y1="3"
               x2="22"
               y2="3"
-              stroke="var(--ice-600)"
+              stroke="var(--ash)"
               strokeWidth="1.6"
               strokeDasharray="5 4"
             />
@@ -267,7 +267,7 @@ export function RelationshipBoard({ graph, layout, claims, timeline }: Props) {
           <button
             type="button"
             onClick={() => focusEntity(null)}
-            className="ml-auto rounded-md px-2.5 py-1 font-medium text-ice-400 hover:bg-white/5"
+            className="ml-auto rounded-full px-2.5 py-1 font-medium text-navy hover:bg-taupe"
           >
             선택 해제
           </button>
@@ -275,7 +275,7 @@ export function RelationshipBoard({ graph, layout, claims, timeline }: Props) {
       </div>
 
       {graph.note && (
-        <p className="mt-4 border-l-2 border-line-strong pl-4 text-[13px] leading-relaxed text-text-muted">
+        <p className="mt-4 border-l-2 border-ash pl-4 text-[13px] leading-relaxed text-ash">
           {graph.note}
         </p>
       )}
@@ -300,21 +300,21 @@ function RelationDetail({
 
   return (
     <div>
-      <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-text-primary">
+      <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
         <span>{from?.name}</span>
-        <span aria-hidden="true" className="text-ice-400">
+        <span aria-hidden="true" className="text-navy">
           {relation.bidirectional ? "↔" : "→"}
         </span>
         <span>{to?.name}</span>
       </p>
-      <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">{relation.label}</p>
+      <p className="mt-2 text-[15px] leading-relaxed text-smoke">{relation.label}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="tabular rounded-full bg-white/[0.06] px-2 py-1 text-[11px] text-text-muted">
+        <span className="tabular rounded-full bg-taupe px-2 py-1 text-[11px] text-ash">
           {relation.startDate}
           {relation.startPrecision === "circa" && " 무렵"}
         </span>
         {relation.assertionType !== "FACT" && relation.assertedBy && (
-          <span className="rounded-full bg-warm-400/15 px-2 py-1 text-[11px] font-medium text-warm-400 ring-1 ring-warm-400/30">
+          <span className="rounded-full bg-burgundy-tint px-2 py-1 text-[11px] font-medium text-burgundy ring-1 ring-burgundy/25">
             {relation.assertedBy}의 주장
           </span>
         )}

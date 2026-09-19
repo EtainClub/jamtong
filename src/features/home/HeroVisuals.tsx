@@ -30,17 +30,17 @@ export function ArcticHeroVisual({ routes }: { routes: Route[] }) {
       >
         <defs>
           <radialGradient id="hero-ocean" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#12314e" />
-            <stop offset="100%" stopColor="#081426" />
+            <stop offset="0%" stopColor="var(--map-sea-top)" />
+            <stop offset="100%" stopColor="var(--map-sea)" />
           </radialGradient>
         </defs>
         <circle cx="380" cy="380" r="372" fill="url(#hero-ocean)" />
-        <path d={background.graticule} fill="none" stroke="rgba(233,238,246,0.06)" strokeWidth={0.6} />
-        <path d={background.land} fill="#1c2c46" stroke="rgba(233,238,246,0.12)" strokeWidth={0.5} />
+        <path d={background.graticule} fill="none" stroke="var(--map-grid)" strokeWidth={0.6} />
+        <path d={background.land} fill="var(--map-land)" stroke="var(--map-land-edge)" strokeWidth={0.5} />
         <path
           d={background.arcticCircle}
           fill="none"
-          stroke="var(--ice-600)"
+          stroke="var(--navy-tint)"
           strokeWidth={1}
           strokeDasharray="4 5"
           opacity={0.6}
@@ -49,17 +49,17 @@ export function ArcticHeroVisual({ routes }: { routes: Route[] }) {
           <path
             d={baseline.pathD}
             fill="none"
-            stroke="var(--warm-500)"
+            stroke="var(--burgundy)"
             strokeWidth={2}
             strokeDasharray="6 6"
             opacity={0.45}
           />
         )}
-        <path d={active.pathD} fill="none" stroke="var(--ice-400)" strokeWidth={9} opacity={0.12} />
+        <path d={active.pathD} fill="none" stroke="var(--navy)" strokeWidth={9} opacity={0.12} />
         <path
           d={active.pathD}
           fill="none"
-          stroke="var(--ice-400)"
+          stroke="var(--navy)"
           strokeWidth={3}
           strokeLinecap="round"
         />
@@ -77,9 +77,9 @@ export function NumberHeroVisual({
   tone?: "ice" | "warm" | "deep";
 }) {
   const palette = {
-    ice: { from: "#10314c", to: "#07182a", ink: "#5cc8ec" },
-    warm: { from: "#33280f", to: "#171008", ink: "#e6b25a" },
-    deep: { from: "#1a2148", to: "#090d1e", ink: "#8aa2f0" },
+    ice: { from: "var(--navy-tint)", to: "var(--eggshell)", ink: "var(--navy)" },
+    warm: { from: "var(--burgundy-tint)", to: "var(--eggshell)", ink: "var(--burgundy)" },
+    deep: { from: "var(--stone)", to: "var(--eggshell)", ink: "var(--graphite)" },
   }[tone];
 
   return (
@@ -90,14 +90,14 @@ export function NumberHeroVisual({
       <span
         aria-hidden="true"
         className="absolute -right-3 top-4 select-none text-[86px] font-black leading-none tracking-tighter"
-        style={{ color: palette.ink, opacity: 0.16 }}
+        style={{ color: palette.ink, opacity: 0.14 }}
       >
         {value}
       </span>
       <span
         aria-hidden="true"
         className="absolute -left-16 -top-16 h-56 w-56 rounded-full blur-3xl"
-        style={{ background: palette.ink, opacity: 0.14 }}
+        style={{ background: palette.ink, opacity: 0.1 }}
       />
     </div>
   );

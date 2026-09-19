@@ -31,7 +31,7 @@ export function ShareButton() {
     <button
       type="button"
       onClick={onShare}
-      className="inline-flex items-center gap-2 rounded-lg border border-line bg-ink-700 px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:border-ice-600 hover:text-ice-400"
+      className="inline-flex items-center gap-2 rounded-full border border-stone bg-taupe px-4 py-2 text-sm font-medium text-smoke transition-colors hover:border-graphite hover:text-navy"
     >
       <span aria-hidden="true">↗</span>
       {copied ? "링크를 복사했습니다" : "지금 이 화면 공유"}

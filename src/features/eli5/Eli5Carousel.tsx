@@ -43,14 +43,14 @@ export function Eli5Carousel({
 
   return (
     <section aria-labelledby="eli5-heading">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ash">
         쉬운 설명 · 큰 그림으로 읽기
       </p>
-      <p id="eli5-heading" className="mt-2.5 text-[15px] leading-relaxed text-text-secondary">
+      <p id="eli5-heading" className="mt-2.5 text-[15px] leading-relaxed text-smoke">
         {eli5.intro}
       </p>
 
-      <div className="mt-5 overflow-hidden rounded-2xl border border-line bg-ink-700">
+      <div className="mt-5 overflow-hidden rounded-card-lg border border-stone bg-taupe">
         <div
           ref={trackRef}
           onScroll={onScroll}
@@ -84,13 +84,13 @@ export function Eli5Carousel({
                   <Art />
                 </div>
 
-                <p className="tabular mt-4 text-[11px] tracking-[0.1em] text-text-muted">
+                <p className="tabular mt-4 font-mono text-[11px] tracking-[0.1em] text-ash">
                   {String(i + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
                 </p>
-                <h3 className="mt-1.5 text-[21px] font-bold leading-snug tracking-tight text-text-primary">
+                <h3 className="mt-1.5 text-[21px] font-light leading-snug tracking-[-0.02em] text-ink">
                   {scene.title}
                 </h3>
-                <p className="mt-2.5 text-[14.5px] leading-relaxed text-text-secondary">
+                <p className="mt-2.5 text-[14.5px] leading-relaxed text-smoke">
                   {scene.say}
                 </p>
 
@@ -99,8 +99,8 @@ export function Eli5Carousel({
                     <span
                       className={`tabular rounded-full px-3 py-1.5 text-xs font-semibold ${
                         scene.fact.tone === "warm"
-                          ? "bg-warm-400/15 text-warm-400"
-                          : "bg-ice-500/15 text-ice-400"
+                          ? "bg-burgundy-tint text-burgundy"
+                          : "bg-ink/15 text-navy"
                       }`}
                     >
                       {scene.fact.value}
@@ -118,7 +118,7 @@ export function Eli5Carousel({
           })}
         </div>
 
-        <div className="flex items-center justify-between gap-4 border-t border-line px-4 py-3">
+        <div className="flex items-center justify-between gap-4 border-t border-stone px-4 py-3">
           <NavButton label="이전 장면" disabled={index === 0} onClick={() => goTo(index - 1)}>
             <path d="M15 5 8 12l7 7" />
           </NavButton>
@@ -133,7 +133,7 @@ export function Eli5Carousel({
                 aria-selected={i === index}
                 onClick={() => goTo(i)}
                 className={`h-1.5 rounded-full transition-all ${
-                  i === index ? "w-5 bg-ice-400" : "w-1.5 bg-white/20"
+                  i === index ? "w-5 bg-navy" : "w-1.5 bg-stone"
                 }`}
               />
             ))}
@@ -156,7 +156,7 @@ export function Eli5Carousel({
       <button
         type="button"
         onClick={onOpenFull}
-        className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-ink-700 px-5 py-3.5 text-sm font-semibold text-ice-400 transition-colors hover:border-ice-600"
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-card border border-stone bg-taupe px-5 py-3.5 text-sm font-semibold text-navy transition-colors hover:border-graphite"
       >
         직접 움직여보기
         <span aria-hidden="true">→</span>
@@ -178,9 +178,9 @@ function Caveat({
   return (
     <div
       role="note"
-      className="mt-5 rounded-r-xl border-l-[3px] border-warm-400 bg-warm-400/[0.07] px-4 py-3.5"
+      className="mt-5 rounded-[20px] border border-pending bg-pending-tint px-5 py-4"
     >
-      <p className="text-[13px] leading-relaxed text-text-secondary">{text}</p>
+      <p className="text-[13px] leading-relaxed text-smoke">{text}</p>
       {claim && (
         <div className="mt-2.5">
           <EvidenceButton claimId={claim.id} count={claim.sourceIds.length} />
@@ -207,7 +207,7 @@ function NavButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="grid h-10 w-10 place-items-center rounded-full border border-line text-text-secondary transition-colors hover:border-ice-600 hover:text-ice-400 disabled:opacity-30 disabled:hover:border-line disabled:hover:text-text-secondary"
+      className="grid h-10 w-10 place-items-center rounded-full border border-stone text-smoke transition-colors hover:border-graphite hover:text-navy disabled:opacity-30 disabled:hover:border-stone disabled:hover:text-smoke"
     >
       <svg
         width="18"

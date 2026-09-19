@@ -33,7 +33,7 @@ export function StoryViewToggle() {
     <div
       role="radiogroup"
       aria-label="보기 방식"
-      className="inline-flex rounded-full border border-line bg-ink-700 p-1"
+      className="inline-flex rounded-full border border-stone bg-taupe p-1"
     >
       {options.map((option) => {
         const active = option.id === view;
@@ -46,8 +46,8 @@ export function StoryViewToggle() {
             onClick={() => setStoryView(option.id)}
             className={`rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${
               active
-                ? "bg-ice-500 text-ink-900"
-                : "text-text-secondary hover:text-text-primary"
+                ? "bg-ink text-eggshell"
+                : "text-smoke hover:text-ink"
             }`}
           >
             {option.label}

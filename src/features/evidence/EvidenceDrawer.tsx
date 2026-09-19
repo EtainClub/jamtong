@@ -13,10 +13,10 @@ import { useVisualState } from "@/lib/visual-state/store";
  */
 
 const ASSERTION_STYLE: Record<Claim["assertionType"], { label: string; className: string }> = {
-  FACT: { label: "사실", className: "bg-ice-500/15 text-ice-400 ring-ice-500/30" },
-  CLAIM: { label: "주장", className: "bg-warm-400/15 text-warm-400 ring-warm-400/30" },
-  INTERPRETATION: { label: "해석", className: "bg-white/10 text-text-secondary ring-white/15" },
-  OPINION: { label: "의견", className: "bg-white/10 text-text-secondary ring-white/15" },
+  FACT: { label: "사실", className: "bg-navy-tint text-navy ring-navy/25" },
+  CLAIM: { label: "주장", className: "bg-burgundy-tint text-burgundy ring-burgundy/25" },
+  INTERPRETATION: { label: "해석", className: "bg-taupe text-graphite ring-stone" },
+  OPINION: { label: "의견", className: "bg-taupe text-graphite ring-stone" },
 };
 
 interface Props {
@@ -68,19 +68,19 @@ export function EvidenceDrawer({ claims, sources }: Props) {
         type="button"
         aria-label="근거 패널 닫기"
         onClick={closePanel}
-        className="absolute inset-0 bg-ink-900/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-ink/25 backdrop-blur-sm"
       />
 
       <aside
         role="dialog"
         aria-modal="true"
         aria-label="관련 근거"
-        className="relative flex h-full w-full max-w-md flex-col overflow-y-auto border-l border-line bg-ink-700 shadow-2xl"
+        className="relative flex h-full w-full max-w-md flex-col overflow-y-auto border-l border-stone bg-taupe shadow-2xl"
       >
-        <header className="sticky top-0 flex items-start justify-between gap-4 border-b border-line bg-ink-700/95 px-6 py-5 backdrop-blur">
+        <header className="sticky top-0 flex items-start justify-between gap-4 border-b border-stone bg-taupe/95 px-6 py-5 backdrop-blur">
           <div>
-            <p className="text-[11px] uppercase tracking-wider text-text-muted">관련 근거</p>
-            <p className="mt-1 text-sm text-text-secondary">
+            <p className="text-[11px] uppercase tracking-wider text-ash">관련 근거</p>
+            <p className="mt-1 text-sm text-smoke">
               자료 {claimSources.length}개
             </p>
           </div>
@@ -88,7 +88,7 @@ export function EvidenceDrawer({ claims, sources }: Props) {
             ref={closeRef}
             type="button"
             onClick={closePanel}
-            className="rounded-md px-3 py-1.5 text-sm text-text-secondary transition-colors hover:bg-white/5 hover:text-text-primary"
+            className="rounded-full px-3 py-1.5 text-sm text-smoke transition-colors hover:bg-taupe hover:text-ink"
           >
             닫기
           </button>
@@ -102,47 +102,47 @@ export function EvidenceDrawer({ claims, sources }: Props) {
               {style.label}
             </span>
             {!claim.verified && (
-              <span className="rounded-full bg-warm-400/15 px-2.5 py-1 text-[11px] font-semibold text-warm-400 ring-1 ring-warm-400/30">
+              <span className="rounded-full bg-pending-tint px-2.5 py-1 text-[11px] font-semibold text-pending ring-1 ring-pending/30">
                 편집팀 검증 전
               </span>
             )}
           </div>
 
-          <p className="mt-4 text-[15px] leading-relaxed text-text-primary">{claim.text}</p>
+          <p className="mt-4 text-[15px] leading-relaxed text-ink">{claim.text}</p>
           {claim.assertedBy && (
-            <p className="mt-2 text-sm text-text-muted">— {claim.assertedBy}의 주장</p>
+            <p className="mt-2 text-sm text-ash">— {claim.assertedBy}의 주장</p>
           )}
 
           <ul className="mt-8 space-y-3">
             {claimSources.map((source) => (
               <li
                 key={source.id}
-                className="rounded-lg border border-line bg-ink-600/60 p-4"
+                className="rounded-lg border border-stone bg-stone/60 p-4"
               >
                 <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
                   <span
                     aria-hidden="true"
                     className={
                       SOURCE_TYPE_TIER[source.type] === "primary"
-                        ? "text-ice-400"
-                        : "text-text-muted"
+                        ? "text-navy"
+                        : "text-ash"
                     }
                   >
                     {SOURCE_TYPE_TIER[source.type] === "primary" ? "◆" : "◇"}
                   </span>
-                  <span className="text-text-muted">{SOURCE_TYPE_LABEL[source.type]}</span>
+                  <span className="text-ash">{SOURCE_TYPE_LABEL[source.type]}</span>
                 </p>
-                <p className="mt-1.5 text-sm font-medium leading-snug text-text-primary">
+                <p className="mt-1.5 text-sm font-medium leading-snug text-ink">
                   {source.title}
                 </p>
-                <p className="mt-1 text-xs text-text-muted">
+                <p className="mt-1 text-xs text-ash">
                   {source.publisher}
                   {source.publishedAt ? ` · ${source.publishedAt}` : ""}
                 </p>
 
                 {/* license가 link-only면 원문을 옮겨 싣지 않는다 (검토 문서 3장) */}
                 {source.quote && source.license !== "link-only" && (
-                  <blockquote className="mt-3 border-l-2 border-ice-600 pl-3 text-sm italic leading-relaxed text-text-secondary">
+                  <blockquote className="mt-3 border-l-2 border-graphite pl-3 text-sm italic leading-relaxed text-smoke">
                     {source.quote}
                   </blockquote>
                 )}
@@ -152,7 +152,7 @@ export function EvidenceDrawer({ claims, sources }: Props) {
                     href={source.url ?? source.archivedUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-ice-400 hover:text-ice-500"
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-navy hover:text-navy"
                   >
                     원문 보기
                     <span aria-hidden="true">↗</span>

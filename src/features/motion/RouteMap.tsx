@@ -150,8 +150,8 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
       >
         <defs>
           <radialGradient id="ocean" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#0d1b2e" />
-            <stop offset="100%" stopColor="#060e1a" />
+            <stop offset="0%" stopColor="var(--map-sea-top)" />
+            <stop offset="100%" stopColor="var(--map-sea)" />
           </radialGradient>
         </defs>
 
@@ -162,12 +162,12 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
           fill="url(#ocean)"
         />
 
-        <path d={background.graticule} fill="none" stroke="rgba(233,238,246,0.07)" strokeWidth={0.6} />
-        <path d={background.land} fill="#1a2942" stroke="rgba(233,238,246,0.14)" strokeWidth={0.5} />
+        <path d={background.graticule} fill="none" stroke="var(--map-grid)" strokeWidth={0.6} />
+        <path d={background.land} fill="var(--map-land)" stroke="var(--map-land-edge)" strokeWidth={0.5} />
         <path
           d={background.arcticCircle}
           fill="none"
-          stroke="var(--ice-600)"
+          stroke="var(--navy-tint)"
           strokeWidth={1}
           strokeDasharray="4 5"
           opacity={0.7}
@@ -179,7 +179,7 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
             aria-hidden="true"
             d={baseline.pathD}
             fill="none"
-            stroke="var(--warm-500)"
+            stroke="var(--burgundy)"
             strokeWidth={2}
             strokeDasharray="6 6"
             opacity={0.55}
@@ -191,7 +191,7 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
         <path
           d={active.pathD}
           fill="none"
-          stroke="var(--ice-400)"
+          stroke="var(--navy)"
           strokeWidth={9}
           opacity={0.1}
           strokeLinecap="round"
@@ -199,7 +199,7 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
         <path
           d={active.pathD}
           fill="none"
-          stroke="var(--ice-600)"
+          stroke="var(--navy-tint)"
           strokeWidth={2.5}
           opacity={0.6}
           strokeLinecap="round"
@@ -207,7 +207,7 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
         <path
           d={active.pathD}
           fill="none"
-          stroke="var(--ice-400)"
+          stroke="var(--navy)"
           strokeWidth={3}
           strokeLinecap="round"
           pathLength={1}
@@ -227,8 +227,8 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
                 cx={wp.x}
                 cy={wp.y}
                 r={passed ? 3.5 : 2.5}
-                fill={passed ? "var(--ice-400)" : "var(--ink-500)"}
-                stroke="var(--ink-800)"
+                fill={passed ? "var(--navy)" : "var(--stone)"}
+                stroke="var(--canvas)"
                 strokeWidth={1}
               />
             );
@@ -247,12 +247,12 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
                 opacity={opacity}
                 className={
                   wp.isEndpoint || current
-                    ? "fill-[var(--text-primary)] text-[15px] font-semibold"
-                    : "fill-[var(--text-secondary)] text-[11.5px] font-medium"
+                    ? "fill-[var(--ink)] text-[15px] font-semibold"
+                    : "fill-[var(--smoke)] text-[11.5px] font-medium"
                 }
                 style={{
                   paintOrder: "stroke",
-                  stroke: "var(--ink-900)",
+                  stroke: "var(--canvas)",
                   strokeWidth: wp.isEndpoint || current ? 4 : 3,
                   transition: isScrubbing ? "none" : "opacity 260ms var(--ease-out-expo)",
                 }}
@@ -280,10 +280,10 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
             }}
             className="cursor-grab active:cursor-grabbing"
           >
-            <circle r={16} fill="var(--ice-400)" opacity={0.14} />
-            <circle r={9} fill="var(--ice-400)" opacity={0.28} />
+            <circle r={16} fill="var(--navy)" opacity={0.16} />
+            <circle r={9} fill="var(--navy)" />
             <g transform={`rotate(${position.bearing})`}>
-              <path d="M9 0 L-5 5 L-2.5 0 L-5 -5 Z" fill="#ffffff" />
+              <path d="M9 0 L-5 5 L-2.5 0 L-5 -5 Z" fill="var(--eggshell)" />
             </g>
           </g>
         )}
@@ -295,7 +295,7 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
       </p>
 
       {!hideReadouts && (
-        <figcaption className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-line bg-line">
+        <figcaption className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-stone bg-stone">
           <Readout label="현재 위치" value={position.waypoint.name} />
           <Readout label="이동 거리" value={`${position.km.toLocaleString("ko-KR")} km`} />
           <Readout label="운항 일수" value={elapsedDays} />
@@ -307,12 +307,12 @@ export function RouteMap({ tracks, background, hideReadouts = false }: Props) {
 
 export function Readout({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 bg-ink-700 px-3 py-3">
-      <div className="truncate text-[11px] uppercase tracking-wider text-text-muted">
+    <div className="min-w-0 bg-taupe px-3 py-3">
+      <div className="truncate text-[11px] uppercase tracking-wider text-ash">
         {label}
       </div>
       {/* 스크럽 중에 줄바꿈이 생기면 숫자가 위아래로 튄다. 한 줄로 고정한다. */}
-      <div className="tabular mt-1 whitespace-nowrap text-[15px] font-semibold text-text-primary">
+      <div className="tabular mt-1 whitespace-nowrap text-[15px] font-semibold text-ink">
         {value}
       </div>
     </div>
