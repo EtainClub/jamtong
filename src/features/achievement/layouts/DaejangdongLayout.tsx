@@ -5,6 +5,8 @@ import { SceneRenderer } from "@/features/achievement/SceneRenderer";
 import { SceneWithAside, Section } from "@/features/achievement/Section";
 import { ShareSection } from "@/features/achievement/ShareSection";
 import { Timeline } from "@/features/timeline/Timeline";
+import { RelationshipBoard } from "@/features/relationship/RelationshipBoard";
+import { buildGraphLayout } from "@/lib/graph/layout";
 
 /**
  * 대장동 레이아웃.
@@ -16,6 +18,7 @@ import { Timeline } from "@/features/timeline/Timeline";
 export function DaejangdongLayout({ achievement }: { achievement: Achievement }) {
   const landUse = findScene(achievement, "land-use");
   const flow = findScene(achievement, "money-flow");
+  const graphLayout = achievement.graph ? buildGraphLayout(achievement.graph) : null;
 
   return (
     <>
@@ -47,6 +50,21 @@ export function DaejangdongLayout({ achievement }: { achievement: Achievement })
       {flow && (
         <Section scene="flow" heading={flow.heading} lede={flow.lede}>
           <SceneRenderer scene={flow} claims={achievement.claims} timeline={achievement.timeline} />
+        </Section>
+      )}
+
+      {achievement.graph && graphLayout && (
+        <Section
+          scene="relations"
+          heading="누가 무엇을 맡았나"
+          lede="기관과 사업만 올렸습니다. 위 연표에서 시점을 옮기면 그때까지 성립한 관계만 남습니다. 선 위에 커서를 올리면 무슨 관계이고 근거가 무엇인지 나타납니다."
+        >
+          <RelationshipBoard
+            graph={achievement.graph}
+            layout={graphLayout}
+            claims={achievement.claims}
+            timeline={achievement.timeline}
+          />
         </Section>
       )}
 

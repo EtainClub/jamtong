@@ -26,6 +26,7 @@ export const SCENES_BY_ACHIEVEMENT: Record<string, SceneNavItem[]> = {
     { id: "timeline", label: "경과" },
     { id: "land", label: "토지이용" },
     { id: "flow", label: "자금 흐름" },
+    { id: "relations", label: "관계도" },
     { id: "counterpoint", label: "쟁점" },
     { id: "shorts", label: "쇼츠" },
     { id: "share", label: "공유" },
