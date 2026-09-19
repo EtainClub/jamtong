@@ -1,0 +1,42 @@
+# Firebase App Hosting 설정.
+#
+# 정적 호스팅이 아니라 App Hosting을 쓰는 이유: /api/ask가 서버에서 돌아야 한다.
+# 나머지 화면(홈·둘러보기·스토리 3편)은 전부 빌드 때 미리 그려지므로
+# 서버는 AI 안내 요청만 받는다.
+
+runConfig:
+  # 평소에는 인스턴스를 띄워 두지 않는다. 첫 요청이 조금 느린 대신 비용이 0이다.
+  minInstances: 0
+  # 상한. 정치 콘텐츠는 갑자기 몰릴 수 있지만, 몰린다고 요금이 따라 오르면 안 된다.
+  # 동시성 80 × 4 = 동시 320건. 모자라면 여기부터 올린다.
+  maxInstances: 4
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  # 공유 링크와 OG 이미지의 기준 주소. NEXT_PUBLIC_*은 빌드 때 코드에 박히므로
+  # BUILD에도 열어 둬야 한다.
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://jamtong.kr
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # AI 안내. 값은 저장소에 두지 않고 Secret Manager를 가리킨다.
+  # 코드는 이 이름을 직접 읽지 않는다 — Anthropic SDK가 환경변수에서 집어 간다.
+  - variable: ANTHROPIC_API_KEY
+    secret: ANTHROPIC_API_KEY
+    availability:
+      - RUNTIME
+
+  # 남용 방지 상한. 코드 기본값과 같은 값을 적어 둔다 —
+  # 배포 후에 코드를 고치지 않고 여기서 조일 수 있어야 한다.
+  - variable: ASK_IP_LIMIT
+    value: "20"
+    availability:
+      - RUNTIME
+  - variable: ASK_DAILY_LIMIT
+    value: "500"
+    availability:
+      - RUNTIME
