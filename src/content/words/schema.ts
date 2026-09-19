@@ -56,6 +56,13 @@ export const WordArt = z.enum([
   "fewer-more", // 내 편은 줄고 상대는 는다
   "masked", // 지지자인 척 지지자를 찌른다
   "calm-words", // 거친 말을 내려놓고
+  // 청년의 날
+  "youth-meet", // 청년들을 만나 이야기를 듣다
+  "longest-wait", // 가장 오래 공부하고 가장 오래 기다린다
+  "fewer-doors", // 기회 자체가 줄었다
+  "blind-spot", // 아동과 노인 사이에 빈 자리
+  "hard-how", // 무엇은 분명한데 어떻게가 어렵다
+  "from-field", // 탁상이 아니라 현장에서
 ]);
 export type WordArt = z.infer<typeof WordArt>;
 
@@ -111,6 +118,13 @@ export const statementSchema = z.object({
     .object({
       intro: z.string(),
       points: z.array(easyPointSchema).min(2, "토막이 둘은 있어야 요약이 된다"),
+      /**
+       * 요약만 보고 가면 오해할 대목.
+       *
+       * 앞으로 하겠다는 말을 이미 한 일로 읽는 것이 가장 흔하다. 여기도
+       * 원문 한 대목을 붙여, 무엇을 보고 그렇게 적었는지 대볼 수 있게 한다.
+       */
+      caveat: z.object({ text: z.string(), quote: z.string().min(1) }).optional(),
     })
     .optional(),
   /** 이 말과 맞물리는 업적. slug로 건다. */
@@ -140,10 +154,17 @@ export function validateStatement(statement: Statement): string[] {
   const errors: string[] = [];
   const haystack = squash(statement.body);
 
-  for (const point of statement.easy?.points ?? []) {
+  const quoted = [
+    ...(statement.easy?.points ?? []).map((p) => ({ where: `easy.points "${p.id}"`, quote: p.quote })),
+    ...(statement.easy?.caveat
+      ? [{ where: "easy.caveat", quote: statement.easy.caveat.quote }]
+      : []),
+  ];
+
+  for (const point of quoted) {
     if (!haystack.includes(squash(point.quote))) {
       errors.push(
-        `easy.points "${point.id}" → 인용문이 원문에 없다: “${point.quote.slice(0, 40)}…”`,
+        `${point.where} → 인용문이 원문에 없다: “${point.quote.slice(0, 40)}…”`,
       );
     }
   }

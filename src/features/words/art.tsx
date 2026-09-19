@@ -266,6 +266,176 @@ function CalmWords() {
   );
 }
 
+
+/* ── 청년의 날 ────────────────────────────────────────────────── */
+
+/** 청년들을 만나 이야기를 듣다. */
+function YouthMeet() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="여러 사람이 둘러앉아 이야기하고 한 사람이 그것을 받아 적는 모습">
+      <Person x={160} y={196} fill="var(--navy)" scale={1.25} />
+      {[
+        { x: 58, y: 96 },
+        { x: 120, y: 66 },
+        { x: 200, y: 66 },
+        { x: 262, y: 96 },
+      ].map((n) => (
+        <Person key={n.x} x={n.x} y={n.y} fill="var(--burgundy)" scale={1.05} opacity={0.8} />
+      ))}
+      {[
+        { x: 58, y: 96 },
+        { x: 120, y: 66 },
+        { x: 200, y: 66 },
+        { x: 262, y: 96 },
+      ].map((n) => (
+        <path key={`l${n.x}`} d={`M${n.x} ${n.y + 20} Q${(n.x + 160) / 2} ${n.y + 80} 160 172`}
+              fill="none" stroke="var(--graphite)" strokeWidth={2}
+              strokeDasharray="5 6" strokeLinecap="round" opacity={0.55} />
+      ))}
+      <text x={160} y={228} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        듣는 자리
+      </text>
+    </svg>
+  );
+}
+
+/** 오래 공부하고 오래 기다린다. */
+function LongestWait() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="공부한 기간도 가장 길고 기다리는 기간도 가장 긴 것을 나타낸 막대">
+      <text x={24} y={70} fontSize={13} {...LABEL} fill="var(--navy)">공부한 시간</text>
+      <rect x={24} y={80} width={252} height={26} rx={6} fill="var(--navy)" />
+      <text x={24} y={148} fontSize={13} {...LABEL} fill="var(--burgundy)">기다리는 시간</text>
+      <rect x={24} y={158} width={252} height={26} rx={6} fill="var(--burgundy)" />
+      <text x={160} y={222} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        둘 다 가장 길어요
+      </text>
+    </svg>
+  );
+}
+
+/** 문이 줄었다. */
+function FewerDoors() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="예전에는 여러 개였던 문이 지금은 하나만 남은 모습">
+      <text x={82} y={48} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ash)">예전</text>
+      <g opacity={0.45}>
+        {[24, 68, 112].map((x) => (
+          <g key={x}>
+            <rect x={x} y={64} width={32} height={62} rx={3}
+                  fill="none" stroke="var(--graphite)" strokeWidth={2.5} />
+            <circle cx={x + 26} cy={96} r={2.4} fill="var(--graphite)" />
+          </g>
+        ))}
+      </g>
+      <text x={238} y={48} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">지금</text>
+      <rect x={222} y={64} width={32} height={62} rx={3}
+            fill="none" stroke="var(--navy)" strokeWidth={3} />
+      <circle cx={248} cy={96} r={2.6} fill="var(--navy)" />
+      <g opacity={0.3}>
+        {[178, 266].map((x) => (
+          <path key={x} d={`M${x} 68 L${x + 28} 122 M${x + 28} 68 L${x} 122`}
+                stroke="var(--graphite)" strokeWidth={2.5} strokeLinecap="round" />
+        ))}
+      </g>
+      <text x={160} y={176} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        들어갈 문이 줄었어요
+      </text>
+      <text x={160} y={202} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        열심히 안 해서가 아니에요
+      </text>
+    </svg>
+  );
+}
+
+/** 아동과 노인 사이의 빈 자리. */
+function BlindSpot() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="아동과 노인 자리는 채워져 있고 그 사이 청년 자리만 비어 있는 모습">
+      <rect x={18} y={74} width={84} height={76} rx={8} fill="var(--navy)" opacity={0.85} />
+      <text x={60} y={118} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">아동</text>
+      <text x={60} y={172} textAnchor="middle" fontSize={12} fill="var(--ash)">돌봄</text>
+
+      <rect x={118} y={74} width={84} height={76} rx={8} fill="none"
+            stroke="var(--burgundy)" strokeWidth={3} strokeDasharray="7 7" />
+      <text x={160} y={118} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">청년</text>
+      <text x={160} y={172} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--burgundy)">비어 있음</text>
+
+      <rect x={218} y={74} width={84} height={76} rx={8} fill="var(--navy)" opacity={0.85} />
+      <text x={260} y={118} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">노인</text>
+      <text x={260} y={172} textAnchor="middle" fontSize={12} fill="var(--ash)">부양</text>
+
+      <text x={160} y={214} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        늘 뒤로 밀렸어요
+      </text>
+    </svg>
+  );
+}
+
+/** 무엇은 분명한데 어떻게가 어렵다. */
+function HardHow() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="무엇을 할지는 또렷한데 어떻게 할지는 흐린 것을 나타낸 그림">
+      <rect x={26} y={72} width={110} height={78} rx={8} fill="var(--navy)" />
+      <text x={81} y={106} textAnchor="middle" fontSize={26} {...LABEL} fill="var(--eggshell)">무엇</text>
+      <text x={81} y={132} textAnchor="middle" fontSize={12} fill="var(--eggshell)" opacity={0.85}>
+        분명하다
+      </text>
+
+      <rect x={184} y={72} width={110} height={78} rx={8} fill="none"
+            stroke="var(--burgundy)" strokeWidth={3} strokeDasharray="8 8" />
+      <text x={239} y={106} textAnchor="middle" fontSize={26} {...LABEL} fill="var(--burgundy)">
+        어떻게
+      </text>
+      <text x={239} y={132} textAnchor="middle" fontSize={12} fill="var(--burgundy)" opacity={0.8}>
+        어렵다
+      </text>
+
+      <text x={160} y={196} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        쉬웠다면 진작 했을 거예요
+      </text>
+    </svg>
+  );
+}
+
+/** 탁상이 아니라 현장에서. */
+function FromField() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="책상에서가 아니라 사람들이 있는 곳에서 답을 찾겠다는 모습">
+      <g opacity={0.4}>
+        <rect x={22} y={92} width={96} height={10} rx={3} fill="var(--graphite)" />
+        <path d="M34 102 V142 M106 102 V142" stroke="var(--graphite)"
+              strokeWidth={4} strokeLinecap="round" />
+        <text x={70} y={168} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">
+          탁상
+        </text>
+        <path d="M28 84 L112 150 M112 84 L28 150" stroke="var(--graphite)"
+              strokeWidth={2.5} strokeLinecap="round" />
+      </g>
+
+      <path d="M132 118 H172" stroke="var(--navy)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M163 109 L174 118 L163 127" fill="none" stroke="var(--navy)"
+            strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
+
+      {[204, 244, 284].map((x, i) => (
+        <Person key={x} x={x} y={122 + (i % 2) * 8} fill="var(--navy)" scale={1.05} />
+      ))}
+      <text x={244} y={168} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">
+        현장
+      </text>
+
+      <text x={160} y={212} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        거기서 답을 찾겠대요
+      </text>
+    </svg>
+  );
+}
 export const WORD_ART: Record<WordArt, () => React.ReactNode> = {
   "quote-pick": QuotePick,
   "part-whole": PartWhole,
@@ -275,4 +445,10 @@ export const WORD_ART: Record<WordArt, () => React.ReactNode> = {
   "fewer-more": FewerMore,
   masked: Masked,
   "calm-words": CalmWords,
+  "youth-meet": YouthMeet,
+  "longest-wait": LongestWait,
+  "fewer-doors": FewerDoors,
+  "blind-spot": BlindSpot,
+  "hard-how": HardHow,
+  "from-field": FromField,
 };

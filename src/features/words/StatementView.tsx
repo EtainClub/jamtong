@@ -158,6 +158,26 @@ function EasyView({
         </CardCarousel>
       </div>
 
+
+      {easy.caveat && (
+        <div className="mt-6 rounded-card border border-pending/40 bg-pending-tint/40 px-5 py-4">
+          <p className="text-[15px] leading-relaxed text-ink">{easy.caveat.text}</p>
+          <details className="group mt-3">
+            <summary className="cursor-pointer list-none text-[12px] font-semibold text-navy hover:underline">
+              원문에서 이 대목
+              <span aria-hidden="true" className="ml-1 inline-block group-open:hidden">
+                ▾
+              </span>
+              <span aria-hidden="true" className="ml-1 hidden group-open:inline-block">
+                ▴
+              </span>
+            </summary>
+            <blockquote className="mt-2.5 border-l-2 border-stone pl-3 text-[13.5px] leading-relaxed text-ash">
+              {easy.caveat.quote}
+            </blockquote>
+          </details>
+        </div>
+      )}
       {statement.glossary.length > 0 && <Glossary statement={statement} />}
 
       <p className="mt-6 text-[12px] leading-relaxed text-ash">

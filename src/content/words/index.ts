@@ -1,4 +1,5 @@
 import { presidentFriend } from "./president-friend";
+import { youthDay } from "./youth-day";
 import { validateStatement, type Statement } from "./schema";
 
 /**
@@ -7,7 +8,7 @@ import { validateStatement, type Statement } from "./schema";
  * 최근 순으로 세운다. 여기는 업적과 달리 '한 일과 하겠다는 일'을 가릴 필요가
  * 없다 — 말한 날은 이미 지난 날이다. 그냥 최근이 위다.
  */
-export const STATEMENTS: Statement[] = [presidentFriend].sort(
+export const STATEMENTS: Statement[] = [presidentFriend, youthDay].sort(
   (a, b) => b.postedAt.localeCompare(a.postedAt) || a.slug.localeCompare(b.slug),
 );
 
