@@ -1822,6 +1822,322 @@ function MealTable() {
     </svg>
   );
 }
+
+/* ── 경기도 극저신용대출 ─────────────────────────────────────── */
+
+/** 창구에서 거절당한다. 문이 닫혀 있고 사람은 밖에 있다. */
+function LoanRefused() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="신용점수가 낮아 은행 창구에서 거절당하는 모습">
+      <rect x={152} y={48} width={138} height={152} rx={5}
+            fill="var(--stone)" stroke="var(--graphite)" strokeWidth={2.5} />
+      <rect x={176} y={96} width={90} height={12} rx={3} fill="var(--graphite)" opacity={0.5} />
+      <path d="M182 140 L256 190 M256 140 L182 190"
+            stroke="var(--burgundy)" strokeWidth={4.5} strokeLinecap="round" />
+      <text x={221} y={78} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">
+        은행
+      </text>
+      <circle cx={74} cy={110} r={17} fill="var(--navy)" />
+      <path d="M50 190 C52 148, 96 148, 98 190 Z" fill="var(--navy)" />
+      <text x={74} y={218} textAnchor="middle" fontSize={12} fill="var(--ash)">신용점수 낮음</text>
+    </svg>
+  );
+}
+
+/** 사채. 이자가 눈덩이처럼 커지는 소용돌이. */
+function LoanLoanShark() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="사채에서 이자가 눈덩이처럼 불어나는 모습">
+      {[16, 30, 46, 64, 84].map((r, i) => (
+        <circle key={r} cx={166} cy={118} r={r} fill="none"
+                stroke="var(--burgundy)" strokeWidth={2.5} opacity={0.2 + i * 0.16} />
+      ))}
+      <circle cx={166} cy={118} r={11} fill="var(--burgundy)" />
+      <text x={166} y={122} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--eggshell)">
+        빚
+      </text>
+      <text x={166} y={226} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        한번 들어가면 커진다
+      </text>
+    </svg>
+  );
+}
+
+/** 도가 직접 빌려준다. 1%가 적힌 봉투가 건너간다. */
+function LoanLend() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="경기도가 연 1퍼센트로 직접 빌려주는 모습">
+      <rect x={24} y={86} width={80} height={72} rx={5} fill="var(--navy)" opacity={0.88} />
+      <text x={64} y={128} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">
+        경기도
+      </text>
+      <rect x={128} y={100} width={64} height={44} rx={4}
+            fill="var(--canvas)" stroke="var(--navy)" strokeWidth={2.5} />
+      <text x={160} y={128} textAnchor="middle" fontSize={17} {...LABEL} fill="var(--navy)">
+        1%
+      </text>
+      <path d="M110 122 H124 M196 122 H210" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M202 114 L212 122 L202 130" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={256} cy={104} r={17} fill="var(--navy)" />
+      <path d="M232 178 C234 138, 278 138, 280 178 Z" fill="var(--navy)" />
+      <text x={160} y={210} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        담보도 보증도 없이
+      </text>
+    </svg>
+  );
+}
+
+/** 상환 현황. 세 조각으로 나뉜 막대. */
+function LoanRepay() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="만기가 된 대출 중 완납과 성실 상환과 그 밖의 비율">
+      <rect x={28} y={100} width={64} height={42} rx={5} fill="var(--navy)" />
+      <rect x={96} y={100} width={108} height={42} rx={5} fill="var(--navy)" opacity={0.6} />
+      <rect x={208} y={100} width={84} height={42} rx={5} fill="var(--stone)" />
+      <text x={60} y={127} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">24%</text>
+      <text x={150} y={127} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">41%</text>
+      <text x={250} y={127} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--graphite)">35%</text>
+      <text x={60} y={168} textAnchor="middle" fontSize={11} fill="var(--ash)">완납</text>
+      <text x={150} y={168} textAnchor="middle" fontSize={11} fill="var(--ash)">성실 상환</text>
+      <text x={250} y={168} textAnchor="middle" fontSize={11} fill="var(--ash)">그 밖</text>
+      <text x={160} y={206} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        다 갚지는 못했다
+      </text>
+    </svg>
+  );
+}
+
+/** 광역지자체 중 유일. 한 칸만 칠해진 격자. */
+function LoanOnly() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="광역지자체 가운데 경기도만 이 제도를 운영한다는 그림">
+      {Array.from({ length: 12 }, (_, i) => {
+        const x = 44 + (i % 4) * 60;
+        const y = 66 + Math.floor(i / 4) * 48;
+        const on = i === 1;
+        return (
+          <rect key={i} x={x} y={y} width={48} height={36} rx={4}
+                fill={on ? "var(--navy)" : "var(--stone)"} opacity={on ? 1 : 0.5} />
+        );
+      })}
+      <text x={128} y={90} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--eggshell)">
+        경기
+      </text>
+      <text x={160} y={228} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        광역 중 여기뿐
+      </text>
+    </svg>
+  );
+}
+
+/* ── 경기도 위안부 피해자 지원 ───────────────────────────────── */
+
+/** 열 사람. 세지 않아도 셀 수 있는 수. */
+function CwFew() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="도내에 거주하던 피해자 열 분을 나타낸 그림">
+      {Array.from({ length: 10 }, (_, i) => {
+        const x = 46 + (i % 5) * 56;
+        const y = i < 5 ? 88 : 152;
+        return (
+          <g key={i}>
+            <circle cx={x} cy={y - 16} r={11} fill="var(--navy)" opacity={i < 8 ? 0.88 : 0.5} />
+            <path d={`M${x - 15} ${y + 22} C${x - 13} ${y - 2}, ${x + 13} ${y - 2}, ${x + 15} ${y + 22} Z`}
+                  fill="var(--navy)" opacity={i < 8 ? 0.88 : 0.5} />
+          </g>
+        );
+      })}
+      <text x={160} y={222} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        도내 열 분
+      </text>
+    </svg>
+  );
+}
+
+/** 조례. 규칙이 적힌 문서에 도장이 찍힌다. */
+function CwOrdinance() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="지원의 근거가 된 조례 문서">
+      <rect x={96} y={42} width={128} height={156} rx={5}
+            fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2.5} />
+      <path d="M118 80 H202 M118 100 H202 M118 120 H180"
+            stroke="var(--ash)" strokeWidth={2.5} strokeLinecap="round" />
+      <circle cx={190} cy={160} r={22} fill="none" stroke="var(--burgundy)" strokeWidth={3} />
+      <text x={190} y={166} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--burgundy)">
+        조례
+      </text>
+      <text x={160} y={222} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        2015년, 규칙부터
+      </text>
+    </svg>
+  );
+}
+
+/** 지원금이 오른다. 203에서 293으로. */
+function CwRaise() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="월 지원금이 203만 원에서 293만 원으로 오른 그림">
+      <rect x={52} y={118} width={70} height={66} rx={5} fill="var(--stone)" />
+      <rect x={198} y={72} width={70} height={112} rx={5} fill="var(--navy)" />
+      <text x={87} y={106} textAnchor="middle" fontSize={16} {...LABEL} fill="var(--graphite)">203</text>
+      <text x={233} y={60} textAnchor="middle" fontSize={18} {...LABEL} fill="var(--navy)">293</text>
+      <text x={87} y={202} textAnchor="middle" fontSize={11} fill="var(--ash)">2018년까지</text>
+      <text x={233} y={202} textAnchor="middle" fontSize={11} fill="var(--ash)">2019년부터</text>
+      <text x={160} y={228} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        월 지원금 (만 원)
+      </text>
+    </svg>
+  );
+}
+
+/** 베를린으로 간 편지. */
+function CwBerlin() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="베를린 시장에게 보낸 서한">
+      <rect x={38} y={96} width={92} height={62} rx={4}
+            fill="var(--canvas)" stroke="var(--navy)" strokeWidth={2.5} />
+      <path d="M38 96 L84 132 L130 96" fill="none" stroke="var(--navy)" strokeWidth={2.5} />
+      <path d="M144 128 C182 104, 218 104, 254 126" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeDasharray="6 7" />
+      <path d="M246 118 L256 127 L244 133" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={266} y={104} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--ink)">
+        베를린
+      </text>
+      <text x={160} y={210} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        철거 명령을 거둬 달라고
+      </text>
+    </svg>
+  );
+}
+
+/** 기억. 작은 촛불 하나가 꺼지지 않는다. */
+function CwRemember() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="작지만 꺼지지 않는 기억을 나타낸 촛불">
+      <rect x={140} y={124} width={40} height={72} rx={5} fill="var(--stone)" />
+      <path d="M160 116 C150 104, 152 90, 160 78 C168 90, 170 104, 160 116 Z"
+            fill="var(--burgundy)" />
+      <path d="M160 110 C155 103, 156 96, 160 90 C164 96, 165 103, 160 110 Z"
+            fill="var(--eggshell)" opacity={0.85} />
+      <circle cx={160} cy={100} r={44} fill="var(--burgundy)" opacity={0.08} />
+      <text x={160} y={224} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        기억하는 것도 행정이다
+      </text>
+    </svg>
+  );
+}
+
+/* ── 일산대교 무료화 ─────────────────────────────────────────── */
+
+/** 한강 다리 중 하나만 요금소가 있다. */
+function BrToll() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="한강 다리 가운데 한 곳에만 요금소가 있는 모습">
+      <rect x={16} y={132} width={288} height={34} fill="var(--navy)" opacity={0.18} />
+      {[44, 104, 216, 276].map((x) => (
+        <path key={x} d={`M${x - 24} 132 H${x + 24}`} stroke="var(--stone)" strokeWidth={7}
+              strokeLinecap="round" />
+      ))}
+      <path d="M136 132 H184" stroke="var(--burgundy)" strokeWidth={7} strokeLinecap="round" />
+      <rect x={146} y={92} width={28} height={30} rx={3} fill="var(--burgundy)" />
+      <text x={160} y={112} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--eggshell)">₩</text>
+      <text x={160} y={198} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        한강에서 유일하게
+      </text>
+    </svg>
+  );
+}
+
+/** 차단기가 열린다. */
+function BrFree() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="요금소 차단기가 올라가 무료로 통행하는 모습">
+      <rect x={16} y={140} width={288} height={30} fill="var(--navy)" opacity={0.18} />
+      <rect x={58} y={96} width={26} height={76} rx={3} fill="var(--graphite)" />
+      <path d="M84 104 L232 68" stroke="var(--navy)" strokeWidth={8} strokeLinecap="round" />
+      <rect x={184} y={126} width={70} height={34} rx={7} fill="var(--navy)" />
+      <circle cx={202} cy={164} r={8} fill="var(--graphite)" />
+      <circle cx={238} cy={164} r={8} fill="var(--graphite)" />
+      <text x={160} y={208} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        10월 27일 정오
+      </text>
+    </svg>
+  );
+}
+
+/** 법원이 멈춰 세운다. */
+function BrCourt() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="법원이 처분의 효력을 멈춘 것을 나타낸 그림">
+      <path d="M160 58 V176" stroke="var(--graphite)" strokeWidth={5} strokeLinecap="round" />
+      <path d="M96 84 H224" stroke="var(--graphite)" strokeWidth={5} strokeLinecap="round" />
+      <path d="M96 84 L78 126 H114 Z" fill="var(--burgundy)" opacity={0.8} />
+      <path d="M224 84 L206 126 H242 Z" fill="var(--navy)" opacity={0.6} />
+      <rect x={124} y={176} width={72} height={12} rx={4} fill="var(--graphite)" />
+      <text x={160} y={218} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        집행정지 인용
+      </text>
+    </svg>
+  );
+}
+
+/** 차단기가 다시 내려온다. */
+function BrBack() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="차단기가 다시 내려와 통행료 징수가 재개된 모습">
+      <rect x={16} y={140} width={288} height={30} fill="var(--navy)" opacity={0.18} />
+      <rect x={58} y={96} width={26} height={76} rx={3} fill="var(--graphite)" />
+      <path d="M84 118 H236" stroke="var(--burgundy)" strokeWidth={8} strokeLinecap="round" />
+      <rect x={184} y={134} width={70} height={30} rx={7} fill="var(--stone)" />
+      <text x={160} y={208} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        11월 18일 0시
+      </text>
+      <text x={160} y={228} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        22일 만에
+      </text>
+    </svg>
+  );
+}
+
+/** 여기서 끝났다. 막대가 22에서 멈춘다. */
+function BrRecord() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="무료 기간이 22일에서 멈추고 끝난 것을 나타낸 막대">
+      <rect x={40} y={104} width={162} height={34} rx={6} fill="var(--navy)" />
+      <rect x={202} y={104} width={78} height={34} rx={6} fill="var(--stone)" opacity={0.5} />
+      <path d="M202 92 V150" stroke="var(--burgundy)" strokeWidth={3.5} strokeLinecap="round" />
+      <text x={121} y={128} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--eggshell)">
+        22일
+      </text>
+      <text x={202} y={80} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--burgundy)">
+        여기서 끝
+      </text>
+      <text x={160} y={186} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        2024년, 대법원 패소 확정
+      </text>
+      <text x={160} y={210} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        실패한 일도 적는다
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -1913,4 +2229,22 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "meal-anywhere": MealAnywhere,
   "meal-samecard": MealSameCard,
   "meal-table": MealTable,
+
+  "loan-refused": LoanRefused,
+  "loan-loanshark": LoanLoanShark,
+  "loan-lend": LoanLend,
+  "loan-repay": LoanRepay,
+  "loan-only": LoanOnly,
+
+  "cw-few": CwFew,
+  "cw-ordinance": CwOrdinance,
+  "cw-raise": CwRaise,
+  "cw-berlin": CwBerlin,
+  "cw-remember": CwRemember,
+
+  "br-toll": BrToll,
+  "br-free": BrFree,
+  "br-court": BrCourt,
+  "br-back": BrBack,
+  "br-record": BrRecord,
 };

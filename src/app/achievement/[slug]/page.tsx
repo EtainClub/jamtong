@@ -67,6 +67,85 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "2014년에 무슨 결정이 있었나요?",
     ],
   },
+  "gyeonggi-microloan": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "은행 밖의 사람들에게",
+          timelineLede: "시점을 옮기면 그때까지 무엇이 있었는지가 나타납니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "보도로 확인된 것만 적었습니다.",
+          relationsHeading: "거절당한 사람 앞에 있던 것",
+          relationsLede:
+            "제도권에서 거절당하면 갈 곳이 사채뿐이었습니다. 경기도가 어디에 끼어들었는지 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-loan", label: "대출 조건" },
+      { claimId: "claim-scale", label: "지원 규모" },
+    ],
+    askSuggestions: [
+      "누가 빌릴 수 있나요?",
+      "얼마나 갚았나요?",
+      "왜 이런 대출을 하나요?",
+    ],
+  },
+  "gyeonggi-comfort-women": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "조례에서 서한까지",
+          timelineLede: "시점을 옮기면 그때까지 성립한 관계만 남습니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "규모가 작습니다. 그것이 이 업적의 성격입니다.",
+          relationsHeading: "누가 무엇을 맡았나",
+          relationsLede:
+            "정부가 맡은 몫과 경기도가 더 얹은 몫이 있습니다. 그 구분이 이 업적의 내용입니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-raise", label: "지원금 인상" },
+      { claimId: "claim-ordinance", label: "근거 조례" },
+    ],
+    askSuggestions: [
+      "지원금이 얼마나 올랐나요?",
+      "몇 분이 계셨나요?",
+      "베를린 서한은 무엇인가요?",
+    ],
+  },
+  "gyeonggi-ilsan-bridge": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "22일, 그리고 3년 뒤",
+          timelineLede:
+            "시점을 옮기면 그때 무엇이 있었는지가 나타납니다. 이 일은 대법원에서 끝났습니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "시작과 끝이 또렷한 일입니다.",
+          relationsHeading: "무엇이 무엇을 막았나",
+          relationsLede:
+            "행정처분과 법원 결정이 맞부딪힌 일입니다. 어느 쪽이 무엇을 했는지 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-free", label: "무료화 시작" },
+      { claimId: "claim-final", label: "최종 결과" },
+    ],
+    askSuggestions: [
+      "며칠 동안 무료였나요?",
+      "왜 다시 유료가 됐나요?",
+      "결국 어떻게 됐나요?",
+    ],
+  },
   "gyeonggi-child-meal": {
     Layout: (props) => (
       <NarrativeLayout

@@ -726,6 +726,27 @@ export const Eli5Art = z.enum([
   "meal-anywhere",
   "meal-samecard",
   "meal-table",
+
+  // 경기도 극저신용대출
+  "loan-refused",
+  "loan-loanshark",
+  "loan-lend",
+  "loan-repay",
+  "loan-only",
+
+  // 경기도 위안부 피해자 지원
+  "cw-few",
+  "cw-ordinance",
+  "cw-raise",
+  "cw-berlin",
+  "cw-remember",
+
+  // 일산대교 무료화
+  "br-toll",
+  "br-free",
+  "br-court",
+  "br-back",
+  "br-record",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

@@ -39,6 +39,11 @@ export function CompositionBreakdown({
   const { unit } = composition;
   // 전체와 내역이 다른 것을 셀 수 있다. 학생 수를 나눈 뒤 학교 수를 펴는 식이다.
   const breakdownUnit = composition.breakdownUnit ?? unit;
+  /*
+   * 단위가 %인 구성은 수량과 비율이 같은 값이다. 둘 다 적으면 "24.3 % · 24.3%"가
+   * 된다. 그런 경우에는 비율을 한 번만 적는다.
+   */
+  const sharesAreUnit = unit.trim() === "%";
   const maxBreakdown = Math.max(...composition.breakdown.map((i) => i.amount), 1);
 
   return (
@@ -81,7 +86,9 @@ export function CompositionBreakdown({
             <span className={`font-medium ${TONE[group.tone].text}`}>{group.label}</span>
             {group.detail && <span className="text-xs text-ash">{group.detail}</span>}
             <span className="tabular ml-auto shrink-0 text-ash">
-              {fmt(group.amount)} {unit} · {group.sharePercent}%
+              {sharesAreUnit
+                ? `${group.sharePercent}%`
+                : `${fmt(group.amount)} ${unit} · ${group.sharePercent}%`}
             </span>
           </li>
         ))}
