@@ -254,6 +254,33 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "몇 명을 조사했나요?",
     ],
   },
+  "prosecution-reform": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "정해진 것과 아직 오지 않은 것",
+          timelineLede:
+            "시점을 옮기면 그때까지 무엇이 정해졌는지가 나타납니다. 마지막 시점은 아직 오지 않았습니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "2026년 9월 19일 기준입니다.",
+          relationsHeading: "두 일이 어디로 갈라지나",
+          relationsLede:
+            "한 기관이 쥐던 수사와 기소가 각각 어디로 가는지 봅니다. 시행일 이후의 관계는 그때 나타납니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-law", label: "국회 통과" },
+      { claimId: "claim-staffing", label: "출범 준비" },
+    ],
+    askSuggestions: [
+      "무엇이 언제 바뀌나요?",
+      "검사는 무엇을 하게 되나요?",
+      "준비는 얼마나 됐나요?",
+    ],
+  },
   "gyeonggi-basic-income": {
     Layout: (props) => (
       <NarrativeLayout

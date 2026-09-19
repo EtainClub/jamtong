@@ -759,6 +759,14 @@ export const Eli5Art = z.enum([
   "br-court",
   "br-back",
   "br-record",
+
+  // 검찰개혁
+  "pr-onehand",
+  "pr-split",
+  "pr-law",
+  "pr-newoffice",
+  "pr-staffing",
+  "pr-notyet",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

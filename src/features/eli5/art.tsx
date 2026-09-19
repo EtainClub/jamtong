@@ -2138,6 +2138,161 @@ function BrRecord() {
     </svg>
   );
 }
+
+/* ── 검찰개혁 ────────────────────────────────────────────────── */
+
+/** 한 손이 두 도구를 쥔다 — 돋보기와 법봉. */
+function PrOneHand() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="한 기관이 수사와 기소를 함께 쥐고 있는 모습">
+      <rect x={112} y={140} width={96} height={64} rx={6} fill="var(--stone)" />
+      <text x={160} y={180} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--graphite)">
+        한 기관
+      </text>
+      <circle cx={86} cy={80} r={26} fill="none" stroke="var(--navy)" strokeWidth={4.5} />
+      <path d="M104 98 L124 122" stroke="var(--navy)" strokeWidth={5} strokeLinecap="round" />
+      <text x={86} y={132} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">수사</text>
+      <rect x={210} y={62} width={54} height={20} rx={5} fill="var(--burgundy)"
+            transform="rotate(-24 237 72)" />
+      <path d="M216 96 H262" stroke="var(--burgundy)" strokeWidth={6} strokeLinecap="round" />
+      <text x={239} y={132} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--burgundy)">기소</text>
+      <path d="M124 130 L140 144 M226 118 L200 142" stroke="var(--graphite)"
+            strokeWidth={2} strokeDasharray="3 4" />
+    </svg>
+  );
+}
+
+/** 하나가 둘로 갈린다. */
+function PrSplit() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="한 기관이 둘로 갈라지는 모습">
+      <rect x={126} y={48} width={68} height={44} rx={6} fill="var(--stone)" />
+      <path d="M160 92 L160 116 M160 116 L84 146 M160 116 L236 146"
+            fill="none" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M76 138 L84 150 L94 142" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M226 142 L236 150 L244 138" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <rect x={38} y={154} width={92} height={46} rx={6} fill="var(--navy)" />
+      <rect x={190} y={154} width={92} height={46} rx={6} fill="var(--navy)" opacity={0.62} />
+      <text x={84} y={182} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">수사</text>
+      <text x={236} y={182} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">기소</text>
+      <text x={160} y={226} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        서로 다른 곳이 맡는다
+      </text>
+    </svg>
+  );
+}
+
+/** 국회가 법 둘을 통과시킨다. */
+function PrLaw() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="국회가 두 개의 법을 통과시킨 모습">
+      <path d="M60 96 H260 L250 76 H70 Z" fill="var(--navy)" opacity={0.85} />
+      {[86, 122, 158, 194, 230].map((x) => (
+        <rect key={x} x={x - 5} y={96} width={10} height={44} fill="var(--navy)" opacity={0.6} />
+      ))}
+      <rect x={52} y={140} width={216} height={10} rx={3} fill="var(--navy)" opacity={0.85} />
+      <rect x={58} y={162} width={90} height={38} rx={4}
+            fill="var(--canvas)" stroke="var(--navy)" strokeWidth={2} />
+      <rect x={172} y={162} width={90} height={38} rx={4}
+            fill="var(--canvas)" stroke="var(--navy)" strokeWidth={2} />
+      <text x={103} y={186} textAnchor="middle" fontSize={11.5} {...LABEL} fill="var(--navy)">중수청법</text>
+      <text x={217} y={186} textAnchor="middle" fontSize={11.5} {...LABEL} fill="var(--navy)">공소청법</text>
+      <text x={160} y={226} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        2026년 3월 국회 통과
+      </text>
+    </svg>
+  );
+}
+
+/** 새 간판 둘, 옛 간판 하나가 내려온다. */
+function PrNewOffice() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="검찰청 간판이 내려가고 중수청과 공소청 간판이 올라가는 모습">
+      <g opacity={0.4} transform="rotate(-10 92 78)">
+        <rect x={42} y={62} width={100} height={32} rx={4} fill="var(--stone)" />
+        <text x={92} y={84} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--graphite)">
+          검찰청
+        </text>
+        <path d="M46 66 L138 90" stroke="var(--burgundy)" strokeWidth={3} strokeLinecap="round" />
+      </g>
+      <rect x={34} y={132} width={118} height={40} rx={5} fill="var(--navy)" />
+      <text x={93} y={158} textAnchor="middle" fontSize={12.5} {...LABEL} fill="var(--eggshell)">
+        중대범죄수사청
+      </text>
+      <text x={93} y={190} textAnchor="middle" fontSize={11} fill="var(--ash)">행정안전부 산하</text>
+      <rect x={176} y={132} width={110} height={40} rx={5} fill="var(--navy)" opacity={0.62} />
+      <text x={231} y={158} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">
+        공소청
+      </text>
+      <text x={231} y={190} textAnchor="middle" fontSize={11} fill="var(--ash)">기소·공소유지</text>
+    </svg>
+  );
+}
+
+/** 자리 스물 중 열둘만 찼다 — 지원율 61.3%. */
+function PrStaffing() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="중수청 정원 가운데 약 61퍼센트만 지원한 상태">
+      {Array.from({ length: 20 }, (_, i) => {
+        const x = 32 + (i % 10) * 28;
+        const y = i < 10 ? 84 : 138;
+        const filled = i < 12;
+        return (
+          <g key={i}>
+            <circle cx={x} cy={y} r={8} fill={filled ? "var(--navy)" : "none"}
+                    stroke={filled ? "none" : "var(--stone)"} strokeWidth={2.5} />
+            <path d={`M${x - 10} ${y + 26} C${x - 9} ${y + 12}, ${x + 9} ${y + 12}, ${x + 10} ${y + 26} Z`}
+                  fill={filled ? "var(--navy)" : "none"}
+                  stroke={filled ? "none" : "var(--stone)"} strokeWidth={2.5} />
+          </g>
+        );
+      })}
+      <text x={160} y={206} textAnchor="middle" fontSize={20} {...LABEL} fill="var(--burgundy)">
+        61.3%
+      </text>
+      <text x={160} y={228} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        정원 2,874명 · 지원 1,761명
+      </text>
+    </svg>
+  );
+}
+
+/** 아직 시행 전. 달력에 동그라미 하나. */
+function PrNotYet() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="시행일이 아직 오지 않았음을 나타낸 달력">
+      <rect x={72} y={54} width={176} height={150} rx={8}
+            fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2.5} />
+      <path d="M72 92 H248" stroke="var(--graphite)" strokeWidth={2.5} />
+      <rect x={104} y={42} width={12} height={26} rx={4} fill="var(--graphite)" />
+      <rect x={204} y={42} width={12} height={26} rx={4} fill="var(--graphite)" />
+      {Array.from({ length: 12 }, (_, i) => {
+        const x = 100 + (i % 4) * 40;
+        const y = 116 + Math.floor(i / 4) * 32;
+        const target = i === 6;
+        return target ? (
+          <g key={i}>
+            <circle cx={x} cy={y} r={15} fill="var(--burgundy)" />
+            <text x={x} y={y + 5} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">2</text>
+          </g>
+        ) : (
+          <circle key={i} cx={x} cy={y} r={5} fill="var(--stone)" />
+        );
+      })}
+      <text x={160} y={228} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        2026년 10월 2일 시행
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -2247,4 +2402,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "br-court": BrCourt,
   "br-back": BrBack,
   "br-record": BrRecord,
+
+  "pr-onehand": PrOneHand,
+  "pr-split": PrSplit,
+  "pr-law": PrLaw,
+  "pr-newoffice": PrNewOffice,
+  "pr-staffing": PrStaffing,
+  "pr-notyet": PrNotYet,
 };
