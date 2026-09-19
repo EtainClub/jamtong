@@ -5,6 +5,8 @@ import { SceneRenderer } from "@/features/achievement/SceneRenderer";
 import { SceneWithAside, Section } from "@/features/achievement/Section";
 import { ShareSection } from "@/features/achievement/ShareSection";
 import { Timeline } from "@/features/timeline/Timeline";
+import { RelationshipBoard } from "@/features/relationship/RelationshipBoard";
+import { buildGraphLayout } from "@/lib/graph/layout";
 
 /**
  * 주식시장 레이아웃.
@@ -14,6 +16,7 @@ import { Timeline } from "@/features/timeline/Timeline";
  */
 export function StockMarketLayout({ achievement }: { achievement: Achievement }) {
   const series = findScene(achievement, "index-series");
+  const graphLayout = achievement.graph ? buildGraphLayout(achievement.graph) : null;
 
   return (
     <>
@@ -40,6 +43,21 @@ export function StockMarketLayout({ achievement }: { achievement: Achievement })
       >
         <Timeline events={achievement.timeline} claims={achievement.claims} />
       </Section>
+
+      {achievement.graph && graphLayout && (
+        <Section
+          scene="relations"
+          heading="힘이 어느 쪽으로 옮겨갔나"
+          lede="제도가 누구에게 무엇을 주고 누구에게 부담을 지우는지 봅니다. 가운데가 일반주주입니다. 위 연표에서 시점을 옮기면 그때까지 시행된 제도만 남습니다."
+        >
+          <RelationshipBoard
+            graph={achievement.graph}
+            layout={graphLayout}
+            claims={achievement.claims}
+            timeline={achievement.timeline}
+          />
+        </Section>
+      )}
 
       <Section
         scene="counterpoint"

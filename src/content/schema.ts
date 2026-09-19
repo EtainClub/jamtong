@@ -470,6 +470,11 @@ export const EntityKind = z.enum([
   "project", // 사업·프로젝트
   "place", // 장소·항만·지역
   "country", // 국가
+  /**
+   * 사람의 무리. 일반주주·지배주주처럼 기관이 아니라 '입장'이 같은 집단이다.
+   * 실존 개인은 올리지 않는다는 원칙은 그대로다 — 집단이지 사람이 아니다.
+   */
+  "group", // 주주·투자자 등 입장이 같은 집단
 ]);
 export type EntityKind = z.infer<typeof EntityKind>;
 

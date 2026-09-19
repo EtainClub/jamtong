@@ -33,6 +33,7 @@ const KIND_STYLE: Record<EntityKind, { fill: string; ring: string }> = {
   company: { fill: "var(--burgundy-tint)", ring: "var(--burgundy)" },
   project: { fill: "var(--taupe)", ring: "var(--stone)" },
   place: { fill: "var(--taupe)", ring: "var(--ash)" },
+  group: { fill: "var(--taupe)", ring: "var(--graphite)" },
   country: { fill: "var(--burgundy-tint)", ring: "var(--burgundy-tint)" },
 };
 
@@ -42,6 +43,7 @@ const KIND_LABEL: Record<EntityKind, string> = {
   company: "기업·민간",
   project: "사업",
   place: "장소·항만",
+  group: "집단",
   country: "국가",
 };
 

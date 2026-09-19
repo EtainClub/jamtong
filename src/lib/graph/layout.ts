@@ -27,6 +27,19 @@ export const GRAPH_VIEW = { width: 720, height: 560 } as const;
 interface SimNode extends SimulationNodeDatum {
   id: string;
   isFocus: boolean;
+  /** 이름이 차지하는 자리까지 포함한 반경. 충돌 계산에 쓴다. */
+  radius: number;
+}
+
+/**
+ * 노드가 실제로 먹는 자리.
+ *
+ * 원의 크기만으로 밀어내면 이름이 긴 노드끼리 글자가 겹친다.
+ * "자사주 소각 의무"는 "국회"보다 훨씬 넓은 자리를 차지한다.
+ */
+function footprint(name: string, isFocus: boolean): number {
+  const base = isFocus ? 58 : 48;
+  return base + Math.min(name.replace(/\s/g, "").length, 9) * 3.4;
 }
 
 export interface GraphNodeLayout {
@@ -64,17 +77,26 @@ export function buildGraphLayout(graph: Graph): GraphLayout {
   // 초기 위치를 결정적으로 깐다. d3 기본 배치에 의존하지 않는다.
   const others = graph.entities.filter((e) => !e.isFocus);
   const nodes: SimNode[] = graph.entities.map((entity) => {
+    const radius = footprint(entity.name, entity.isFocus);
     if (entity.isFocus) {
-      return { id: entity.id, isFocus: true, x: cx, y: cy, fx: cx, fy: cy };
+      /*
+       * 중심 노드를 못 박지 않는다.
+       *
+       * 고정하면 충돌 힘이 그 노드를 밀어낼 수 없어서, 연결이 몰리는 중심
+       * 위로 이웃들이 그대로 올라앉는다. 노드가 열 개를 넘으면 반드시 겹친다.
+       * 풀어 두면 연결이 가장 많은 노드라 어차피 가운데로 모인다.
+       */
+      return { id: entity.id, isFocus: true, radius, x: cx, y: cy };
     }
     const index = others.indexOf(entity);
     const angle = (index / Math.max(others.length, 1)) * Math.PI * 2 - Math.PI / 2;
-    const radius = Math.min(GRAPH_VIEW.width, GRAPH_VIEW.height) * 0.34;
+    const ring = Math.min(GRAPH_VIEW.width, GRAPH_VIEW.height) * 0.34;
     return {
       id: entity.id,
       isFocus: false,
-      x: cx + Math.cos(angle) * radius,
-      y: cy + Math.sin(angle) * radius,
+      radius,
+      x: cx + Math.cos(angle) * ring,
+      y: cy + Math.sin(angle) * ring,
     };
   });
 
@@ -88,60 +110,55 @@ export function buildGraphLayout(graph: Graph): GraphLayout {
       "link",
       forceLink<SimNode, SimulationLinkDatum<SimNode>>(links)
         .id((d) => d.id)
-        .distance(150)
-        .strength(0.35),
+        /*
+         * 중심 노드는 고정돼 있어 밀려나지 않는다. 연결이 몰리는 것도 중심이라,
+         * 중심에 붙는 선을 길게 잡지 않으면 이웃들이 중심 위에 겹쳐 앉는다.
+         */
+        .distance((link) => {
+          const a = link.source as SimNode;
+          const b = link.target as SimNode;
+          return a.isFocus || b.isFocus ? 215 : 160;
+        })
+        .strength(0.28),
     )
-    .force("charge", forceManyBody().strength(-620))
+    .force("charge", forceManyBody().strength(-820))
     .force("center", forceCenter(cx, cy).strength(0.08))
-    .force("collide", forceCollide(62))
+    // 이름이 먹는 자리만큼 밀어낸다. 노드가 많아져도 글자가 겹치지 않는다.
+    .force("collide", forceCollide<SimNode>((d) => d.radius).strength(1).iterations(4))
     .stop();
 
   // 동기 실행. 틱 수를 고정해야 매 빌드마다 같은 좌표가 나온다.
-  simulation.tick(400);
+  simulation.tick(600);
 
   /*
-   * 시뮬레이션 결과를 화면에 맞춘다.
+   * 프레임을 결과에 맞춘다. 결과를 프레임에 맞추지 않는다.
    *
-   * force 파라미터만으로 프레임을 채우려 하면 노드 수가 바뀔 때마다 다시
-   * 튜닝해야 한다. 결과의 경계상자를 재서 균일 배율로 맞추는 편이 안정적이고,
-   * 종횡비를 유지하므로 관계의 각도가 왜곡되지 않는다.
+   * 전에는 배치가 끝난 뒤 경계상자를 재서 고정 캔버스(720×560)에 욱여넣었다.
+   * 그런데 노드가 많아 경계가 넓어지면 배율이 1보다 작아지고, 그러면 충돌 힘이
+   * 벌려 놓은 간격까지 같이 줄어든다. 겹치지 말라고 민 것을 도로 붙이는 셈이다.
+   *
+   * 좌표는 그대로 두고 viewBox만 내용에 맞춰 잡는다. 화면에 맞추는 일은
+   * 브라우저가 한다 — 그게 SVG가 원래 하는 일이다.
    */
-  const margin = 78;
-  const xs = nodes.map((n) => n.x ?? cx);
-  const ys = nodes.map((n) => n.y ?? cy);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
-
-  const spanX = Math.max(maxX - minX, 1);
-  const spanY = Math.max(maxY - minY, 1);
-  const scale = Math.min(
-    (GRAPH_VIEW.width - margin * 2) / spanX,
-    (GRAPH_VIEW.height - margin * 2) / spanY,
-    1.6,
-  );
-
-  // 배율을 적용한 뒤 남는 여백을 양쪽에 똑같이 나눈다.
-  const offsetX = (GRAPH_VIEW.width - spanX * scale) / 2;
-  const offsetY = (GRAPH_VIEW.height - spanY * scale) / 2;
-
+  const margin = 86;
   const round = (n: number) => Math.round(n * 10) / 10;
+
   const layout: Record<string, GraphNodeLayout> = {};
   for (const node of nodes) {
     layout[node.id] = {
       id: node.id,
-      x: round(((node.x ?? cx) - minX) * scale + offsetX),
-      y: round(((node.y ?? cy) - minY) * scale + offsetY),
+      x: round(node.x ?? cx),
+      y: round(node.y ?? cy),
       degree: degree.get(node.id) ?? 0,
     };
   }
 
-  // 배치가 끝난 뒤 내용 경계 + 라벨 여유만큼만 남기고 캔버스를 자른다.
   const placed = Object.values(layout);
+  const left = Math.min(...placed.map((n) => n.x)) - margin;
+  const right = Math.max(...placed.map((n) => n.x)) + margin;
   const top = Math.min(...placed.map((n) => n.y)) - margin;
   const bottom = Math.max(...placed.map((n) => n.y)) + margin;
-  const viewBox = `0 ${round(top)} ${GRAPH_VIEW.width} ${round(bottom - top)}`;
+  const viewBox = `${round(left)} ${round(top)} ${round(right - left)} ${round(bottom - top)}`;
 
   return { nodes: layout, viewBox, timePoints: collectTimePoints(graph.relations) };
 }

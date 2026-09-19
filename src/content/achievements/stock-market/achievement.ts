@@ -70,6 +70,217 @@ const raw: AchievementInput = {
   ],
 
   /**
+   * ④ 관계도.
+   *
+   * 기관을 늘어놓고 제도를 잇는 그림은 만들지 않았다. 그건 "어떤 제도가 언제
+   * 도입됐나"이고, 연표가 이미 더 잘 한다. 관계도를 그렇게 쓰면 화면 하나가
+   * 낭비된다.
+   *
+   * 대신 **힘이 어느 쪽으로 옮겨가나**를 그린다. 코리아 디스카운트의 핵심은
+   * 일반주주가 회사의 결정과 이익에서 밀려나 있었다는 것이므로, 제도 하나하나가
+   * 누구 쪽으로 힘을 옮기는지가 이 업적의 논지다. 연표가 못 하는 일이다.
+   *
+   * 이득만 그리지 않는다. 부담이 느는 쪽도 같은 굵기로 그린다 — 한쪽만 그리면
+   * 자료가 아니라 홍보물이 된다.
+   */
+  graph: {
+    note:
+      "제도가 힘을 어느 쪽으로 옮기는지를 그렸다. 가운데가 일반주주다. " +
+      "이득을 보는 쪽만이 아니라 부담이 느는 쪽도 함께 그렸다. " +
+      "연표에서 시점을 옮기면 그때까지 시행된 제도만 남는다.",
+    entities: [
+      { id: "retail", name: "일반주주", kind: "group", isFocus: true,
+        description: "회사의 결정과 이익에서 밀려나 있던 쪽" },
+      { id: "major", name: "지배주주", kind: "group",
+        description: "경영권을 쥐고 넘길 수 있는 쪽" },
+      { id: "listed", name: "상장회사", kind: "company",
+        description: "규칙이 직접 적용되는 쪽" },
+      { id: "manipulator", name: "시세조종 세력", kind: "group",
+        description: "값을 인위로 움직여 이익을 얻으려는 쪽" },
+      { id: "shell", name: "부실 상장사", kind: "company",
+        description: "돈을 벌지 못한 채 시장에 남아 있던 회사" },
+      { id: "assembly", name: "국회", kind: "government",
+        description: "상법을 고친 쪽" },
+      { id: "fsc", name: "금융위원회", kind: "government",
+        description: "자본시장 제도를 만드는 쪽" },
+      { id: "krx", name: "한국거래소", kind: "organization",
+        description: "시장을 운영하고 상장·폐지를 판단하는 쪽" },
+      { id: "duty", name: "이사 충실의무", kind: "project",
+        description: "2025년 7월 22일 법률 제20991호" },
+      { id: "buyback", name: "자사주 소각 의무", kind: "project",
+        description: "2026년 3월 6일 법률 제21448호" },
+      { id: "mto", name: "의무공개매수", kind: "project",
+        description: "자본시장법 개정안. 아직 시행 전" },
+      { id: "sanction", name: "불공정거래 제재", kind: "project",
+        description: "과징금과 거래·임원 제한" },
+      { id: "delisting", name: "상장폐지 개혁", kind: "project",
+        description: "2026년 2월 12일 발표" },
+    ],
+    relations: [
+      {
+        id: "sr-duty-law",
+        fromId: "assembly",
+        toId: "duty",
+        label: "상법을 고쳐 이사의 충실의무 대상에 주주를 넣었다.",
+        startDate: "2025-07",
+        startPrecision: "month",
+        assertionType: "FACT",
+        claimIds: ["claim-duty"],
+      },
+      {
+        id: "sr-duty-retail",
+        fromId: "duty",
+        toId: "retail",
+        label: "회사만 보던 판단에 총주주의 이익을 함께 놓게 했다. 전체 주주를 공평하게 대해야 한다.",
+        startDate: "2025-07",
+        startPrecision: "month",
+        assertionType: "INTERPRETATION",
+        claimIds: ["claim-duty"],
+      },
+      {
+        id: "sr-sanction-fsc",
+        fromId: "fsc",
+        toId: "sanction",
+        label: "부당이득의 최대 2배 과징금과, 최대 5년의 거래·임원 선임 제한을 시행했다.",
+        startDate: "2025-04",
+        startPrecision: "month",
+        assertionType: "FACT",
+        claimIds: ["claim-manipulation"],
+      },
+      {
+        id: "sr-sanction-manip",
+        fromId: "sanction",
+        toId: "manipulator",
+        label: "적발되면 번 돈을 토해내고 최대 5년 시장에서 나가야 한다. 이쪽은 부담이 는다.",
+        startDate: "2025-04",
+        startPrecision: "month",
+        assertionType: "INTERPRETATION",
+        claimIds: ["claim-manipulation"],
+      },
+      {
+        id: "sr-sanction-retail",
+        fromId: "sanction",
+        toId: "retail",
+        label: "값을 속여 올려 손해를 떠안는 쪽이 줄어든다.",
+        startDate: "2025-04",
+        startPrecision: "month",
+        assertionType: "INTERPRETATION",
+        claimIds: ["claim-manipulation"],
+      },
+      {
+        id: "sr-delisting-fsc",
+        fromId: "fsc",
+        toId: "delisting",
+        label: "한국거래소와 함께 상장폐지 개혁 방안을 발표했다. 시가총액 기준을 단계적으로 올린다.",
+        startDate: "2026-02",
+        startPrecision: "month",
+        assertionType: "FACT",
+        claimIds: ["claim-delisting"],
+      },
+      {
+        id: "sr-delisting-krx",
+        fromId: "krx",
+        toId: "delisting",
+        label: "집중관리기간을 운영하며 퇴출 절차를 직접 맡는다.",
+        startDate: "2026-02",
+        startPrecision: "month",
+        assertionType: "FACT",
+        claimIds: ["claim-delisting"],
+      },
+      {
+        id: "sr-delisting-shell",
+        fromId: "delisting",
+        toId: "shell",
+        label: "시가총액 기준이 150억에서 300억까지 올라 남아 있기 어려워진다. 이쪽은 부담이 는다.",
+        startDate: "2026-02",
+        startPrecision: "month",
+        assertionType: "INTERPRETATION",
+        claimIds: ["claim-delisting"],
+      },
+      {
+        id: "sr-delisting-retail",
+        fromId: "delisting",
+        toId: "retail",
+        label: "부실 회사가 오래 남아 시장 전체의 신뢰를 갉는 일이 줄어든다.",
+        startDate: "2026-02",
+        startPrecision: "month",
+        assertionType: "INTERPRETATION",
+        claimIds: ["claim-delisting"],
+      },
+      {
+        id: "sr-buyback-law",
+        fromId: "assembly",
+        toId: "buyback",
+        label: "상법을 고쳐 취득한 자기주식을 1년 안에 소각하도록 했다.",
+        startDate: "2026-03",
+        startPrecision: "month",
+        assertionType: "FACT",
+        claimIds: ["claim-buyback"],
+      },
+      {
+        id: "sr-buyback-listed",
+        fromId: "buyback",
+        toId: "listed",
+        label: "사들인 자기주식을 계속 들고 있을 수 없다. 임직원 보상 등은 주주총회 승인으로 예외를 둔다.",
+        startDate: "2026-03",
+        startPrecision: "month",
+        assertionType: "FACT",
+        claimIds: ["claim-buyback"],
+      },
+      {
+        id: "sr-buyback-retail",
+        fromId: "buyback",
+        toId: "retail",
+        label: "언제든 다시 풀릴 수 있던 주식이 사라져, 남은 주주의 몫이 뒤늦게 묽어지지 않는다.",
+        startDate: "2026-03",
+        startPrecision: "month",
+        assertionType: "INTERPRETATION",
+        claimIds: ["claim-buyback"],
+      },
+      {
+        id: "sr-reform-fsc",
+        fromId: "fsc",
+        toId: "retail",
+        label: "신뢰·주주보호·혁신·시장접근성 네 방향으로 묶어 자본시장 체질개선 방안을 발표했다.",
+        startDate: "2026-03",
+        startPrecision: "month",
+        assertionType: "FACT",
+        claimIds: ["claim-reform"],
+      },
+      {
+        id: "sr-mto-fsc",
+        fromId: "fsc",
+        toId: "mto",
+        label: "경영권 지분을 포함해 총 50%+1주 이상을 매수하도록 하는 안을 제시했다. 아직 시행 전이다.",
+        startDate: "2026-09",
+        startPrecision: "month",
+        assertionType: "FACT",
+        claimIds: ["claim-mto"],
+      },
+      {
+        id: "sr-mto-retail",
+        fromId: "mto",
+        toId: "retail",
+        label: "지배주주만 받던 경영권 프리미엄을 일반주주도 나눠 받게 한다.",
+        startDate: "2026-09",
+        startPrecision: "month",
+        assertionType: "INTERPRETATION",
+        claimIds: ["claim-mto"],
+      },
+      {
+        id: "sr-mto-major",
+        fromId: "mto",
+        toId: "major",
+        label: "지분을 넘길 때 일반주주 몫까지 사야 하므로 거래 부담이 는다. 이쪽은 손해다.",
+        startDate: "2026-09",
+        startPrecision: "month",
+        assertionType: "INTERPRETATION",
+        claimIds: ["claim-mto"],
+      },
+    ],
+  },
+
+  /**
    * ① 쉬운 설명.
    *
    * 주식을 모르는 사람에게 "코리아 디스카운트"부터 꺼내면 아무것도 전해지지
