@@ -710,6 +710,14 @@ export const Eli5Art = z.enum([
   "or-sixhospitals",
   "or-private",
   "or-nationwide",
+
+  // 경기도 건설 불공정 단속
+  "cost-hidden",
+  "cost-open",
+  "paper-shell",
+  "paper-check",
+  "paper-caught",
+  "bid-drop",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

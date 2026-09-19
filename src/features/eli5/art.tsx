@@ -1507,6 +1507,157 @@ function OrNationwide() {
     </svg>
   );
 }
+
+/* ── 경기도 건설 불공정 단속 ─────────────────────────────────── */
+
+/** 원가가 봉인된 서류. 금액 칸이 검게 덮여 있다. */
+function CostHidden() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="공사비 항목이 검게 가려져 있어 얼마가 들었는지 알 수 없는 서류">
+      <rect x={86} y={38} width={148} height={172} rx={5}
+            fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2.5} />
+      {[0, 1, 2, 3, 4].map((i) => (
+        <g key={i}>
+          <path d={`M104 ${74 + i * 28} H176`} stroke="var(--ash)" strokeWidth={2.5}
+                strokeLinecap="round" opacity={0.7} />
+          <rect x={186} y={64 + i * 28} width={34} height={14} rx={2} fill="var(--graphite)" />
+        </g>
+      ))}
+      <circle cx={244} cy={188} r={22} fill="none" stroke="var(--burgundy)" strokeWidth={3.5} />
+      <path d="M232 176 L256 200" stroke="var(--burgundy)" strokeWidth={3.5} strokeLinecap="round" />
+      <text x={160} y={230} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        얼마 들었는지 알 수 없다
+      </text>
+    </svg>
+  );
+}
+
+/** 같은 서류가 펼쳐지고 금액이 드러난다. */
+function CostOpen() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="공사비 항목이 모두 드러난 서류와 그것을 보는 사람">
+      <rect x={60} y={34} width={140} height={164} rx={5}
+            fill="var(--canvas)" stroke="var(--navy)" strokeWidth={2.5} />
+      {[0, 1, 2, 3, 4].map((i) => (
+        <g key={i}>
+          <path d={`M78 ${70 + i * 28} H142`} stroke="var(--ash)" strokeWidth={2.5}
+                strokeLinecap="round" opacity={0.7} />
+          <rect x={150} y={60 + i * 28} width={34} height={14} rx={2}
+                fill="var(--navy)" opacity={0.75} />
+        </g>
+      ))}
+      {/* 보는 사람 */}
+      <circle cx={252} cy={96} r={17} fill="var(--navy)" />
+      <path d="M228 184 C230 142, 274 142, 276 184 Z" fill="var(--navy)" />
+      <path d="M206 116 H226" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <text x={160} y={222} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        누구나 볼 수 있게
+      </text>
+    </svg>
+  );
+}
+
+/** 간판만 있는 회사. 앞면은 멀쩡한데 뒤가 비었다. */
+function PaperShell() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="간판만 있고 안은 비어 있는 회사">
+      <path d="M70 176 L70 86 L160 58 L160 176 Z" fill="var(--stone)" opacity={0.55} />
+      <path d="M160 58 L250 86 L250 176 L160 176 Z" fill="none"
+            stroke="var(--graphite)" strokeWidth={2.5} strokeDasharray="7 7" />
+      <rect x={84} y={96} width={62} height={20} rx={3} fill="var(--navy)" />
+      <text x={115} y={111} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--eggshell)">
+        ○○건설
+      </text>
+      <text x={205} y={136} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ash)">
+        비어 있음
+      </text>
+      <text x={160} y={210} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        간판만 있는 회사
+      </text>
+    </svg>
+  );
+}
+
+/** 입찰 전에 들여다본다. 돋보기가 서류와 사무실을 함께 본다. */
+function PaperCheck() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="입찰 전에 서류와 사무실을 직접 확인하는 모습">
+      <rect x={40} y={92} width={72} height={78} rx={4}
+            fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2} />
+      <path d="M56 114 H96 M56 128 H96 M56 142 H82"
+            stroke="var(--ash)" strokeWidth={2.5} strokeLinecap="round" />
+      <text x={76} y={188} textAnchor="middle" fontSize={11} fill="var(--ash)">서류</text>
+      <rect x={200} y={92} width={78} height={78} rx={4} fill="var(--navy)" opacity={0.8} />
+      <rect x={216} y={112} width={16} height={16} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <rect x={246} y={112} width={16} height={16} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <text x={239} y={188} textAnchor="middle" fontSize={11} fill="var(--ash)">사무실</text>
+      {/* 돋보기 */}
+      <circle cx={160} cy={118} r={30} fill="none" stroke="var(--burgundy)" strokeWidth={4} />
+      <path d="M182 140 L202 160" stroke="var(--burgundy)" strokeWidth={5} strokeLinecap="round" />
+      <text x={160} y={218} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        공사를 주기 전에 확인한다
+      </text>
+    </svg>
+  );
+}
+
+/** 걸러진다. 체 위에 남는 것과 통과하는 것. */
+function PaperCaught() {
+  const caught = [
+    [116, 74], [160, 66], [204, 76],
+  ] as const;
+  const passed = [
+    [104, 176], [146, 186], [190, 178], [226, 168],
+  ] as const;
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="체에 걸러져 남는 업체와 통과하는 업체">
+      {caught.map(([x, y]) => (
+        <rect key={`c${x}`} x={x - 14} y={y - 12} width={28} height={24} rx={3}
+              fill="var(--burgundy)" />
+      ))}
+      <path d="M60 116 H260" stroke="var(--graphite)" strokeWidth={5} strokeLinecap="round" />
+      {[84, 112, 140, 168, 196, 224, 248].map((x) => (
+        <path key={x} d={`M${x} 110 V122`} stroke="var(--canvas)" strokeWidth={4} />
+      ))}
+      {passed.map(([x, y]) => (
+        <rect key={`p${x}`} x={x - 13} y={y - 11} width={26} height={22} rx={3}
+              fill="var(--navy)" opacity={0.85} />
+      ))}
+      <text x={284} y={80} textAnchor="middle" fontSize={11} fill="var(--burgundy)">적발</text>
+      <text x={284} y={182} textAnchor="middle" fontSize={11} fill="var(--navy)">통과</text>
+      <text x={160} y={224} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        세 건 중 한 건이 걸렸다
+      </text>
+    </svg>
+  );
+}
+
+/** 경쟁률이 내린다. 몰려들던 수가 줄어든 두 막대. */
+function BidDrop() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="한 공사에 몰려드는 업체 수가 544에서 349로 줄어든 그림">
+      <rect x={58} y={58} width={64} height={126} rx={4} fill="var(--stone)" />
+      <rect x={198} y={139} width={64} height={45} rx={4} fill="var(--navy)" />
+      <text x={90} y={46} textAnchor="middle" fontSize={17} {...LABEL} fill="var(--graphite)">544</text>
+      <text x={230} y={127} textAnchor="middle" fontSize={17} {...LABEL} fill="var(--navy)">349</text>
+      <text x={90} y={202} textAnchor="middle" fontSize={11} fill="var(--ash)">2019년</text>
+      <text x={230} y={202} textAnchor="middle" fontSize={11} fill="var(--ash)">2022년</text>
+      <path d="M130 96 C158 96, 170 124, 192 132" fill="none" stroke="var(--burgundy)"
+            strokeWidth={3} strokeLinecap="round" />
+      <path d="M184 124 L194 134 L181 138" fill="none" stroke="var(--burgundy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={228} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        한 공사에 몰려든 업체 수
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -1584,4 +1735,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "or-sixhospitals": OrSixHospitals,
   "or-private": OrPrivate,
   "or-nationwide": OrNationwide,
+
+  "cost-hidden": CostHidden,
+  "cost-open": CostOpen,
+  "paper-shell": PaperShell,
+  "paper-check": PaperCheck,
+  "paper-caught": PaperCaught,
+  "bid-drop": BidDrop,
 };

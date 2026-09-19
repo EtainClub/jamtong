@@ -67,6 +67,33 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "2014년에 무슨 결정이 있었나요?",
     ],
   },
+  "gyeonggi-construction": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "성남에서 시작해 경기도로",
+          timelineLede:
+            "시점을 옮기면 그때까지 무엇이 보이게 됐는지가 나타납니다. 원가 공개는 2016년 성남시가 먼저입니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "보도로 확인된 것만 적었습니다.",
+          relationsHeading: "보이게 하면 누가 못 하게 되나",
+          relationsLede:
+            "가려져 있던 것을 드러내는 일이 이 두 정책의 공통된 방법입니다. 반발한 쪽도 함께 그립니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-cost", label: "원가 공개" },
+      { claimId: "claim-paper-yearly", label: "사전단속 실적" },
+    ],
+    askSuggestions: [
+      "원가를 왜 공개하나요?",
+      "페이퍼컴퍼니를 얼마나 적발했나요?",
+      "건설업계는 왜 반대했나요?",
+    ],
+  },
   "gyeonggi-or-cctv": {
     Layout: (props) => (
       <NarrativeLayout
