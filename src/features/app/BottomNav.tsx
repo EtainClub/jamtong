@@ -30,8 +30,8 @@ const TABS: Tab[] = [
   { href: "/", label: "홈", ready: true, icon: <HomeIcon /> },
   { href: "/timeline", label: "타임라인", ready: true, icon: <TimelineIcon /> },
   { href: "/explore", label: "업적", ready: true, owns: ["/achievement"], icon: <ExploreIcon /> },
-  { href: "/ask", label: "AI에게 묻기", ready: false, icon: <AskIcon /> },
-  { href: "/my", label: "MY", ready: false, icon: <MyIcon /> },
+  { href: "/links", label: "관련 사이트", ready: true, icon: <LinkIcon /> },
+  { href: "/my", label: "MY", ready: true, icon: <MyIcon /> },
 ];
 
 export function BottomNav() {
@@ -132,12 +132,11 @@ function ExploreIcon() {
   );
 }
 
-function AskIcon() {
+function LinkIcon() {
   return (
     <svg {...iconProps}>
-      <path d="M20 12a8 8 0 1 1-3.2-6.4" />
-      <path d="M12 16v-.5c0-1 .6-1.6 1.4-2.1.8-.5 1.3-1 1.3-1.9a2.7 2.7 0 0 0-5.4-.1" />
-      <circle cx="12" cy="19" r=".6" fill="currentColor" />
+      <path d="M10.5 13.5a4 4 0 0 0 5.7 0l2.6-2.6a4 4 0 0 0-5.7-5.7l-1.3 1.3" />
+      <path d="M13.5 10.5a4 4 0 0 0-5.7 0l-2.6 2.6a4 4 0 0 0 5.7 5.7l1.3-1.3" />
     </svg>
   );
 }

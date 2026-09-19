@@ -1,0 +1,42 @@
+rules_version = '2';
+
+/*
+ * 잼통 Firestore 규칙.
+ *
+ * 규칙은 하나다: 자기 것만 읽고 쓴다.
+ *
+ * 이력이 users/{uid} 아래 있는 이유가 이것이다. 최상위에 두고 필드로 주인을
+ * 가리면 목록 조회마다 그 필드를 검사해야 하고, 검사를 한 군데 빠뜨리면 남의
+ * 기록이 열린다. 경로로 가르면 빠뜨릴 자리가 없다.
+ *
+ * 익명 계정도 uid를 가지므로 같은 규칙이 그대로 적용된다.
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /asks/{askId} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+
+        // 만들 때만 모양을 본다. 이력은 고치는 것이 아니라 쌓고 지우는 것이다.
+        allow create: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.question is string
+          && request.resource.data.question.size() <= 500
+          && request.resource.data.message is string
+          && request.resource.data.message.size() <= 4000
+          && request.resource.data.achievementSlug is string
+          && request.resource.data.grounded is bool;
+
+        allow update: if false;
+      }
+    }
+
+    // 그 밖의 모든 것은 닫는다. 열어야 할 것이 생기면 그때 이름을 적는다.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

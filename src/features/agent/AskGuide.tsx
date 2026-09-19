@@ -6,6 +6,8 @@ import type { AgentAction } from "@/lib/agent/actions";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 import { SCENES_BY_ACHIEVEMENT } from "@/features/achievement/scenes";
 import { runActions } from "./execute";
+import { useAuth } from "@/lib/firebase/auth";
+import { saveAsk } from "@/lib/firebase/history";
 
 /**
  * AI 안내 (설계서 12·13·31장).
@@ -53,13 +55,16 @@ function actionLabel(action: AgentAction, slug: string): string {
 
 export function AskGuide({
   achievementSlug,
+  achievementTitle,
   claims,
   suggestions,
 }: {
   achievementSlug: string;
+  achievementTitle: string;
   claims: Claim[];
   suggestions: string[];
 }) {
+  const { ensureUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
@@ -89,6 +94,27 @@ export function AskGuide({
       }
 
       setAnswer(data);
+
+      /*
+       * 이력을 남긴다. 실패해도 답변은 이미 화면에 있다 — 저장이 안 됐다고
+       * 답을 못 보게 하지 않는다. 로그인은 여기서 처음 필요해진다.
+       */
+      try {
+        const account = await ensureUser();
+        if (account) {
+          await saveAsk(account.uid, {
+            question: trimmed,
+            message: data.message,
+            grounded: data.grounded,
+            achievementSlug,
+            achievementTitle,
+            claimIds: data.claimIds,
+          });
+        }
+      } catch {
+        // 조용히 넘긴다. 이력은 부속이고 답변이 본체다.
+      }
+
       if (data.actions.length > 0) await runActions(data.actions);
     } catch {
       setError("연결에 실패했습니다. 잠시 후 다시 시도해 주세요.");

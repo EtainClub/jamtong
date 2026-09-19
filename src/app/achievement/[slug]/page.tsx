@@ -263,6 +263,7 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
 
       <AskGuide
         achievementSlug={achievement.slug}
+        achievementTitle={achievement.title}
         claims={achievement.claims}
         suggestions={askSuggestions}
       />

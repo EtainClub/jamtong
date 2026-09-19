@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
+import { AuthProvider } from "@/lib/firebase/auth";
+
 /*
  * 본문은 Pretendard(한글 가변폭), 수치는 IBM Plex Mono.
  * Pretendard는 구글 폰트에 없어 globals.css에서 CDN 서브셋을 가져온다.
@@ -41,7 +43,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           본문으로 건너뛰기
         </a>
-        {children}
+        {/* 로그인 상태는 화면 전체가 본다 — 상단 바, MY, AI 안내가 모두 같은 사용자를 쓴다. */}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
