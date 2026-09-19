@@ -1,3 +1,11 @@
+# 서비스 계정 키. 이 파일이 공개 저장소에 한 번 들어가면 커밋을 지워도
+# 이미 유출된 것으로 봐야 한다 — 되돌리는 방법은 키 폐기뿐이다.
+sa.json
+service-account*.json
+*-service-account.json
+*serviceaccount*.json
+*.key.json
+
 /node_modules
 /.pnp
 .pnp.*
