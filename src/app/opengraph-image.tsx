@@ -23,7 +23,6 @@ export default async function Image() {
           fontFamily: "Pretendard",
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logo} alt="" width={420} height={306} />
         <div
           style={{

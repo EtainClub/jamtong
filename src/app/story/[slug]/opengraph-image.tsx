@@ -170,8 +170,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={mark} alt="" width={56} height={56} />
+                <img src={mark} alt="" width={56} height={56} />
             <div style={{ display: "flex", fontSize: 26, fontWeight: 600, color: C.ink }}>
               잼통
             </div>

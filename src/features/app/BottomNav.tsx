@@ -41,15 +41,17 @@ export function BottomNav() {
           const active = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
 
           if (!tab.ready) {
+            // 흐리게만 두면 모바일에서는 왜 눌리지 않는지 알 길이 없다 —
+            // hover도 title도 없다. 글자로 적는다.
             return (
               <li key={tab.href} className="flex-1">
                 <span
                   aria-disabled="true"
-                  title="준비 중"
-                  className="flex cursor-not-allowed flex-col items-center gap-1 py-2.5 text-ash/45"
+                  className="flex cursor-not-allowed flex-col items-center gap-0.5 py-2 text-ash/45"
                 >
                   {tab.icon}
                   <span className="text-[10px] font-medium">{tab.label}</span>
+                  <span className="text-[9px] font-medium text-ash/70">준비 중</span>
                 </span>
               </li>
             );
@@ -60,12 +62,15 @@ export function BottomNav() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-1 py-2.5 transition-colors ${
+                className={`flex flex-col items-center gap-0.5 py-2 transition-colors ${
                   active ? "text-navy" : "text-ash hover:text-smoke"
                 }`}
               >
                 {tab.icon}
                 <span className="text-[10px] font-medium">{tab.label}</span>
+                <span aria-hidden="true" className="text-[9px] leading-none">
+                  &nbsp;
+                </span>
               </Link>
             </li>
           );

@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Achievement, AchievementCategory, Claim } from "@/content/schema";
+import { ScrollArrow, useScroller } from "@/features/app/Scroller";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 
@@ -59,6 +60,14 @@ export function HomeFeed({
     return topics.filter(matcher.match).slice(0, 6);
   }, [tab, topics]);
 
+  const {
+    ref: topicsRef,
+    canPrev: topicsCanPrev,
+    canNext: topicsCanNext,
+    onScroll: onTopicsScroll,
+    page: pageTopics,
+  } = useScroller<HTMLUListElement>();
+
   return (
     <>
       <SearchField />
@@ -100,13 +109,32 @@ export function HomeFeed({
             이 분류에 해당하는 주제가 아직 없습니다.
           </p>
         ) : (
-          <ul className="no-scrollbar -mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1">
-            {filtered.map((item) => (
-              <li key={item.id} className="w-[150px] shrink-0 snap-start">
-                <TopicCard item={item} claims={claims} />
-              </li>
-            ))}
-          </ul>
+          <div className="relative">
+            <ul
+              ref={topicsRef}
+              onScroll={onTopicsScroll}
+              className="no-scrollbar -mx-4 mt-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1"
+            >
+              {filtered.map((item) => (
+                <li key={item.id} className="w-[150px] shrink-0 snap-start">
+                  <TopicCard item={item} claims={claims} />
+                </li>
+              ))}
+            </ul>
+            {/* 카드는 한 화면을 통째로 넘기지 않는다. 다음 카드가 걸쳐 보여야 더 있다는 걸 안다. */}
+            <ScrollArrow
+              dir={-1}
+              disabled={!topicsCanPrev}
+              onClick={() => pageTopics(-1, 0.8)}
+              label="이전 주제"
+            />
+            <ScrollArrow
+              dir={1}
+              disabled={!topicsCanNext}
+              onClick={() => pageTopics(1, 0.8)}
+              label="다음 주제"
+            />
+          </div>
         )}
       </section>
     </>
@@ -140,22 +168,15 @@ function SearchField() {
 }
 
 function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
-  const scrollerRef = useRef<HTMLUListElement>(null);
-  const [index, setIndex] = useState(0);
-
-  const onScroll = () => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const next = Math.round(el.scrollLeft / el.clientWidth);
-    setIndex((current) => (current === next ? current : next));
-  };
+  const { ref, index, canPrev, canNext, onScroll, page, toIndex } =
+    useScroller<HTMLUListElement>();
 
   return (
-    <section aria-label="주요 콘텐츠" className="mt-4">
+    <section aria-label="주요 콘텐츠" className="relative mt-4">
       <ul
-        ref={scrollerRef}
+        ref={ref}
         onScroll={onScroll}
-        className="no-scrollbar -mx-4 flex snap-x snap-mandatory overflow-x-auto px-4"
+        className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 overflow-x-auto px-4"
       >
         {slides.map((slide) => (
           <li key={slide.id} className="w-full shrink-0 snap-center pr-3 last:pr-0">
@@ -165,20 +186,33 @@ function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
       </ul>
 
       {slides.length > 1 && (
-        <div className="mt-3 flex items-center justify-center gap-1.5">
-          {slides.map((slide, i) => (
-            <span
-              key={slide.id}
-              aria-hidden="true"
-              className={`h-1.5 rounded-full transition-all ${
-                i === index ? "w-5 bg-navy" : "w-1.5 bg-stone"
-              }`}
-            />
-          ))}
-          <span className="sr-only">
-            {index + 1} / {slides.length}
-          </span>
-        </div>
+        <>
+          <ScrollArrow dir={-1} disabled={!canPrev} onClick={() => page(-1)} label="이전 콘텐츠" />
+          <ScrollArrow dir={1} disabled={!canNext} onClick={() => page(1)} label="다음 콘텐츠" />
+
+          {/* 점은 표시가 아니라 조작이다. 눌러서 옮길 수 있어야 한다. */}
+          <div className="mt-3 flex items-center justify-center gap-1.5">
+            {slides.map((slide, i) => (
+              <button
+                key={slide.id}
+                type="button"
+                onClick={() => toIndex(i)}
+                aria-label={`${i + 1}번째 콘텐츠로 이동`}
+                aria-current={i === index ? "true" : undefined}
+                className="grid h-5 place-items-center px-0.5"
+              >
+                <span
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === index ? "w-5 bg-navy" : "w-1.5 bg-stone"
+                  }`}
+                />
+              </button>
+            ))}
+            <span className="sr-only">
+              {index + 1} / {slides.length}
+            </span>
+          </div>
+        </>
       )}
     </section>
   );
