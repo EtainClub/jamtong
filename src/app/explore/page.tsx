@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import type { Achievement } from "@/content/schema";
-import { ACHIEVEMENTS, PART_LABELS, achievementParts } from "@/content/achievements";
+import { ACHIEVEMENTS, PART_LABELS, achievementParts, byRecency } from "@/content/achievements";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import { CATEGORY_LABEL, STATUS_LABEL, formatDate } from "@/content/labels";
 import { AppTopBar } from "@/features/app/AppTopBar";
@@ -20,7 +20,8 @@ export const metadata: Metadata = { title: "업적" };
  * 보이지 않았다.
  */
 export default function ExplorePage() {
-  const achievements = ACHIEVEMENTS;
+  // 최근 순. 등록 순서는 내가 만든 순서일 뿐 읽는 사람에게는 뜻이 없다.
+  const achievements = [...ACHIEVEMENTS].sort(byRecency);
   const milestones = [
     ...MILESTONES.filter((m) => m.status === "done"),
     ...MILESTONES.filter((m) => m.status !== "done"),

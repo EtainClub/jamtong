@@ -83,6 +83,29 @@ export function NumberHeroVisual({
     deep: { from: "var(--stone)", to: "var(--eggshell)", ink: "var(--graphite)" },
   }[tone];
 
+  /*
+   * 글자 수에 따라 크기와 자리를 정한다.
+   *
+   * 86px 하나로 두면 "1,576"은 맞는데 "2026. 10. 2."나 "71.5 → 62.8"은
+   * 두 줄로 접히고 카드 밖으로 잘린다. 대표 수치가 늘 짧은 숫자인 것은
+   * 아니다 — 날짜인 업적도 있고 '무엇에서 무엇으로'인 업적도 있다.
+   *
+   * 짧은 숫자는 크게 키워 오른쪽으로 흘려보낸다(그게 이 배경의 맛이다).
+   * 긴 값은 작게 줄이고 카드 안에 들인다 — 작은 글자가 잘리면 흘린 것이
+   * 아니라 실수로 보인다.
+   *
+   * 큰 값만 맨 위에 둔다. 작은 값을 같은 자리에 두면 오른쪽 위 칩에 가린다 —
+   * 칩에는 같은 수치가 적혀 있어서, 겹치면 글자가 두 번 찍힌 것처럼 보인다.
+   */
+  const { size, right, top } =
+    value.length <= 5
+      ? { size: 86, right: -12, top: 16 }
+      : value.length <= 8
+        ? { size: 62, right: -8, top: 52 }
+        : value.length <= 11
+          ? { size: 44, right: 16, top: 52 }
+          : { size: 38, right: 16, top: 52 };
+
   return (
     <div
       className="relative h-full w-full overflow-hidden"
@@ -90,8 +113,14 @@ export function NumberHeroVisual({
     >
       <span
         aria-hidden="true"
-        className="absolute -right-3 top-4 select-none text-[86px] font-black leading-none tracking-tighter"
-        style={{ color: palette.ink, opacity: 0.14 }}
+        className="absolute select-none whitespace-nowrap font-black leading-none tracking-tighter"
+        style={{
+          color: palette.ink,
+          opacity: 0.14,
+          fontSize: `${size}px`,
+          right: `${right}px`,
+          top: `${top}px`,
+        }}
       >
         {value}
       </span>

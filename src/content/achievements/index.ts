@@ -91,6 +91,52 @@ export function achievementParts(achievement: Achievement): boolean[] {
   ];
 }
 
+/* ────────────────────────────────────────────────────────────────
+ * 최근 순 정렬
+ *
+ * 등록 순서는 내가 업적을 만든 순서다. 읽는 사람에게는 아무 뜻이 없다.
+ * 목록과 히어로는 **최근에 무슨 일이 있었나** 순으로 세운다.
+ * ──────────────────────────────────────────────────────────────── */
+
+/**
+ * 오늘. 모듈이 읽힐 때 한 번만 잡는다.
+ *
+ * 정적 빌드에서는 빌드 시각에 굳는다. 그래도 맞다 — 다시 배포할 때마다
+ * 갱신되고, 그 사이에 순서가 뒤집힐 만한 시점이 생기면 그건 콘텐츠가
+ * 바뀌었다는 뜻이라 어차피 다시 빌드한다.
+ */
+const TODAY = new Date().toISOString().slice(0, 10);
+
+/**
+ * 이 업적에서 **이미 일어난** 일 가운데 가장 나중 것의 날짜.
+ *
+ * ★ 앞으로의 계획을 최근으로 세지 않는다.
+ *   연표에는 아직 오지 않은 시점이 함께 있다. 북극항로는 2030년까지,
+ *   사법개혁은 2028년 대법관 증원까지 적혀 있다. 그냥 최댓값을 쓰면
+ *   "2030년에 하겠다"가 "이번 주에 있었던 일"을 밀어내고 맨 위에 선다.
+ *   그건 이 위키가 한 일과 하겠다는 일을 갈라 온 원칙과 정면으로 어긋난다.
+ *
+ * 날짜는 "2026", "2026-09", "2026-09-14"처럼 정밀도가 섞여 있다. 문자열
+ * 비교가 곧 '그달 1일로 채운' 비교와 같으므로 따로 자릿수를 맞추지 않는다.
+ * 늘 이른 쪽으로 기울므로, 모르는 것을 최근으로 올려 세는 일은 없다.
+ */
+export function latestEventDate(achievement: Achievement): string {
+  let latest = "";
+  for (const event of achievement.timeline) {
+    if (event.date > TODAY) continue;
+    if (event.date > latest) latest = event.date;
+  }
+  return latest;
+}
+
+/**
+ * 최근이 앞으로. 날짜가 같거나 연표가 빈 업적은 slug로 갈라 순서를 고정한다 —
+ * 정렬이 흔들리면 빌드마다 화면이 달라진다.
+ */
+export function byRecency(a: Achievement, b: Achievement): number {
+  return latestEventDate(b).localeCompare(latestEventDate(a)) || a.slug.localeCompare(b.slug);
+}
+
 /**
  * 목록 카드가 쓰는 것만 뽑은 것.
  *
@@ -128,4 +174,12 @@ export function toCardData(achievement: Achievement): AchievementCardData {
   };
 }
 
-export const ACHIEVEMENT_CARDS: AchievementCardData[] = ACHIEVEMENTS.map(toCardData);
+/**
+ * 목록에 세우는 순서는 **최근 순**이다. 등록 순서가 아니다.
+ *
+ * 등록 순서는 내가 만든 순서일 뿐이라, 화면에서는 늘 북극항로가 맨 앞이고
+ * 이번 주에 끝난 일이 스무 번째에 있었다.
+ */
+export const ACHIEVEMENT_CARDS: AchievementCardData[] = [...ACHIEVEMENTS]
+  .sort(byRecency)
+  .map(toCardData);

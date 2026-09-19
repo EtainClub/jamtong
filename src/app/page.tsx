@@ -1,4 +1,4 @@
-import { ACHIEVEMENT_CARDS, getPublishedAchievements } from "@/content/achievements";
+import { ACHIEVEMENT_CARDS, byRecency, getPublishedAchievements } from "@/content/achievements";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import { findScene, validateMilestones } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
@@ -21,12 +21,17 @@ const TONES = ["ice", "warm", "deep"] as const;
 export default function Home() {
   const published = getPublishedAchievements();
   /*
-   * 히어로에는 콘텐츠가 featured로 표시한 것만 세운다. 열여섯 장을 스와이프로
+   * 히어로에는 콘텐츠가 featured로 표시한 것만 세운다. 스물 몇 장을 스와이프로
    * 넘기게 할 수 없고, 화면이 임의로 고르면 "왜 이것들인가"에 답할 수 없다.
    * 하나도 표시되지 않은 경우에만 앞에서 다섯을 세운다 — 첫 화면이 비면 안 된다.
+   *
+   * 그 안에서 세우는 순서는 **최근 순**이다. featured가 '무엇이 중요한가'를
+   * 정하고, 정렬이 '무엇이 새것인가'를 정한다. 등록 순서로 두면 첫 장이 늘
+   * 같은 업적이고, 이번 주에 끝난 일을 보려면 끝까지 넘겨야 했다.
    */
-  const featured = published.filter((a) => a.featured);
-  const stories = featured.length > 0 ? featured : published.slice(0, 5);
+  const byNewest = published.slice().sort(byRecency);
+  const featured = byNewest.filter((a) => a.featured);
+  const stories = featured.length > 0 ? featured : byNewest.slice(0, 5);
 
   const errors = validateMilestones({
     milestones: MILESTONES,
