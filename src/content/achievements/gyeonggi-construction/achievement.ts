@@ -152,7 +152,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-gc-01",
+      title: "공사비가 얼마인지 왜 몰랐을까",
+      summary:
+        "원가를 공개하고 입찰 전에 실체를 확인한 두 정책입니다. 경쟁률 감소는 경기도의 분석입니다.",
+      youtubeId: "v2dRvLXSCdo",
+      claimIds: ["claim-cost", "claim-paper-start", "claim-paper-yearly"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:

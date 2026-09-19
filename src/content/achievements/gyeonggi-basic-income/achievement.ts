@@ -133,7 +133,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-bi-01",
+      title: "경기도 재난기본소득, 왜 지역화폐였을까",
+      summary:
+        "금액이 아니라 지급 방식이 요지입니다. 3차는 전 도민이 아니라 소득상위 12%가 대상이었습니다.",
+      youtubeId: "WgsyFTThJrc",
+      claimIds: ["claim-first", "claim-second", "claim-third"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:

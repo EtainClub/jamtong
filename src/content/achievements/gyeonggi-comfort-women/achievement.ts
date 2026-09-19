@@ -115,7 +115,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-cw-01",
+      title: "숫자로 증명한 위안부 피해자 지원",
+      summary:
+        "도내 열 분에게 월 지원금을 203만 원에서 293만 원으로 올린 일입니다. 그중 133만 원은 정부 몫입니다.",
+      youtubeId: "tXqQRXwrcGA",
+      claimIds: ["claim-ordinance", "claim-raise", "claim-berlin"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:

@@ -103,7 +103,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-ib-01",
+      title: "공짜였던 22일, 가장 당당한 실패의 기록",
+      summary:
+        "2021년 10월 27일 무료화, 11월 18일 징수 재개, 2024년 대법원 패소 확정까지 싣습니다.",
+      youtubeId: "u5r_PQUQNV0",
+      claimIds: ["claim-free", "claim-back", "claim-final"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:

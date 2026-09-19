@@ -140,7 +140,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-or-01",
+      title: "한 병원의 시도가 전국의 법이 되기까지",
+      summary:
+        "2018년 안성병원 한 곳에서 시작해 2021년 전국 의무화까지 간 3년을 다룹니다. 촬영 여부를 정하는 쪽은 환자입니다.",
+      youtubeId: "YJs9c1Sh818",
+      claimIds: ["claim-first", "claim-consent", "claim-law"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:

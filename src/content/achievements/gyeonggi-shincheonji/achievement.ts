@@ -154,7 +154,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-sc-01",
+      title: "명단을 기다리지 않은 열하루",
+      summary:
+        "지시에서 총회장 검체 채취까지 열하루입니다. 효과가 아니라 속도를 다룹니다.",
+      youtubeId: "wrcLaAtmzPA",
+      claimIds: ["claim-order", "claim-entry", "claim-survey", "claim-lee"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:

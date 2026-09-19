@@ -83,7 +83,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-ml-01",
+      title: "다 갚지 못할 걸 알면서도 연 1%를 빌려주는 이유",
+      summary:
+        "사채를 단속하기만 하면 갈 곳이 사라집니다. 상환 현황까지 그대로 싣습니다.",
+      youtubeId: "GeoBnCpmgyc",
+      claimIds: ["claim-loan", "claim-repay", "claim-scale"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:

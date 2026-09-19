@@ -83,7 +83,17 @@ const raw: AchievementInput = {
       },
     },
   ],
-  shorts: [],
+  shorts: [
+    {
+      id: "short-sm-01",
+      title: "10만 명의 밥상, 11년의 릴레이",
+      summary:
+        "2007년 초등학교 1학년에서 2018년 고등학교까지, 세 시정을 건너 자란 정책입니다.",
+      youtubeId: "5N8upHxFPnc",
+      claimIds: ["claim-start", "claim-expand", "claim-highschool", "claim-scale"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:

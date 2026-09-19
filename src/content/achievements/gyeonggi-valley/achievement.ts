@@ -142,7 +142,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-gv-01",
+      title: "계곡을 막던 1,576개 평상, 어떻게 치웠을까",
+      summary:
+        "철거한 개수가 아니라 방법이 요지입니다. 2020년 4월 기준 철거된 1,347곳 중 1,298곳이 자진철거였습니다.",
+      youtubeId: "pDw00qIESxU",
+      claimIds: ["claim-start", "claim-2020", "claim-2021"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:
