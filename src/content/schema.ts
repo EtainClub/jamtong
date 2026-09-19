@@ -686,6 +686,14 @@ export const Eli5Art = z.enum([
   "valley-selfremove",
   "valley-force",
   "valley-open",
+
+  // 경기도 재난기본소득·지역화폐
+  "basic-everyone",
+  "basic-localcard",
+  "basic-expire",
+  "basic-shops",
+  "basic-rounds",
+  "basic-top12",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

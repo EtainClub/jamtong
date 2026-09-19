@@ -67,6 +67,33 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "2014년에 무슨 결정이 있었나요?",
     ],
   },
+  "gyeonggi-basic-income": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "세 차례, 그때마다 대상이 달랐다",
+          timelineLede:
+            "시점을 옮기면 그때 누가 받았는지가 나타납니다. 1·2차와 3차는 대상이 다릅니다.",
+          numbersHeading: "규모로 보면",
+          numbersLede: "회차마다 대상과 금액이 다릅니다.",
+          relationsHeading: "돈이 어디서 나와 어디에 머물렀나",
+          relationsLede:
+            "이 정책의 핵심은 금액이 아니라 지급 방식입니다. 기금에서 나온 돈이 지역화폐를 거쳐 어디에 남았는지 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-first", label: "1차 전 도민" },
+      { claimId: "claim-third", label: "3차 대상" },
+    ],
+    askSuggestions: [
+      "얼마를 누구에게 줬나요?",
+      "왜 현금이 아니라 지역화폐인가요?",
+      "3차는 왜 전 도민이 아닌가요?",
+    ],
+  },
   "gyeonggi-valley": {
     Layout: (props) => (
       <NarrativeLayout

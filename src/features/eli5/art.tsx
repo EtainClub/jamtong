@@ -1022,6 +1022,160 @@ function ValleyOpen() {
     </svg>
   );
 }
+
+/* ── 경기도 재난기본소득 ─────────────────────────────────────── */
+
+/** 소득을 가리지 않는다. 줄 선 사람들 크기가 제각각인데 받는 봉투는 모두 같다. */
+function BasicEveryone() {
+  const people = [
+    { x: 40, r: 13 }, { x: 92, r: 16 }, { x: 144, r: 11 },
+    { x: 196, r: 15 }, { x: 248, r: 12 }, { x: 292, r: 14 },
+  ] as const;
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="키가 제각각인 사람들이 모두 똑같은 크기의 봉투를 받는 모습">
+      {people.map((p) => (
+        <g key={p.x}>
+          <circle cx={p.x} cy={122 - p.r} r={p.r} fill="var(--navy)" opacity={0.85} />
+          <path d={`M${p.x - p.r - 3} 186 C${p.x - p.r} ${150 - p.r}, ${p.x + p.r} ${150 - p.r}, ${p.x + p.r + 3} 186 Z`}
+                fill="var(--navy)" opacity={0.85} />
+          <rect x={p.x - 13} y={150} width={26} height={17} rx={2}
+                fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={1.5} />
+          <text x={p.x} y={163} textAnchor="middle" fontSize={9} {...LABEL} fill="var(--navy)">10만</text>
+        </g>
+      ))}
+      <text x={160} y={216} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        소득을 가리지 않는다
+      </text>
+    </svg>
+  );
+}
+
+/** 현금이 아니라 경기도 안에서만 쓰는 카드. 지폐에 가위표, 카드에 동그라미. */
+function BasicLocalCard() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="현금 대신 경기도 안에서만 쓸 수 있는 지역화폐 카드로 지급했다는 그림">
+      {/* 현금 — 아니다 */}
+      <rect x={30} y={96} width={92} height={54} rx={5}
+            fill="var(--stone)" opacity={0.55} />
+      <path d="M40 104 L112 142 M112 104 L40 142"
+            stroke="var(--burgundy)" strokeWidth={4} strokeLinecap="round" />
+      <text x={76} y={172} textAnchor="middle" fontSize={12} fill="var(--ash)">현금</text>
+      {/* 카드 — 이것 */}
+      <rect x={186} y={92} width={104} height={62} rx={7} fill="var(--navy)" />
+      <rect x={196} y={108} width={22} height={16} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <path d="M196 140 H272" stroke="var(--eggshell)" strokeWidth={3} strokeLinecap="round" opacity={0.75} />
+      <circle cx={238} cy={123} r={44} fill="none" stroke="var(--navy)" strokeWidth={3} />
+      <text x={238} y={182} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">
+        경기지역화폐
+      </text>
+      <text x={160} y={216} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        도 안에서만 쓸 수 있다
+      </text>
+    </svg>
+  );
+}
+
+/** 기한. 모래시계가 거의 다 흘렀고 남은 잔액이 사라진다. */
+function BasicExpire() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="석 달이 지나면 남은 금액이 사라지는 것을 나타낸 모래시계">
+      <path d="M116 56 H204 L168 118 L204 180 H116 L152 118 Z"
+            fill="none" stroke="var(--graphite)" strokeWidth={3} strokeLinejoin="round" />
+      {/* 위쪽 남은 모래는 적고 아래쪽에 쌓였다 */}
+      <path d="M134 68 H186 L168 100 L152 100 Z" fill="var(--burgundy)" opacity={0.75} />
+      <path d="M126 170 H194 L168 132 L152 132 Z" fill="var(--navy)" opacity={0.6} />
+      <path d="M160 104 V128" stroke="var(--burgundy)" strokeWidth={2.5} strokeDasharray="3 4" />
+      <text x={252} y={106} textAnchor="middle" fontSize={26} {...LABEL} fill="var(--burgundy)">3</text>
+      <text x={252} y={128} textAnchor="middle" fontSize={13} fill="var(--ash)">개월</text>
+      <text x={160} y={214} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        안 쓰면 사라진다
+      </text>
+    </svg>
+  );
+}
+
+/** 큰 매장은 막히고 동네 가게로 흘러든다. */
+function BasicShops() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="대형마트에서는 쓸 수 없고 동네 가게와 시장으로 돈이 흘러가는 모습">
+      {/* 큰 매장 — 막힘 */}
+      <rect x={28} y={72} width={88} height={86} rx={4} fill="var(--stone)" opacity={0.6} />
+      <path d="M38 80 L106 150 M106 80 L38 150"
+            stroke="var(--burgundy)" strokeWidth={4} strokeLinecap="round" />
+      <text x={72} y={176} textAnchor="middle" fontSize={11} fill="var(--ash)">대형마트</text>
+      {/* 화살표가 동네 쪽으로 */}
+      <path d="M126 116 H176" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M168 108 L178 116 L168 124" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      {/* 동네 가게 셋 */}
+      {[196, 238, 280].map((x, i) => (
+        <g key={x}>
+          <rect x={x - 17} y={100 + i * 4} width={34} height={44} rx={3} fill="var(--navy)" opacity={0.85} />
+          <path d={`M${x - 21} ${100 + i * 4} H${x + 21} L${x} ${86 + i * 4} Z`} fill="var(--navy)" />
+        </g>
+      ))}
+      <text x={238} y={176} textAnchor="middle" fontSize={11} fill="var(--navy)">동네 가게</text>
+      <text x={160} y={214} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        돈이 동네에 남는다
+      </text>
+    </svg>
+  );
+}
+
+/** 세 번. 회차마다 봉투 크기와 사람 수가 다르다. */
+function BasicRounds() {
+  const rounds = [
+    { x: 58, label: "1차", w: 54, note: "전 도민" },
+    { x: 160, label: "2차", w: 54, note: "외국인까지" },
+    { x: 262, label: "3차", w: 28, note: "상위 12%" },
+  ] as const;
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="세 차례에 걸쳐 지급했고 세 번째는 대상이 훨씬 적었다는 그림">
+      {rounds.map((r, i) => (
+        <g key={r.label}>
+          <rect x={r.x - r.w / 2} y={96} width={r.w} height={58} rx={4}
+                fill={i === 2 ? "var(--burgundy)" : "var(--navy)"} opacity={0.85} />
+          <text x={r.x} y={84} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+            {r.label}
+          </text>
+          <text x={r.x} y={174} textAnchor="middle" fontSize={11} fill="var(--ash)">
+            {r.note}
+          </text>
+        </g>
+      ))}
+      <text x={160} y={214} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        세 번째는 대상이 달랐다
+      </text>
+    </svg>
+  );
+}
+
+/** 정부가 88%, 경기도가 나머지 12%. 한 줄 막대가 둘로 갈린다. */
+function BasicTop12() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="정부가 소득 하위 88퍼센트를, 경기도가 나머지 12퍼센트를 맡은 모습">
+      <rect x={24} y={104} width={236} height={40} rx={6} fill="var(--stone)" />
+      <rect x={260} y={104} width={36} height={40} rx={6} fill="var(--burgundy)" />
+      <text x={142} y={131} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--graphite)">
+        정부 88%
+      </text>
+      <text x={278} y={92} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">
+        12%
+      </text>
+      <path d="M278 96 V102" stroke="var(--burgundy)" strokeWidth={2} strokeLinecap="round" />
+      <text x={278} y={166} textAnchor="middle" fontSize={11} fill="var(--burgundy)">경기도</text>
+      <text x={160} y={206} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        빠지는 사람이 없도록
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -1078,4 +1232,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "valley-selfremove": ValleySelfRemove,
   "valley-force": ValleyForce,
   "valley-open": ValleyOpen,
+
+  "basic-everyone": BasicEveryone,
+  "basic-localcard": BasicLocalCard,
+  "basic-expire": BasicExpire,
+  "basic-shops": BasicShops,
+  "basic-rounds": BasicRounds,
+  "basic-top12": BasicTop12,
 };
