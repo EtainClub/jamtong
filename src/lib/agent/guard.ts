@@ -38,14 +38,25 @@ export type GuardVerdict =
   | { ok: true }
   | { ok: false; status: number; error: string; reason: string };
 
-/** 브라우저가 우리 페이지에서 부른 요청인지 본다. */
+/**
+ * 우리 페이지가 부른 요청인지 본다.
+ *
+ * host 헤더 하나만 보면 안 된다. App Hosting은 요청을 프록시로 넘기면서
+ * host를 내부 주소로 바꾸므로, 브라우저가 보낸 Origin과 절대 같아지지 않는다.
+ * 실제로 배포 직후 모든 질문이 403으로 막혔다.
+ *
+ * 그래서 허용 목록을 만든다 — 설정된 사이트 주소, 프록시가 넘겨준 원래 host,
+ * 그리고 host 자체. 앞의 둘이 jamtong.kr과 *.hosted.app을 각각 덮는다.
+ *
+ * x-forwarded-host는 클라이언트가 위조할 수 있지만, 이 겹이 막으려는 것은
+ * 다른 사이트에 심긴 스크립트다. 브라우저는 Origin을 제 맘대로 못 쓰고
+ * x-forwarded-host도 못 붙인다. 스크립트가 아닌 직접 호출은 나머지 세 겹이 맡는다.
+ */
 export function checkOrigin(request: Request): GuardVerdict {
   if (process.env.NODE_ENV !== "production") return { ok: true };
 
-  const host = request.headers.get("host");
   const source = request.headers.get("origin") ?? request.headers.get("referer");
-
-  if (!source || !host) {
+  if (!source) {
     return {
       ok: false,
       status: 403,
@@ -54,21 +65,39 @@ export function checkOrigin(request: Request): GuardVerdict {
     };
   }
 
+  const allowed = new Set<string>();
+  const add = (value: string | null | undefined) => {
+    const host = value?.split(",")[0]?.trim();
+    if (host) allowed.add(host);
+  };
+  add(request.headers.get("x-forwarded-host"));
+  add(request.headers.get("host"));
   try {
-    if (new URL(source).host !== host) {
-      return {
-        ok: false,
-        status: 403,
-        error: "이 요청은 처리할 수 없습니다.",
-        reason: `origin 불일치 (${new URL(source).host})`,
-      };
+    if (process.env.NEXT_PUBLIC_SITE_URL) {
+      add(new URL(process.env.NEXT_PUBLIC_SITE_URL).host);
     }
+  } catch {
+    // 잘못 적힌 사이트 주소 때문에 전체가 막히지는 않게 둔다.
+  }
+
+  let origin: string;
+  try {
+    origin = new URL(source).host;
   } catch {
     return {
       ok: false,
       status: 403,
       error: "이 요청은 처리할 수 없습니다.",
       reason: "origin 파싱 실패",
+    };
+  }
+
+  if (!allowed.has(origin)) {
+    return {
+      ok: false,
+      status: 403,
+      error: "이 요청은 처리할 수 없습니다.",
+      reason: `origin 불일치 (origin=${origin} 허용=${[...allowed].join(",") || "없음"})`,
     };
   }
 
