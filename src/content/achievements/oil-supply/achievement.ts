@@ -112,7 +112,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-os-01",
+      title: "중동 의존도를 낮춘 원유 수입처 다변화",
+      summary:
+        "중동에서 전쟁이 나는 동안 기대는 곳을 옮겼습니다. 다만 기름값이 싸진 것은 아닙니다.",
+      youtubeId: "5ZbvXM2VsBw",
+      claimIds: ["claim-share", "claim-freight", "claim-price"],
+      publishedAt: "2026-09-20",
+    },
+  ],
 
   eli5: {
     intro:

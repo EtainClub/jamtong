@@ -618,18 +618,25 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
   const SHORTS_LEDE =
     "이 업적을 1분 안에 전하는 영상입니다. 영상에서 말한 내용의 근거도 함께 있습니다.";
   const hasShorts = achievement.shorts.length > 0;
-  const shortsFrames = (
-    <ShortsSection shorts={achievement.shorts} claims={achievement.claims} />
-  );
 
+  /*
+   * 프레임은 두 곳에서 각자 만든다.
+   *
+   * 한 번 만들어 둔 엘리먼트를 두 껍데기에 같이 넣었더니 React가 키 경고를
+   * 냈다 — 엘리먼트는 값이 아니라 트리의 한 자리에 매인 것이어서, 같은
+   * 인스턴스가 두 자리에 놓이면 React가 그 자리를 배열의 한 칸으로 본다.
+   * 한쪽만 마운트되니 화면은 멀쩡했고, 그래서 쇼츠가 붙은 업적에서만 조용히
+   * 경고가 났다.
+   */
   const shortsFull = hasShorts ? (
     <Section scene="shorts" heading={SHORTS_HEADING} lede={SHORTS_LEDE} first>
-      {shortsFrames}
+      <ShortsSection shorts={achievement.shorts} claims={achievement.claims} />
     </Section>
   ) : null;
 
   const shortsEasy = hasShorts ? (
     <section
+      key="shorts-easy"
       data-scene="shorts"
       aria-labelledby="sec-shorts-easy"
       className="mt-8 scroll-mt-14 border-t border-stone pt-8"
@@ -638,7 +645,9 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
         {SHORTS_HEADING}
       </h2>
       <p className="mt-1.5 text-[13px] leading-relaxed text-smoke">{SHORTS_LEDE}</p>
-      <div className="mt-6">{shortsFrames}</div>
+      <div className="mt-6">
+        <ShortsSection shorts={achievement.shorts} claims={achievement.claims} />
+      </div>
     </section>
   ) : null;
 

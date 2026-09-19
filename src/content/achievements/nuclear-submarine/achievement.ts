@@ -59,7 +59,17 @@ const raw: AchievementInput = {
 
   scenes: [],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-ns-01",
+      title: "핵추진잠수함 건조 승인 · 28조 원 타임라인의 현실",
+      summary:
+        "승인은 받았고 계획도 나왔습니다. 다만 연료가 남았고 착공은 2031년 이후입니다.",
+      youtubeId: "ZaiI3PBuSWk",
+      claimIds: ["claim-approve", "claim-plan", "claim-fuel"],
+      publishedAt: "2026-09-20",
+    },
+  ],
 
   eli5: {
     intro:

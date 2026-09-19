@@ -48,10 +48,10 @@
 | 일산대교 무료화 | [gyeonggi-ilsan-bridge.md](gyeonggi-ilsan-bridge.md) | 등록됨 |
 | 검찰개혁 | [prosecution-reform.md](prosecution-reform.md) | 영상 없음 |
 | 사법개혁 3법 | [judicial-reform.md](judicial-reform.md) | 영상 없음 |
-| KTX·SRT 통합 | [rail-merger.md](rail-merger.md) | 영상 없음 |
-| 핵추진잠수함 건조 승인 | [nuclear-submarine.md](nuclear-submarine.md) | 영상 없음 |
+| KTX·SRT 통합 | [rail-merger.md](rail-merger.md) | 등록됨 |
+| 핵추진잠수함 건조 승인 | [nuclear-submarine.md](nuclear-submarine.md) | 등록됨 |
 | 핵심광물 공급망 외교 | [resource-diplomacy.md](resource-diplomacy.md) | 영상 없음 |
-| 원유 수입처 다변화 | [oil-supply.md](oil-supply.md) | 영상 없음 |
+| 원유 수입처 다변화 | [oil-supply.md](oil-supply.md) | 등록됨 |
 
 「등록됨」은 업적 파일의 `shorts[]`에 youtubeId가 들어간 것이다. 북극항로·대장동·
 주식시장은 대본을 거치지 않고 영상이 먼저 올라간 것이라 이 표에 없다.

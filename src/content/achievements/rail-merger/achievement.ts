@@ -88,7 +88,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-rm-01",
+      title: "KTX와 SRT가 한 회사가 된 날",
+      summary:
+        "같은 선로를 달리던 두 열차가 하나가 됐고, 운임은 싼 쪽에 맞춰졌습니다.",
+      youtubeId: "qBzbaxa4gMM",
+      claimIds: ["claim-merge", "claim-fare", "claim-seats"],
+      publishedAt: "2026-09-20",
+    },
+  ],
 
   eli5: {
     intro:
