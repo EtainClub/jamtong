@@ -396,6 +396,124 @@ function ExitGate() {
   );
 }
 
+/* ── 성남시 3대 무상복지 ──────────────────────────────────── */
+
+function UniformFree() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="교복 값을 시가 대신 냈다">
+      <g fill="var(--stone)" stroke="var(--ash)" strokeWidth={2}>
+        <path d="M108 66 L134 56 L160 66 L160 150 L108 150 Z" />
+        <path d="M172 66 L198 56 L224 66 L224 150 L172 150 Z" />
+      </g>
+      <path d="M134 56 L140 76 L128 76 Z" fill="var(--navy)" />
+      <path d="M198 56 L204 76 L192 76 Z" fill="var(--burgundy)" />
+      <rect x={90} y={168} width={140} height={38} rx={19} fill="var(--navy)" />
+      <text x={160} y={194} textAnchor="middle" fontSize={17} fontWeight={800} fill="var(--canvas)">무상</text>
+      <text x={160} y={38} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">중·고 신입생 교복</text>
+      <text x={160} y={228} textAnchor="middle" fontSize={12} fill="var(--ash)">1인당 30만 원 상당</text>
+    </svg>
+  );
+}
+
+function PostpartumFree() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="아기를 낳은 뒤 산후조리 비용을 시가 보탰다">
+      <rect x={58} y={112} width={204} height={62} rx={18} fill="var(--stone)" />
+      <rect x={58} y={104} width={204} height={22} rx={11} fill="var(--navy-tint)" />
+      <circle cx={104} cy={96} r={22} fill="var(--taupe)" stroke="var(--ash)" strokeWidth={2} />
+      <circle cx={196} cy={132} r={15} fill="var(--navy-tint)" stroke="var(--navy)" strokeWidth={2} />
+      <text x={160} y={62} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">산후조리 지원</text>
+      <text x={160} y={210} textAnchor="middle" fontSize={13} fontWeight={700} fill="var(--navy)">2016년 1월 7일 첫 지원</text>
+    </svg>
+  );
+}
+
+function YouthDividend() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="스물네 살이면 소득을 따지지 않고 연 100만 원을 지역화폐로 받았다">
+      <text x={160} y={52} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">만 24세라면 누구나</text>
+      <g>
+        {[0, 1, 2, 3].map((i) => (
+          <g key={i} transform={`translate(${46 + i * 62} 92)`}>
+            <rect width={48} height={32} rx={8} fill="var(--navy)" />
+            <text x={24} y={22} textAnchor="middle" fontSize={13} fontWeight={800} fill="var(--canvas)"
+                  style={{ fontVariantNumeric: "tabular-nums" }}>25</text>
+          </g>
+        ))}
+      </g>
+      <text x={160} y={152} textAnchor="middle" fontSize={12} fill="var(--ash)">분기마다 25만 원씩</text>
+      <text x={160} y={196} textAnchor="middle" fontSize={30} fontWeight={900} fill="var(--navy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>100만 원</text>
+      <text x={160} y={222} textAnchor="middle" fontSize={12} fill="var(--ash)">지역에서만 쓰는 상품권으로</text>
+    </svg>
+  );
+}
+
+function ThreeTogether() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="세 사업이 한 예산안에 함께 담겼다">
+      <rect x={30} y={54} width={260} height={132} rx={20} fill="none"
+            stroke="var(--navy)" strokeWidth={2.5} strokeDasharray="9 7" />
+      <text x={160} y={38} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">2016년 예산안 하나에</text>
+      <g>
+        <rect x={50} y={84} width={72} height={72} rx={14} fill="var(--navy)" />
+        <text x={86} y={116} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--canvas)">청년</text>
+        <text x={86} y={134} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--canvas)">배당</text>
+        <rect x={130} y={84} width={60} height={72} rx={14} fill="var(--stone)" />
+        <text x={160} y={116} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">산후</text>
+        <text x={160} y={134} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">조리</text>
+        <rect x={198} y={84} width={52} height={72} rx={14} fill="var(--taupe)" />
+        <text x={224} y={116} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">무상</text>
+        <text x={224} y={134} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">교복</text>
+      </g>
+      <text x={160} y={214} textAnchor="middle" fontSize={26} fontWeight={900} fill="var(--navy)"
+            style={{ fontVariantNumeric: "tabular-nums" }}>194억 원</text>
+    </svg>
+  );
+}
+
+function GovBlock() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="정부가 협의 절차를 지키지 않았다며 제동을 걸었다">
+      <rect x={22} y={90} width={94} height={62} rx={14} fill="var(--navy)" />
+      <text x={69} y={118} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--canvas)">성남시</text>
+      <text x={69} y={138} textAnchor="middle" fontSize={11} fill="var(--navy-tint)">세 가지 시행</text>
+      <path d="M126 121 H176" stroke="var(--ash)" strokeWidth={3.5} strokeLinecap="round" />
+      <g stroke="var(--burgundy)" strokeWidth={6} strokeLinecap="round">
+        <path d="M140 100 L162 142" />
+        <path d="M162 100 L140 142" />
+      </g>
+      <rect x={196} y={90} width={102} height={62} rx={14} fill="var(--burgundy-tint)"
+            stroke="var(--burgundy)" strokeWidth={2} />
+      <text x={247} y={116} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">정부</text>
+      <text x={247} y={136} textAnchor="middle" fontSize={11} fill="var(--burgundy)">먼저 의논했어야</text>
+      <text x={160} y={200} textAnchor="middle" fontSize={13} fontWeight={700} fill="var(--burgundy)">2016년 1월, 대법원으로</text>
+    </svg>
+  );
+}
+
+function CaseDropped() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="법원 판단이 나오기 전에 소송이 취하됐다">
+      <rect x={96} y={54} width={128} height={86} rx={16} fill="var(--taupe)"
+            stroke="var(--stone)" strokeWidth={2} />
+      <path d="M116 54 H204 L216 34 H104 Z" fill="var(--stone)" />
+      <text x={160} y={106} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--graphite)">대법원</text>
+      <g stroke="var(--ash)" strokeWidth={3} strokeLinecap="round" strokeDasharray="8 7">
+        <path d="M160 148 V186" />
+      </g>
+      <text x={160} y={210} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ash)">판단 전에 소를 거둠</text>
+      <text x={160} y={232} textAnchor="middle" fontSize={12} fill="var(--ash)">2018년 7월 2일</text>
+    </svg>
+  );
+}
+
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -417,4 +535,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "share-premium": SharePremium,
   penalty: Penalty,
   "exit-gate": ExitGate,
+
+  "uniform-free": UniformFree,
+  "postpartum-free": PostpartumFree,
+  "youth-dividend": YouthDividend,
+  "three-together": ThreeTogether,
+  "gov-block": GovBlock,
+  "case-dropped": CaseDropped,
 };

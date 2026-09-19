@@ -21,6 +21,7 @@ import { UrlSyncBoundary } from "@/features/achievement/UrlSyncBoundary";
 import { ArcticRouteLayout } from "@/features/achievement/layouts/ArcticRouteLayout";
 import { DaejangdongLayout } from "@/features/achievement/layouts/DaejangdongLayout";
 import { StockMarketLayout } from "@/features/achievement/layouts/StockMarketLayout";
+import { SeongnamWelfareLayout } from "@/features/achievement/layouts/SeongnamWelfareLayout";
 
 /**
  * 스토리 페이지 = 공통 골격 + 스토리별 레이아웃 분기.
@@ -60,6 +61,18 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "공공이 가져간 게 뭔가요?",
       "민간개발이었으면 어떻게 달랐나요?",
       "2014년에 무슨 결정이 있었나요?",
+    ],
+  },
+  "seongnam-welfare": {
+    Layout: SeongnamWelfareLayout,
+    heroHighlights: [
+      { claimId: "claim-three", label: "세 가지를 묶어서" },
+      { claimId: "claim-withdraw", label: "결론 없이 취하" },
+    ],
+    askSuggestions: [
+      "무엇을 공짜로 해줬나요?",
+      "정부는 왜 막았나요?",
+      "소송은 어떻게 끝났나요?",
     ],
   },
   "stock-market": {

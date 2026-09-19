@@ -116,7 +116,7 @@ export function MoneyFlow({ flow, claims }: Props) {
         viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
         className="mt-6 w-full h-auto"
         role="img"
-        aria-label={`${scenario.name}. ${flow.sourceLabel}에서 ${geometry.total.toLocaleString("ko-KR")}${flow.unitLabel}이 공공으로 환수된다.`}
+        aria-label={`${scenario.name}. ${flow.sourceLabel}에서 ${flow.totalLabel} ${geometry.total.toLocaleString("ko-KR")}${flow.unitLabel}.`}
       >
         <defs>
           <linearGradient id="flow-public" x1="0" y1="0" x2="1" y2="0">
@@ -220,7 +220,7 @@ export function MoneyFlow({ flow, claims }: Props) {
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-stone bg-taupe px-5 py-4">
         <span className="text-sm text-smoke">
-          {scenario.isActual ? "공공 환수 합계" : "이 경로에서 공공 환수"}
+          {scenario.isActual ? flow.totalLabel : `이 경로에서 ${flow.totalLabel}`}
         </span>
         <span className="tabular text-2xl font-light tracking-[-0.02em] text-ink">
           {geometry.total.toLocaleString("ko-KR")}

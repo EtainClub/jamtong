@@ -2,6 +2,7 @@ import type { Achievement } from "@/content/schema";
 import { arcticRoute } from "./arctic-route/achievement";
 import { daejangdong } from "./daejangdong/achievement";
 import { stockMarket } from "./stock-market/achievement";
+import { seongnamWelfare } from "./seongnam-welfare/achievement";
 
 /**
  * 업적 레지스트리.
@@ -9,7 +10,12 @@ import { stockMarket } from "./stock-market/achievement";
  * 콘텐츠가 저장소에 있으므로 목록도 빌드 타임 상수다.
  * 검색·피드·정적 경로가 전부 이걸 본다.
  */
-export const ACHIEVEMENTS: Achievement[] = [arcticRoute, daejangdong, stockMarket];
+export const ACHIEVEMENTS: Achievement[] = [
+  arcticRoute,
+  daejangdong,
+  stockMarket,
+  seongnamWelfare,
+];
 
 export function getAchievement(slug: string): Achievement | undefined {
   return ACHIEVEMENTS.find((achievement) => achievement.slug === slug);

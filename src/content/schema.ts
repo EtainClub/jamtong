@@ -172,6 +172,11 @@ export type FlowScenario = z.infer<typeof flowScenarioSchema>;
 export const moneyFlowSchema = z.object({
   sourceLabel: z.string(),
   unitLabel: z.string().default("억 원"),
+  /**
+   * 합계 줄에 적을 말. 이 씬이 '환수'만 그리는 게 아니다 —
+   * 예산이 갈라지는 것도 같은 모양이다. 무엇의 합계인지는 콘텐츠가 말한다.
+   */
+  totalLabel: z.string().default("공공 환수 합계"),
   scenarios: z.array(flowScenarioSchema).min(1),
   /** 비교의 전제. 숨기면 오도가 된다. */
   note: z.string().optional(),
@@ -242,6 +247,12 @@ export const achievementSchema = z.object({
    * 검증 전 골격이 실수로 공개되는 경로를 아예 없앤다.
    */
   publishStatus: z.enum(["draft", "published"]).default("draft"),
+  /**
+   * 왜 아직 초안인지. 미검증이 0인데도 draft로 남는 경우가 있다 —
+   * 근거는 다 붙었지만 자료의 무게가 고르지 않을 때다. 그 사정은 업적마다
+   * 다르므로 코드가 아니라 콘텐츠가 말한다.
+   */
+  draftReason: z.string().optional(),
   /** 스토리 전용 개념. 종류마다 데이터가 다르고, 전부 claimIds를 갖는다. */
   scenes: z.lazy(() => z.array(sceneSchema)).default([]),
   keyNumbers: z.array(keyNumberSchema).default([]),
@@ -618,6 +629,13 @@ export const Eli5Art = z.enum([
   "share-premium",
   "penalty",
   "exit-gate",
+
+  "uniform-free",
+  "postpartum-free",
+  "youth-dividend",
+  "three-together",
+  "gov-block",
+  "case-dropped",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

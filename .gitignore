@@ -32,3 +32,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .claude/
+
+# 자료 조사용 스캔·촬영본. 남의 책을 찍은 사진이므로 공개 저장소에 올리지 않는다.
+# 여기서 뽑아낸 것은 '무엇을 찾아볼지'의 목록이고, 인용은 1차 자료로만 한다.
+/refs/
+.refs-preview/
