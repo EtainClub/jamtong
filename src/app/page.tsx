@@ -19,7 +19,14 @@ import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 const TONES = ["ice", "warm", "deep"] as const;
 
 export default function Home() {
-  const stories = getPublishedAchievements();
+  const published = getPublishedAchievements();
+  /*
+   * 히어로에는 콘텐츠가 featured로 표시한 것만 세운다. 열여섯 장을 스와이프로
+   * 넘기게 할 수 없고, 화면이 임의로 고르면 "왜 이것들인가"에 답할 수 없다.
+   * 하나도 표시되지 않은 경우에만 앞에서 다섯을 세운다 — 첫 화면이 비면 안 된다.
+   */
+  const featured = published.filter((a) => a.featured);
+  const stories = featured.length > 0 ? featured : published.slice(0, 5);
 
   const errors = validateMilestones({
     milestones: MILESTONES,
@@ -65,6 +72,7 @@ export default function Home() {
    * 세부 성과는 그 아래에 소속을 밝혀 따로 둔다.
    */
   const slides = achievementSlides;
+  const totalPublished = published.length;
 
   const topics = MILESTONES.filter((a) => a.status !== "planned");
 
@@ -77,6 +85,7 @@ export default function Home() {
           slides={slides}
           achievements={ACHIEVEMENT_CARDS}
           topics={topics}
+          totalPublished={totalPublished}
 
           claims={ALL_CLAIMS}
         />

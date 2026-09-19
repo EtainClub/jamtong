@@ -27,6 +27,7 @@ const raw: AchievementInput = {
     "성남시는 3년 6개월 만에 7,285억 원을 모두 정리했고, 2018년 1월에는 일반회계 채무까지 갚았다.",
   type: "event",
   publishStatus: "published",
+  featured: true,
   sourceNote:
     "채무 제로는 성남시 시정소식지로 확인했습니다. 다만 모라토리엄 선언과 졸업은 " +
     "성남시가 기자회견으로 밝힌 내용이라 당시 보도로 받쳤습니다. 연도별 채무 잔액을 " +

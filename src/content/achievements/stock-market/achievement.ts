@@ -34,6 +34,7 @@ const raw: AchievementInput = {
     "지수는 크게 올랐다가 2026년 7월 이후 되밀렸다. 오른 구간과 내린 구간을 함께 본다.",
   type: "event",
   publishStatus: "published",
+  featured: true,
 
   scenes: [
     {

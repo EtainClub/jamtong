@@ -41,6 +41,7 @@ const raw: AchievementInput = {
     "전체 917,068.8㎡ 가운데 공공용지는 53.5%다.",
   type: "event",
   publishStatus: "published",
+  featured: true,
   sourceNote:
     "모든 주장에 근거가 붙었지만 자료의 무게가 고르지 않습니다. 면적과 절차는 " +
     "공공기관이 낸 1차 자료인데, 금액은 공개된 공식 자료가 없어 보도에 기대고 있습니다.",

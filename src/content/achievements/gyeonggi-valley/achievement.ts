@@ -36,6 +36,7 @@ const raw: AchievementInput = {
     "영업주가 스스로 뜯은 것이고, 행정대집행은 49곳이었다.",
   type: "event",
   publishStatus: "published",
+  featured: true,
   sourceNote:
     "시점별 수치는 경기도 보도자료와 경기도 발표를 옮긴 보도로 확인했습니다. " +
     "다만 행정대집행 건수는 발표 시점에 따라 다르게 알려진 적이 있어, 여기서는 " +

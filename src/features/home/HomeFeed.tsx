@@ -59,12 +59,15 @@ export function HomeFeed({
   slides,
   achievements,
   topics,
+  totalPublished,
 
   claims,
 }: {
   slides: HeroSlide[];
   achievements: AchievementCardData[];
   topics: Milestone[];
+  /** 공개된 업적 전체 수. 히어로가 몇 건 중 몇 건인지 밝히는 데 쓴다. */
+  totalPublished: number;
 
   claims: Claim[];
 }) {
@@ -127,7 +130,7 @@ export function HomeFeed({
       ) : (
         <>
 
-      <HeroCarousel slides={slides} />
+      <HeroCarousel slides={slides} total={totalPublished} />
 
       <section aria-labelledby="home-achievements" className="mt-9">
         <div className="flex items-baseline justify-between gap-3">
@@ -361,7 +364,7 @@ function SearchResults({ query, index }: { query: string; index: SearchEntry[] |
   );
 }
 
-function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
+function HeroCarousel({ slides, total }: { slides: HeroSlide[]; total: number }) {
   const { ref, index, canPrev, canNext, onScroll, page, toIndex } =
     useScroller<HTMLUListElement>();
 
@@ -408,6 +411,18 @@ function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
           </div>
         </>
       )}
+      {/*
+       * 무엇을 세웠는지 적는다. 몇 건 중 몇 건인지 밝히지 않으면 전부인 줄 알거나
+       * 무언가를 감춘 것으로 읽힌다. 바로 아래 줄에 전체가 있다.
+       */}
+      <p className="mt-4 flex items-baseline justify-between gap-3 text-[12px] text-ash">
+        <span>
+          대표 업적 <span className="tabular">{slides.length}</span>건
+        </span>
+        <Link href="/explore" className="font-medium text-navy">
+          전체 <span className="tabular">{total}</span>건 보기
+        </Link>
+      </p>
     </section>
   );
 }

@@ -28,6 +28,7 @@ const raw: AchievementInput = {
     "배를 직접 움직여 두 항로가 어떻게 다른지 확인해 보라.",
   type: "achievement",
   publishStatus: "published",
+  featured: true,
 
   scenes: [
     {
