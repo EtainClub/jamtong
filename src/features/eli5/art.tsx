@@ -2576,6 +2576,378 @@ function RailOneApp() {
   );
 }
 
+/* ── 핵추진잠수함 ────────────────────────────────────────────── */
+
+/** 마주 앉은 두 자리와, 한쪽이 건넨 요청. */
+function SubAsk() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="마주 앉은 두 자리 사이에 요청이 오가는 모습">
+      <rect x={60} y={116} width={200} height={12} rx={4} fill="var(--stone)" />
+      <rect x={34} y={74} width={54} height={42} rx={8} fill="var(--navy)" />
+      <text x={61} y={150} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">한국</text>
+      <rect x={232} y={74} width={54} height={42} rx={8} fill="var(--graphite)" />
+      <text x={259} y={150} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">미국</text>
+      <path d="M100 95 H214" stroke="var(--burgundy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M206 87 L216 95 L206 103" fill="none" stroke="var(--burgundy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={74} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">
+        연료를 달라
+      </text>
+      <text x={160} y={192} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        2025년 10월 29일 · 경주
+      </text>
+      <text x={160} y={214} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        한미 정상회담
+      </text>
+    </svg>
+  );
+}
+
+/** 승인 도장이 찍힌 문서. */
+function SubApprove() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="승인이 적힌 공동 문서">
+      <rect x={86} y={46} width={148} height={132} rx={8}
+            fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2.5} />
+      <rect x={104} y={68} width={112} height={8} rx={3} fill="var(--stone)" />
+      <rect x={104} y={86} width={112} height={8} rx={3} fill="var(--stone)" />
+      <rect x={104} y={104} width={74} height={8} rx={3} fill="var(--stone)" />
+      <circle cx={196} cy={140} r={26} fill="none" stroke="var(--burgundy)" strokeWidth={3} />
+      <path d="M184 140 L193 149 L210 131" fill="none" stroke="var(--burgundy)"
+            strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={200} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        2025년 11월 14일
+      </text>
+      <text x={160} y={222} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        한미 공동 팩트시트
+      </text>
+    </svg>
+  );
+}
+
+/** 어디서 지을 것인가 — 두 조선소 중 한쪽. */
+function SubWhere() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="미국 조선소와 한국 조선소 가운데 한국이 선택된 모습">
+      <g opacity={0.4}>
+        <rect x={26} y={72} width={104} height={72} rx={8}
+              fill="none" stroke="var(--graphite)" strokeWidth={2.5} />
+        <path d="M44 128 H112 L102 112 H54 Z" fill="var(--graphite)" />
+        <text x={78} y={164} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">미국 조선소</text>
+        <path d="M40 86 L116 130 M116 86 L40 130" stroke="var(--graphite)"
+              strokeWidth={2.5} strokeLinecap="round" />
+      </g>
+      <rect x={190} y={64} width={104} height={80} rx={8}
+            fill="none" stroke="var(--navy)" strokeWidth={3} />
+      <path d="M208 128 H276 L266 108 H218 Z" fill="var(--navy)" />
+      <text x={242} y={164} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">국내 조선소</text>
+      <text x={160} y={198} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        정부: 한국에서 짓는다
+      </text>
+      <text x={160} y={220} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        2026년 5월 26일 기본계획
+      </text>
+    </svg>
+  );
+}
+
+/** 아직 잠긴 문 — 연료. */
+function SubFuel() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="연료라고 적힌 아직 잠긴 문">
+      <rect x={106} y={48} width={108} height={124} rx={6}
+            fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={3} />
+      <circle cx={192} cy={112} r={4} fill="var(--graphite)" />
+      <rect x={140} y={92} width={40} height={30} rx={4}
+            fill="none" stroke="var(--burgundy)" strokeWidth={3} />
+      <path d="M148 92 V82 a12 12 0 0 1 24 0 V92" fill="none"
+            stroke="var(--burgundy)" strokeWidth={3} strokeLinecap="round" />
+      <text x={160} y={200} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">
+        연료는 아직
+      </text>
+      <text x={160} y={222} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        협정 개정 · 미 의회 동의가 남았다
+      </text>
+    </svg>
+  );
+}
+
+/** 연도 눈금 — 아직 멀다. */
+function SubYears() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="2025년 승인부터 2030년대 후반 전력화까지의 연도 눈금">
+      <path d="M26 128 H294" stroke="var(--stone)" strokeWidth={4} strokeLinecap="round" />
+      <path d="M26 128 H92" stroke="var(--navy)" strokeWidth={4} strokeLinecap="round" />
+      <circle cx={26} cy={128} r={8} fill="var(--navy)" />
+      <text x={26} y={106} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--navy)">2025</text>
+      <text x={26} y={154} textAnchor="middle" fontSize={10} fill="var(--ash)">승인</text>
+      <circle cx={92} cy={128} r={8} fill="var(--navy)" />
+      <text x={92} y={106} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--navy)">2026</text>
+      <text x={92} y={154} textAnchor="middle" fontSize={10} fill="var(--ash)">기본계획</text>
+      <circle cx={186} cy={128} r={7} fill="none" stroke="var(--graphite)" strokeWidth={2.5} />
+      <text x={186} y={106} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--graphite)">2031</text>
+      <text x={186} y={154} textAnchor="middle" fontSize={10} fill="var(--ash)">착공</text>
+      <circle cx={288} cy={128} r={7} fill="none" stroke="var(--graphite)" strokeWidth={2.5} />
+      <text x={286} y={106} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--graphite)">30년대</text>
+      <text x={286} y={154} textAnchor="middle" fontSize={10} fill="var(--ash)">전력화</text>
+      <text x={160} y={196} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        여기까지 왔다
+      </text>
+      <text x={160} y={218} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        배는 아직 한 척도 없다
+      </text>
+    </svg>
+  );
+}
+
+/* ── 자원 외교 ────────────────────────────────────────────────── */
+
+/** 리튬 — 소금 호수에서 배터리로. */
+function MinLithium() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="소금호수의 리튬이 배터리로 이어지는 모습">
+      <rect x={24} y={76} width={106} height={72} rx={6} fill="var(--navy)" opacity={0.22} />
+      <path d="M24 112 H130 M24 130 H130 M24 94 H130" stroke="var(--navy)"
+            strokeWidth={2} opacity={0.4} strokeLinecap="round" />
+      <text x={77} y={168} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">소금호수</text>
+      <path d="M146 112 H176" stroke="var(--graphite)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M168 104 L178 112 L168 120" fill="none" stroke="var(--graphite)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <rect x={198} y={80} width={72} height={64} rx={6} fill="var(--navy)" />
+      <rect x={224} y={70} width={20} height={10} rx={3} fill="var(--navy)" />
+      <path d="M226 100 L246 100 L232 116 L250 116 L222 138 L232 118 L216 118 Z" fill="var(--eggshell)" />
+      <text x={234} y={168} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">배터리</text>
+      <text x={160} y={208} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        아르헨티나 · 매장량 세계 4위
+      </text>
+    </svg>
+  );
+}
+
+/** 여러 곳에서 오는 화살표. */
+function MinMap() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="여러 나라에서 한국으로 자원이 들어오는 모습">
+      <circle cx={160} cy={128} r={26} fill="var(--navy)" />
+      <text x={160} y={133} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">한국</text>
+      {[
+        { x: 38, y: 62, label: "중앙아" },
+        { x: 282, y: 62, label: "남미" },
+        { x: 38, y: 196, label: "호주" },
+        { x: 282, y: 196, label: "아프리카" },
+      ].map((n) => (
+        <g key={n.label}>
+          <circle cx={n.x} cy={n.y} r={13} fill="none" stroke="var(--graphite)" strokeWidth={2.5} />
+          <text x={n.x} y={n.y > 128 ? n.y + 30 : n.y - 22} textAnchor="middle"
+                fontSize={11} {...LABEL} fill="var(--graphite)">{n.label}</text>
+          <path
+            d={`M${n.x + (n.x < 160 ? 15 : -15)} ${n.y + (n.y < 128 ? 9 : -9)} L${
+              160 + (n.x < 160 ? -26 : 26) * 0.7
+            } ${128 + (n.y < 128 ? -26 : 26) * 0.7}`}
+            stroke="var(--navy)" strokeWidth={2.5} strokeLinecap="round" opacity={0.65} />
+        </g>
+      ))}
+      <text x={160} y={30} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        한 곳에 기대지 않기
+      </text>
+    </svg>
+  );
+}
+
+/** 74장의 합의문. */
+function MinPapers() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="쌓인 합의문 뭉치">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <rect key={i} x={92 + i * 5} y={54 + i * 9} width={128} height={86} rx={6}
+              fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2}
+              opacity={0.35 + i * 0.16} />
+      ))}
+      <rect x={112} y={108} width={92} height={7} rx={3} fill="var(--stone)" />
+      <rect x={112} y={124} width={92} height={7} rx={3} fill="var(--stone)" />
+      <rect x={112} y={140} width={58} height={7} rx={3} fill="var(--stone)" />
+      <text x={160} y={196} textAnchor="middle" fontSize={21} {...LABEL} fill="var(--navy)">74건</text>
+      <text x={160} y={220} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        협정과 양해각서를 합한 수
+      </text>
+    </svg>
+  );
+}
+
+/** 합의문 가운데 계약이 된 몫. */
+function MinContract() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="과거 자원외교에서 합의 96건 가운데 16건만 계약이 된 것을 나타낸 그림">
+      {Array.from({ length: 96 }, (_, i) => {
+        const x = 34 + (i % 16) * 17;
+        const y = 66 + Math.floor(i / 16) * 17;
+        const signed = i < 16;
+        return (
+          <rect key={i} x={x} y={y} width={11} height={11} rx={2}
+                fill={signed ? "var(--navy)" : "var(--stone)"} opacity={signed ? 1 : 0.85} />
+        );
+      })}
+      <text x={160} y={198} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        예전에는 96건 중 16건
+      </text>
+      <text x={160} y={220} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        나머지는 계약까지 가지 못했다
+      </text>
+    </svg>
+  );
+}
+
+/** 원유를 싣고 오는 배. */
+function MinOilShip() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="원유를 싣고 오는 유조선">
+      <path d="M44 148 H262 L238 186 H68 Z" fill="var(--navy)" />
+      <rect x={90} y={112} width={120} height={36} rx={4} fill="var(--navy)" opacity={0.75} />
+      <circle cx={116} cy={130} r={7} fill="var(--eggshell)" opacity={0.75} />
+      <circle cx={150} cy={130} r={7} fill="var(--eggshell)" opacity={0.75} />
+      <circle cx={184} cy={130} r={7} fill="var(--eggshell)" opacity={0.75} />
+      <path d="M20 200 H300" stroke="var(--navy)" strokeWidth={3}
+            strokeLinecap="round" opacity={0.4} />
+      <path d="M36 210 H140 M180 210 H284" stroke="var(--navy)" strokeWidth={3}
+            strokeLinecap="round" opacity={0.25} />
+      <text x={160} y={90} textAnchor="middle" fontSize={20} {...LABEL} fill="var(--navy)">88만 배럴</text>
+      <text x={160} y={64} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        아르헨티나 원유 · 시범 도입
+      </text>
+    </svg>
+  );
+}
+
+/* ── 원유 수급 ────────────────────────────────────────────────── */
+
+/** 한 곳에서만 오는 배들. */
+function OilMideast() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="원유가 중동 한 곳에서만 들어오던 모습">
+      <rect x={20} y={80} width={70} height={80} rx={8}
+            fill="var(--burgundy)" opacity={0.85} />
+      <text x={55} y={126} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">중동</text>
+      <circle cx={264} cy={120} r={26} fill="var(--navy)" />
+      <text x={264} y={125} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">한국</text>
+      {[104, 120, 136].map((y) => (
+        <g key={y}>
+          <path d={`M96 ${y} H228`} stroke="var(--burgundy)" strokeWidth={3} strokeLinecap="round" />
+          <path d={`M220 ${y - 7} L230 ${y} L220 ${y + 7}`} fill="none"
+                stroke="var(--burgundy)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+      ))}
+      <text x={160} y={196} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">
+        원유의 대부분이 한 곳에서
+      </text>
+    </svg>
+  );
+}
+
+/** 여러 곳에서 오는 배들. */
+function OilSpread() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="원유 수입처가 여러 나라로 나뉜 모습">
+      <circle cx={264} cy={120} r={26} fill="var(--navy)" />
+      <text x={264} y={125} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">한국</text>
+      {[
+        { y: 58, label: "미국", tone: "var(--navy)" },
+        { y: 96, label: "중동", tone: "var(--burgundy)" },
+        { y: 134, label: "호주", tone: "var(--navy)" },
+        { y: 172, label: "남미", tone: "var(--navy)" },
+      ].map((n) => (
+        <g key={n.label}>
+          <rect x={20} y={n.y - 16} width={62} height={32} rx={6} fill={n.tone} opacity={0.85} />
+          <text x={51} y={n.y + 5} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">{n.label}</text>
+          <path d={`M92 ${n.y} Q170 ${n.y} 236 ${120 + (n.y - 120) * 0.18}`}
+                fill="none" stroke={n.tone} strokeWidth={2.5} strokeLinecap="round" opacity={0.7} />
+        </g>
+      ))}
+      <text x={160} y={222} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        미국 · 호주 · 알제리 등으로 넓혔다
+      </text>
+    </svg>
+  );
+}
+
+/** 먼 길에 붙는 운임 차액. */
+function OilFreight() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="먼 항로의 운임 차액을 정부가 메워 주는 모습">
+      <circle cx={40} cy={110} r={12} fill="var(--graphite)" opacity={0.7} />
+      <circle cx={280} cy={110} r={12} fill="var(--navy)" />
+      <path d="M54 110 Q160 62 266 110" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeDasharray="8 7" />
+      <text x={160} y={56} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        비중동에서 오는 먼 길
+      </text>
+      <rect x={104} y={134} width={112} height={44} rx={8} fill="var(--navy)" opacity={0.14} />
+      <text x={160} y={154} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">운임 차액</text>
+      <text x={160} y={172} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">정부가 전액</text>
+      <text x={160} y={212} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        멀어서 비싼 만큼을 메운다
+      </text>
+    </svg>
+  );
+}
+
+/** 비축유를 먼저 빌려주고 되받는다. */
+function OilSwap() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="정부 비축유를 정유사에 먼저 빌려주고 같은 양을 돌려받는 모습">
+      <rect x={26} y={74} width={84} height={88} rx={8} fill="var(--navy)" opacity={0.85} />
+      <text x={68} y={182} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">정부 비축유</text>
+      <rect x={210} y={74} width={84} height={88} rx={8}
+            fill="none" stroke="var(--graphite)" strokeWidth={2.5} />
+      <text x={252} y={182} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">정유사</text>
+      <path d="M122 98 H198" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M190 90 L200 98 L190 106" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={86} textAnchor="middle" fontSize={11} fill="var(--ash)">먼저 준다</text>
+      <path d="M198 138 H122" stroke="var(--graphite)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M130 130 L120 138 L130 146" fill="none" stroke="var(--graphite)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={160} textAnchor="middle" fontSize={11} fill="var(--ash)">같은 양을 돌려받는다</text>
+      <text x={160} y={216} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        비축유 스와프
+      </text>
+    </svg>
+  );
+}
+
+/** 값에 씌운 천장. */
+function OilCap() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="국제 유가는 오르는데 국내 공급가에 상한을 씌운 모습">
+      <path d="M30 176 L82 152 L134 124 L186 92 L238 66 L288 44"
+            fill="none" stroke="var(--burgundy)" strokeWidth={3} strokeLinecap="round" />
+      <text x={286} y={34} textAnchor="end" fontSize={12} {...LABEL} fill="var(--burgundy)">국제 유가</text>
+      <path d="M26 118 H294" stroke="var(--navy)" strokeWidth={3.5}
+            strokeLinecap="round" strokeDasharray="10 7" />
+      <text x={30} y={108} fontSize={12} {...LABEL} fill="var(--navy)">최고가격 1,784원</text>
+      <path d="M30 176 L82 168 L134 158 L186 150 L238 144 L288 140"
+            fill="none" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <text x={286} y={162} textAnchor="end" fontSize={12} {...LABEL} fill="var(--navy)">국내 공급가</text>
+      <text x={160} y={216} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        정유사가 주유소에 넘기는 값에 씌운 상한
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -2704,4 +3076,19 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "rail-fare": RailFare,
   "rail-seats": RailSeats,
   "rail-oneapp": RailOneApp,
+  "sub-ask": SubAsk,
+  "sub-approve": SubApprove,
+  "sub-where": SubWhere,
+  "sub-fuel": SubFuel,
+  "sub-years": SubYears,
+  "min-lithium": MinLithium,
+  "min-map": MinMap,
+  "min-papers": MinPapers,
+  "min-contract": MinContract,
+  "min-oil-ship": MinOilShip,
+  "oil-mideast": OilMideast,
+  "oil-spread": OilSpread,
+  "oil-freight": OilFreight,
+  "oil-swap": OilSwap,
+  "oil-cap": OilCap,
 };

@@ -781,6 +781,21 @@ export const Eli5Art = z.enum([
   "rail-fare",
   "rail-seats",
   "rail-oneapp",
+  "sub-ask",
+  "sub-approve",
+  "sub-where",
+  "sub-fuel",
+  "sub-years",
+  "min-lithium",
+  "min-map",
+  "min-papers",
+  "min-contract",
+  "min-oil-ship",
+  "oil-mideast",
+  "oil-spread",
+  "oil-freight",
+  "oil-swap",
+  "oil-cap",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

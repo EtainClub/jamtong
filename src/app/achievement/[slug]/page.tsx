@@ -254,6 +254,87 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "몇 명을 조사했나요?",
     ],
   },
+  "nuclear-submarine": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "열린 문과 아직 잠긴 문",
+          timelineLede:
+            "시점을 옮기면 그때까지 무엇이 정해졌는지가 나타납니다. 마지막 두 시점은 아직 진행 중입니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "2026년 9월 19일 기준입니다. 확정 예산이 아니라 사업 윤곽입니다.",
+          relationsHeading: "무엇이 무엇에 걸려 있나",
+          relationsLede:
+            "승인은 받았는데 연료가 남았습니다. 그 연료가 무엇에 걸려 있는지 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-approve", label: "건조 승인" },
+      { claimId: "claim-fuel", label: "연료는 아직" },
+    ],
+    askSuggestions: [
+      "무엇이 승인된 건가요?",
+      "연료 문제가 뭔가요?",
+      "언제 배가 나오나요?",
+    ],
+  },
+  "resource-diplomacy": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "남미에서 중앙아시아까지",
+          timelineLede:
+            "시점을 옮기면 그때까지 무엇이 합의됐는지가 나타납니다. 마지막 시점은 사흘 전입니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "합의 건수와 실제 도입량을 나눠 적었습니다.",
+          relationsHeading: "어디서 무엇을 받기로 했나",
+          relationsLede:
+            "협정으로 확정된 것과 양해각서로 합의된 것은 무게가 다릅니다. 나눠 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-central", label: "74건 합의" },
+      { claimId: "claim-argentina", label: "아르헨 원유" },
+    ],
+    askSuggestions: [
+      "어느 나라와 무엇을 합의했나요?",
+      "양해각서와 협정이 뭐가 다른가요?",
+      "광물이 실제로 들어오고 있나요?",
+    ],
+  },
+  "oil-supply": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "전쟁이 난 해에 한 일들",
+          timelineLede:
+            "시점을 옮기면 그때까지 무엇이 시행됐는지가 나타납니다. 값이 오른 시점도 함께 있습니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "정부가 공개한 수치와 주유소 평균가입니다.",
+          relationsHeading: "기름이 어디서 오고 값이 어디서 붙들리나",
+          relationsLede:
+            "외교로 한 일과 국내 규제로 한 일이 섞여 있습니다. 나눠 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-share", label: "중동 비중" },
+      { claimId: "claim-price", label: "국내 유가" },
+    ],
+    askSuggestions: [
+      "중동 의존도가 얼마나 줄었나요?",
+      "기름값이 싸진 건가요?",
+      "최고가격제가 뭔가요?",
+    ],
+  },
   "rail-merger": {
     Layout: (props) => (
       <NarrativeLayout

@@ -18,6 +18,9 @@ import { gyeonggiIlsanBridge } from "./gyeonggi-ilsan-bridge/achievement";
 import { prosecutionReform } from "./prosecution-reform/achievement";
 import { judicialReform } from "./judicial-reform/achievement";
 import { railMerger } from "./rail-merger/achievement";
+import { nuclearSubmarine } from "./nuclear-submarine/achievement";
+import { resourceDiplomacy } from "./resource-diplomacy/achievement";
+import { oilSupply } from "./oil-supply/achievement";
 
 /**
  * 업적 레지스트리.
@@ -45,6 +48,9 @@ export const ACHIEVEMENTS: Achievement[] = [
   prosecutionReform,
   judicialReform,
   railMerger,
+  nuclearSubmarine,
+  resourceDiplomacy,
+  oilSupply,
 ];
 
 export function getAchievement(slug: string): Achievement | undefined {
