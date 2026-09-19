@@ -1,5 +1,6 @@
 import { ACHIEVEMENTS } from "@/content/achievements";
 import { MILESTONES } from "@/content/milestones";
+import { STATEMENTS } from "@/content/words";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
 
 /**
@@ -14,12 +15,13 @@ import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
  *   것은 그 업적이지 근거 문장 조각이 아니다.
  */
 
-export type SearchKind = "achievement" | "moment" | "milestone";
+export type SearchKind = "achievement" | "moment" | "milestone" | "words";
 
 export const KIND_LABEL: Record<SearchKind, string> = {
   achievement: "업적",
   moment: "시점",
   milestone: "세부 성과",
+  words: "언행",
 };
 
 export interface SearchEntry {
@@ -90,6 +92,32 @@ function build(): SearchEntry[] {
     }
   }
 
+
+  /*
+   * 언행.
+   *
+   * haystack에 원문을 통째로 넣는다. 이 자료에서 사람이 찾는 말은 제목이
+   * 아니라 본문 한가운데에 있다 — "손가혁", "계양구"로 찾아 들어온다.
+   */
+  for (const statement of STATEMENTS) {
+    out.push({
+      id: `words:${statement.slug}`,
+      kind: "words",
+      title: statement.title,
+      detail: statement.easy?.intro ?? statement.body.slice(0, 80),
+      context: `${statement.channel} · ${statement.displayDate}`,
+      href: `/words/${statement.slug}`,
+      haystack: normalize(
+        [
+          statement.title,
+          statement.body,
+          statement.topics.join(" "),
+          statement.glossary.map((g) => `${g.term} ${g.explain}`).join(" "),
+          statement.context ?? "",
+        ].join(" "),
+      ),
+    });
+  }
   for (const item of MILESTONES) {
     out.push({
       id: item.id,
@@ -119,9 +147,17 @@ export const SEARCH_INDEX: SearchEntry[] = build();
  * 띄어쓴 말은 모두 들어 있어야 한다("성남 병원" → 둘 다 있는 것만). 한국어는
  * 형태소를 나누지 않으면 부분 문자열이 가장 잘 맞는다. 이 크기에서는 그걸로 충분하다.
  *
- * 순서는 업적 → 시점 → 세부 성과. 같은 종류 안에서는 제목에 맞은 것이 앞이다.
+ * 순서는 업적 → 언행 → 시점 → 세부 성과. 같은 종류 안에서는 제목에 맞은 것이 앞이다.
+ *
+ * 언행을 시점보다 위에 둔 이유: 본인이 한 말은 그 자체로 찾을 값어치가 있다.
+ * 시점은 어느 업적의 한 칸이라 그 업적을 먼저 보는 편이 대개 맞다.
  */
-const KIND_ORDER: Record<SearchKind, number> = { achievement: 0, moment: 1, milestone: 2 };
+const KIND_ORDER: Record<SearchKind, number> = {
+  achievement: 0,
+  words: 1,
+  moment: 2,
+  milestone: 3,
+};
 
 export function search(index: SearchEntry[], query: string, limit = 12): SearchEntry[] {
   const terms = query.split(/\s+/).map(normalize).filter(Boolean);

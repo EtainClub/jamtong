@@ -7,6 +7,8 @@
 import { ACHIEVEMENTS } from "../src/content/achievements";
 import { validateAchievement, validateMilestones } from "../src/content/schema";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "../src/content/milestones";
+import { STATEMENTS } from "../src/content/words";
+import { validateStatement } from "../src/content/words/schema";
 
 let failed = false;
 
@@ -50,6 +52,30 @@ if (achErrors.length > 0) {
   );
 }
 
+
+/*
+ * 언행.
+ *
+ * 검사는 하나뿐이다 — 쉽게 보기의 인용이 원문 안에 그대로 있는가.
+ * 이게 없으면 '쉽게 보기'는 그냥 우리가 쓴 글이 되고, 원문과 얼마나
+ * 다른지 아무도 모르게 된다.
+ */
+for (const statement of STATEMENTS) {
+  const errors = validateStatement(statement);
+  const points = statement.easy?.points.length ?? 0;
+
+  if (errors.length > 0) {
+    failed = true;
+    console.error(`\n✗ 언행 ${statement.slug}`);
+    for (const error of errors) console.error(`    ${error}`);
+    continue;
+  }
+
+  console.log(
+    `✓ 언행 ${statement.slug} — 원문 ${statement.body.length}자, ` +
+      `쉬운 토막 ${points}, 말풀이 ${statement.glossary.length}`,
+  );
+}
 if (failed) {
   console.error("\n\ucf58\ud150\uce20 \uac80\uc99d \uc2e4\ud328.");
   process.exit(1);

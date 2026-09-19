@@ -328,7 +328,7 @@ function SearchResults({ query, index }: { query: string; index: SearchEntry[] |
           &lsquo;{query}&rsquo;에 대한 결과가 없습니다.
         </p>
         <p className="mt-2 text-[13px] leading-relaxed text-smoke">
-          업적 제목과 연표, 근거 문장까지 찾습니다. 다른 낱말로 해 보시거나{" "}
+          업적의 근거 문장과 연표, 대통령의 언행 원문까지 찾습니다. 다른 낱말로 해 보시거나{" "}
           <Link href="/explore" className="font-medium text-navy underline underline-offset-2">
             업적 목록
           </Link>

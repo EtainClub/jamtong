@@ -16,6 +16,7 @@ import { formatVersion } from "@/lib/build-info";
 const LINKS = [
   { href: "/", label: "홈" },
   { href: "/explore", label: "업적" },
+  { href: "/words", label: "이재명 대통령의 언행" },
   { href: "/links", label: "관련 사이트" },
   { href: "/about", label: "이 사이트에 대하여" },
 ];

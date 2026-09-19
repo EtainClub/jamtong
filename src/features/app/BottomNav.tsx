@@ -30,7 +30,7 @@ const TABS: Tab[] = [
   { href: "/", label: "홈", ready: true, icon: <HomeIcon /> },
   { href: "/timeline", label: "타임라인", ready: true, icon: <TimelineIcon /> },
   { href: "/explore", label: "업적", ready: true, owns: ["/achievement"], icon: <ExploreIcon /> },
-  { href: "/links", label: "관련 사이트", ready: true, icon: <LinkIcon /> },
+  { href: "/words", label: "언행", ready: true, icon: <QuoteIcon /> },
   { href: "/my", label: "MY", ready: true, icon: <MyIcon /> },
 ];
 
@@ -132,11 +132,17 @@ function ExploreIcon() {
   );
 }
 
-function LinkIcon() {
+/**
+ * 따옴표. 본인이 한 말이라는 뜻이다.
+ *
+ * 말풍선도 생각했지만 그건 '대화'로 읽힌다. 여기 있는 것은 오간 말이 아니라
+ * 한쪽이 공개적으로 남긴 말이다.
+ */
+function QuoteIcon() {
   return (
     <svg {...iconProps}>
-      <path d="M10.5 13.5a4 4 0 0 0 5.7 0l2.6-2.6a4 4 0 0 0-5.7-5.7l-1.3 1.3" />
-      <path d="M13.5 10.5a4 4 0 0 0-5.7 0l-2.6 2.6a4 4 0 0 0 5.7 5.7l1.3-1.3" />
+      <path d="M9.5 6.5C7 7.5 5.5 9.8 5.5 12.8V17.5h5v-5h-3c0-2 .9-3.6 2.6-4.4z" />
+      <path d="M18 6.5c-2.5 1-4 3.3-4 6.3v4.7h5v-5h-3c0-2 .9-3.6 2.6-4.4z" />
     </svg>
   );
 }
