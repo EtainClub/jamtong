@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { Statement } from "@/content/words/schema";
+import { WORD_ART } from "./art";
 
 /**
  * 원문 / 쉽게 보기 전환.
@@ -83,8 +84,12 @@ function FullView({ statement }: { statement: Statement }) {
 /**
  * 쉽게 보기.
  *
- * 토막마다 원문의 어느 대목을 옮긴 것인지 접어 둔다. 펼치면 바로 대볼 수
- * 있다 — 요약을 믿으라고 하지 않고, 확인할 수 있게 둔다.
+ * 글을 작게 여러 줄 늘어놓으면 원문을 읽는 것과 다를 바가 없다. 그래서
+ * 토막마다 **그림 하나와 큰 글씨 한 덩어리**로 간다 — 스크롤하며 그림만
+ * 훑어도 줄거리가 잡히는 것이 이 화면의 목표다.
+ *
+ * 인용은 접어 둔다. 펼치면 원문의 어느 대목을 옮긴 것인지 바로 대볼 수
+ * 있다. 요약을 믿으라고 하지 않고 확인할 수 있게 두는 것이 이 자료의 규칙이다.
  */
 function EasyView({
   statement,
@@ -98,43 +103,62 @@ function EasyView({
 
   return (
     <article className="mt-7">
-      <p className="text-[15px] leading-relaxed text-smoke">{easy.intro}</p>
+      <p className="text-[19px] font-light leading-relaxed tracking-[-0.01em] text-ink">
+        {easy.intro}
+      </p>
 
-      <ol className="mt-6 space-y-4">
-        {easy.points.map((point, index) => (
-          <li
-            key={point.id}
-            className="rounded-card border border-stone bg-taupe/40 px-5 py-4"
-          >
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-[12px] font-bold tabular-nums text-ash">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <h2 className="text-[16px] font-bold text-ink">{point.title}</h2>
-            </div>
-            <p className="mt-2 text-[15px] leading-relaxed text-smoke">{point.say}</p>
+      <ol className="mt-8 space-y-7">
+        {easy.points.map((point, index) => {
+          const Art = point.art ? WORD_ART[point.art] : null;
 
-            <details className="group mt-3">
-              <summary className="cursor-pointer list-none text-[12px] font-semibold text-navy hover:underline">
-                원문에서 이 대목
-                <span aria-hidden="true" className="ml-1 inline-block group-open:hidden">
-                  ▾
-                </span>
-                <span aria-hidden="true" className="ml-1 hidden group-open:inline-block">
-                  ▴
-                </span>
-              </summary>
-              <blockquote className="mt-2 border-l-2 border-stone pl-3 text-[13px] leading-relaxed text-ash">
-                {point.quote}
-              </blockquote>
-            </details>
-          </li>
-        ))}
+          return (
+            <li
+              key={point.id}
+              className="overflow-hidden rounded-card border border-stone bg-taupe/40"
+            >
+              {Art && (
+                /*
+                 * 그림 칸. 업적의 쉬운 설명과 같은 4:3 무대를 쓴다.
+                 * 두 화면을 오갈 때 그림 크기가 달라지면 같은 세계로 읽히지 않는다.
+                 */
+                <div className="aspect-[4/3] w-full bg-canvas px-5 py-4">
+                  <Art />
+                </div>
+              )}
+
+              <div className="px-5 pb-5 pt-4">
+                <p className="tabular font-mono text-[11px] tracking-[0.1em] text-ash">
+                  {String(index + 1).padStart(2, "0")} /{" "}
+                  {String(easy.points.length).padStart(2, "0")}
+                </p>
+                <h2 className="mt-1.5 text-[23px] font-light leading-snug tracking-[-0.02em] text-ink">
+                  {point.title}
+                </h2>
+                <p className="mt-3 text-[17px] leading-[1.7] text-smoke">{point.say}</p>
+
+                <details className="group mt-4">
+                  <summary className="cursor-pointer list-none text-[13px] font-semibold text-navy hover:underline">
+                    원문에서 이 대목
+                    <span aria-hidden="true" className="ml-1 inline-block group-open:hidden">
+                      ▾
+                    </span>
+                    <span aria-hidden="true" className="ml-1 hidden group-open:inline-block">
+                      ▴
+                    </span>
+                  </summary>
+                  <blockquote className="mt-2.5 border-l-2 border-stone pl-3 text-[14px] leading-relaxed text-ash">
+                    {point.quote}
+                  </blockquote>
+                </details>
+              </div>
+            </li>
+          );
+        })}
       </ol>
 
       {statement.glossary.length > 0 && <Glossary statement={statement} />}
 
-      <p className="mt-6 text-[12px] leading-relaxed text-ash">
+      <p className="mt-8 text-[12px] leading-relaxed text-ash">
         쉬운 말로 옮긴 것입니다. 옮기는 과정에서 결이 달라질 수 있으니, 이 말을
         두고 이야기할 때는 원문을 보시기 바랍니다.
       </p>

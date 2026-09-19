@@ -110,6 +110,7 @@ const raw: StatementInput = {
     points: [
       {
         id: "p-what",
+        art: "quote-pick",
         title: "무슨 일이 있었나요",
         say: "어제 대통령이 X에서 다른 사람의 글을 가져와 썼는데, 그 사람이 전에 쓴 다른 글 때문에 말이 많았어요. 그래서 이 글을 올렸어요.",
         quote:
@@ -117,6 +118,7 @@ const raw: StatementInput = {
       },
       {
         id: "p-quote",
+        art: "part-whole",
         title: "가져왔다고 다 같은 편은 아니에요",
         say: "남의 글을 가져올 때 그 사람이 예전에 쓴 글까지 다 볼 수는 없어요. 글 하나를 가져온 것이지 그 사람 생각 전부에 동의한다는 뜻은 아니에요.",
         quote:
@@ -124,6 +126,7 @@ const raw: StatementInput = {
       },
       {
         id: "p-sorry",
+        art: "sorry",
         title: "그래도 미안하다고 했어요",
         say: "그 사람의 다른 글 때문에 마음이 상한 사람이 있다면 유감이라고 말했어요.",
         quote:
@@ -131,6 +134,7 @@ const raw: StatementInput = {
       },
       {
         id: "p-you",
+        art: "by-friends",
         title: "여러분이 곧 대통령이에요",
         say: "친구를 보면 그 사람을 안다고 하죠. 대통령과 웃으며 이야기하는 사람이 평소에 험한 말을 하는 사람이면, 사람들이 그 대통령을 어떻게 볼까요.",
         quote:
@@ -138,6 +142,7 @@ const raw: StatementInput = {
       },
       {
         id: "p-gyeyang",
+        art: "street-badge",
         title: "선거 때 겪은 일이 있어요",
         say: "계양구 선거 때 ‘이재명 지지자’라고 써 붙이고 길에서 사람들에게 험하게 굴던 이들이 있었어요. 그게 선거에서 제일 큰 타격이었대요.",
         quote:
@@ -145,6 +150,7 @@ const raw: StatementInput = {
       },
       {
         id: "p-harm",
+        art: "fewer-more",
         title: "거친 말은 적을 늘려요",
         say: "험한 말은 내 편을 늘리는 게 아니라 줄이고, 상대에게 대통령을 욕할 빌미를 줘요. 결국 하려던 개혁이 더 어려워져요.",
         quote:
@@ -152,6 +158,7 @@ const raw: StatementInput = {
       },
       {
         id: "p-fake",
+        art: "masked",
         title: "편을 가르려는 사람도 있어요",
         say: "지지자인 척하면서 지지자를 공격해 우리 편끼리 싸우게 만드는 건 옛날부터 있던 수법이래요.",
         quote:
@@ -159,6 +166,7 @@ const raw: StatementInput = {
       },
       {
         id: "p-ask",
+        art: "calm-words",
         title: "이렇게 해 달라고 했어요",
         say: "미워하고 비웃는 대신, 사실을 가지고 차분하게 따지고 품위 있게 설득해 달라고 했어요. 이제는 싸워서 이겨야 하는 후보가 아니라 모두를 책임지는 대통령이니까요.",
         quote:

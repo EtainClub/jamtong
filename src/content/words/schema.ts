@@ -40,6 +40,25 @@ export const KIND_LABEL: Record<StatementKind, string> = {
   act: "행동",
 };
 
+/**
+ * 언행 삽화.
+ *
+ * 업적의 Eli5Art와 섞지 않는다. 저쪽은 항로·예산·좌석처럼 **사실의 모양**을
+ * 그리고, 여기는 사람 사이에 오가는 일을 그린다. 한 통에 담으면 백 개가 넘는
+ * 열거형이 더 커지기만 하고, 어느 쪽에서 쓰는 그림인지 알 수 없게 된다.
+ */
+export const WordArt = z.enum([
+  "quote-pick", // 남의 글을 한 조각 가져오다
+  "part-whole", // 조각 하나와 그 사람 전체는 다르다
+  "sorry", // 마음이 상한 사람에게
+  "by-friends", // 친구를 보면 그 사람을 안다
+  "street-badge", // 팻말 붙이고 험하게 굴던 사람
+  "fewer-more", // 내 편은 줄고 상대는 는다
+  "masked", // 지지자인 척 지지자를 찌른다
+  "calm-words", // 거친 말을 내려놓고
+]);
+export type WordArt = z.infer<typeof WordArt>;
+
 /** 쉽게 보기의 한 토막. */
 export const easyPointSchema = z.object({
   id: z.string(),
@@ -47,6 +66,8 @@ export const easyPointSchema = z.object({
   title: z.string(),
   /** 쉬운 말로 옮긴 것. 한두 문장. 길어지면 쉽게 보기가 아니게 된다. */
   say: z.string(),
+  /** 이 토막의 그림. 없으면 글만 나온다. */
+  art: WordArt.optional(),
   /**
    * ★ 불변식: 옮긴 자리의 원문. body 안에 **그대로** 있어야 한다.
    *   요약이 원문에서 얼마나 멀어졌는지를 읽는 사람이 바로 대볼 수 있게 한다.
