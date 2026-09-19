@@ -694,6 +694,14 @@ export const Eli5Art = z.enum([
   "basic-shops",
   "basic-rounds",
   "basic-top12",
+
+  // 경기도 신천지 대응
+  "covid-spread",
+  "covid-order",
+  "covid-entry",
+  "covid-list",
+  "covid-calls",
+  "covid-speed",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

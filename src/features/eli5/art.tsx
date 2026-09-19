@@ -1176,6 +1176,183 @@ function BasicTop12() {
     </svg>
   );
 }
+
+/* ── 경기도 신천지 대응 ──────────────────────────────────────── */
+
+/** 한 점에서 퍼져 나가는 감염. 중심은 짙고 바깥으로 갈수록 옅다. */
+function CovidSpread() {
+  const dots = [
+    [160, 120], [132, 104], [190, 108], [120, 142], [204, 140], [160, 84],
+    [96, 118], [226, 122], [148, 160], [176, 158], [82, 88], [242, 96],
+    [70, 160], [252, 164], [110, 74], [214, 70],
+  ] as const;
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="한곳에서 시작한 감염이 바깥으로 퍼져 나가는 모습">
+      {[92, 66, 40].map((r) => (
+        <circle key={r} cx={160} cy={120} r={r} fill="none"
+                stroke="var(--burgundy)" strokeWidth={1.5} opacity={0.3} />
+      ))}
+      {dots.map(([x, y], i) => {
+        const d = Math.hypot(x - 160, y - 120);
+        return (
+          <circle key={`${x}-${y}`} cx={x} cy={y} r={i === 0 ? 11 : 6}
+                  fill="var(--burgundy)" opacity={Math.max(0.28, 1 - d / 120)} />
+        );
+      })}
+      <text x={160} y={224} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        한곳에서 크게 번졌다
+      </text>
+    </svg>
+  );
+}
+
+/** 지시. 확성기에서 나온 말이 문을 닫는다. */
+function CovidOrder() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="예배당을 즉시 폐쇄하라는 지시가 내려지는 모습">
+      <path d="M42 108 L82 88 L82 152 L42 132 Z" fill="var(--navy)" />
+      <rect x={30} y={110} width={14} height={20} rx={2} fill="var(--navy)" />
+      <path d="M92 104 C104 114, 104 126, 92 136" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" />
+      <path d="M104 94 C122 112, 122 128, 104 146" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" opacity={0.6} />
+      {/* 닫힌 문 */}
+      <rect x={176} y={78} width={104} height={104} rx={4}
+            fill="var(--stone)" stroke="var(--graphite)" strokeWidth={2.5} />
+      <path d="M176 130 H280" stroke="var(--graphite)" strokeWidth={2.5} />
+      <rect x={198} y={118} width={60} height={22} rx={3} fill="var(--burgundy)" />
+      <text x={228} y={134} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">
+        폐쇄
+      </text>
+      <text x={160} y={214} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        즉시 닫으라고 했다
+      </text>
+    </svg>
+  );
+}
+
+/** 기다리지 않고 들어간다. 법 조항이 적힌 문서가 문을 연다. */
+function CovidEntry() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="법에 근거해 조사관들이 직접 건물에 들어가는 모습">
+      <rect x={168} y={62} width={126} height={126} rx={4}
+            fill="var(--stone)" opacity={0.7} stroke="var(--graphite)" strokeWidth={2} />
+      {/* 열린 문 */}
+      <path d="M168 96 L210 78 L210 180 L168 166 Z" fill="var(--canvas)"
+            stroke="var(--graphite)" strokeWidth={2} />
+      {/* 들어가는 사람 둘 */}
+      <circle cx={70} cy={104} r={14} fill="var(--navy)" />
+      <path d="M50 178 C52 142, 90 142, 92 178 Z" fill="var(--navy)" />
+      <circle cx={112} cy={112} r={12} fill="var(--navy)" opacity={0.6} />
+      <path d="M94 178 C96 146, 130 146, 132 178 Z" fill="var(--navy)" opacity={0.6} />
+      {/* 법 조항 */}
+      <rect x={38} y={44} width={94} height={34} rx={4}
+            fill="var(--canvas)" stroke="var(--navy)" strokeWidth={2} />
+      <text x={85} y={66} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">
+        제47·49조
+      </text>
+      <path d="M134 118 H162" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M154 110 L164 118 L154 126" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={214} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        법에 근거해 직접 들어갔다
+      </text>
+    </svg>
+  );
+}
+
+/** 명단. 이름이 빼곡한 종이 뭉치와 그 수. */
+function CovidList() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="이름이 빼곡히 적힌 명단과 그 규모">
+      {[0, 1, 2].map((i) => (
+        <rect key={i} x={54 + i * 10} y={54 + i * 8} width={122} height={150} rx={4}
+              fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2}
+              opacity={i === 2 ? 1 : 0.45} />
+      ))}
+      {Array.from({ length: 9 }, (_, i) => (
+        <path key={i} d={`M86 ${88 + i * 14} H172`} stroke="var(--ash)"
+              strokeWidth={2} strokeLinecap="round" opacity={0.75} />
+      ))}
+      <text x={252} y={116} textAnchor="middle" fontSize={26} {...LABEL} fill="var(--navy)">
+        4만
+      </text>
+      <text x={252} y={144} textAnchor="middle" fontSize={26} {...LABEL} fill="var(--navy)">
+        2천
+      </text>
+      <text x={252} y={166} textAnchor="middle" fontSize={13} fill="var(--ash)">명</text>
+      <text x={160} y={224} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        명단이 있어야 막을 수 있다
+      </text>
+    </svg>
+  );
+}
+
+/** 사흘 동안 전화를 돌린다. 수화기에서 뻗어 나가는 선들. */
+function CovidCalls() {
+  const targets = [
+    [54, 66], [110, 52], [176, 52], [240, 64], [272, 104],
+    [54, 172], [110, 190], [176, 192], [240, 176],
+  ] as const;
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="한 곳에서 수많은 사람에게 전화를 돌리는 모습">
+      {targets.map(([x, y]) => (
+        <g key={`${x}-${y}`}>
+          <path d={`M160 122 L${x} ${y}`} stroke="var(--navy)" strokeWidth={1.5}
+                opacity={0.4} strokeDasharray="4 5" />
+          <circle cx={x} cy={y} r={9} fill="var(--navy)" opacity={0.55} />
+        </g>
+      ))}
+      <circle cx={160} cy={122} r={26} fill="var(--navy)" />
+      <path d="M150 112 C150 126, 158 134, 172 134"
+            fill="none" stroke="var(--eggshell)" strokeWidth={4} strokeLinecap="round" />
+      <text x={160} y={224} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        사흘 동안 3만 4천 명
+      </text>
+    </svg>
+  );
+}
+
+/** 속도. 열흘의 눈금 위에 네 시점이 찍힌다. */
+function CovidSpeed() {
+  const marks = [
+    { d: 0, label: "지시" },
+    { d: 5, label: "진입" },
+    { d: 8, label: "조사" },
+    { d: 11, label: "검체" },
+  ] as const;
+  const x = (d: number) => 44 + (d / 11) * 232;
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="지시부터 검체 채취까지 열하루가 걸렸음을 나타낸 눈금">
+      <path d="M44 126 H276" stroke="var(--stone)" strokeWidth={4} strokeLinecap="round" />
+      <path d="M44 126 H276" stroke="var(--navy)" strokeWidth={4} strokeLinecap="round" />
+      {marks.map((m) => (
+        <g key={m.label}>
+          <circle cx={x(m.d)} cy={126} r={8} fill="var(--navy)"
+                  stroke="var(--canvas)" strokeWidth={2.5} />
+          <text x={x(m.d)} y={104} textAnchor="middle" fontSize={11.5} {...LABEL} fill="var(--ink)">
+            {m.label}
+          </text>
+          <text x={x(m.d)} y={152} textAnchor="middle" fontSize={11} fill="var(--ash)">
+            {m.d}일
+          </text>
+        </g>
+      ))}
+      <text x={160} y={200} textAnchor="middle" fontSize={22} {...LABEL} fill="var(--navy)">
+        11일
+      </text>
+      <text x={160} y={222} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        속도가 더 중요하다
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -1239,4 +1416,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "basic-shops": BasicShops,
   "basic-rounds": BasicRounds,
   "basic-top12": BasicTop12,
+
+  "covid-spread": CovidSpread,
+  "covid-order": CovidOrder,
+  "covid-entry": CovidEntry,
+  "covid-list": CovidList,
+  "covid-calls": CovidCalls,
+  "covid-speed": CovidSpeed,
 };

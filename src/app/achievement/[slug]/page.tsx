@@ -67,6 +67,33 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "2014년에 무슨 결정이 있었나요?",
     ],
   },
+  "gyeonggi-shincheonji": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "열하루 사이에 일어난 일",
+          timelineLede:
+            "시점을 옮기면 그때까지 무엇이 있었는지 나타납니다. 지시에서 검체 채취까지 열하루입니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "보도로 날짜와 인원이 확인된 것만 적었습니다.",
+          relationsHeading: "무엇이 무엇을 가능하게 했나",
+          relationsLede:
+            "법과 명단과 시간이 이 대응의 세 축입니다. 어느 하나가 없으면 나머지가 성립하지 않습니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-entry", label: "강제 역학조사" },
+      { claimId: "claim-survey", label: "전수조사" },
+    ],
+    askSuggestions: [
+      "무엇을 언제 했나요?",
+      "강제 역학조사의 근거가 뭔가요?",
+      "몇 명을 조사했나요?",
+    ],
+  },
   "gyeonggi-basic-income": {
     Layout: (props) => (
       <NarrativeLayout

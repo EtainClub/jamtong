@@ -8,6 +8,7 @@ import { seongnamHospital } from "./seongnam-hospital/achievement";
 import { seongnamMeals } from "./seongnam-meals/achievement";
 import { gyeonggiValley } from "./gyeonggi-valley/achievement";
 import { gyeonggiBasicIncome } from "./gyeonggi-basic-income/achievement";
+import { gyeonggiShincheonji } from "./gyeonggi-shincheonji/achievement";
 
 /**
  * 업적 레지스트리.
@@ -25,6 +26,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   seongnamMeals,
   gyeonggiValley,
   gyeonggiBasicIncome,
+  gyeonggiShincheonji,
 ];
 
 export function getAchievement(slug: string): Achievement | undefined {
