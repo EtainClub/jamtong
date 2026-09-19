@@ -1,36 +1,322 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 잼통 — 이재명 업적 위키
 
-## Getting Started
+**읽는 위키가 아니라 이해하는 위키.**
 
-First, run the development server:
+[jamtong.kr](https://jamtong.kr)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+한 사람의 업적을 글로 길게 적어 두면, 읽는 사람은 대개 끝까지 읽지 않는다.
+읽더라도 숫자가 어디서 왔는지 모른 채 넘어간다. 잼통은 그 두 가지를 바꾸려는
+시도다. **화면이 움직여서 설명하고, 모든 단정에는 근거가 붙는다.**
+
+---
+
+## 무엇을 하는 사이트인가
+
+### 단위는 '업적'이다
+
+이 사이트의 기본 단위는 문서도 기사도 아닌 **업적** 하나다. 업적 하나마다
+아래 일곱 가지를 갖추는 것을 목표로 한다.
+
+| # | 구성요소 | 하는 일 |
+|---|---|---|
+| ① | 쉬운 설명 (ELI5) | 아무것도 모르는 사람에게 여섯 장면쯤으로 전한다. 장면마다 삽화와 근거가 붙는다. |
+| ② | 맥락 연표 | 언제 무슨 일이 있었는지. 시점을 옮기면 화면 전체가 그 시점으로 간다. |
+| ③ | 모션 그래픽 | 움직임 자체가 설명이 되는 장면. 스크롤이나 눈금이 그림을 움직인다. |
+| ④ | 관계도 | 누가 누구에게 무엇을 주고 누구에게 부담이 갔는지. 연표 시점에 따라 관계가 걸러진다. |
+| ⑤ | 근거 / 출처 | 화면의 모든 수치·단정 옆에 붙는 "근거 N개" 칩. 누르면 원문 인용과 링크가 열린다. |
+| ⑥ | AI 안내 | 그 화면의 자료 안에서만 답하고, 답하면서 화면을 실제로 움직인다. |
+| ⑦ | 쇼츠 | 그 업적을 1분 안에 전하는 세로 영상. 영상이 말한 내용의 근거도 함께 싣는다. |
+
+목록 화면의 업적 카드에는 **일곱 칸 중 몇 칸이 찼는지**가 그대로 보인다.
+채워지지 않은 것은 채워지지 않은 대로 보인다. 감추지 않는다.
+
+### 지금 실린 업적 (7건, 모두 공개)
+
+| 업적 | 무엇을 다루나 | 근거 / 자료 |
+|---|---|---|
+| **북극항로** | 부산–로테르담 항로가 짧아지는 일과 그 준비 | 12 / 2 |
+| **성남 판교대장 도시개발사업** | 흔히 '대장동'이라 불리는 사업의 토지·자금 구조와 쟁점 | 14 / 6 |
+| **주식시장 개선** | 코리아 디스카운트를 줄이려는 제도 개편과 지수의 등락 | 11 / 13 |
+| **성남시 3대 무상복지** | 무상교복·공공산후조리·청년배당 | 9 / 7 |
+| **성남시 모라토리엄** | 못 갚겠다고 먼저 말한 뒤 3년 6개월 만에 갚기까지 | 4 / 3 |
+| **성남시의료원** | 시민이 발의하고 17년이 걸린 전국 첫 공공병원 | 7 / 4 |
+| **성남시 무상급식** | 1학년만 주던 밥이 모든 학년에 가기까지 | 4 / 2 |
+
+그 밖에 해양수산부 2026년 업무계획에서 뽑은 **세부 성과 18건**이 따로 있다.
+업적과 같은 층에 두지 않는다 — 한 부처 업무계획의 항목이지 독립된 업적이 아니다.
+
+### 화면
+
+| 경로 | 화면 |
+|---|---|
+| `/` | 홈 — 검색, 업적 히어로, 업적 목록, 세부 성과 |
+| `/explore` | 업적 목록. 카드마다 일곱 칸의 충족도가 보인다 |
+| `/achievement/[slug]` | 업적 상세. 쉬운 보기 / 원문 보기를 오갈 수 있다 |
+| `/timeline` | 전체 연대기. 업적별 연표를 한 줄로 합쳐 최근순으로 |
+| `/links` | 관련 사이트. 본인 채널 / 위키·아카이브 / 커뮤니티로 나눈다 |
+| `/my` | 내 계정과 AI에게 물어본 이력 |
+| `/about` | 이 사이트에 대하여 |
+
+---
+
+## 이 프로젝트가 지키는 원칙
+
+코드로 강제되는 것들이다. 지키자는 다짐이 아니라, 어기면 빌드가 실패한다.
+
+### 1. 근거 없는 것은 렌더링하지 않는다
+
+화면에 오르는 거의 모든 요소가 `claimIds`를 요구하고, 스키마가 `.min(1)`로
+막는다. 근거 없는 쇼츠, 근거 없는 반론, 근거 없는 장면은 애초에 만들어지지
+않는다.
+
+### 2. 단정의 종류를 구분한다
+
+```
+FACT           1차 자료로 확인된 사실
+CLAIM          누군가의 주장 — assertedBy 없이는 저장되지 않는다
+INTERPRETATION 자료에서 끌어낸 해석
+OPINION        의견
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+예를 들어 대장동의 '5,503억 공공 환수'는 다툼이 있는 수치이므로 `FACT`가 아니라
+`CLAIM` + `assertedBy: "성남시"`로 싣는다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. 자료의 한계를 공개 뒤에도 남긴다
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+업적을 공개했다고 근거의 한계가 사라지지 않는다. `sourceNote`에 적힌 사정은
+공개 상태에서도 화면에 계속 보인다. 예: *"모라토리엄 선언과 졸업은 성남시가
+기자회견으로 밝힌 내용이라 당시 보도로 받쳤습니다."*
 
-## Learn More
+### 4. 유리한 구간만 잘라내지 않는다
 
-To learn more about Next.js, take a look at the following resources:
+주식시장 지수는 올랐다가 되밀렸다. 고점에서 끊은 차트를 그리면 그건 자료가
+아니라 선전물이다. 잘라낸 것을 코드가 알아낼 수는 없으므로, 스키마는 대신
+**마지막 점이 최고값이면 왜 거기서 끝나는지 `note`에 밝히도록 강제한다.**
+숨길 수는 있어도 조용히 숨길 수는 없게 한다.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 5. 사이 값을 주장하지 않는다
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+행정 기록에는 선언한 날과 끝낸 날만 남는다. 모션 씬은 문서로 확인된 시점만
+주장하고 그 사이는 잇기만 하며, 화면이 늘 *"그 사이 값은 자료에 없습니다"*를
+적는다.
 
-## Deploy on Vercel
+### 6. 시행과 발표를 한 칸에 세지 않는다
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+법률로 시행된 것과 방안으로 발표된 것은 무게가 다르다. 섞어 세면 되돌릴 수
+있는 것을 되돌릴 수 없는 것처럼 보이게 한다.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## AI 안내 (⑥)
+
+업적 화면 오른쪽 아래의 "AI에게 묻기". 기존 챗봇과 다른 점이 셋 있다.
+
+**그 화면의 자료 안에서만 답한다.** 모델에게 주는 맥락은 그 업적의 근거·연표·
+기관·장면 id뿐이다. 답변이 근거에 닿지 않으면 `grounded: false`로 돌아오고
+화면을 움직이지 않는다.
+
+**답하면서 화면을 움직인다.** 모델은 문장이 아니라 **액션 목록**을 고른다.
+
+```
+GO_TO_SCENE   SET_VIEW      SEEK_TIMELINE   FOCUS_ENTITY   SET_ROUTE
+SET_MOTION    SET_SCENARIO  OPEN_EVIDENCE   RESET_VIEW
+```
+
+서버가 실제로 존재하지 않는 id를 가리키는 액션을 **전부 버린 뒤**에 내려보낸다.
+모델이 무엇을 반환하든 앱이 할 수 있는 일의 범위를 넘지 못한다.
+
+**비용이 들기 전에 막는다.** 주제와 무관한 질문은 모델을 부르기 전에 걸러
+비용 0으로 차단한다. IP별·일별 상한도 있다.
+
+기본 탐색(연표·관계도·모션·근거)은 **AI 없이 100% 동작한다.** AI는 물어볼 때만
+쓰인다.
+
+---
+
+## 계정과 이력 (MY)
+
+- **익명으로 시작한다.** 이력을 남기려면 계정이 필요하지만, 그걸 이유로 처음 온
+  사람에게 로그인을 들이밀지 않는다.
+- **페이지를 열 때 자동으로 계정을 만들지 않는다.** 방문자 수만큼 계정이 생긴다.
+  실제로 남길 것이 생겼을 때(질문을 던졌을 때, MY를 열었을 때) 비로소 만든다.
+- **구글은 '로그인'이 아니라 '연결'이다.** 새로 로그인하면 익명 uid가 버려지고 그
+  아래 쌓인 이력이 주인을 잃는다.
+- **답변 본문은 저장하고 근거 문장은 저장하지 않는다.** 근거 문장은 콘텐츠가
+  주인이고, 고쳐지면 고쳐진 것이 보여야 한다.
+
+Firestore 경로는 `users/{uid}/asks`. 경로로 주인을 가르면 보안 규칙이 한 줄로
+끝난다 — *자기 것만 읽고 쓴다*(`firestore.rules`).
+
+---
+
+## 기술 구성
+
+| | |
+|---|---|
+| 프레임워크 | Next.js 16 (App Router, Turbopack) |
+| UI | React 19 + React Compiler, Tailwind CSS 4 |
+| 언어 | TypeScript 5 (strict) |
+| 콘텐츠 계약 | Zod |
+| 그래프 배치 | d3-force (서버에서 굽는다) |
+| 지도 | d3-geo + world-atlas (서버에서 굽는다) |
+| AI | Anthropic SDK |
+| 계정·이력 | Firebase Auth + Firestore |
+| 배포 | Firebase App Hosting (asia-east1) |
+| 패키지 | pnpm |
+
+무거운 계산은 **서버에서 끝낸다.** 관계도 좌표와 지도 배경은 빌드/요청 시점에
+계산해 좌표만 내려보낸다. d3가 클라이언트 번들에 들어가지 않고, 좌표가 고정되어
+하이드레이션도 안전하다.
+
+### 디렉터리
+
+```
+src/
+  app/            라우트. 대부분 서버 컴포넌트
+  content/        ★ 콘텐츠가 계약이다
+    schema.ts       Zod 스키마 — 이 프로젝트의 헌법
+    achievements/   업적 7건
+    milestones/     세부 성과 18건
+    chronology.ts   전체 연대기 (업적 연표를 합친 것)
+    search.ts       검색 인덱스
+    links.ts        관련 사이트
+  features/       화면 단위 컴포넌트
+    achievement/ agent/ eli5/ evidence/ home/ motion/
+    my/ relationship/ series/ shorts/ timeline/ app/
+  lib/
+    agent/        AI 안내의 맥락 구성·가드·액션 검증
+    graph/        관계도 배치
+    geo/          항로·지도
+    visual-state/ 화면 상태와 URL 동기화
+    firebase/     인증·이력
+scripts/          검사와 릴리스
+docs/             설계 문서, 배포 안내, 쇼츠 대본
+```
+
+### 씬 종류
+
+새 업적이 새 표현을 요구하면 스키마에 한 갈래, 렌더러에 한 줄을 더한다.
+레이아웃은 건드리지 않는다.
+
+| 종류 | 쓰임 |
+|---|---|
+| `route-map` | 지도 위의 항로. 스크롤이 배를 민다 |
+| `route-compare` | 항로 비교 |
+| `composition` | 전체가 무엇으로 이루어져 있나 (면적·인원·학교 수…) |
+| `money-flow` | 돈이 어디서 어디로 갔나. 시나리오를 바꾸면 띠 굵기가 변한다 |
+| `index-series` | 시간에 따른 한 숫자의 움직임 + 같은 축 위의 제도 계단 |
+| `quantity-track` | 문서로 확인된 시점들을 지나며 한 수치가 변한다 |
+
+### 화면 상태는 URL에 담긴다
+
+보기 모드, 씬, 연표 커서, 모션 진행도, 항로, 시나리오, 집중한 기관, 열린 근거가
+전부 쿼리 파라미터다. **"지금 이 화면 공유"를 누르면 그 상태 그대로 열리는
+링크**가 복사된다. 스냅샷 레코드를 따로 저장하지 않는다.
+
+```
+/achievement/daejangdong?view=full&scene=land&t=0.798&at=sw-youth-start&sc=sc-2016&focus=rental
+```
+
+---
+
+## 개발
+
+```bash
+pnpm install
+pnpm dev          # http://localhost:3000
+```
+
+`.env.local`이 필요하다.
+
+```bash
+# AI 안내 (없으면 AI 안내만 동작하지 않는다)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# 계정·이력 (없으면 로그인과 MY만 동작하지 않는다)
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+```
+
+둘 다 **부속이다.** 없어도 사이트의 본체(업적·연표·관계도·모션·근거)는 그대로
+동작한다.
+
+### 검사
+
+```bash
+pnpm check        # 아래 넷을 차례로 돌린다
+pnpm validate     # 콘텐츠 — 근거·출처·구성비 합·시계열 규칙
+pnpm agent:check  # AI 안내 — 맥락에 실린 id, 액션 검증, 주제 선별
+pnpm typecheck
+pnpm lint
+```
+
+`pnpm validate`는 콘텐츠의 계약을 검사한다. 존재하지 않는 근거를 가리키는 장면,
+합이 100%가 아닌 구성비, `assertedBy` 없는 `CLAIM`, 고점에서 끊긴 시계열은 전부
+여기서 막힌다.
+
+### 업적을 하나 더하려면
+
+1. `src/content/achievements/<slug>/achievement.ts` — 스키마가 요구하는 것을 채운다
+2. `src/content/achievements/index.ts`에 등록
+3. `src/features/achievement/scenes.ts`의 `SCENES_BY_ACHIEVEMENT`에 씬 목록 등록
+   — **빠뜨리면 그 업적의 AI 안내가 404로 죽는다.** `pnpm agent:check`가 잡는다
+4. `src/app/achievement/[slug]/page.tsx`의 `LAYOUTS`에 레이아웃과 추천 질문 등록
+5. `pnpm check`
+
+### 릴리스와 배포
+
+```bash
+pnpm release              # 커밋 메시지를 읽고 올릴 자리를 스스로 정한다
+pnpm release --dry        # 무엇이 바뀔지만 본다
+git push --follow-tags    # 푸시가 곧 배포다
+```
+
+Conventional Commits를 쓴다. `BREAKING CHANGE`/`타입!:` → major, `feat:` → minor,
+그 밖에 → patch. 릴리스는 **`pnpm check`를 먼저 통과해야** 이정표를 찍는다.
+
+커밋마다 버전을 올리지 않는다 — 배포를 구분하는 일은 커밋 해시가 이미 하고 있고,
+버전은 이정표에만 붙인다. 지금 배포된 것이 무엇인지는 이렇게 확인한다.
+
+```bash
+curl -s https://jamtong.kr/api/version
+# {"id":"0.7.0+abc1234","version":"0.7.0","commit":"abc1234","builtAt":"..."}
+```
+
+Firestore 보안 규칙은 따로 배포한다.
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+자세한 배포 절차는 `docs/deploy.md`.
+
+---
+
+## 콘텐츠 만들 때의 원칙
+
+- **1차 자료를 먼저 찾는다.** 나무위키 같은 사용자 편집 위키는 단서 목록으로만
+  쓰고, 항목마다 1차 자료를 찾아 붙인다.
+- **불리한 내용을 감추지 않되, 다툼이 있으면 주장으로 싣는다.** 반론 섹션은
+  쟁점을 그대로 싣고 각각에 근거로 답한다.
+- **틀린 수치는 출처가 책이어도 고쳐 싣는다.** 유리하게 부풀린 것이든 작게 적힌
+  것이든, 틀린 수는 그대로 두지 않는다. 다만 그 출처를 목록에서 빼지는 않고,
+  무엇이 어떻게 다른지 적는다.
+- **한 사람의 공으로 몰지 않는다.** 여러 시정에 걸친 정책은 그렇게 적는다.
+  시작도 완성도 남의 몫이라고 적는 편이, 전부 제 몫이라고 적는 것보다 강하다.
+
+---
+
+## 라이선스와 출처
+
+콘텐츠의 출처는 각 업적의 `sources`에 전부 적혀 있다. 저작권 취급은 세 등급이다.
+
+- `public` — 공공누리 등 자유 이용
+- `quotable` — 짧은 인용만 싣는다
+- `link-only` — 원문을 보관하지 않고 링크만 건다
+
+관련 사이트 목록(`/links`)의 사이트들은 잼통이 운영하지 않으며, 그 내용은 각
+사이트가 책임진다.
