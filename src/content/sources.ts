@@ -53,3 +53,18 @@ export const ISDC_PARK: Source = {
   quote:
     "위치 : 수정구 신흥동 2458일원 / 면적 : 56,022㎡ (약17천평) / 공원 : 46,615㎡, 도로 : 9,407㎡ / 사업기간 : 2016. 4. ~ 2022. 3.",
 };
+
+export const MOTIR_MEGA_2026: Source = {
+  id: "src-motir-mega-2026",
+  title:
+    "(참고자료) ‘대한민국 대도약 3대 메가프로젝트 국민보고회’ 개최",
+  url: "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/171974/view",
+  publisher: "산업통상부",
+  publishedAt: "2026-06-29",
+  type: "official",
+  license: "public",
+  quote:
+    "①서남권에 총 800조원 규모의 반도체 팹(4기) ②충청권은 81조원을 투자하여 " +
+    "패키징 거점으로 육성 (…) 총 18.4GW의 AI 데이터센터가 구축될 예정이다 (…) " +
+    "2030년까지 재생에너지 100GW를 조기 달성",
+};

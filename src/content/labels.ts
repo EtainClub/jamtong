@@ -59,6 +59,17 @@ export function formatDate(date: string, precision: string): string {
     const [y, m] = date.split("-");
     return m ? `${y}년 ${Number(m)}월` : `${y}년`;
   }
+  /*
+   * 일 단위. 여기가 없어서 "2026-06-29"가 그대로 찍혔다.
+   *
+   * 기존 성과 카드가 연·월까지만 써서 드러나지 않던 구멍이다. 업적 쪽은
+   * displayDate에 "2026년 9월 19일"이라고 직접 적어 두므로 표기가 갈렸다.
+   */
+  if (precision === "day") {
+    const [y, m, d] = date.split("-");
+    if (y && m && d) return `${y}년 ${Number(m)}월 ${Number(d)}일`;
+    return date;
+  }
   if (precision === "circa") return `${date}년경`;
   if (precision === "unknown") return "시점 미상";
   return date;
