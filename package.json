@@ -11,7 +11,8 @@
     "validate": "tsx scripts/validate-content.ts",
     "check": "pnpm validate && pnpm agent:check && pnpm typecheck && pnpm lint",
     "agent:check": "tsx scripts/agent-check.ts",
-    "brand": "tsx scripts/build-brand.ts"
+    "brand": "tsx scripts/build-brand.ts",
+    "release": "tsx scripts/release.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.126.0",
