@@ -80,7 +80,17 @@ const raw: AchievementInput = {
     },
   ],
 
-  shorts: [],
+  shorts: [
+    {
+      id: "short-sd-01",
+      title: "7,285억을 3년 6개월에 갚은 방법",
+      summary:
+        "흔히 인용되는 5,400억은 전체가 아니라 7,285억의 한 조각입니다. 무엇을 선언했고 무엇을 갚았는지 근거에서 확인할 수 있습니다.",
+      youtubeId: "wJuKpDtofp4",
+      claimIds: ["claim-moratorium", "claim-graduation", "claim-zero"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   eli5: {
     intro:
