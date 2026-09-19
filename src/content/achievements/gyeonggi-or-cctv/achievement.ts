@@ -29,7 +29,7 @@ const raw: AchievementInput = {
   title: "경기도 수술실 CCTV",
   subtitle: "한 병원에서 시작해 전국 법이 되기까지",
   kicker: "주요 업적",
-  category: "institution",
+  categories: ["institution", "welfare"],
   summary:
     "환자가 잠든 사이 수술실에서 무슨 일이 있었는지 확인할 방법이 없다는 데서 " +
     "시작한 일이다. 경기도는 2018년 10월 경기도의료원 안성병원에 전국 처음으로 " +

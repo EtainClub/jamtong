@@ -29,7 +29,7 @@ const raw: AchievementInput = {
   title: "경기도 청정계곡",
   subtitle: "불가능하다던 일을, 대부분 스스로 뜯게 했다",
   kicker: "주요 업적",
-  category: "institution",
+  categories: ["institution", "region"],
   summary:
     "계곡과 하천을 막고 있던 평상과 가건물을 걷어내는 일이다. 2019년 6월 시작해 " +
     "2021년 6월까지 25개 시군 234곳에서 적발한 1,601개 가운데 1,576개를 정비했다. " +

@@ -28,7 +28,7 @@ const raw: AchievementInput = {
   title: "경기도 신천지 대응",
   subtitle: "명단을 달라고 기다리지 않았다",
   kicker: "주요 업적",
-  category: "disaster",
+  categories: ["disaster", "institution"],
   summary:
     "2020년 2월 코로나19가 집단감염으로 번지던 때 경기도가 한 일이다. 2월 20일 " +
     "전수조사와 예배당 폐쇄를 지시했고, 명단 제출을 기다리는 대신 2월 25일 " +

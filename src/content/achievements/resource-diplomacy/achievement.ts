@@ -31,7 +31,7 @@ const raw: AchievementInput = {
   title: "핵심광물 공급망 외교",
   subtitle: "리튬과 구리를 어디서 받을지, 나라 수를 늘렸다",
   kicker: "외교·경제",
-  category: "diplomacy",
+  categories: ["diplomacy", "economy"],
   summary:
     "2026년 7~8월 남미 순방에서 아르헨티나와 리튬 공동투자 양해각서·이중과세방지협정을 " +
     "맺고 원유 88만 배럴을 시범 도입했으며, 칠레와 광물자원 파트너십을 맺었다. " +

@@ -21,7 +21,7 @@ const raw: AchievementInput = {
   title: "성남시 모라토리엄",
   subtitle: "못 갚겠다고 먼저 말한 뒤, 3년 6개월 만에 갚았다",
   kicker: "주요 업적",
-  category: "economy",
+  categories: ["economy"],
   summary:
     "2010년 7월 성남시는 전임 시정이 남긴 빚을 갚기 어렵다며 모라토리엄을 선언했다. " +
     "판교테크노밸리를 지으라고 마련한 회계에서 5,400억 원이 다른 사업에 쓰여 있었다. " +

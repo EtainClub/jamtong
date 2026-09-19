@@ -25,7 +25,7 @@ const raw: AchievementInput = {
   title: "일산대교 무료화",
   subtitle: "22일 동안 공짜였고, 법정에서 졌다",
   kicker: "주요 정책",
-  category: "region",
+  categories: ["region", "welfare"],
   summary:
     "한강의 다리 스물여덟 개 중 유일하게 통행료를 받던 일산대교를 무료로 만들려 한 " +
     "일이다. 경기도는 2021년 10월 27일 정오 사업시행자 지정을 취소하는 공익처분을 " +

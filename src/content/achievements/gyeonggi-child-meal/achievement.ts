@@ -27,7 +27,7 @@ const raw: AchievementInput = {
   title: "경기도 아동급식",
   subtitle: "밥값을 올리고, 쓸 곳을 넓히고, 티 나지 않게 했다",
   kicker: "주요 업적",
-  category: "welfare",
+  categories: ["welfare"],
   summary:
     "끼니가 걱정되는 아이에게 주는 급식카드를 세 군데 고친 일이다. 2012년부터 " +
     "4,500원에 묶여 있던 한 끼 값을 2018년 10월 6,000원으로 올렸고, 이후 " +

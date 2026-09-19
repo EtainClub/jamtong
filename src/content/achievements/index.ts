@@ -173,11 +173,15 @@ export interface AchievementGroup {
 }
 
 /**
- * 분야로 묶어 최근 순으로 세운다.
+ * 분야로 묶는다. 한 업적이 여러 분야에 나올 수 있다.
  *
- * 묶음끼리의 순서도 최근 순이다 — 가장 최근에 무슨 일이 있었던 분야가 위로
- * 온다. 목록 안에서 쓰는 규칙과 같은 규칙을 묶음에도 한 번 더 적용하는 것이라,
- * 자리가 왜 그런지 설명할 말이 하나면 된다.
+ * ★ 분야별 건수를 더하면 전체 건수보다 크다. 그게 맞다.
+ *   분야는 서랍이 아니라 들어가는 문이다. 경제만 보는 사람에게 원유 수급이
+ *   안 보이면, 그 사람이 가장 보고 싶어 할 것을 우리가 숨긴 셈이 된다.
+ *
+ * 묶음끼리의 순서는 최근 순이다 — 가장 최근에 무슨 일이 있었던 분야가 위로
+ * 온다. 목록 안에서 쓰는 규칙을 묶음에 한 번 더 적용하는 것이라, 자리가 왜
+ * 그런지 설명할 말이 하나면 된다.
  *
  * 비어 있는 묶음은 내보내지 않는다. 이름만 있고 아무것도 없는 칸은 읽는
  * 사람에게 "여기 뭔가 있어야 하는데 없다"로 읽힌다.
@@ -185,9 +189,11 @@ export interface AchievementGroup {
 export function groupAchievements(list: Achievement[]): AchievementGroup[] {
   const buckets = new Map<AchievementCategory, Achievement[]>();
   for (const achievement of list) {
-    const bucket = buckets.get(achievement.category);
-    if (bucket) bucket.push(achievement);
-    else buckets.set(achievement.category, [achievement]);
+    for (const category of achievement.categories) {
+      const bucket = buckets.get(category);
+      if (bucket) bucket.push(achievement);
+      else buckets.set(category, [achievement]);
+    }
   }
 
   const groups: AchievementGroup[] = [];
@@ -223,6 +229,10 @@ export interface AchievementCardData {
   title: string;
   subtitle: string;
   kicker: string;
+  /** 이 업적이 서는 분야들. 앞의 것이 대표다. */
+  categories: AchievementCategory[];
+  /** 분야 이름. 클라이언트가 GROUP_LABEL을 import하지 않아도 되게 여기서 편다. */
+  categoryLabels: string[];
   isDraft: boolean;
   /** 일곱 칸의 충족 여부. 화면이 다시 계산하지 않도록 여기서 정한다. */
   parts: boolean[];
@@ -237,6 +247,8 @@ export function toCardData(achievement: Achievement): AchievementCardData {
     title: achievement.title,
     subtitle: achievement.subtitle,
     kicker: achievement.kicker,
+    categories: achievement.categories,
+    categoryLabels: achievement.categories.map((c) => GROUP_LABEL[c]),
     isDraft: achievement.publishStatus === "draft",
     parts: achievementParts(achievement),
     claimCount: achievement.claims.length,

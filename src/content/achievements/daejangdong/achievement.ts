@@ -34,7 +34,7 @@ const raw: AchievementInput = {
   title: "성남 판교대장 도시개발사업",
   subtitle: "부지의 절반 이상을 공공용지로 되돌린 결합 개발구역",
   kicker: "주요 업적",
-  category: "region",
+  categories: ["region", "economy"],
   summary:
     "대장동 개발사업으로 알려진 이 사업의 공식 명칭은 성남 판교대장 도시개발사업이다. " +
     "성남시는 2014년 대장동과 제1공단을 하나의 결합 도시개발구역으로 묶었다. " +

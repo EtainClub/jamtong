@@ -28,7 +28,7 @@ const raw: AchievementInput = {
   title: "KTX·SRT 통합",
   subtitle: "같은 선로를 달리던 두 열차가 한 회사가 됐다",
   kicker: "주요 정책",
-  category: "region",
+  categories: ["region", "economy"],
   summary:
     "코레일과 에스알로 나뉘어 있던 고속철도 운영을 하나로 합친 일이다. " +
     "2026년 8월 31일 기관통합에 필요한 법정·행정 절차가 끝났고 9월 1일부터 " +

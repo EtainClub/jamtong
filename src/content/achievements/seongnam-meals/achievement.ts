@@ -24,7 +24,7 @@ const raw: AchievementInput = {
   title: "성남시 무상급식",
   subtitle: "1학년만 주던 밥이 모든 학년에 가기까지",
   kicker: "주요 업적",
-  category: "welfare",
+  categories: ["welfare"],
   summary:
     "2007년 초등학교 1학년을 대상으로 시작한 무상급식은 2013년 의무교육 대상 전체로 넓어졌고, " +
     "2018년 2학기에 고등학교까지 갔다. 시작한 시정과 넓힌 시정과 완성한 시정이 모두 다르다. " +

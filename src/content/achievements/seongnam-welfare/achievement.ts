@@ -26,7 +26,7 @@ const raw: AchievementInput = {
   title: "성남시 3대 무상복지",
   subtitle: "중앙정부가 막아선 지방정부의 복지 실험",
   kicker: "주요 업적",
-  category: "welfare",
+  categories: ["welfare"],
   summary:
     "성남시는 2016년부터 무상교복·공공산후조리·청년배당 세 가지를 한 예산안에 묶어 시행했다. " +
     "보건복지부는 사회보장기본법상 사전협의를 거치지 않았다며 제동을 걸었고, " +
