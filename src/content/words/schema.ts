@@ -86,6 +86,26 @@ export const WordArt = z.enum([
   "two-loans", // 공급을 늘리는 돈과 수요를 늘리는 돈은 다르다
   "spread-out", // 수도권 집중을 흩는다
   "safety-net", // 값이 무너지면 공공이 받는다
+  // 노웅래 무죄
+  "court-cleared", // 두 번의 무죄
+  "thin-evidence", // 증거라고는 소리 하나
+  "cut-off", // 명단에서 지워졌다
+  "apology-late", // 뒤늦은 사죄
+  // 개헌
+  "charter-age", // 40년 된 헌법
+  "power-split", // 대통령 권한 일부를 국회로
+  "term-four", // 임기를 바꾸자
+  "not-parliamentary", // 분권형은 내각제가 아니다
+  // 책임과 권력
+  "cannot-fool", // 국민은 속일 수 없다
+  // 분당집
+  "one-house", // 1998년에 산 한 채
+  "sold-why", // 이익이 아니라 책임 때문에
+  "headline-frame", // 제목이 씌운 틀
+  // 체육행정
+  "wrong-pick", // 능력보다 내 편
+  "direct-vote", // 소수 대의원에서 모두의 직선제로
+  "check-system", // 감시와 책임
 ]);
 export type WordArt = z.infer<typeof WordArt>;
 

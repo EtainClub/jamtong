@@ -918,6 +918,376 @@ function SafetyNet() {
     </svg>
   );
 }
+
+/* ── 노웅래 무죄 ─────────────────────────────────────────────── */
+
+/** 두 번의 무죄. */
+function CourtCleared() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="1심과 항소심에서 잇달아 무죄 판결이 난 모습">
+      {[
+        { x: 84, t: "1심" },
+        { x: 236, t: "항소심" },
+      ].map((n) => (
+        <g key={n.x}>
+          <rect x={n.x - 56} y={64} width={112} height={88} rx={8}
+                fill="var(--canvas)" stroke="var(--navy)" strokeWidth={3} />
+          <path d={`M${n.x - 22} 108 L${n.x - 6} 124 L${n.x + 24} 88`} fill="none"
+                stroke="var(--navy)" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+          <text x={n.x} y={176} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">{n.t}</text>
+        </g>
+      ))}
+      <text x={160} y={216} textAnchor="middle" fontSize={17} {...LABEL} fill="var(--ink)">
+        두 번 다 무죄
+      </text>
+    </svg>
+  );
+}
+
+/** 증거라고는 소리 하나. */
+function ThinEvidence() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="증거로 내세운 것이 소리 하나뿐이었다는 것을 나타낸 그림">
+      <rect x={38} y={62} width={244} height={96} rx={10}
+            fill="none" stroke="var(--graphite)" strokeWidth={2.5} strokeDasharray="8 8" />
+      <text x={160} y={52} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--ash)">증거</text>
+      {[-2, -1, 0, 1, 2].map((i) => (
+        <path key={i} d={`M${160 + i * 22} ${110 - Math.abs(i) * 6} V${110 + Math.abs(i) * 6}`}
+              stroke="var(--burgundy)" strokeWidth={5} strokeLinecap="round"
+              opacity={0.9 - Math.abs(i) * 0.18} />
+      ))}
+      <text x={160} y={144} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">
+        부스럭 소리
+      </text>
+      <text x={160} y={196} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        이게 거의 전부였대요
+      </text>
+    </svg>
+  );
+}
+
+/** 명단에서 지워졌다. */
+function CutOff() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="후보 명단에서 한 사람의 이름이 지워진 모습">
+      <rect x={70} y={44} width={180} height={140} rx={8}
+            fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2.5} />
+      {[74, 106, 138].map((y, i) => (
+        <rect key={y} x={92} y={y} width={{ 0: 120, 1: 96, 2: 110 }[i]} height={12}
+              rx={3} fill="var(--stone)" />
+      ))}
+      <rect x={92} y={106} width={96} height={12} rx={3} fill="var(--burgundy)" opacity={0.35} />
+      <path d="M86 112 H200" stroke="var(--burgundy)" strokeWidth={3.5} strokeLinecap="round" />
+      <text x={160} y={212} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        후보 명단에서 빼야 했대요
+      </text>
+    </svg>
+  );
+}
+
+/** 뒤늦은 사죄. */
+function ApologyLate() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="시간이 한참 지난 뒤에야 고개를 숙이는 모습">
+      <path d="M30 172 H290" stroke="var(--stone)" strokeWidth={3} strokeLinecap="round" />
+      <circle cx={64} cy={172} r={8} fill="var(--burgundy)" />
+      <text x={64} y={200} textAnchor="middle" fontSize={11} fill="var(--ash)">공천 배제</text>
+      <circle cx={256} cy={172} r={8} fill="var(--navy)" />
+      <text x={256} y={200} textAnchor="middle" fontSize={11} fill="var(--ash)">무죄</text>
+      <path d="M78 172 H242" stroke="var(--graphite)" strokeWidth={3}
+            strokeDasharray="7 7" strokeLinecap="round" opacity={0.6} />
+      <Person x={256} y={126} fill="var(--navy)" scale={1.25} rotate={18} />
+      <text x={160} y={66} textAnchor="middle" fontSize={16} {...LABEL} fill="var(--ink)">
+        뒤늦게 사과했어요
+      </text>
+      <text x={160} y={92} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        그 사이 잃은 것은 돌아오지 않아요
+      </text>
+    </svg>
+  );
+}
+
+/* ── 개헌 ────────────────────────────────────────────────────── */
+
+/** 40년 된 헌법. */
+function CharterAge() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="40년 된 헌법 책">
+      <rect x={104} y={52} width={112} height={140} rx={6} fill="var(--navy)" />
+      <rect x={116} y={52} width={6} height={140} fill="var(--eggshell)" opacity={0.3} />
+      <text x={166} y={112} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--eggshell)">헌법</text>
+      <text x={166} y={144} textAnchor="middle" fontSize={26} {...LABEL} fill="var(--eggshell)">40년</text>
+      <text x={160} y={222} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        지금 시대와 안 맞는대요
+      </text>
+    </svg>
+  );
+}
+
+/** 대통령 권한 일부를 국회로. */
+function PowerSplit() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="대통령이 가진 권한 가운데 일부를 국회로 옮기는 모습">
+      <circle cx={72} cy={104} r={44} fill="var(--navy)" />
+      <text x={72} y={110} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">대통령</text>
+      <circle cx={250} cy={104} r={36} fill="var(--burgundy)" opacity={0.85} />
+      <text x={250} y={110} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">국회</text>
+      {[84, 104, 124].map((y) => (
+        <g key={y}>
+          <path d={`M124 ${y} H204`} stroke="var(--graphite)" strokeWidth={2.5} strokeLinecap="round" />
+          <path d={`M196 ${y - 6} L206 ${y} L196 ${y + 6}`} fill="none" stroke="var(--graphite)"
+                strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+      ))}
+      <text x={164} y={168} textAnchor="middle" fontSize={11} fill="var(--ash)">
+        감사원 · 총리추천 · 인사권 일부
+      </text>
+      <text x={160} y={210} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        권한을 나누자는 거예요
+      </text>
+    </svg>
+  );
+}
+
+/** 임기를 바꾸자. */
+function TermFour() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="5년 한 번에서 4년씩 두 번으로 임기를 바꾸자는 것을 나타낸 그림">
+      <text x={160} y={56} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--ash)">지금</text>
+      <rect x={60} y={68} width={200} height={26} rx={6} fill="var(--stone)" />
+      <text x={160} y={87} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--graphite)">5년 한 번</text>
+
+      <path d="M160 106 V126" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M152 118 L160 128 L168 118" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+
+      <rect x={60} y={140} width={94} height={26} rx={6} fill="var(--navy)" />
+      <text x={107} y={159} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">4년</text>
+      <rect x={166} y={140} width={94} height={26} rx={6} fill="var(--navy)" opacity={0.6} />
+      <text x={213} y={159} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">4년</text>
+      <text x={160} y={192} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        가운데서 한 번 평가받게
+      </text>
+      <text x={160} y={220} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        책임정치가 되게요
+      </text>
+    </svg>
+  );
+}
+
+/** 분권형은 내각제가 아니다. */
+function NotParliamentary() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="권한을 나누는 것과 내각제는 다르다는 것을 나타낸 그림">
+      <rect x={20} y={66} width={124} height={92} rx={8}
+            fill="var(--navy)" opacity={0.16} stroke="var(--navy)" strokeWidth={2.5} />
+      <text x={82} y={102} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">권한을</text>
+      <text x={82} y={124} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">나누기</text>
+      <text x={82} y={180} textAnchor="middle" fontSize={11} fill="var(--ash)">이걸 하자는 것</text>
+
+      <text x={160} y={118} textAnchor="middle" fontSize={24} {...LABEL} fill="var(--ash)">≠</text>
+
+      <g opacity={0.45}>
+        <rect x={176} y={66} width={124} height={92} rx={8}
+              fill="none" stroke="var(--burgundy)" strokeWidth={2.5} strokeDasharray="7 7" />
+        <text x={238} y={102} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">내각제</text>
+        <text x={238} y={124} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">이원집정제</text>
+        <text x={238} y={180} textAnchor="middle" fontSize={11} fill="var(--ash)">이건 아니라는 것</text>
+      </g>
+
+      <text x={160} y={222} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        둘은 다른 이야기래요
+      </text>
+    </svg>
+  );
+}
+
+/* ── 책임과 권력 ─────────────────────────────────────────────── */
+
+/** 국민은 속일 수 없다. */
+function CannotFool() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="아무리 감춰도 많은 사람의 눈을 속일 수 없다는 것을 나타낸 그림">
+      <rect x={122} y={62} width={76} height={54} rx={6} fill="var(--graphite)" opacity={0.5} />
+      <text x={160} y={94} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">감춤</text>
+      {[
+        { x: 44, y: 166 },
+        { x: 96, y: 178 },
+        { x: 148, y: 184 },
+        { x: 200, y: 178 },
+        { x: 252, y: 166 },
+      ].map((n) => (
+        <g key={n.x}>
+          <Person x={n.x} y={n.y} fill="var(--navy)" scale={0.78} />
+          <path d={`M${n.x} ${n.y - 26} L${160 + (n.x - 148) * 0.18} 122`}
+                stroke="var(--navy)" strokeWidth={1.8} strokeDasharray="4 5"
+                strokeLinecap="round" opacity={0.55} />
+        </g>
+      ))}
+      <text x={160} y={38} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        다 보고 있대요
+      </text>
+    </svg>
+  );
+}
+
+/* ── 분당집 ──────────────────────────────────────────────────── */
+
+/** 1998년에 산 한 채. */
+function OneHouse() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="오래 살아온 집 한 채">
+      <path d="M92 104 l68 -48 l68 48 Z" fill="var(--navy)" />
+      <rect x={104} y={104} width={112} height={82} fill="var(--navy)" opacity={0.85} />
+      <rect x={144} y={132} width={32} height={54} rx={3} fill="var(--eggshell)" opacity={0.75} />
+      <text x={160} y={62} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ash)">1998년</text>
+      <text x={160} y={214} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        처음이자 마지막으로 산 집
+      </text>
+    </svg>
+  );
+}
+
+/** 이익이 아니라 책임 때문에. */
+function SoldWhy() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="돈 때문이 아니라 공직자의 책임 때문에 팔았다는 것을 나타낸 그림">
+      <g opacity={0.4}>
+        <circle cx={86} cy={106} r={34} fill="var(--graphite)" />
+        <text x={86} y={114} textAnchor="middle" fontSize={22} {...LABEL} fill="var(--eggshell)">₩</text>
+        <path d="M58 78 L114 134 M114 78 L58 134" stroke="var(--graphite)"
+              strokeWidth={3} strokeLinecap="round" />
+        <text x={86} y={166} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">
+          돈 때문이 아니라
+        </text>
+      </g>
+      <path d="M140 106 H176" stroke="var(--navy)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M167 97 L178 106 L167 115" fill="none" stroke="var(--navy)"
+            strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={244} cy={106} r={38} fill="var(--navy)" />
+      <text x={244} y={100} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">공직자</text>
+      <text x={244} y={120} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">책임</text>
+      <text x={160} y={206} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        모범이 되려고 팔았대요
+      </text>
+    </svg>
+  );
+}
+
+/** 제목이 씌운 틀. */
+function HeadlineFrame() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="기사 제목이 한쪽 인상만 남기는 모습">
+      <rect x={34} y={58} width={252} height={74} rx={8}
+            fill="var(--burgundy)" opacity={0.12} stroke="var(--burgundy)" strokeWidth={2.5} />
+      <text x={160} y={88} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--burgundy)">
+        “시세차익만 25억”
+      </text>
+      <text x={160} y={114} textAnchor="middle" fontSize={11} fill="var(--ash)">기사 제목</text>
+      <path d="M160 142 V166" stroke="var(--graphite)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M152 158 L160 168 L168 158" fill="none" stroke="var(--graphite)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={196} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        투기꾼처럼 보이게 한대요
+      </text>
+      <text x={160} y={220} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        그게 과하다고 했어요
+      </text>
+    </svg>
+  );
+}
+
+/* ── 체육행정 ────────────────────────────────────────────────── */
+
+/** 능력보다 내 편. */
+function WrongPick() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="능력이 아니라 가까운 사이를 보고 사람을 고른 모습">
+      <Person x={92} y={110} fill="var(--navy)" scale={1.25} />
+      <text x={92} y={152} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">잘하는 사람</text>
+      <g opacity={0.35}>
+        <path d="M64 78 L120 134 M120 78 L64 134" stroke="var(--graphite)"
+              strokeWidth={3} strokeLinecap="round" />
+      </g>
+      <Person x={228} y={110} fill="var(--burgundy)" scale={1.25} />
+      <text x={228} y={152} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--burgundy)">가까운 사람</text>
+      <circle cx={228} cy={110} r={40} fill="none" stroke="var(--burgundy)"
+              strokeWidth={3} strokeDasharray="7 7" />
+      <text x={160} y={200} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        이렇게 고르면 결과는 뻔하대요
+      </text>
+    </svg>
+  );
+}
+
+/** 소수 대의원에서 모두의 직선제로. */
+function DirectVote() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="소수만 뽑던 방식에서 모두가 직접 뽑는 방식으로 바뀌는 모습">
+      <g opacity={0.45}>
+        {[44, 76, 108].map((x) => (
+          <Person key={x} x={x} y={106} fill="var(--graphite)" scale={0.8} />
+        ))}
+        <text x={76} y={144} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--graphite)">
+          소수 대의원
+        </text>
+      </g>
+      <path d="M136 100 H172" stroke="var(--navy)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M163 91 L174 100 L163 109" fill="none" stroke="var(--navy)"
+            strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
+      {[194, 222, 250, 278, 208, 236, 264].map((x, i) => (
+        <Person key={x} x={x} y={i < 4 ? 92 : 128} fill="var(--navy)" scale={0.72} />
+      ))}
+      <text x={236} y={166} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--navy)">
+        관련된 모두
+      </text>
+      <text x={160} y={212} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        다 같이 뽑게 바꾸래요
+      </text>
+    </svg>
+  );
+}
+
+/** 감시와 책임. */
+function CheckSystem() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="권한을 준 뒤 감시하고 결과에 책임을 지우는 고리">
+      <circle cx={160} cy={116} r={62} fill="none" stroke="var(--navy)"
+              strokeWidth={3} strokeDasharray="10 8" />
+      {[
+        { x: 160, y: 54, t: "권한" },
+        { x: 222, y: 116, t: "감시" },
+        { x: 160, y: 178, t: "책임" },
+        { x: 98, y: 116, t: "결과" },
+      ].map((n) => (
+        <g key={n.t}>
+          <circle cx={n.x} cy={n.y} r={24} fill="var(--navy)" />
+          <text x={n.x} y={n.y + 5} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">
+            {n.t}
+          </text>
+        </g>
+      ))}
+      <text x={160} y={226} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        고리가 이어져야 한대요
+      </text>
+    </svg>
+  );
+}
 export const WORD_ART: Record<WordArt, () => React.ReactNode> = {
   "quote-pick": QuotePick,
   "part-whole": PartWhole,
@@ -952,4 +1322,19 @@ export const WORD_ART: Record<WordArt, () => React.ReactNode> = {
   "two-loans": TwoLoans,
   "spread-out": SpreadOut,
   "safety-net": SafetyNet,
+  "court-cleared": CourtCleared,
+  "thin-evidence": ThinEvidence,
+  "cut-off": CutOff,
+  "apology-late": ApologyLate,
+  "charter-age": CharterAge,
+  "power-split": PowerSplit,
+  "term-four": TermFour,
+  "not-parliamentary": NotParliamentary,
+  "cannot-fool": CannotFool,
+  "one-house": OneHouse,
+  "sold-why": SoldWhy,
+  "headline-frame": HeadlineFrame,
+  "wrong-pick": WrongPick,
+  "direct-vote": DirectVote,
+  "check-system": CheckSystem,
 };

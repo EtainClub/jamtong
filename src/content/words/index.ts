@@ -4,6 +4,15 @@ import { oilPrice } from "./oil-price";
 import { reformIsHard } from "./reform-is-hard";
 import { developmentalCare } from "./developmental-care";
 import { housingSupply } from "./housing-supply";
+import { nohAcquittal } from "./noh-acquittal";
+import { constitution } from "./constitution";
+import { nationalInterest } from "./national-interest";
+import { powerResponsibility } from "./power-responsibility";
+import { vote } from "./vote";
+import { sewolMockery } from "./sewol-mockery";
+import { bundangHouse } from "./bundang-house";
+import { wish } from "./wish";
+import { sportsReform } from "./sports-reform";
 import { validateStatement, type Statement } from "./schema";
 
 /**
@@ -19,9 +28,16 @@ export const STATEMENTS: Statement[] = [
   reformIsHard,
   developmentalCare,
   housingSupply,
-].sort(
-  (a, b) => b.postedAt.localeCompare(a.postedAt) || a.slug.localeCompare(b.slug),
-);
+  nohAcquittal,
+  constitution,
+  nationalInterest,
+  powerResponsibility,
+  vote,
+  sewolMockery,
+  bundangHouse,
+  wish,
+  sportsReform,
+].sort((a, b) => b.postedAt.localeCompare(a.postedAt) || a.slug.localeCompare(b.slug));
 
 export function getStatement(slug: string): Statement | undefined {
   return STATEMENTS.find((s) => s.slug === slug);
