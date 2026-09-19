@@ -7,6 +7,7 @@ import { PART_LABELS, achievementParts } from "@/content/achievements";
 import { ScrollArrow, useScroller } from "@/features/app/Scroller";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
+import { KIND_LABEL, search, type SearchEntry } from "@/content/search";
 
 /**
  * 홈 피드.
@@ -58,13 +59,17 @@ export function HomeFeed({
   slides,
   achievements,
   topics,
+  searchIndex,
   claims,
 }: {
   slides: HeroSlide[];
   achievements: Achievement[];
   topics: Milestone[];
+  searchIndex: SearchEntry[];
   claims: Claim[];
 }) {
+  const [query, setQuery] = useState("");
+  const q = query.trim();
   const [tab, setTab] = useState("all");
   const filtered = useMemo(() => {
     const matcher = TABS.find((t) => t.id === tab) ?? TABS[0];
@@ -89,7 +94,16 @@ export function HomeFeed({
 
   return (
     <>
-      <SearchField />
+      <SearchField value={query} onChange={setQuery} />
+
+      {/*
+       * 찾는 동안에는 피드를 걷는다. 결과 아래에 히어로와 목록이 그대로 남으면
+       * 무엇이 결과인지 알 수 없다.
+       */}
+      {q ? (
+        <SearchResults query={q} index={searchIndex} />
+      ) : (
+        <>
 
       <HeroCarousel slides={slides} />
 
@@ -203,11 +217,19 @@ export function HomeFeed({
           </div>
         )}
       </section>
+        </>
+      )}
     </>
   );
 }
 
-function SearchField() {
+function SearchField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+}) {
   return (
     <form
       role="search"
@@ -226,10 +248,77 @@ function SearchField() {
       </span>
       <input
         type="search"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         placeholder="궁금한 주제나 키워드를 검색해보세요"
-        className="w-full rounded-full border border-stone bg-taupe py-3 pl-10 pr-4 text-sm text-ink placeholder:text-ash focus:border-graphite focus:outline-none"
+        className="w-full rounded-full border border-stone bg-taupe py-3 pl-10 pr-10 text-sm text-ink placeholder:text-ash focus:border-graphite focus:outline-none"
       />
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          aria-label="검색어 지우기"
+          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-ash transition-colors hover:bg-stone hover:text-smoke"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth="2.2" strokeLinecap="round">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      )}
     </form>
+  );
+}
+
+/**
+ * 검색 결과.
+ *
+ * 찾는 동안에는 피드를 걷는다. 결과 아래에 히어로와 목록이 그대로 남아 있으면
+ * 무엇이 결과인지 알 수 없다.
+ */
+function SearchResults({ query, index }: { query: string; index: SearchEntry[] }) {
+  const hits = useMemo(() => search(index, query), [index, query]);
+
+  if (hits.length === 0) {
+    return (
+      <section aria-live="polite" className="mt-8">
+        <p className="text-[15px] font-semibold text-ink">
+          &lsquo;{query}&rsquo;에 대한 결과가 없습니다.
+        </p>
+        <p className="mt-2 text-[13px] leading-relaxed text-smoke">
+          업적 제목과 연표, 근거 문장까지 찾습니다. 다른 낱말로 해 보시거나{" "}
+          <Link href="/explore" className="font-medium text-navy underline underline-offset-2">
+            업적 목록
+          </Link>
+          을 둘러보세요.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section aria-live="polite" className="mt-6">
+      <p className="text-[12px] text-ash">
+        <span className="tabular">{hits.length}</span>건 찾았습니다
+      </p>
+      <ul className="mt-3 space-y-2">
+        {hits.map((hit) => (
+          <li key={hit.id}>
+            <Link
+              href={hit.href}
+              className="block rounded-card border border-stone bg-taupe px-4 py-3 transition-colors hover:border-graphite"
+            >
+              <div className="flex flex-wrap items-baseline gap-x-2">
+                <span className="text-[10px] font-bold text-navy">{KIND_LABEL[hit.kind]}</span>
+                {hit.context && <span className="text-[10px] text-ash">{hit.context}</span>}
+              </div>
+              <p className="mt-1 text-[14px] font-semibold leading-snug text-ink">{hit.title}</p>
+              <p className="mt-0.5 text-[13px] leading-relaxed text-smoke">{hit.detail}</p>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

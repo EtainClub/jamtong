@@ -4,6 +4,7 @@ import { findScene, validateMilestones } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { HomeFeed, type HeroSlide } from "@/features/home/HomeFeed";
+import { SEARCH_INDEX } from "@/content/search";
 import { ArcticHeroVisual, NumberHeroVisual } from "@/features/home/HeroVisuals";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 
@@ -76,6 +77,7 @@ export default function Home() {
           slides={slides}
           achievements={ACHIEVEMENTS}
           topics={topics}
+          searchIndex={SEARCH_INDEX}
           claims={ALL_CLAIMS}
         />
       </main>
