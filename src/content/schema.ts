@@ -248,11 +248,14 @@ export const achievementSchema = z.object({
    */
   publishStatus: z.enum(["draft", "published"]).default("draft"),
   /**
-   * 왜 아직 초안인지. 미검증이 0인데도 draft로 남는 경우가 있다 —
-   * 근거는 다 붙었지만 자료의 무게가 고르지 않을 때다. 그 사정은 업적마다
-   * 다르므로 코드가 아니라 콘텐츠가 말한다.
+   * 근거의 한계. 무엇에 기대고 있고 무엇이 아직 대조되지 않았는지.
+   *
+   * 미검증이 0이어도 자료의 무게는 고르지 않을 수 있다 — 면적은 공공기관
+   * 자료인데 금액은 보도인 식이다. 공개했다고 이 사정이 사라지지 않으므로,
+   * 초안일 때는 배너로, 공개된 뒤에는 조용한 한 줄로 계속 보인다.
+   * 공개한다는 것이 한계를 감춘다는 뜻은 아니다.
    */
-  draftReason: z.string().optional(),
+  sourceNote: z.string().optional(),
   /** 스토리 전용 개념. 종류마다 데이터가 다르고, 전부 claimIds를 갖는다. */
   scenes: z.lazy(() => z.array(sceneSchema)).default([]),
   keyNumbers: z.array(keyNumberSchema).default([]),

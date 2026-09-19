@@ -29,10 +29,11 @@ const raw: AchievementInput = {
     "2018년 2학기에 고등학교까지 갔다. 시작한 시정과 넓힌 시정과 완성한 시정이 모두 다르다. " +
     "이 시정의 몫은 초·중학교 전면 확대다.",
   type: "event",
-  publishStatus: "draft",
-  draftReason:
+  publishStatus: "published",
+  sourceNote:
     "연혁과 규모를 성남시 보도자료를 옮긴 보도로 확인했습니다. 성남시가 직접 낸 자료나 " +
-    "학교급식 지원 조례로 대조하기 전까지는 초안으로 둡니다.",
+    "학교급식 지원 조례로 대조하는 일은 아직 남아 있습니다. 이 업적의 근거는 다른 업적보다 " +
+    "얇습니다.",
 
   headlineKeyNumberId: "kn-students",
 

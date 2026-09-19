@@ -40,8 +40,8 @@ const raw: AchievementInput = {
     "대장동에서 나온 개발이익으로 도심의 옛 공단 부지를 공원으로 되돌리는 구조다. " +
     "전체 917,068.8㎡ 가운데 공공용지는 53.5%다.",
   type: "event",
-  publishStatus: "draft",
-  draftReason:
+  publishStatus: "published",
+  sourceNote:
     "모든 주장에 근거가 붙었지만 자료의 무게가 고르지 않습니다. 면적과 절차는 " +
     "공공기관이 낸 1차 자료인데, 금액은 공개된 공식 자료가 없어 보도에 기대고 있습니다.",
 

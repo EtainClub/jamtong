@@ -4,7 +4,7 @@ import { findScene, validateMilestones } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { HomeFeed, type HeroSlide } from "@/features/home/HomeFeed";
-import { ArcticHeroVisual } from "@/features/home/HeroVisuals";
+import { ArcticHeroVisual, NumberHeroVisual } from "@/features/home/HeroVisuals";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 
 /**
@@ -14,6 +14,8 @@ import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
  * 화면을 가운데 세운다. 넓은 화면용 레이아웃을 따로 만들면 두 벌을 관리하게 되고,
  * 정작 대다수가 쓰는 쪽이 부실해진다.
  */
+
+const TONES = ["ice", "warm", "deep"] as const;
 
 export default function Home() {
   const stories = getPublishedAchievements();
@@ -27,21 +29,32 @@ export default function Home() {
     throw new Error(`성과 카드 검증 실패:\n${errors.join("\n")}`);
   }
 
-  // 스토리가 먼저다. 직접 움직여볼 수 있는 콘텐츠를 앞에 세운다.
-  const achievementSlides: HeroSlide[] = stories.map((achievement) => ({
-    id: achievement.id,
-    kicker: achievement.kicker,
-    tag: achievement.title,
-    title: achievement.subtitle,
-    subtitle: achievement.summary.split(". ")[0] + ".",
-    href: `/achievement/${achievement.slug}`,
-    note: "직접 움직여보기",
-    // 지도 씬을 가진 스토리만 지도를 배경으로 쓴다.
-    visual: (() => {
-      const map = findScene(achievement, "route-map");
-      return map ? <ArcticHeroVisual routes={map.routes} /> : undefined;
-    })(),
-  }));
+  const achievementSlides: HeroSlide[] = stories.map((achievement, index) => {
+    const map = findScene(achievement, "route-map");
+    const headline =
+      achievement.keyNumbers.find((k) => k.id === achievement.headlineKeyNumberId) ??
+      achievement.keyNumbers[0];
+
+    return {
+      id: achievement.id,
+      kicker: achievement.kicker,
+      tag: achievement.title,
+      title: achievement.subtitle,
+      subtitle: achievement.summary.split(". ")[0] + ".",
+      href: `/achievement/${achievement.slug}`,
+      note: map ? "직접 움직여보기" : headline?.value,
+      /*
+       * 지도가 있는 업적은 지도를, 없는 업적은 대표 수치를 배경으로 쓴다.
+       * 배경이 비면 카드가 전부 같아 보이고, 캐러셀에서 몇 장을 지났는지
+       * 감이 오지 않는다.
+       */
+      visual: map ? (
+        <ArcticHeroVisual routes={map.routes} />
+      ) : headline ? (
+        <NumberHeroVisual value={headline.value} tone={TONES[index % TONES.length]} />
+      ) : undefined,
+    };
+  });
 
   /*
    * 히어로는 공개된 업적만 세운다.

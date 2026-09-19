@@ -1,31 +1,36 @@
 import type { Achievement } from "@/content/schema";
 
 /**
- * 초안임을 숨기지 않는다.
+ * 근거의 상태를 숨기지 않는다.
  *
- * draft 업적은 피드에 오르지 않고 noindex이며, published로 올리는 순간
- * validateAchievement가 미검증 claim을 이유로 빌드를 깬다.
- *
- * 미검증이 0인데도 draft로 남는 경우가 있다. 근거는 다 붙었지만 자료의 무게가
- * 고르지 않을 때다 — 대장동이 그렇다. 면적·절차는 1차 자료인데 금액은 보도뿐이다.
- * 그때는 "몇 건이 미검증"이 아니라 왜 아직 초안인지를 적어야 한다.
+ * 초안이면 배너로 크게, 공개된 뒤에는 조용한 한 줄로 남는다.
+ * 공개했다고 자료의 한계가 사라지는 것이 아니므로 문장은 그대로 간다.
+ * 스스로 밝히면 방어가 되고, 지우면 공격거리가 된다.
  */
-export function DraftBanner({ achievement }: { achievement: Achievement }) {
-  if (achievement.publishStatus !== "draft") return null;
-
+export function EvidenceStatus({ achievement }: { achievement: Achievement }) {
+  const isDraft = achievement.publishStatus === "draft";
   const pending = achievement.claims.filter((c) => !c.verified);
   const needed = achievement.sources.filter((s) => s.publisher === "미정");
 
-  return (
-    <aside
-      role="note"
-      className="mx-auto mt-10 max-w-5xl px-5"
-      aria-label="검증 상태"
-    >
-      <div className="rounded-card border border-pending/30 bg-pending-tint px-5 py-5">
-        <p className="text-sm font-semibold text-pending">
-          검증 전 골격입니다 — 공개 전 단계
+  if (!isDraft) {
+    if (!achievement.sourceNote) return null;
+    return (
+      <aside
+        role="note"
+        aria-label="근거의 한계"
+        className="mx-auto mt-8 max-w-5xl px-5"
+      >
+        <p className="border-l-2 border-stone pl-4 text-[13px] leading-relaxed text-ash">
+          {achievement.sourceNote}
         </p>
+      </aside>
+    );
+  }
+
+  return (
+    <aside role="note" className="mx-auto mt-10 max-w-5xl px-5" aria-label="검증 상태">
+      <div className="rounded-card border border-pending/30 bg-pending-tint px-5 py-5">
+        <p className="text-sm font-semibold text-pending">검증 전 골격입니다 — 공개 전 단계</p>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-smoke">
           {pending.length > 0 ? (
             <>
@@ -34,7 +39,7 @@ export function DraftBanner({ achievement }: { achievement: Achievement }) {
               목록에 오르지 않습니다.
             </>
           ) : (
-            achievement.draftReason ??
+            achievement.sourceNote ??
             "모든 주장에 근거가 붙었지만 아직 편집 검토가 끝나지 않아 공개 목록에 올리지 않았습니다."
           )}
         </p>

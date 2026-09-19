@@ -9,7 +9,7 @@ import { validateAchievement, type Achievement } from "@/content/schema";
 import { AchievementHero } from "@/features/achievement/AchievementHero";
 import { Section } from "@/features/achievement/Section";
 import { ShortsSection } from "@/features/achievement/ShortsSection";
-import { DraftBanner } from "@/features/achievement/DraftBanner";
+import { EvidenceStatus } from "@/features/achievement/EvidenceStatus";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareButton } from "@/features/achievement/ShareButton";
 import { SceneNav } from "@/features/achievement/SceneNav";
@@ -221,7 +221,7 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
 
       <main id="main" className="flex-1 pb-24">
         <AchievementHero achievement={achievement} highlights={heroHighlights} />
-        <DraftBanner achievement={achievement} />
+        <EvidenceStatus achievement={achievement} />
 
         {achievement.eli5 && (
           <div className="mx-auto max-w-5xl px-5 pb-8">
