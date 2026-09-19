@@ -67,6 +67,33 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "2014년에 무슨 결정이 있었나요?",
     ],
   },
+  "gyeonggi-valley": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "2년에 걸쳐 걷어냈다",
+          timelineLede:
+            "경기도가 수치를 밝힌 시점만 짚습니다. 시점을 옮기면 그때까지 성립한 관계만 남습니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "마지막 발표 시점 기준입니다.",
+          relationsHeading: "누가 걷어내고, 누구에게 돌아갔나",
+          relationsLede:
+            "힘으로 밀어붙인 것이 아니라는 것이 이 정책의 핵심입니다. 자진철거와 행정대집행이 각각 어디에 걸리는지 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-2021", label: "정비 완료" },
+      { claimId: "claim-2020", label: "자진철거 비중" },
+    ],
+    askSuggestions: [
+      "얼마나 걷어냈나요?",
+      "강제로 철거한 곳은 얼마나 되나요?",
+      "아직 남은 곳이 있나요?",
+    ],
+  },
   "seongnam-meals": {
     Layout: (props) => (
       <NarrativeLayout

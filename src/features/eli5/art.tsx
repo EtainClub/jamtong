@@ -870,6 +870,158 @@ function LunchCount() {
   );
 }
 
+
+/* ── 경기도 청정계곡 ─────────────────────────────────────────── */
+
+/** 계곡을 평상이 빼곡히 덮고 있다. 물이 거의 보이지 않는 것이 요지다. */
+function ValleyBlocked() {
+  // 평상 위치는 고정값이다. 난수를 쓰면 방문할 때마다 그림이 달라진다.
+  const decks = [
+    [46, 96], [96, 88], [146, 98], [196, 90], [246, 100],
+    [62, 130], [112, 124], [162, 134], [212, 126], [258, 136],
+    [78, 164], [128, 158], [178, 168], [228, 160],
+  ] as const;
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="계곡 물길이 평상으로 빼곡히 덮여 물이 거의 보이지 않는 모습">
+      <path d="M18 78 C90 66, 230 66, 302 78 L302 196 C230 184, 90 184, 18 196 Z"
+            fill="var(--navy)" opacity={0.18} />
+      <path d="M18 78 C90 66, 230 66, 302 78" fill="none" stroke="var(--navy)" strokeWidth={3} />
+      <path d="M18 196 C90 184, 230 184, 302 196" fill="none" stroke="var(--navy)" strokeWidth={3} />
+      {decks.map(([x, y]) => (
+        <g key={`${x}-${y}`}>
+          <rect x={x} y={y} width={42} height={26} rx={3} fill="var(--burgundy)" opacity={0.9} />
+          <rect x={x + 3} y={y + 26} width={4} height={7} fill="var(--graphite)" />
+          <rect x={x + 35} y={y + 26} width={4} height={7} fill="var(--graphite)" />
+        </g>
+      ))}
+      <text x={160} y={224} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        물에 발 담글 자리가 없다
+      </text>
+    </svg>
+  );
+}
+
+/** 계곡은 국유지라는 것. 한 사람이 울타리를 치려 하지만 땅에는 '모두의 것'이 적혀 있다. */
+function ValleyPublic() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="계곡은 나라 땅이어서 누구도 제 것처럼 막을 수 없다는 그림">
+      <path d="M16 92 C90 78, 230 78, 304 92 L304 178 C230 164, 90 164, 16 178 Z"
+            fill="var(--navy)" opacity={0.2} />
+      <rect x={96} y={108} width={128} height={44} rx={6}
+            fill="var(--canvas)" stroke="var(--navy)" strokeWidth={2.5} />
+      <text x={160} y={136} textAnchor="middle" fontSize={16} {...LABEL} fill="var(--navy)">
+        모두의 것
+      </text>
+      {/* 울타리를 치려다 만 손 */}
+      <path d="M52 126 L52 168 M40 140 L64 140" stroke="var(--burgundy)" strokeWidth={4}
+            strokeLinecap="round" strokeDasharray="5 6" />
+      <path d="M268 126 L268 168 M256 140 L280 140" stroke="var(--burgundy)" strokeWidth={4}
+            strokeLinecap="round" strokeDasharray="5 6" />
+      <text x={160} y={206} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        하천·계곡은 국유지
+      </text>
+    </svg>
+  );
+}
+
+/** 곧바로 부수지 않고 먼저 찾아가 알린다. 공문과 두 사람의 대화. */
+function ValleyNotice() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="행정이 먼저 찾아가 알리고 설득하는 모습">
+      <circle cx={92} cy={96} r={22} fill="var(--navy)" opacity={0.85} />
+      <path d="M68 172 C70 140, 114 140, 116 172 Z" fill="var(--navy)" opacity={0.85} />
+      <circle cx={226} cy={96} r={22} fill="var(--stone)" />
+      <path d="M202 172 C204 140, 248 140, 250 172 Z" fill="var(--stone)" />
+      {/* 건네는 공문 */}
+      <rect x={134} y={112} width={52} height={38} rx={3}
+            fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2} />
+      <path d="M142 124 H178 M142 132 H178 M142 140 H166"
+            stroke="var(--ash)" strokeWidth={2} strokeLinecap="round" />
+      <path d="M118 131 H130" stroke="var(--graphite)" strokeWidth={2.5} strokeLinecap="round" />
+      <path d="M190 131 H200" stroke="var(--graphite)" strokeWidth={2.5} strokeLinecap="round"
+            strokeDasharray="3 4" />
+      <text x={160} y={206} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        먼저 알리고 설득한다
+      </text>
+    </svg>
+  );
+}
+
+/** 영업주가 제 손으로 평상을 걷어낸다. 걷어낸 자리에 물이 드러난다. */
+function ValleySelfRemove() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="영업하던 사람이 제 손으로 평상을 걷어내 물이 드러나는 모습">
+      <path d="M16 96 C90 84, 230 84, 304 96 L304 176 C230 164, 90 164, 16 176 Z"
+            fill="var(--navy)" opacity={0.22} />
+      {/* 남은 평상 하나, 그리고 들려 올라가는 평상 */}
+      <rect x={40} y={128} width={46} height={26} rx={3} fill="var(--burgundy)" opacity={0.55} />
+      <g transform="rotate(-24 196 96)">
+        <rect x={172} y={80} width={52} height={28} rx={3} fill="var(--burgundy)" />
+      </g>
+      {/* 드는 사람 */}
+      <circle cx={150} cy={140} r={16} fill="var(--navy)" />
+      <path d="M132 190 C134 162, 168 162, 170 190 Z" fill="var(--navy)" />
+      <path d="M160 136 L182 106" stroke="var(--navy)" strokeWidth={6} strokeLinecap="round" />
+      <text x={160} y={220} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        스스로 걷어냈다
+      </text>
+    </svg>
+  );
+}
+
+/** 끝내 응하지 않은 곳. 행정이 직접 집행한다 — 수가 적다는 것이 요지다. */
+function ValleyForce() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="끝내 응하지 않은 소수의 시설을 행정이 직접 걷어내는 모습">
+      <path d="M16 100 C90 88, 230 88, 304 100 L304 174 C230 162, 90 162, 16 174 Z"
+            fill="var(--navy)" opacity={0.18} />
+      <rect x={128} y={112} width={58} height={32} rx={3} fill="var(--burgundy)" />
+      {/* 집행 표식 */}
+      <path d="M118 104 L196 152 M196 104 L118 152"
+            stroke="var(--burgundy)" strokeWidth={4} strokeLinecap="round" />
+      <rect x={40} y={92} width={50} height={22} rx={4}
+            fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2} />
+      <text x={65} y={108} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--graphite)">
+        대집행
+      </text>
+      <text x={160} y={198} textAnchor="middle" fontSize={22} {...LABEL} fill="var(--burgundy)">
+        49곳
+      </text>
+      <text x={160} y={218} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        철거된 곳의 3.6%
+      </text>
+    </svg>
+  );
+}
+
+/** 평상이 사라진 계곡. 사람이 물가에 그냥 앉아 있다. */
+function ValleyOpen() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="평상이 사라지고 사람들이 물가에 그냥 앉아 있는 계곡">
+      <path d="M14 88 C90 74, 230 74, 306 88 L306 186 C230 172, 90 172, 14 186 Z"
+            fill="var(--navy)" opacity={0.24} />
+      <path d="M14 88 C90 74, 230 74, 306 88" fill="none" stroke="var(--navy)" strokeWidth={3} />
+      <path d="M40 120 C80 112, 130 128, 176 118" fill="none" stroke="var(--canvas)"
+            strokeWidth={3} strokeLinecap="round" opacity={0.8} />
+      <path d="M150 150 C190 142, 240 156, 284 146" fill="none" stroke="var(--canvas)"
+            strokeWidth={3} strokeLinecap="round" opacity={0.8} />
+      {/* 물가에 앉은 두 사람 */}
+      <circle cx={96} cy={150} r={13} fill="var(--ink)" />
+      <path d="M80 190 C82 166, 112 166, 114 190 Z" fill="var(--ink)" />
+      <circle cx={130} cy={156} r={11} fill="var(--graphite)" />
+      <path d="M116 190 C118 170, 144 170, 146 190 Z" fill="var(--graphite)" />
+      <text x={160} y={218} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        돈 내지 않아도 앉을 수 있다
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -919,4 +1071,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "all-compulsory": AllCompulsory,
   "high-school-too": HighSchoolToo,
   "lunch-count": LunchCount,
+
+  "valley-blocked": ValleyBlocked,
+  "valley-public": ValleyPublic,
+  "valley-notice": ValleyNotice,
+  "valley-selfremove": ValleySelfRemove,
+  "valley-force": ValleyForce,
+  "valley-open": ValleyOpen,
 };

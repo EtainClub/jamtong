@@ -678,6 +678,14 @@ export const Eli5Art = z.enum([
   "all-compulsory",
   "high-school-too",
   "lunch-count",
+
+  // 경기도 청정계곡
+  "valley-blocked",
+  "valley-public",
+  "valley-notice",
+  "valley-selfremove",
+  "valley-force",
+  "valley-open",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

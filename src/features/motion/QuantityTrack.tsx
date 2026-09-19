@@ -84,12 +84,19 @@ export function QuantityTrack({ track, claims }: Props) {
   const nextIndex = Math.min(last, index + 1);
   const span = ease(pos - index);
 
-  const current = checkpoints[index];
-  const next = checkpoints[nextIndex];
-  const value = current.amount + (next.amount - current.amount) * span;
-  // 시점에 거의 닿았으면 그 시점에 있는 것으로 본다. 사이 상태를 오래 보이지 않는다.
-  const settled = span < 0.15 ? current : span > 0.85 ? next : null;
-  const shown = settled ?? current;
+  /*
+   * 글과 그림이 같은 시점을 가리켜야 한다.
+   *
+   * 시점에 거의 닿았으면 그 시점에 있는 것으로 본다. 앞서 이 판정을 글에만
+   * 적용하고 삽화·레일은 floor한 index를 그대로 썼더니, 글은 다음 시점인데
+   * 그림은 앞 시점인 상태가 생겼다. 인덱스를 하나로 두고 전부 그것을 본다.
+   */
+  const value =
+    checkpoints[index].amount +
+    (checkpoints[nextIndex].amount - checkpoints[index].amount) * span;
+
+  const shownIndex = span > 0.85 ? nextIndex : index;
+  const shown = checkpoints[shownIndex];
 
   const claim = claims.find((c) => c.id === shown.claimId);
   const Art = shown.art ? ELI5_ART[shown.art] : null;
@@ -113,9 +120,9 @@ export function QuantityTrack({ track, claims }: Props) {
               return (
                 <div
                   key={cp.id}
-                  aria-hidden={i !== index}
+                  aria-hidden={i !== shownIndex}
                   className="absolute inset-0 p-5 transition-opacity duration-500 ease-out"
-                  style={{ opacity: i === index ? 1 : 0 }}
+                  style={{ opacity: i === shownIndex ? 1 : 0 }}
                 >
                   <ArtI />
                 </div>
@@ -164,9 +171,9 @@ export function QuantityTrack({ track, claims }: Props) {
               {checkpoints.map((cp, i) => (
                 <li
                   key={cp.id}
-                  aria-current={i === index ? "step" : undefined}
+                  aria-current={i === shownIndex ? "step" : undefined}
                   className={`h-1 flex-1 rounded-full transition-colors ${
-                    i <= index ? "bg-navy" : "bg-stone"
+                    i <= shownIndex ? "bg-navy" : "bg-stone"
                   }`}
                   title={`${cp.displayDate} ${cp.title}`}
                 />
