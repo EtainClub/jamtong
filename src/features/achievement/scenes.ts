@@ -11,7 +11,7 @@ export interface SceneNavItem {
  * 헤더 내비게이션과 AI 안내가 같은 목록을 본다. 두 곳에 따로 적어 두면
  * AI가 존재하지 않는 씬으로 데려가려 한다.
  */
-export const SCENES_BY_STORY: Record<string, SceneNavItem[]> = {
+export const SCENES_BY_ACHIEVEMENT: Record<string, SceneNavItem[]> = {
   "arctic-route": [
     { id: "hero", label: "개요" },
     { id: "route", label: "항로" },

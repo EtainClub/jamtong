@@ -1,6 +1,6 @@
-import { getPublishedStories } from "@/content/stories";
-import { ACHIEVEMENTS, ALL_CLAIMS, ALL_SOURCES } from "@/content/achievements";
-import { findScene, validateAchievements, type Achievement } from "@/content/schema";
+import { getPublishedAchievements } from "@/content/achievements";
+import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
+import { findScene, validateMilestones, type Milestone } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { HomeFeed, type HeroSlide } from "@/features/home/HomeFeed";
@@ -18,14 +18,14 @@ import { CATEGORY_LABEL } from "@/content/labels";
 
 const TONES = ["ice", "warm", "deep"] as const;
 
-function toHeroSlide(item: Achievement, index: number): HeroSlide {
+function toHeroSlide(item: Milestone, index: number): HeroSlide {
   return {
     id: item.id,
-    kicker: item.storySlug ? "주요 정책" : "주요 업적",
+    kicker: item.achievementSlug ? "주요 정책" : "주요 업적",
     tag: CATEGORY_LABEL[item.categories[0]],
     title: item.title,
     subtitle: item.summary,
-    href: item.storySlug ? `/story/${item.storySlug}` : "/explore",
+    href: item.achievementSlug ? `/achievement/${item.achievementSlug}` : "/explore",
     note: item.highlight?.value,
     visual: (
       <NumberHeroVisual
@@ -37,10 +37,10 @@ function toHeroSlide(item: Achievement, index: number): HeroSlide {
 }
 
 export default function Home() {
-  const stories = getPublishedStories();
+  const stories = getPublishedAchievements();
 
-  const errors = validateAchievements({
-    achievements: ACHIEVEMENTS,
+  const errors = validateMilestones({
+    milestones: MILESTONES,
     claims: ALL_CLAIMS,
     sources: ALL_SOURCES,
   });
@@ -49,29 +49,29 @@ export default function Home() {
   }
 
   // 스토리가 먼저다. 직접 움직여볼 수 있는 콘텐츠를 앞에 세운다.
-  const storySlides: HeroSlide[] = stories.map((story) => ({
-    id: story.id,
-    kicker: story.kicker,
-    tag: story.title,
-    title: story.subtitle,
-    subtitle: story.summary.split(". ")[0] + ".",
-    href: `/story/${story.slug}`,
+  const achievementSlides: HeroSlide[] = stories.map((achievement) => ({
+    id: achievement.id,
+    kicker: achievement.kicker,
+    tag: achievement.title,
+    title: achievement.subtitle,
+    subtitle: achievement.summary.split(". ")[0] + ".",
+    href: `/achievement/${achievement.slug}`,
     note: "직접 움직여보기",
     // 지도 씬을 가진 스토리만 지도를 배경으로 쓴다.
     visual: (() => {
-      const map = findScene(story, "route-map");
+      const map = findScene(achievement, "route-map");
       return map ? <ArcticHeroVisual routes={map.routes} /> : undefined;
     })(),
   }));
 
   // 숫자가 있는 항목을 앞에 세운다. 카드 하나에 남는 것은 결국 숫자 하나다.
-  const highlighted = ACHIEVEMENTS.filter((a) => a.highlight && a.status !== "planned")
-    .concat(ACHIEVEMENTS.filter((a) => a.highlight && a.status === "planned"))
+  const highlighted = MILESTONES.filter((a) => a.highlight && a.status !== "planned")
+    .concat(MILESTONES.filter((a) => a.highlight && a.status === "planned"))
     .slice(0, 4);
 
-  const slides = [...storySlides, ...highlighted.map(toHeroSlide)].slice(0, 5);
+  const slides = [...achievementSlides, ...highlighted.map(toHeroSlide)].slice(0, 5);
 
-  const topics = ACHIEVEMENTS.filter((a) => a.status !== "planned");
+  const topics = MILESTONES.filter((a) => a.status !== "planned");
 
   return (
     <>

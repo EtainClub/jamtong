@@ -20,7 +20,7 @@ export type PanelId = "evidence" | null;
  * 대부분 무엇을 봐야 할지 모른 채 나간다. 여섯 장면으로 얼개를 잡은 뒤
  * 직접 움직이는 쪽으로 넘어가는 순서가 낫다.
  */
-export type StoryView = "easy" | "full";
+export type ViewMode = "easy" | "full";
 
 /**
  * 진행도를 누가 몰고 있는가.
@@ -32,9 +32,9 @@ export type StoryView = "easy" | "full";
 export type ProgressSource = "scroll" | "manual";
 
 export interface VisualState {
-  storyId: string | null;
+  achievementId: string | null;
   sceneId: SceneId;
-  storyView: StoryView;
+  viewMode: ViewMode;
 
   /** 경로 위 진행도 0..1. 사용자가 배를 끌면 여기가 바뀐다. */
   motionProgress: number;
@@ -67,7 +67,7 @@ export interface VisualState {
 
 export interface VisualActions {
   setScene: (sceneId: SceneId) => void;
-  setStoryView: (view: StoryView) => void;
+  setStoryView: (view: ViewMode) => void;
   /** 사용자 조작. 이 시점부터 스크롤은 진행도를 몰지 않는다. */
   setMotionProgress: (progress: number) => void;
   /** 스크롤 구동. manual로 넘어간 뒤에는 무시된다. */
@@ -88,9 +88,9 @@ export interface VisualActions {
 }
 
 export const initialVisualState: VisualState = {
-  storyId: null,
+  achievementId: null,
   sceneId: "hero",
-  storyView: "easy",
+  viewMode: "easy",
   motionProgress: 0,
   activeRouteId: "nsr",
   showBaseline: true,
@@ -110,7 +110,7 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
   ...initialVisualState,
 
   setScene: (sceneId) => set({ sceneId }),
-  setStoryView: (storyView) => set({ storyView }),
+  setStoryView: (viewMode) => set({ viewMode }),
 
   setMotionProgress: (progress) =>
     set({ motionProgress: clamp01(progress), progressSource: "manual" }),
@@ -138,7 +138,7 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
   resetView: () =>
     set({
       sceneId: "hero",
-      storyView: "easy",
+      viewMode: "easy",
       motionProgress: 0,
       timelineCursor: null,
       activeScenarioId: null,

@@ -7,7 +7,7 @@
  * 배치까지 데이터로 만들지는 않는다. 어느 씬을 어떤 순서로 둘지는 스토리마다
  * 다르고, 그 판단은 아직 레이아웃이 갖는다. (설계 검토 문서 5.1)
  */
-export function StorySection({
+export function Section({
   scene,
   heading,
   lede,

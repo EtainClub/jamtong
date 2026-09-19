@@ -1,4 +1,4 @@
-import { storySchema, type StoryInput } from "@/content/schema";
+import { achievementSchema, type AchievementInput } from "@/content/schema";
 import { ISDC_DAEJANG, ISDC_PARK } from "@/content/sources";
 
 /**
@@ -28,7 +28,7 @@ import { ISDC_DAEJANG, ISDC_PARK } from "@/content/sources";
  *   - 쟁점을 빼지 않는다. counterpoints는 이 유형의 스토리에서 스키마가 요구한다.
  */
 
-const raw: StoryInput = {
+const raw: AchievementInput = {
   id: "daejangdong",
   slug: "daejangdong",
   title: "성남 판교대장 도시개발사업",
@@ -486,4 +486,4 @@ const raw: StoryInput = {
   ],
 };
 
-export const daejangdong = storySchema.parse(raw);
+export const daejangdong = achievementSchema.parse(raw);

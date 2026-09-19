@@ -1,23 +1,23 @@
 import { ImageResponse } from "next/og";
 
-import { getStory, STORIES } from "@/content/stories";
+import { getAchievement, ACHIEVEMENTS } from "@/content/achievements";
 import { C, OG_CONTENT_TYPE, OG_SIZE, dataUri, ogFonts } from "@/lib/og/card";
 
-export const alt = "잼통 스토리 공유 카드";
+export const alt = "잼통 업적 공유 카드";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
 /** 스토리는 빌드 때 다 안다. 카드도 그때 굽는다. */
 export function generateStaticParams() {
-  return STORIES.map((story) => ({ slug: story.slug }));
+  return ACHIEVEMENTS.map((achievement) => ({ slug: achievement.slug }));
 }
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const story = getStory(slug);
+  const achievement = getAchievement(slug);
   const mark = await dataUri("public/images/jamtong-icon-192.png");
 
-  if (!story) {
+  if (!achievement) {
     return new ImageResponse(
       (
         <div
@@ -41,11 +41,11 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     );
   }
 
-  const pending = story.claims.filter((c) => !c.verified).length;
-  const isDraft = story.publishStatus === "draft";
+  const pending = achievement.claims.filter((c) => !c.verified).length;
+  const isDraft = achievement.publishStatus === "draft";
   // 스크롤을 멈추게 하는 건 문장이 아니라 숫자다. 대표 수치 하나를 카드에 싣는다.
   const headline =
-    story.keyNumbers.find((k) => k.id === story.headlineKeyNumberId) ?? story.keyNumbers[0];
+    achievement.keyNumbers.find((k) => k.id === achievement.headlineKeyNumberId) ?? achievement.keyNumbers[0];
 
   return new ImageResponse(
     (
@@ -75,7 +75,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                 fontWeight: 600,
               }}
             >
-              {story.kicker}
+              {achievement.kicker}
             </div>
             {/* 미검증이 0인데 "검증 전 0건"이라고 쓰면 거짓말이 된다. 초안은 초안이라고 쓴다. */}
             {isDraft && (
@@ -99,14 +99,14 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           <div
             style={{
               marginTop: 34,
-              fontSize: story.title.length > 14 ? 58 : 72,
+              fontSize: achievement.title.length > 14 ? 58 : 72,
               fontWeight: 300,
               letterSpacing: "-0.02em",
               lineHeight: 1.1,
               color: C.ink,
             }}
           >
-            {story.title}
+            {achievement.title}
           </div>
           <div
             style={{
@@ -118,7 +118,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               color: C.smoke,
             }}
           >
-            {story.subtitle}
+            {achievement.subtitle}
           </div>
 
           {headline && (
@@ -180,7 +180,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           </div>
           {/* 이 제품이 파는 것은 근거다. 카드에서도 그걸 먼저 보인다. */}
           <div style={{ display: "flex", fontSize: 24, fontWeight: 300, color: C.graphite }}>
-            근거 {story.claims.length}건 · 자료 {story.sources.length}건
+            근거 {achievement.claims.length}건 · 자료 {achievement.sources.length}건
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { STORIES } from "@/content/stories";
-import { ALL_CLAIMS, ALL_SOURCES } from "@/content/achievements";
+import { ACHIEVEMENTS } from "@/content/achievements";
+import { ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { BUILD } from "@/lib/build-info";
@@ -23,11 +23,11 @@ function formatDateTime(iso: string): string {
 }
 
 export default function AboutPage() {
-  const claimCount = STORIES.reduce((n, s) => n + s.claims.length, 0) + ALL_CLAIMS.length;
+  const claimCount = ACHIEVEMENTS.reduce((n, s) => n + s.claims.length, 0) + ALL_CLAIMS.length;
   const sourceCount =
-    STORIES.reduce((n, s) => n + s.sources.length, 0) + ALL_SOURCES.length;
+    ACHIEVEMENTS.reduce((n, s) => n + s.sources.length, 0) + ALL_SOURCES.length;
   const unverified =
-    STORIES.reduce((n, s) => n + s.claims.filter((c) => !c.verified).length, 0) +
+    ACHIEVEMENTS.reduce((n, s) => n + s.claims.filter((c) => !c.verified).length, 0) +
     ALL_CLAIMS.filter((c) => !c.verified).length;
 
   return (
@@ -59,7 +59,7 @@ export default function AboutPage() {
           <h2 className="text-[13px] font-semibold text-smoke">지금 실린 것</h2>
           <dl className="mt-3 divide-y divide-stone border-y border-stone">
             {[
-              ["스토리", `${STORIES.length}편`],
+              ["업적", `${ACHIEVEMENTS.length}건`],
               ["근거", `${claimCount}건`],
               ["자료", `${sourceCount}건`],
               ["검증 전", unverified === 0 ? "없음" : `${unverified}건`],

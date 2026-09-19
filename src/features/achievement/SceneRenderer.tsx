@@ -1,10 +1,10 @@
-import type { Claim, StoryScene } from "@/content/schema";
+import type { Claim, Scene } from "@/content/schema";
 import { getMapBackground } from "@/lib/geo/land";
 import { buildTrack } from "@/lib/geo/route-track";
 
 import { ScrollRouteScene } from "@/features/motion/ScrollRouteScene";
-import { RouteComparison } from "@/features/story/RouteComparison";
-import { LandUseBreakdown } from "@/features/story/LandUseBreakdown";
+import { RouteComparison } from "@/features/achievement/RouteComparison";
+import { LandUseBreakdown } from "@/features/achievement/LandUseBreakdown";
 import { MoneyFlow } from "@/features/motion/MoneyFlow";
 import { IndexSeriesChart } from "@/features/series/IndexSeriesChart";
 import type { TimelineEvent } from "@/content/schema";
@@ -20,7 +20,7 @@ export function SceneRenderer({
   claims,
   timeline,
 }: {
-  scene: StoryScene;
+  scene: Scene;
   claims: Claim[];
   timeline: TimelineEvent[];
 }) {

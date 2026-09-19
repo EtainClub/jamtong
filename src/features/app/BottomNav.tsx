@@ -22,7 +22,7 @@ interface Tab {
 const TABS: Tab[] = [
   { href: "/", label: "홈", ready: true, icon: <HomeIcon /> },
   { href: "/timeline", label: "타임라인", ready: false, icon: <TimelineIcon /> },
-  { href: "/explore", label: "둘러보기", ready: true, icon: <ExploreIcon /> },
+  { href: "/explore", label: "업적", ready: true, icon: <ExploreIcon /> },
   { href: "/ask", label: "AI에게 묻기", ready: false, icon: <AskIcon /> },
   { href: "/my", label: "MY", ready: false, icon: <MyIcon /> },
 ];

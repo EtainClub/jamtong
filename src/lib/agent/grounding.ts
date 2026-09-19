@@ -1,4 +1,4 @@
-import { findScene, type Story } from "@/content/schema";
+import { findScene, type Achievement } from "@/content/schema";
 import type { ActionInventory } from "./actions";
 
 /**
@@ -28,11 +28,11 @@ const SCENE_LABEL: Record<string, string> = {
   share: "공유",
 };
 
-export function buildGrounding(story: Story, availableScenes: string[]): Grounding {
+export function buildGrounding(achievement: Achievement, availableScenes: string[]): Grounding {
   const lines: string[] = [];
 
-  lines.push(`# 스토리: ${story.title} — ${story.subtitle}`);
-  lines.push(story.summary);
+  lines.push(`# 스토리: ${achievement.title} — ${achievement.subtitle}`);
+  lines.push(achievement.summary);
   lines.push("");
 
   lines.push("## 화면(씬) — GO_TO_SCENE의 targetId");
@@ -41,32 +41,32 @@ export function buildGrounding(story: Story, availableScenes: string[]): Groundi
   }
   lines.push("");
 
-  if (story.timeline.length > 0) {
+  if (achievement.timeline.length > 0) {
     lines.push("## 연표 시점 — SEEK_TIMELINE의 targetId");
     lines.push("(시점을 옮기면 관계도도 그 시점 상태로 바뀐다)");
-    for (const event of story.timeline) {
+    for (const event of achievement.timeline) {
       lines.push(`- ${event.id} [${event.displayDate ?? event.date}] ${event.title}`);
     }
     lines.push("");
   }
 
-  if (story.graph) {
+  if (achievement.graph) {
     lines.push("## 기관·사업 — FOCUS_ENTITY의 targetId");
-    for (const entity of story.graph.entities) {
+    for (const entity of achievement.graph.entities) {
       lines.push(`- ${entity.id}: ${entity.name}`);
     }
     lines.push("");
     lines.push("## 관계 (참고용, 액션 대상 아님)");
-    for (const relation of story.graph.relations) {
-      const from = story.graph.entities.find((e) => e.id === relation.fromId)?.name;
-      const to = story.graph.entities.find((e) => e.id === relation.toId)?.name;
+    for (const relation of achievement.graph.relations) {
+      const from = achievement.graph.entities.find((e) => e.id === relation.fromId)?.name;
+      const to = achievement.graph.entities.find((e) => e.id === relation.toId)?.name;
       lines.push(`- [${relation.startDate}] ${from} → ${to}: ${relation.label}`);
     }
     lines.push("");
   }
 
-  const routeMap = findScene(story, "route-map");
-  const moneyFlow = findScene(story, "money-flow");
+  const routeMap = findScene(achievement, "route-map");
+  const moneyFlow = findScene(achievement, "money-flow");
 
   if (routeMap) {
     lines.push("## 항로 — SET_ROUTE의 targetId");
@@ -90,7 +90,7 @@ export function buildGrounding(story: Story, availableScenes: string[]): Groundi
   }
 
   lines.push("## 확인된 사실 — OPEN_EVIDENCE의 targetId이자 답변의 근거");
-  for (const claim of story.claims) {
+  for (const claim of achievement.claims) {
     const mark = claim.verified ? "" : " [검증 전]";
     const kind = claim.assertionType === "FACT" ? "" : ` [${claim.assertionType}]`;
     lines.push(`- ${claim.id}${mark}${kind}: ${claim.text}`);
@@ -100,11 +100,11 @@ export function buildGrounding(story: Story, availableScenes: string[]): Groundi
     prompt: lines.join("\n"),
     inventory: {
       sceneIds: new Set(availableScenes),
-      eventIds: new Set(story.timeline.map((e) => e.id)),
-      entityIds: new Set(story.graph?.entities.map((e) => e.id) ?? []),
+      eventIds: new Set(achievement.timeline.map((e) => e.id)),
+      entityIds: new Set(achievement.graph?.entities.map((e) => e.id) ?? []),
       routeIds: new Set(routeMap?.routes.map((r) => r.id) ?? []),
       scenarioIds: new Set(moneyFlow?.flow.scenarios.map((s) => s.id) ?? []),
-      claimIds: new Set(story.claims.map((c) => c.id)),
+      claimIds: new Set(achievement.claims.map((c) => c.id)),
     },
   };
 }

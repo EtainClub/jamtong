@@ -2,8 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 
-import { getStory } from "@/content/stories";
-import { SCENES_BY_STORY } from "@/features/story/scenes";
+import { getAchievement } from "@/content/achievements";
+import { SCENES_BY_ACHIEVEMENT } from "@/features/achievement/scenes";
 import { buildGrounding, SYSTEM_PROMPT } from "@/lib/agent/grounding";
 import { agentAnswerSchema, sanitizeActions } from "@/lib/agent/actions";
 import {
@@ -28,7 +28,7 @@ import {
 export const runtime = "nodejs";
 
 const requestSchema = z.object({
-  storySlug: z.string(),
+  achievementSlug: z.string(),
   question: z.string().min(2).max(400),
 });
 
@@ -67,9 +67,9 @@ export async function POST(request: Request) {
     return Response.json({ error: "질문을 확인해 주세요." }, { status: 400 });
   }
 
-  const story = getStory(parsed.data.storySlug);
-  const scenes = SCENES_BY_STORY[parsed.data.storySlug];
-  if (!story || !scenes) {
+  const achievement = getAchievement(parsed.data.achievementSlug);
+  const scenes = SCENES_BY_ACHIEVEMENT[parsed.data.achievementSlug];
+  if (!achievement || !scenes) {
     return Response.json({ error: "알 수 없는 스토리입니다." }, { status: 404 });
   }
 
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
    * 엉뚱하게 지어낼 여지도 함께 사라진다.
    */
   const topicIndex = buildTopicIndex(
-    story,
+    achievement,
     scenes.map((s) => s.label),
   );
   if (!isOnTopic(parsed.data.question, topicIndex)) {
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
   const budget = checkDailyBudget();
   if (!budget.ok) return refuse(budget);
 
-  const grounding = buildGrounding(story, scenes.map((s) => s.id));
+  const grounding = buildGrounding(achievement, scenes.map((s) => s.id));
 
   let answer;
   try {

@@ -1,4 +1,4 @@
-import { storySchema, type StoryInput } from "@/content/schema";
+import { achievementSchema, type AchievementInput } from "@/content/schema";
 
 /**
  * 주식시장 개선 — Sprint 3. 세 번째 스토리.
@@ -21,7 +21,7 @@ import { storySchema, type StoryInput } from "@/content/schema";
  *    그래서 하락 구간까지 전부 싣고, 쟁점 섹션에서 정면으로 다룬다.
  */
 
-const raw: StoryInput = {
+const raw: AchievementInput = {
   id: "stock-market",
   slug: "stock-market",
   title: "주식시장 개선",
@@ -443,4 +443,4 @@ const raw: StoryInput = {
   ],
 };
 
-export const stockMarket = storySchema.parse(raw);
+export const stockMarket = achievementSchema.parse(raw);

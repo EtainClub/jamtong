@@ -1,6 +1,6 @@
-import type { AchievementCategory, AchievementStatus, SourceType } from "./schema";
+import type { Category, MilestoneStatus, SourceType } from "./schema";
 
-export const CATEGORY_LABEL: Record<AchievementCategory, string> = {
+export const CATEGORY_LABEL: Record<Category, string> = {
   economy: "경제·물류",
   welfare: "복지",
   labor: "노동",
@@ -20,13 +20,13 @@ export const CATEGORY_LABEL: Record<AchievementCategory, string> = {
  * 계획을 성과처럼 보이게 하지 않는 것이 이 레이어의 신뢰를 좌우한다.
  * 그래서 "계획"에도 또렷한 색을 주고 숨기지 않는다.
  */
-export const STATUS_LABEL: Record<AchievementStatus, string> = {
+export const STATUS_LABEL: Record<MilestoneStatus, string> = {
   done: "완료",
   ongoing: "추진 중",
   planned: "계획",
 };
 
-export const STATUS_STYLE: Record<AchievementStatus, string> = {
+export const STATUS_STYLE: Record<MilestoneStatus, string> = {
   done: "bg-ink text-eggshell ring-ink",
   ongoing: "bg-taupe text-graphite ring-stone",
   planned: "bg-transparent text-smoke ring-stone",

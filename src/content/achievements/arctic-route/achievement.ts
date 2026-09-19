@@ -1,4 +1,4 @@
-import { storySchema, type StoryInput } from "@/content/schema";
+import { achievementSchema, type AchievementInput } from "@/content/schema";
 import { MOF_2026, NANET_2025 } from "@/content/sources";
 
 /**
@@ -15,7 +15,7 @@ import { MOF_2026, NANET_2025 } from "@/content/sources";
  * 이 파일은 데이터만 담는다. 화면 구성은 features/ 아래 컴포넌트가 하드코딩으로 갖는다.
  */
 
-const raw: StoryInput = {
+const raw: AchievementInput = {
   id: "arctic-route",
   slug: "arctic-route",
   title: "북극항로",
@@ -237,7 +237,16 @@ const raw: StoryInput = {
    *     },
    *   ],
    */
-  shorts: [],
+  shorts: [
+    {
+      id: "short-arctic-01",
+      title: "잼통의 북극항로",
+      summary: "부산에서 유럽까지, 북극을 가로지르면 뱃길이 얼마나 짧아지는지 1분 안에 봅니다.",
+      youtubeId: "hcHv3igHnBw",
+      claimIds: ["claim-reduction", "claim-route-comparison"],
+      publishedAt: "2026-09-19",
+    },
+  ],
 
   // 카드에 실을 한 숫자. 화면 순서상 첫 항목은 건조 지원금이지만,
   // 이 스토리를 한 줄로 말하면 "얼마나 짧아지나"다.
@@ -655,4 +664,4 @@ const raw: StoryInput = {
   sources: [MOF_2026, NANET_2025],
 };
 
-export const arcticRoute = storySchema.parse(raw);
+export const arcticRoute = achievementSchema.parse(raw);

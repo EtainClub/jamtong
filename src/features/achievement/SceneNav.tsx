@@ -46,7 +46,7 @@ export function SceneNav({ scenes }: { scenes: SceneNavItem[] }) {
   };
 
   return (
-    <nav aria-label="스토리 구간" className="hidden sm:block">
+    <nav aria-label="업적 구간" className="hidden sm:block">
       <ol className="flex items-center gap-1">
         {scenes.map((scene) => {
           const isActive = scene.id === sceneId;

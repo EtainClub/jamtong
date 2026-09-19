@@ -1,4 +1,4 @@
-import type { Story } from "@/content/schema";
+import type { Achievement } from "@/content/schema";
 
 /**
  * AI 안내 남용 방지 (설계서 43장).
@@ -166,18 +166,18 @@ export function checkDailyBudget(): GuardVerdict {
  * 느슨하게 잡는다 — 하나도 겹치지 않을 때만 막는다. 잘못 막는 쪽이
  * 잘못 통과시키는 쪽보다 사용자에게 더 나쁘다.
  */
-export function buildTopicIndex(story: Story, sceneLabels: string[]): string {
+export function buildTopicIndex(achievement: Achievement, sceneLabels: string[]): string {
   return [
-    story.title,
-    story.subtitle,
-    story.summary,
+    achievement.title,
+    achievement.subtitle,
+    achievement.summary,
     ...sceneLabels,
-    ...story.timeline.flatMap((e) => [e.title, e.summary, e.date]),
-    ...story.claims.map((c) => c.text),
-    ...(story.graph?.entities.map((e) => e.name) ?? []),
-    ...(story.graph?.relations.map((r) => r.label) ?? []),
+    ...achievement.timeline.flatMap((e) => [e.title, e.summary, e.date]),
+    ...achievement.claims.map((c) => c.text),
+    ...(achievement.graph?.entities.map((e) => e.name) ?? []),
+    ...(achievement.graph?.relations.map((r) => r.label) ?? []),
     // 씬 종류마다 이름이 있는 자리가 다르다. 색인은 느슨해도 되므로 있는 것만 모은다.
-    ...story.scenes.flatMap((scene) => [
+    ...achievement.scenes.flatMap((scene) => [
       scene.heading,
       scene.lede ?? "",
       ...(scene.kind === "route-map" ? scene.routes.map((r) => r.name) : []),
@@ -190,9 +190,9 @@ export function buildTopicIndex(story: Story, sceneLabels: string[]): string {
         : []),
       ...(scene.kind === "index-series" ? [scene.series.name] : []),
     ]),
-    ...story.keyNumbers.map((n) => `${n.label} ${n.caption ?? ""}`),
-    ...(story.eli5?.scenes.flatMap((s) => [s.title, s.say]) ?? []),
-    ...story.counterpoints.flatMap((c) => [c.question, c.response]),
+    ...achievement.keyNumbers.map((n) => `${n.label} ${n.caption ?? ""}`),
+    ...(achievement.eli5?.scenes.flatMap((s) => [s.title, s.say]) ?? []),
+    ...achievement.counterpoints.flatMap((c) => [c.question, c.response]),
   ]
     .join(" ")
     .toLowerCase();

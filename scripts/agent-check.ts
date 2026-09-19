@@ -7,24 +7,24 @@
  * 이 두 가지가 AI 안내의 안전장치 전부다. 모델이 무엇을 반환하든 여기를
  * 통과하지 못하면 화면에 닿지 않는다.
  */
-import { STORIES } from "../src/content/stories";
-import { SCENES_BY_STORY } from "../src/features/story/scenes";
+import { ACHIEVEMENTS } from "../src/content/achievements";
+import { SCENES_BY_ACHIEVEMENT } from "../src/features/achievement/scenes";
 import { buildGrounding } from "../src/lib/agent/grounding";
 import { sanitizeActions, type AgentAction } from "../src/lib/agent/actions";
 import { buildTopicIndex, isOnTopic } from "../src/lib/agent/guard";
 
 let failed = false;
 
-for (const story of STORIES) {
-  const scenes = SCENES_BY_STORY[story.slug];
+for (const achievement of ACHIEVEMENTS) {
+  const scenes = SCENES_BY_ACHIEVEMENT[achievement.slug];
   if (!scenes) {
     failed = true;
-    console.error(`✗ ${story.slug} → 씬 목록이 등록되지 않았다`);
+    console.error(`✗ ${achievement.slug} → 씬 목록이 등록되지 않았다`);
     continue;
   }
 
   const { prompt, inventory } = buildGrounding(
-    story,
+    achievement,
     scenes.map((s) => s.id),
   );
 
@@ -52,13 +52,13 @@ for (const story of STORIES) {
   if (valid.length !== 3 || dropped.length !== 3) {
     failed = true;
     console.error(
-      `✗ ${story.slug} → 액션 검증이 기대와 다르다 (통과 ${valid.length}, 버림 ${dropped.length})`,
+      `✗ ${achievement.slug} → 액션 검증이 기대와 다르다 (통과 ${valid.length}, 버림 ${dropped.length})`,
     );
   }
 
   const tokens = Math.round(prompt.length / 2.2);
   console.log(
-    `✓ ${story.slug} — ` +
+    `✓ ${achievement.slug} — ` +
       Object.entries(counts)
         .map(([k, v]) => `${k} ${v}`)
         .join(", ") +
@@ -73,10 +73,10 @@ for (const story of STORIES) {
  * 잘못 막는 쪽이 잘못 통과시키는 쪽보다 사용자에게 나쁘다. 통과해야 할
  * 질문이 막히는지를 먼저 본다.
  */
-const arctic = STORIES.find((s) => s.slug === "arctic-route")!;
+const arctic = ACHIEVEMENTS.find((s) => s.slug === "arctic-route")!;
 const index = buildTopicIndex(
   arctic,
-  (SCENES_BY_STORY["arctic-route"] ?? []).map((s) => s.label),
+  (SCENES_BY_ACHIEVEMENT["arctic-route"] ?? []).map((s) => s.label),
 );
 
 const shouldPass = [

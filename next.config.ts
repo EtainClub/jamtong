@@ -41,6 +41,16 @@ function buildInfo() {
 
 const nextConfig: NextConfig = {
   env: buildInfo(),
+
+  /**
+   * /story/… 로 나간 링크를 살려 둔다.
+   * 이름을 바꾼 것은 우리 사정이지 이미 공유된 주소의 사정이 아니다.
+   */
+  async redirects() {
+    return [
+      { source: "/story/:slug", destination: "/achievement/:slug", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

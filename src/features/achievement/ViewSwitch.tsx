@@ -8,20 +8,20 @@ import { useVisualState } from "@/lib/visual-state/store";
  * 한쪽만 마운트한다. 둘 다 띄워 놓고 CSS로 감추면, 숨겨진 스크롤 씬이
  * 계속 스크롤 위치를 계산해 배가 엉뚱하게 움직인다.
  */
-export function StoryViewSwitch({
+export function ViewSwitch({
   easy,
   full,
 }: {
   easy: React.ReactNode;
   full: React.ReactNode;
 }) {
-  const view = useVisualState((s) => s.storyView);
+  const view = useVisualState((s) => s.viewMode);
   if (!easy) return <>{full}</>;
   return <>{view === "easy" ? easy : full}</>;
 }
 
-export function StoryViewToggle() {
-  const view = useVisualState((s) => s.storyView);
+export function ViewToggle() {
+  const view = useVisualState((s) => s.viewMode);
   const setStoryView = useVisualState((s) => s.setStoryView);
 
   const options = [

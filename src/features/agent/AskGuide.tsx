@@ -36,11 +36,11 @@ const ACTION_LABEL: Record<AgentAction["type"], string> = {
 };
 
 export function AskGuide({
-  storySlug,
+  achievementSlug,
   claims,
   suggestions,
 }: {
-  storySlug: string;
+  achievementSlug: string;
   claims: Claim[];
   suggestions: string[];
 }) {
@@ -63,7 +63,7 @@ export function AskGuide({
       const response = await fetch("/api/ask", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ storySlug, question: trimmed }),
+        body: JSON.stringify({ achievementSlug, question: trimmed }),
       });
       const data = await response.json();
 

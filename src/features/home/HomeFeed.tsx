@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { Achievement, AchievementCategory, Claim } from "@/content/schema";
+import type { Milestone, Category, Claim } from "@/content/schema";
 import { ScrollArrow, useScroller } from "@/features/app/Scroller";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
@@ -26,7 +26,7 @@ export interface HeroSlide {
   note?: string;
 }
 
-const TABS: { id: string; label: string; match: (a: Achievement) => boolean }[] = [
+const TABS: { id: string; label: string; match: (a: Milestone) => boolean }[] = [
   { id: "all", label: "추천", match: () => true },
   { id: "done", label: "주요 업적", match: (a) => a.status === "done" },
   {
@@ -34,7 +34,7 @@ const TABS: { id: string; label: string; match: (a: Achievement) => boolean }[] 
     label: "사회·경제",
     match: (a) =>
       a.categories.some((c) =>
-        (["economy", "welfare", "labor", "health", "fisheries"] as AchievementCategory[]).includes(c),
+        (["economy", "welfare", "labor", "health", "fisheries"] as Category[]).includes(c),
       ),
   },
   {
@@ -51,7 +51,7 @@ export function HomeFeed({
   claims,
 }: {
   slides: HeroSlide[];
-  topics: Achievement[];
+  topics: Milestone[];
   claims: Claim[];
 }) {
   const [tab, setTab] = useState("all");
@@ -263,9 +263,9 @@ function HeroCard({ slide }: { slide: HeroSlide }) {
   );
 }
 
-function TopicCard({ item, claims }: { item: Achievement; claims: Claim[] }) {
+function TopicCard({ item, claims }: { item: Milestone; claims: Claim[] }) {
   const claim = claims.find((c) => c.id === item.claimIds[0]);
-  const href = item.storySlug ? `/story/${item.storySlug}` : "/explore";
+  const href = item.achievementSlug ? `/achievement/${item.achievementSlug}` : "/explore";
 
   return (
     <div className="flex h-full flex-col rounded-card border border-stone bg-taupe p-3.5">

@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   useVisualState,
   type SceneId,
-  type StoryView,
+  type ViewMode,
   type VisualState,
 } from "./store";
 
@@ -15,7 +15,7 @@ import {
  * 설계서 36장의 공유 기능 전체가 여기에 의존하므로, URL을 읽거나 쓰는 코드는
  * 이 파일 밖에 두지 않는다. (검토 문서 5.3 — shareSnapshot 컬렉션 대신 URL만 쓴다)
  *
- *   /story/arctic-route?scene=route&t=0.42&route=nsr&panel=evidence&claim=claim-days
+ *   /achievement/arctic-route?scene=route&t=0.42&route=nsr&panel=evidence&claim=claim-days
  */
 
 const SCENES: SceneId[] = [
@@ -36,7 +36,7 @@ function readFromParams(params: URLSearchParams): Partial<VisualState> {
 
   // easy가 기본이므로 URL에는 full일 때만 실린다.
   const view = params.get("view");
-  if (view === "full" || view === "easy") patch.storyView = view as StoryView;
+  if (view === "full" || view === "easy") patch.viewMode = view as ViewMode;
 
   const scene = params.get("scene");
   if (scene && (SCENES as string[]).includes(scene)) patch.sceneId = scene as SceneId;
@@ -70,7 +70,7 @@ function readFromParams(params: URLSearchParams): Partial<VisualState> {
 
 function writeToParams(state: VisualState): string {
   const p = new URLSearchParams();
-  if (state.storyView === "full") p.set("view", "full");
+  if (state.viewMode === "full") p.set("view", "full");
   if (state.sceneId !== "hero") p.set("scene", state.sceneId);
   if (state.motionProgress > 0) p.set("t", state.motionProgress.toFixed(3));
   if (state.activeRouteId !== "nsr") p.set("route", state.activeRouteId);
@@ -83,7 +83,7 @@ function writeToParams(state: VisualState): string {
 }
 
 /** 스토리 페이지에서 한 번만 마운트한다. */
-export function useUrlSync(storyId: string) {
+export function useUrlSync(achievementId: string) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -96,10 +96,10 @@ export function useUrlSync(storyId: string) {
     if (hydrated.current) return;
     hydrated.current = true;
     useVisualState.getState().hydrate({
-      storyId,
+      achievementId,
       ...readFromParams(new URLSearchParams(searchParams.toString())),
     });
-  }, [storyId, searchParams]);
+  }, [achievementId, searchParams]);
 
   // 상태 → URL (드래그 중에는 rAF로 묶어 히스토리 폭주를 막는다)
   useEffect(() => {

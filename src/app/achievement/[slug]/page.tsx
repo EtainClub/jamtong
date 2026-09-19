@@ -3,24 +3,24 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { STORIES, getStory } from "@/content/stories";
-import { validateStory, type Story } from "@/content/schema";
+import { ACHIEVEMENTS, getAchievement } from "@/content/achievements";
+import { validateAchievement, type Achievement } from "@/content/schema";
 
-import { StoryHero } from "@/features/story/StoryHero";
-import { StorySection } from "@/features/story/StorySection";
-import { ShortsSection } from "@/features/story/ShortsSection";
-import { DraftBanner } from "@/features/story/DraftBanner";
+import { AchievementHero } from "@/features/achievement/AchievementHero";
+import { Section } from "@/features/achievement/Section";
+import { ShortsSection } from "@/features/achievement/ShortsSection";
+import { DraftBanner } from "@/features/achievement/DraftBanner";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
-import { ShareButton } from "@/features/story/ShareButton";
-import { SceneNav } from "@/features/story/SceneNav";
-import { SCENES_BY_STORY } from "@/features/story/scenes";
+import { ShareButton } from "@/features/achievement/ShareButton";
+import { SceneNav } from "@/features/achievement/SceneNav";
+import { SCENES_BY_ACHIEVEMENT } from "@/features/achievement/scenes";
 import { AskGuide } from "@/features/agent/AskGuide";
-import { StoryViewSwitch, StoryViewToggle } from "@/features/story/StoryView";
+import { ViewSwitch, ViewToggle } from "@/features/achievement/ViewSwitch";
 import { Eli5Section } from "@/features/eli5/Eli5Section";
-import { UrlSyncBoundary } from "@/features/story/UrlSyncBoundary";
-import { ArcticRouteLayout } from "@/features/story/layouts/ArcticRouteLayout";
-import { DaejangdongLayout } from "@/features/story/layouts/DaejangdongLayout";
-import { StockMarketLayout } from "@/features/story/layouts/StockMarketLayout";
+import { UrlSyncBoundary } from "@/features/achievement/UrlSyncBoundary";
+import { ArcticRouteLayout } from "@/features/achievement/layouts/ArcticRouteLayout";
+import { DaejangdongLayout } from "@/features/achievement/layouts/DaejangdongLayout";
+import { StockMarketLayout } from "@/features/achievement/layouts/StockMarketLayout";
 
 /**
  * 스토리 페이지 = 공통 골격 + 스토리별 레이아웃 분기.
@@ -31,7 +31,7 @@ import { StockMarketLayout } from "@/features/story/layouts/StockMarketLayout";
  */
 
 type LayoutConfig = {
-  Layout: (props: { story: Story }) => React.ReactNode;
+  Layout: (props: { achievement: Achievement }) => React.ReactNode;
   heroHighlights?: { claimId: string; label: string }[];
   /** AI 안내 패널을 열었을 때 먼저 보여줄 질문. */
   askSuggestions: string[];
@@ -77,52 +77,52 @@ const LAYOUTS: Record<string, LayoutConfig> = {
 };
 
 export function generateStaticParams() {
-  return STORIES.map((story) => ({ slug: story.slug }));
+  return ACHIEVEMENTS.map((achievement) => ({ slug: achievement.slug }));
 }
 
 export async function generateMetadata({
   params,
-}: PageProps<"/story/[slug]">): Promise<Metadata> {
+}: PageProps<"/achievement/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const story = getStory(slug);
-  if (!story) return {};
+  const achievement = getAchievement(slug);
+  if (!achievement) return {};
 
-  const isDraft = story.publishStatus === "draft";
+  const isDraft = achievement.publishStatus === "draft";
 
   return {
-    title: story.title,
-    description: story.summary,
+    title: achievement.title,
+    description: achievement.summary,
     // 검증 전 골격은 색인되지 않는다.
     robots: isDraft ? { index: false, follow: false } : undefined,
     openGraph: {
-      title: `${story.title} — ${story.subtitle}`,
-      description: story.summary,
+      title: `${achievement.title} — ${achievement.subtitle}`,
+      description: achievement.summary,
     },
   };
 }
 
-export default async function StoryPage({ params }: PageProps<"/story/[slug]">) {
+export default async function AchievementPage({ params }: PageProps<"/achievement/[slug]">) {
   const { slug } = await params;
-  const story = getStory(slug);
-  const config = story ? LAYOUTS[story.slug] : undefined;
-  if (!story || !config) notFound();
+  const achievement = getAchievement(slug);
+  const config = achievement ? LAYOUTS[achievement.slug] : undefined;
+  if (!achievement || !config) notFound();
 
   // 참조 무결성과 공개 조건은 빌드 시점에 깨진다.
-  const errors = validateStory(story);
+  const errors = validateAchievement(achievement);
   if (errors.length > 0) {
-    throw new Error(`콘텐츠 검증 실패 (${story.slug}):\n${errors.join("\n")}`);
+    throw new Error(`콘텐츠 검증 실패 (${achievement.slug}):\n${errors.join("\n")}`);
   }
 
   const { Layout, heroHighlights, askSuggestions } = config;
   // 쇼츠가 없는 업적에 "쇼츠" 탭이 뜨면 눌러도 갈 곳이 없다.
-  const scenes = (SCENES_BY_STORY[story.slug] ?? []).filter(
-    (scene) => scene.id !== "shorts" || story.shorts.length > 0,
+  const scenes = (SCENES_BY_ACHIEVEMENT[achievement.slug] ?? []).filter(
+    (scene) => scene.id !== "shorts" || achievement.shorts.length > 0,
   );
 
   return (
     <>
       <Suspense fallback={null}>
-        <UrlSyncBoundary storyId={story.id} />
+        <UrlSyncBoundary achievementId={achievement.id} />
       </Suspense>
 
       <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
@@ -139,34 +139,34 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
       </header>
 
       <main id="main" className="flex-1 pb-24">
-        <StoryHero story={story} highlights={heroHighlights} />
-        <DraftBanner story={story} />
+        <AchievementHero achievement={achievement} highlights={heroHighlights} />
+        <DraftBanner achievement={achievement} />
 
-        {story.eli5 && (
+        {achievement.eli5 && (
           <div className="mx-auto max-w-5xl px-5 pb-8">
-            <StoryViewToggle />
+            <ViewToggle />
           </div>
         )}
 
-        <div className={story.publishStatus === "draft" ? "mt-12" : ""}>
-          <StoryViewSwitch
+        <div className={achievement.publishStatus === "draft" ? "mt-12" : ""}>
+          <ViewSwitch
             easy={
-              story.eli5 ? (
-                <Eli5Section eli5={story.eli5} claims={story.claims} />
+              achievement.eli5 ? (
+                <Eli5Section eli5={achievement.eli5} claims={achievement.claims} />
               ) : null
             }
             full={
               <>
-                <Layout story={story} />
+                <Layout achievement={achievement} />
                 {/* ⑦ 쇼츠. 업적마다 따로 붙이면 빠뜨리는 곳이 생기므로 여기서 한 번에 건다. */}
-                {story.shorts.length > 0 && (
-                  <StorySection
+                {achievement.shorts.length > 0 && (
+                  <Section
                     scene="shorts"
                     heading="짧게 보기"
                     lede="이 업적을 1분 안에 전하는 영상입니다. 영상에서 말한 내용의 근거도 함께 있습니다."
                   >
-                    <ShortsSection shorts={story.shorts} claims={story.claims} />
-                  </StorySection>
+                    <ShortsSection shorts={achievement.shorts} claims={achievement.claims} />
+                  </Section>
                 )}
               </>
             }
@@ -175,11 +175,11 @@ export default async function StoryPage({ params }: PageProps<"/story/[slug]">) 
       </main>
 
       <AskGuide
-        storySlug={story.slug}
-        claims={story.claims}
+        achievementSlug={achievement.slug}
+        claims={achievement.claims}
         suggestions={askSuggestions}
       />
-      <EvidenceDrawer claims={story.claims} sources={story.sources} />
+      <EvidenceDrawer claims={achievement.claims} sources={achievement.sources} />
     </>
   );
 }

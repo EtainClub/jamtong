@@ -1,4 +1,4 @@
-import type { Story } from "@/content/schema";
+import type { Achievement } from "@/content/schema";
 
 /**
  * 검증 전 골격임을 숨기지 않는다.
@@ -7,11 +7,11 @@ import type { Story } from "@/content/schema";
  * 올리는 순간 validateStory가 미검증 claim을 이유로 빌드를 깬다.
  * 즉 이 배너가 붙은 화면은 구조상 공개 경로에 들어갈 수 없다.
  */
-export function DraftBanner({ story }: { story: Story }) {
-  if (story.publishStatus !== "draft") return null;
+export function DraftBanner({ achievement }: { achievement: Achievement }) {
+  if (achievement.publishStatus !== "draft") return null;
 
-  const pending = story.claims.filter((c) => !c.verified);
-  const needed = story.sources.filter((s) => s.publisher === "미정");
+  const pending = achievement.claims.filter((c) => !c.verified);
+  const needed = achievement.sources.filter((s) => s.publisher === "미정");
 
   return (
     <aside

@@ -6,7 +6,7 @@ import type { MapBackground } from "@/lib/geo/land";
 import { elapsedDayRange, positionOnTrack } from "@/lib/geo/track-math";
 import { useVisualState } from "@/lib/visual-state/store";
 import { RouteMap, Readout } from "./RouteMap";
-import { RouteSwitcher } from "@/features/story/RouteSwitcher";
+import { RouteSwitcher } from "@/features/achievement/RouteSwitcher";
 
 /**
  * 스크롤 구동 모션 씬.

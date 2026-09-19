@@ -1,15 +1,50 @@
-import type { Achievement, AchievementCollection } from "@/content/schema";
-import { maritime2026 } from "./maritime-2026";
+import type { Achievement } from "@/content/schema";
+import { arcticRoute } from "./arctic-route/achievement";
+import { daejangdong } from "./daejangdong/achievement";
+import { stockMarket } from "./stock-market/achievement";
 
 /**
- * 성과 카드 레지스트리.
+ * 업적 레지스트리.
  *
- * 컬렉션 단위로 관리한다. 하나의 1차 자료에서 나온 카드 묶음이 한 파일이 되고,
- * 그래야 출처가 갱신될 때 어디를 고쳐야 하는지가 분명해진다.
+ * 콘텐츠가 저장소에 있으므로 목록도 빌드 타임 상수다.
+ * 검색·피드·정적 경로가 전부 이걸 본다.
  */
-export const COLLECTIONS: AchievementCollection[] = [maritime2026];
+export const ACHIEVEMENTS: Achievement[] = [arcticRoute, daejangdong, stockMarket];
 
-export const ACHIEVEMENTS: Achievement[] = COLLECTIONS.flatMap((c) => c.achievements);
+export function getAchievement(slug: string): Achievement | undefined {
+  return ACHIEVEMENTS.find((achievement) => achievement.slug === slug);
+}
 
-export const ALL_CLAIMS = COLLECTIONS.flatMap((c) => c.claims);
-export const ALL_SOURCES = COLLECTIONS.flatMap((c) => c.sources);
+/** 피드에는 공개 업적만 올린다. draft는 URL을 아는 사람만 본다. */
+export function getPublishedAchievements(): Achievement[] {
+  return ACHIEVEMENTS.filter((achievement) => achievement.publishStatus === "published");
+}
+
+/**
+ * 업적 하나가 갖춰야 하는 일곱 가지.
+ *
+ * 목록에서 무엇이 채워졌고 무엇이 비었는지 보인다. 비어 있는 것을 숨기면
+ * 만드는 쪽도 보는 쪽도 무엇이 남았는지 모른다.
+ */
+export const PART_LABELS = [
+  "쉬운 설명",
+  "연표",
+  "모션",
+  "관계도",
+  "근거",
+  "AI 안내",
+  "쇼츠",
+] as const;
+
+export function achievementParts(achievement: Achievement): boolean[] {
+  return [
+    Boolean(achievement.eli5),
+    achievement.timeline.length > 0,
+    achievement.scenes.length > 0,
+    Boolean(achievement.graph),
+    achievement.claims.length > 0 && achievement.sources.length > 0,
+    // AI 안내는 근거에서 맥락을 만들므로 근거가 있으면 늘 동작한다.
+    achievement.claims.length > 0,
+    achievement.shorts.length > 0,
+  ];
+}

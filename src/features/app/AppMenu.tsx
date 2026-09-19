@@ -15,7 +15,7 @@ import { formatVersion } from "@/lib/build-info";
 
 const LINKS = [
   { href: "/", label: "홈" },
-  { href: "/explore", label: "둘러보기" },
+  { href: "/explore", label: "업적" },
   { href: "/about", label: "이 사이트에 대하여" },
 ];
 

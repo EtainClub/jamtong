@@ -1,5 +1,5 @@
 import { ShareButton } from "./ShareButton";
-import { StorySection } from "./StorySection";
+import { Section } from "./Section";
 
 /**
  * 공유 섹션. 레이아웃 셋에서 같은 내용이 반복됐다.
@@ -7,8 +7,8 @@ import { StorySection } from "./StorySection";
  */
 export function ShareSection({ what }: { what: string }) {
   return (
-    <StorySection scene="share" heading="이 화면을 그대로 공유하기" lede={what}>
+    <Section scene="share" heading="이 화면을 그대로 공유하기" lede={what}>
       <ShareButton />
-    </StorySection>
+    </Section>
   );
 }

@@ -229,7 +229,7 @@ export const counterpointSchema = z.object({
 });
 export type Counterpoint = z.infer<typeof counterpointSchema>;
 
-export const storySchema = z.object({
+export const achievementSchema = z.object({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
@@ -238,12 +238,12 @@ export const storySchema = z.object({
   summary: z.string(),
   type: z.enum(["achievement", "policy", "event"]),
   /**
-   * draft는 프로덕션 빌드에서 차단된다(validateStory).
+   * draft는 프로덕션 빌드에서 차단된다(validateAchievement).
    * 검증 전 골격이 실수로 공개되는 경로를 아예 없앤다.
    */
   publishStatus: z.enum(["draft", "published"]).default("draft"),
   /** 스토리 전용 개념. 종류마다 데이터가 다르고, 전부 claimIds를 갖는다. */
-  scenes: z.lazy(() => z.array(storySceneSchema)).default([]),
+  scenes: z.lazy(() => z.array(sceneSchema)).default([]),
   keyNumbers: z.array(keyNumberSchema).default([]),
   /** ⑦ 쇼츠. 이 업적을 짧게 전하는 세로 영상. 정의는 아래에 있어 lazy로 건다. */
   shorts: z.lazy(() => z.array(shortSchema)).default([]),
@@ -259,24 +259,24 @@ export const storySchema = z.object({
   claims: z.array(claimSchema).default([]),
   sources: z.array(sourceSchema).default([]),
 });
-export type Story = z.infer<typeof storySchema>;
+export type Achievement = z.infer<typeof achievementSchema>;
 
 /**
  * 콘텐츠 파일이 쓰는 입력 타입.
  * 기본값이 채워지기 전 형태이므로 default가 있는 필드를 생략할 수 있다.
  */
-export type StoryInput = z.input<typeof storySchema>;
+export type AchievementInput = z.input<typeof achievementSchema>;
 
 /**
  * 참조 무결성 검사. 빌드/CI에서 실행한다.
  * 존재하지 않는 id를 가리키는 순간 빌드를 깬다.
  */
-export function validateStory(story: Story): string[] {
+export function validateAchievement(achievement: Achievement): string[] {
   const errors: string[] = [];
-  const sourceIds = new Set(story.sources.map((s) => s.id));
-  const claimIds = new Set(story.claims.map((c) => c.id));
+  const sourceIds = new Set(achievement.sources.map((s) => s.id));
+  const claimIds = new Set(achievement.claims.map((c) => c.id));
 
-  for (const claim of story.claims) {
+  for (const claim of achievement.claims) {
     for (const sid of claim.sourceIds) {
       if (!sourceIds.has(sid)) {
         errors.push(`claim "${claim.id}" → 존재하지 않는 source "${sid}"`);
@@ -291,32 +291,32 @@ export function validateStory(story: Story): string[] {
     if (!claimIds.has(cid)) errors.push(`${owner} → 존재하지 않는 claim "${cid}"`);
   };
 
-  for (const n of story.keyNumbers) checkClaimRef(`keyNumber "${n.id}"`, n.claimId);
-  for (const e of story.timeline) {
+  for (const n of achievement.keyNumbers) checkClaimRef(`keyNumber "${n.id}"`, n.claimId);
+  for (const e of achievement.timeline) {
     for (const cid of e.claimIds) checkClaimRef(`event "${e.id}"`, cid);
   }
 
   // 씬 검사는 한 곳으로 모은다. 종류가 늘어도 여기는 그대로다.
   const sceneIds = new Set<string>();
-  for (const scene of story.scenes) {
+  for (const scene of achievement.scenes) {
     if (sceneIds.has(scene.id)) errors.push(`씬 id가 중복이다: "${scene.id}"`);
     sceneIds.add(scene.id);
     for (const error of validateScene(scene, checkClaimRef)) errors.push(error);
   }
 
-  if (story.graph) {
-    for (const error of validateGraph(story.graph, claimIds)) errors.push(error);
+  if (achievement.graph) {
+    for (const error of validateGraph(achievement.graph, claimIds)) errors.push(error);
   }
 
-  if (story.eli5) {
-    for (const scene of story.eli5.scenes) {
+  if (achievement.eli5) {
+    for (const scene of achievement.eli5.scenes) {
       for (const cid of scene.claimIds) checkClaimRef(`eli5 장면 "${scene.id}"`, cid);
     }
-    for (const cid of story.eli5.caveat?.claimIds ?? []) {
+    for (const cid of achievement.eli5.caveat?.claimIds ?? []) {
       checkClaimRef("eli5 단서", cid);
     }
     const seenArt = new Set<string>();
-    for (const scene of story.eli5.scenes) {
+    for (const scene of achievement.eli5.scenes) {
       if (seenArt.has(scene.art)) {
         errors.push(`eli5 → 삽화 "${scene.art}"가 두 장면에 쓰였다`);
       }
@@ -324,34 +324,34 @@ export function validateStory(story: Story): string[] {
     }
   }
 
-  for (const cp of story.counterpoints) {
+  for (const cp of achievement.counterpoints) {
     for (const cid of cp.claimIds) checkClaimRef(`counterpoint "${cp.id}"`, cid);
   }
 
   // 쟁점형 스토리는 반론 섹션을 비워 둘 수 없다.
-  if (story.type === "event" && story.counterpoints.length === 0) {
-    errors.push(`story "${story.slug}" → 쟁점형 스토리에는 counterpoints가 필요하다`);
+  if (achievement.type === "event" && achievement.counterpoints.length === 0) {
+    errors.push(`achievement "${achievement.slug}" → 쟁점형 스토리에는 counterpoints가 필요하다`);
   }
 
   if (
-    story.headlineKeyNumberId &&
-    !story.keyNumbers.some((k) => k.id === story.headlineKeyNumberId)
+    achievement.headlineKeyNumberId &&
+    !achievement.keyNumbers.some((k) => k.id === achievement.headlineKeyNumberId)
   ) {
     errors.push(
-      `story "${story.slug}" → headlineKeyNumberId "${story.headlineKeyNumberId}"에 해당하는 keyNumber가 없다`,
+      `achievement "${achievement.slug}" → headlineKeyNumberId "${achievement.headlineKeyNumberId}"에 해당하는 keyNumber가 없다`,
     );
   }
 
   // 공개 스토리에 미검증 주장이 남아 있으면 빌드를 깬다.
-  if (story.publishStatus === "published") {
-    for (const claim of story.claims) {
+  if (achievement.publishStatus === "published") {
+    for (const claim of achievement.claims) {
       if (!claim.verified) {
         errors.push(`published 스토리에 미검증 claim이 있다: "${claim.id}"`);
       }
     }
   }
 
-  for (const s of story.sources) {
+  for (const s of achievement.sources) {
     if (s.license === "link-only" && s.quote) {
       errors.push(`source "${s.id}" → link-only 자료에 quote를 담을 수 없다`);
     }
@@ -376,7 +376,7 @@ export function validateStory(story: Story): string[] {
  * 카드라고 해서 근거 원칙이 느슨해지지는 않는다. 4.2 불변식은 그대로 적용된다.
  * ──────────────────────────────────────────────────────────────── */
 
-export const AchievementCategory = z.enum([
+export const Category = z.enum([
   "economy", // 경제·물류
   "welfare", // 복지
   "labor", // 노동
@@ -389,20 +389,20 @@ export const AchievementCategory = z.enum([
   "education", // 교육
   "culture", // 문화·체육
 ]);
-export type AchievementCategory = z.infer<typeof AchievementCategory>;
+export type Category = z.infer<typeof Category>;
 
 /** 진행 상태. 계획을 성과처럼 보이게 하지 않으려면 이 구분이 필요하다. */
-export const AchievementStatus = z.enum(["done", "ongoing", "planned"]);
-export type AchievementStatus = z.infer<typeof AchievementStatus>;
+export const MilestoneStatus = z.enum(["done", "ongoing", "planned"]);
+export type MilestoneStatus = z.infer<typeof MilestoneStatus>;
 
-export const achievementSchema = z.object({
+export const milestoneSchema = z.object({
   id: z.string(),
   title: z.string(),
   summary: z.string(),
-  categories: z.array(AchievementCategory).min(1),
+  categories: z.array(Category).min(1),
   /** 누구에게 해당되는 일인지. 비어 있어도 된다. */
   audiences: z.array(z.string()).default([]),
-  status: AchievementStatus,
+  status: MilestoneStatus,
   date: z.string(),
   datePrecision: DatePrecision,
   /** ★ 불변식: 근거 없는 카드는 존재할 수 없다. */
@@ -410,18 +410,18 @@ export const achievementSchema = z.object({
   /** 눈에 띄는 수치가 있으면 카드 앞면에 하나만 올린다. */
   highlight: z.object({ value: z.string(), label: z.string() }).optional(),
   /** Visual Story로 승격된 경우 그 slug. */
-  storySlug: z.string().optional(),
+  achievementSlug: z.string().optional(),
 });
-export type Achievement = z.infer<typeof achievementSchema>;
-export type AchievementInput = z.input<typeof achievementSchema>;
+export type Milestone = z.infer<typeof milestoneSchema>;
+export type MilestoneInput = z.input<typeof milestoneSchema>;
 
-export interface AchievementCollection {
-  achievements: Achievement[];
+export interface MilestoneCollection {
+  milestones: Milestone[];
   claims: Claim[];
   sources: Source[];
 }
 
-export function validateAchievements(collection: AchievementCollection): string[] {
+export function validateMilestones(collection: MilestoneCollection): string[] {
   const errors: string[] = [];
   const sourceIds = new Set(collection.sources.map((s) => s.id));
   const claimIds = new Set(collection.claims.map((c) => c.id));
@@ -438,7 +438,7 @@ export function validateAchievements(collection: AchievementCollection): string[
     }
   }
 
-  for (const item of collection.achievements) {
+  for (const item of collection.milestones) {
     if (seen.has(item.id)) errors.push(`성과 카드 id가 중복이다: "${item.id}"`);
     seen.add(item.id);
 
@@ -715,7 +715,7 @@ const sceneBase = {
   claimIds: z.array(z.string()).min(1, "근거 없는 씬은 허용되지 않는다"),
 };
 
-export const storySceneSchema = z.discriminatedUnion("kind", [
+export const sceneSchema = z.discriminatedUnion("kind", [
   z.object({
     ...sceneBase,
     kind: z.literal("route-map"),
@@ -743,20 +743,20 @@ export const storySceneSchema = z.discriminatedUnion("kind", [
     series: indexSeriesSchema,
   }),
 ]);
-export type StoryScene = z.infer<typeof storySceneSchema>;
-export type SceneKind = StoryScene["kind"];
+export type Scene = z.infer<typeof sceneSchema>;
+export type SceneKind = Scene["kind"];
 
 /** 특정 종류의 씬을 타입이 맞게 꺼낸다. 히어로 비주얼처럼 한 종류만 필요한 곳에서 쓴다. */
 export function findScene<K extends SceneKind>(
-  story: Story,
+  achievement: Achievement,
   kind: K,
-): Extract<StoryScene, { kind: K }> | undefined {
-  return story.scenes.find((s): s is Extract<StoryScene, { kind: K }> => s.kind === kind);
+): Extract<Scene, { kind: K }> | undefined {
+  return achievement.scenes.find((s): s is Extract<Scene, { kind: K }> => s.kind === kind);
 }
 
 /** 씬 하나를 검사한다. 종류가 늘어도 호출부는 그대로다. */
 export function validateScene(
-  scene: StoryScene,
+  scene: Scene,
   checkClaim: (owner: string, claimId: string) => void,
 ): string[] {
   const errors: string[] = [];

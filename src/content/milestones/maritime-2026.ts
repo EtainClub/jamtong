@@ -1,8 +1,8 @@
 import {
-  achievementSchema,
+  milestoneSchema,
   claimSchema,
-  type AchievementCollection,
-  type AchievementInput,
+  type MilestoneCollection,
+  type MilestoneInput,
   type Claim,
 } from "@/content/schema";
 import { MOF_2026 } from "@/content/sources";
@@ -109,7 +109,7 @@ const claims: Claim[] = [
   ),
 ];
 
-const raw: AchievementInput[] = [
+const raw: MilestoneInput[] = [
   {
     id: "ach-mof-relocation",
     title: "해양수산부 부산 이전 · 북극항로추진본부 출범",
@@ -134,7 +134,7 @@ const raw: AchievementInput[] = [
     datePrecision: "month",
     claimIds: ["ac-arctic-trial"],
     highlight: { value: "13,000km", label: "수에즈 대비 약 36% 단축" },
-    storySlug: "arctic-route",
+    achievementSlug: "arctic-route",
   },
   {
     id: "ach-arctic-support",
@@ -148,7 +148,7 @@ const raw: AchievementInput[] = [
     datePrecision: "year",
     claimIds: ["ac-arctic-support"],
     highlight: { value: "최대 110억 원", label: "선박 1척당 건조 지원" },
-    storySlug: "arctic-route",
+    achievementSlug: "arctic-route",
   },
   {
     id: "ach-arctic-risk",
@@ -341,8 +341,8 @@ const raw: AchievementInput[] = [
   },
 ];
 
-export const maritime2026: AchievementCollection = {
-  achievements: raw.map((item) => achievementSchema.parse(item)),
+export const maritime2026: MilestoneCollection = {
+  milestones: raw.map((item) => milestoneSchema.parse(item)),
   claims,
   sources: [MOF_2026],
 };

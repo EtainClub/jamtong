@@ -2,7 +2,7 @@
 
 import type { Claim, Eli5 } from "@/content/schema";
 import { Eli5Carousel } from "./Eli5Carousel";
-import { useOpenFullStory } from "@/features/story/StoryView";
+import { useOpenFullStory } from "@/features/achievement/ViewSwitch";
 
 /** 캐러셀과 전환 상태를 잇는 얇은 껍데기. */
 export function Eli5Section({ eli5, claims }: { eli5: Eli5; claims: Claim[] }) {
