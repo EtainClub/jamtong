@@ -13,6 +13,8 @@ import { EvidenceStatus } from "@/features/achievement/EvidenceStatus";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareButton } from "@/features/achievement/ShareButton";
 import { SceneNav } from "@/features/achievement/SceneNav";
+import { BackButton } from "@/features/app/BackButton";
+import { BottomNav } from "@/features/app/BottomNav";
 import { scenesFor } from "@/features/achievement/scenes";
 import { AskGuide } from "@/features/agent/AskGuide";
 import { ViewSwitch, ViewToggle } from "@/features/achievement/ViewSwitch";
@@ -205,18 +207,22 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
 
       <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-full max-w-5xl items-center justify-between gap-4 px-5">
-          <Link
-            href="/"
-            className="shrink-0 text-sm font-semibold text-smoke transition-colors hover:text-ink"
-          >
-            이재명 업적 위키
-          </Link>
+          {/* 뒤로와 로고를 한 덩어리로. 왼쪽 위는 '나가는 길'이 있는 자리다. */}
+          <div className="flex min-w-0 items-center gap-1.5">
+            <BackButton />
+            <Link
+              href="/"
+              className="shrink-0 text-sm font-semibold text-smoke transition-colors hover:text-ink"
+            >
+              이재명 업적 위키
+            </Link>
+          </div>
           <SceneNav scenes={scenes} />
-          <ShareButton />
+          <ShareButton compact />
         </div>
       </header>
 
-      <main id="main" className="flex-1 pb-24">
+      <main id="main" className="flex-1 pb-8">
         <AchievementHero achievement={achievement} highlights={heroHighlights} />
         <EvidenceStatus achievement={achievement} />
 
@@ -251,6 +257,9 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
           />
         </div>
       </main>
+
+      {/* 상세에서도 하단 탭을 둔다. 들어오면 나갈 길이 없던 것이 가장 큰 불편이었다. */}
+      <BottomNav />
 
       <AskGuide
         achievementSlug={achievement.slug}

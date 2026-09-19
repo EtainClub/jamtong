@@ -12,7 +12,7 @@ import { buildShareUrl } from "@/lib/visual-state/url-sync";
  * URL 하나면 충분하고, 링크를 연 사람은 같은 화면 상태로 도착한다.
  * (검토 문서 5.3)
  */
-export function ShareButton() {
+export function ShareButton({ compact = false }: { compact?: boolean } = {}) {
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
 
@@ -31,10 +31,19 @@ export function ShareButton() {
     <button
       type="button"
       onClick={onShare}
-      className="inline-flex items-center gap-2 rounded-full border border-stone bg-taupe px-4 py-2 text-sm font-medium text-smoke transition-colors hover:border-graphite hover:text-navy"
+      aria-label="지금 이 화면 공유"
+      className={`inline-flex shrink-0 items-center gap-2 rounded-full border border-stone bg-taupe py-2 text-sm font-medium text-smoke transition-colors hover:border-graphite hover:text-navy ${
+        compact ? "px-3 sm:px-4" : "px-4"
+      }`}
     >
       <span aria-hidden="true">↗</span>
-      {copied ? "링크를 복사했습니다" : "지금 이 화면 공유"}
+      {/*
+       * 상단 바에서만 좁은 화면에서 글자를 접는다(compact). 공유 섹션에서는
+       * 이 버튼이 그 섹션의 전부이므로 글자를 지우면 무엇을 누르는지 알 수 없다.
+       */}
+      <span className={compact ? "hidden sm:inline" : undefined}>
+        {copied ? "링크를 복사했습니다" : "지금 이 화면 공유"}
+      </span>
       <span className="sr-only" aria-live="polite">
         {copied ? "현재 화면 상태가 담긴 링크를 클립보드에 복사했습니다." : ""}
       </span>

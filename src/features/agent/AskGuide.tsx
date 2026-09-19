@@ -105,8 +105,9 @@ export function AskGuide({
           setOpen(true);
           setTimeout(() => inputRef.current?.focus(), 60);
         }}
-        className="fixed bottom-5 right-4 z-30 flex items-center gap-2 rounded-full bg-ink px-4 py-3 text-sm font-bold text-eggshell shadow-lg shadow-ink/15 transition-transform hover:scale-[1.03]"
-        style={{ bottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
+        className="fixed right-4 z-30 flex items-center gap-2 rounded-full bg-ink px-4 py-3 text-sm font-bold text-eggshell shadow-lg shadow-ink/15 transition-transform hover:scale-[1.03]"
+        // 하단 탭 바(약 56px) 위로 띄운다. 겹치면 둘 다 누르기 어려워진다.
+        style={{ bottom: "calc(1.25rem + 56px + env(safe-area-inset-bottom, 0px))" }}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              strokeWidth="2" strokeLinecap="round" aria-hidden="true">

@@ -17,12 +17,19 @@ interface Tab {
   label: string;
   icon: React.ReactNode;
   ready: boolean;
+  /**
+   * 이 탭이 제 것으로 치는 경로들.
+   *
+   * 업적 상세(/achievement/...)는 주소가 /explore로 시작하지 않지만 업적 탭의
+   * 자식이다. 적어 두지 않으면 상세에서 어느 탭에 있는지 표시가 사라진다.
+   */
+  owns?: string[];
 }
 
 const TABS: Tab[] = [
   { href: "/", label: "홈", ready: true, icon: <HomeIcon /> },
   { href: "/timeline", label: "타임라인", ready: true, icon: <TimelineIcon /> },
-  { href: "/explore", label: "업적", ready: true, icon: <ExploreIcon /> },
+  { href: "/explore", label: "업적", ready: true, owns: ["/achievement"], icon: <ExploreIcon /> },
   { href: "/ask", label: "AI에게 묻기", ready: false, icon: <AskIcon /> },
   { href: "/my", label: "MY", ready: false, icon: <MyIcon /> },
 ];
@@ -38,7 +45,11 @@ export function BottomNav() {
     >
       <ul className="mx-auto flex max-w-[560px] items-stretch">
         {TABS.map((tab) => {
-          const active = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
+          const active =
+            tab.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(tab.href) ||
+                (tab.owns?.some((p) => pathname.startsWith(p)) ?? false);
 
           if (!tab.ready) {
             // 흐리게만 두면 모바일에서는 왜 눌리지 않는지 알 길이 없다 —
