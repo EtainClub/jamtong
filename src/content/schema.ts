@@ -774,6 +774,13 @@ export const Eli5Art = z.enum([
   "jr-distort",
   "jr-bench",
   "jr-three",
+
+  // KTX·SRT 통합
+  "rail-two",
+  "rail-merge",
+  "rail-fare",
+  "rail-seats",
+  "rail-oneapp",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

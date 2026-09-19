@@ -254,6 +254,33 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "몇 명을 조사했나요?",
     ],
   },
+  "rail-merger": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "한 달 사이에 끝난 통합",
+          timelineLede:
+            "시점을 옮기면 그때까지 무엇이 끝나 있었는지가 나타납니다. 앱이 먼저였고 회사가 나중이었습니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "국토교통부가 통합 운행 시작에 맞춰 밝힌 것입니다.",
+          relationsHeading: "한 선로를 둘이 쓰던 구조",
+          relationsLede:
+            "같은 철길 위에 회사가 둘이었습니다. 무엇이 하나로 합쳐졌고 그래서 무엇이 달라졌는지 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-merge", label: "기관 통합" },
+      { claimId: "claim-fare", label: "운임 인하" },
+    ],
+    askSuggestions: [
+      "무엇이 어떻게 합쳐졌나요?",
+      "요금이 얼마나 내렸나요?",
+      "좌석은 얼마나 늘었나요?",
+    ],
+  },
   "judicial-reform": {
     Layout: (props) => (
       <NarrativeLayout

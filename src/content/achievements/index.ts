@@ -17,6 +17,7 @@ import { gyeonggiComfortWomen } from "./gyeonggi-comfort-women/achievement";
 import { gyeonggiIlsanBridge } from "./gyeonggi-ilsan-bridge/achievement";
 import { prosecutionReform } from "./prosecution-reform/achievement";
 import { judicialReform } from "./judicial-reform/achievement";
+import { railMerger } from "./rail-merger/achievement";
 
 /**
  * 업적 레지스트리.
@@ -43,6 +44,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   gyeonggiIlsanBridge,
   prosecutionReform,
   judicialReform,
+  railMerger,
 ];
 
 export function getAchievement(slug: string): Achievement | undefined {

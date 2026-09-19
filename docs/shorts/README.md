@@ -34,6 +34,21 @@
 | 업적 | 대본 | 상태 |
 | --- | --- | --- |
 | 성남시 3대 무상복지 | [seongnam-welfare.md](seongnam-welfare.md) | 영상 없음 |
-| 성남시 모라토리엄 | [seongnam-debt.md](seongnam-debt.md) | 영상 없음 |
+| 성남시 모라토리엄 | [seongnam-debt.md](seongnam-debt.md) | 등록됨 |
 | 성남시의료원 | [seongnam-hospital.md](seongnam-hospital.md) | 영상 없음 |
-| 성남시 무상급식 | [seongnam-meals.md](seongnam-meals.md) | 영상 없음 |
+| 성남시 무상급식 | [seongnam-meals.md](seongnam-meals.md) | 등록됨 |
+| 경기도 청정계곡 | [gyeonggi-valley.md](gyeonggi-valley.md) | 등록됨 |
+| 경기도 재난기본소득 | [gyeonggi-basic-income.md](gyeonggi-basic-income.md) | 등록됨 |
+| 경기도 신천지 대응 | [gyeonggi-shincheonji.md](gyeonggi-shincheonji.md) | 등록됨 |
+| 경기도 수술실 CCTV | [gyeonggi-or-cctv.md](gyeonggi-or-cctv.md) | 등록됨 |
+| 경기도 건설 불공정 단속 | [gyeonggi-construction.md](gyeonggi-construction.md) | 등록됨 |
+| 경기도 아동급식 | [gyeonggi-child-meal.md](gyeonggi-child-meal.md) | 등록됨 |
+| 경기도 극저신용대출 | [gyeonggi-microloan.md](gyeonggi-microloan.md) | 등록됨 |
+| 경기도 위안부 피해자 지원 | [gyeonggi-comfort-women.md](gyeonggi-comfort-women.md) | 등록됨 |
+| 일산대교 무료화 | [gyeonggi-ilsan-bridge.md](gyeonggi-ilsan-bridge.md) | 등록됨 |
+| 검찰개혁 | [prosecution-reform.md](prosecution-reform.md) | 영상 없음 |
+| 사법개혁 3법 | [judicial-reform.md](judicial-reform.md) | 영상 없음 |
+| KTX·SRT 통합 | [rail-merger.md](rail-merger.md) | 영상 없음 |
+
+「등록됨」은 업적 파일의 `shorts[]`에 youtubeId가 들어간 것이다. 북극항로·대장동·
+주식시장은 대본을 거치지 않고 영상이 먼저 올라간 것이라 이 표에 없다.

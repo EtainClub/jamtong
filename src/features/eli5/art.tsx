@@ -2424,6 +2424,158 @@ function JrThree() {
     </svg>
   );
 }
+
+/* ── KTX·SRT 통합 ────────────────────────────────────────────── */
+
+/** 한 선로 위를 나란히 달리는, 색이 다른 두 열차. */
+function RailTwo() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="같은 선로를 달리는 서로 다른 두 고속열차">
+      {/* 위쪽: 코레일 KTX */}
+      <text x={92} y={44} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">KTX</text>
+      <path d="M22 56 H138 L158 72 V86 H22 Z" fill="var(--navy)" />
+      <rect x={38} y={63} width={20} height={13} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <rect x={68} y={63} width={20} height={13} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <rect x={98} y={63} width={20} height={13} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <path d="M12 96 H308" stroke="var(--graphite)" strokeWidth={4} strokeLinecap="round" />
+      {[26, 74, 122, 170, 218, 266].map((x) => (
+        <path key={`a${x}`} d={`M${x} 96 V107`} stroke="var(--graphite)" strokeWidth={3} strokeLinecap="round" />
+      ))}
+
+      {/* 아래쪽: 에스알 SRT — 똑같이 생긴 선로다 */}
+      <text x={228} y={152} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">SRT</text>
+      <path d="M298 164 H182 L162 180 V194 H298 Z" fill="var(--burgundy)" />
+      <rect x={262} y={171} width={20} height={13} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <rect x={232} y={171} width={20} height={13} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <rect x={202} y={171} width={20} height={13} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <path d="M12 204 H308" stroke="var(--graphite)" strokeWidth={4} strokeLinecap="round" />
+      {[26, 74, 122, 170, 218, 266].map((x) => (
+        <path key={`b${x}`} d={`M${x} 204 V215`} stroke="var(--graphite)" strokeWidth={3} strokeLinecap="round" />
+      ))}
+
+      <text x={160} y={132} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        같은 철길, 다른 회사
+      </text>
+    </svg>
+  );
+}
+
+/** 둘이 하나로 합쳐진다. */
+function RailMerge() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="두 회사가 하나로 합쳐지는 모습">
+      <rect x={20} y={56} width={96} height={40} rx={6} fill="var(--navy)" opacity={0.8} />
+      <rect x={204} y={56} width={96} height={40} rx={6} fill="var(--burgundy)" opacity={0.8} />
+      <text x={68} y={82} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">코레일</text>
+      <text x={252} y={82} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">에스알</text>
+      <path d="M68 96 C68 124, 160 124, 160 140 M252 96 C252 124, 160 124, 160 140"
+            fill="none" stroke="var(--graphite)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M152 132 L160 142 L168 132" fill="none" stroke="var(--graphite)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M88 156 H210 L232 174 V188 H88 Z" fill="var(--navy)" />
+      <rect x={104} y={162} width={18} height={12} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <rect x={132} y={162} width={18} height={12} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <rect x={160} y={162} width={18} height={12} rx={2} fill="var(--eggshell)" opacity={0.7} />
+      <text x={160} y={218} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        2026년 9월 1일
+      </text>
+    </svg>
+  );
+}
+
+/** 값이 내린다 — 두 표의 금액 비교. */
+function RailFare() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="서울에서 부산까지 운임이 59,800원에서 54,400원으로 내린 모습">
+      <g opacity={0.5}>
+        <rect x={22} y={82} width={116} height={76} rx={6}
+              fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2} />
+        <text x={80} y={116} textAnchor="middle" fontSize={16} {...LABEL} fill="var(--graphite)">59,800</text>
+        <text x={80} y={138} textAnchor="middle" fontSize={11} fill="var(--ash)">원</text>
+        <path d="M30 110 H130" stroke="var(--burgundy)" strokeWidth={2.5} strokeLinecap="round" />
+      </g>
+      <path d="M148 120 H176" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M168 112 L178 120 L168 128" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <rect x={186} y={78} width={116} height={84} rx={6}
+            fill="var(--canvas)" stroke="var(--navy)" strokeWidth={2.5} />
+      <text x={244} y={116} textAnchor="middle" fontSize={19} {...LABEL} fill="var(--navy)">54,400</text>
+      <text x={244} y={138} textAnchor="middle" fontSize={11} fill="var(--ash)">원</text>
+      <text x={160} y={192} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        서울 → 부산
+      </text>
+      <text x={160} y={214} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        구간에 따라 평균 10% 인하
+      </text>
+    </svg>
+  );
+}
+
+/** 좌석이 늘어난다 — 빈 칸이 채워진 객차. */
+function RailSeats() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="좌석이 늘어난 것을 나타낸 객차 도면">
+      <rect x={24} y={72} width={272} height={96} rx={12}
+            fill="none" stroke="var(--graphite)" strokeWidth={2.5} />
+      {Array.from({ length: 24 }, (_, i) => {
+        const x = 44 + (i % 12) * 21;
+        const y = i < 12 ? 96 : 134;
+        // 하루 11만 6천 석에 1만 6천 석이 더해졌다 — 대략 여섯 자리에 한 자리다.
+        const added = i % 6 === 5;
+        return (
+          <rect key={i} x={x - 7} y={y - 7} width={14} height={14} rx={2}
+                fill={added ? "var(--navy)" : "var(--stone)"}
+                opacity={added ? 1 : 0.9} />
+        );
+      })}
+      <text x={160} y={196} textAnchor="middle" fontSize={19} {...LABEL} fill="var(--navy)">
+        +1만 6,000석
+      </text>
+      <text x={160} y={218} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        하루 기준 · 수서역은 약 30% 증가
+      </text>
+    </svg>
+  );
+}
+
+/** 앱 둘이 하나로. */
+function RailOneApp() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="따로 있던 두 예매 앱이 하나로 합쳐진 모습">
+      <g opacity={0.5}>
+        <rect x={26} y={62} width={58} height={96} rx={10}
+              fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2} />
+        <rect x={38} y={80} width={34} height={7} rx={2} fill="var(--graphite)" opacity={0.45} />
+        <rect x={38} y={94} width={34} height={7} rx={2} fill="var(--graphite)" opacity={0.3} />
+        <text x={55} y={176} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--graphite)">코레일톡</text>
+        <rect x={92} y={62} width={58} height={96} rx={10}
+              fill="var(--canvas)" stroke="var(--graphite)" strokeWidth={2} />
+        <rect x={104} y={80} width={34} height={7} rx={2} fill="var(--graphite)" opacity={0.45} />
+        <rect x={104} y={94} width={34} height={7} rx={2} fill="var(--graphite)" opacity={0.3} />
+        <text x={121} y={176} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--graphite)">SRT 앱</text>
+      </g>
+      <path d="M162 120 H190" stroke="var(--navy)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M182 112 L192 120 L182 128" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <rect x={206} y={60} width={78} height={120} rx={12} fill="var(--navy)" />
+      <rect x={220} y={80} width={50} height={10} rx={3} fill="var(--eggshell)" opacity={0.7} />
+      <rect x={220} y={100} width={50} height={10} rx={3} fill="var(--eggshell)" opacity={0.5} />
+      <rect x={220} y={120} width={50} height={10} rx={3} fill="var(--eggshell)" opacity={0.35} />
+      <text x={245} y={162} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">
+        코레일+
+      </text>
+      <text x={160} y={212} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        한 곳에서 조회·예매
+      </text>
+    </svg>
+  );
+}
+
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -2546,4 +2698,10 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "jr-distort": JrDistort,
   "jr-bench": JrBench,
   "jr-three": JrThree,
+
+  "rail-two": RailTwo,
+  "rail-merge": RailMerge,
+  "rail-fare": RailFare,
+  "rail-seats": RailSeats,
+  "rail-oneapp": RailOneApp,
 };
