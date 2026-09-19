@@ -22,6 +22,7 @@ const raw: AchievementInput = {
   title: "성남시의료원",
   subtitle: "시민이 발의하고 17년이 걸린 전국 첫 공공병원",
   kicker: "주요 업적",
+  category: "welfare",
   summary:
     "2003년 성남 본시가지의 병원 두 곳이 문을 닫았다. 시민들이 직접 조례를 발의했고, " +
     "두 번 부결된 끝에 2006년 시의회를 통과했다. 그러고도 첫 삽을 뜨기까지 7년이 더 걸렸다. " +

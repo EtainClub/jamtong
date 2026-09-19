@@ -25,6 +25,7 @@ const raw: AchievementInput = {
   title: "경기도 극저신용대출",
   subtitle: "은행이 거절한 사람에게, 연 1%로",
   kicker: "주요 정책",
+  category: "welfare",
   summary:
     "신용점수가 낮아 제도권 금융에서 돈을 빌릴 수 없는 사람에게 경기도가 직접 " +
     "빌려준 제도다. 2020년 시작해 연 1% 금리로 최대 300만 원까지, 담보와 보증 " +

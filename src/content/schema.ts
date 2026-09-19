@@ -252,12 +252,47 @@ export const counterpointSchema = z.object({
 });
 export type Counterpoint = z.infer<typeof counterpointSchema>;
 
+/* ────────────────────────────────────────────────────────────────
+ * 분야
+ *
+ * 스물둘을 한 줄로 늘어놓으면 무엇이 무엇인지 보이지 않는다. 묶어야 하는데,
+ * **묶는 축은 하나만 고른다**. 분야와 시기를 동시에 묶으면 같은 업적이 두 곳에
+ * 나오고, 읽는 사람은 그 둘이 다른 것인지 같은 것인지부터 의심한다.
+ *
+ * ★ '기타'를 두지 않는다.
+ *   기타가 생기면 분류가 아니라 쓰레기통이 된다. 스물둘을 다 넣어 보고 남는
+ *   것이 없게 분야를 잡았다 — 남는 것이 생기면 분야 쪽을 고친다.
+ *
+ * ★ 하나에 하나만.
+ *   원유 수입처 다변화는 외교이면서 경제이고, KTX 통합은 인프라이면서 민생이다.
+ *   그래도 한 곳에만 둔다. 여러 곳에 두면 합이 스물둘이 아니게 되고, "몇 건"이
+ *   무슨 뜻인지 설명할 수 없게 된다. 어느 쪽에 둘지는 **그 업적이 무엇을 바꿨나**로
+ *   정한다. 원유는 값이 아니라 받아 오는 나라를 바꿨으므로 외교다.
+ * ──────────────────────────────────────────────────────────────── */
+
+export const AchievementCategory = z.enum([
+  "diplomacy", // 외교·안보 — 나라 밖과의 관계, 자원, 안보
+  "institution", // 제도·행정 — 법과 기관, 그리고 그 집행
+  "welfare", // 민생·복지 — 사람에게 직접 가는 것
+  "region", // 지역·인프라 — 땅과 길과 도시
+  "economy", // 재정·경제 — 살림과 시장
+  "disaster", // 재난 대응 — 닥친 일에 대한 대응
+]);
+export type AchievementCategory = z.infer<typeof AchievementCategory>;
+
 export const achievementSchema = z.object({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
   subtitle: z.string(),
   kicker: z.string(),
+  /**
+   * 이 업적이 서는 자리. 목록에서 묶는 기준이다.
+   *
+   * 기본값을 두지 않는다. 어디에 둘지는 편집 판단이고, 판단을 빠뜨린 것과
+   * 판단해서 그곳에 둔 것은 다른 일이다. 새 업적을 만들면 여기서 막힌다.
+   */
+  category: AchievementCategory,
   summary: z.string(),
   type: z.enum(["achievement", "policy", "event"]),
   /**

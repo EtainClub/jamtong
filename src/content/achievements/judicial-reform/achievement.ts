@@ -28,6 +28,7 @@ const raw: AchievementInput = {
   title: "사법개혁 3법",
   subtitle: "판결을 다시 볼 길을 세 방향으로 늘렸다",
   kicker: "주요 정책",
+  category: "institution",
   summary:
     "법왜곡죄, 재판소원, 대법관 증원 세 법이 2026년 2월 말 차례로 국회를 지나 " +
     "3월 12일 공포됐다. 법왜곡죄와 재판소원은 그날 바로 시행됐고, 대법관 증원은 " +

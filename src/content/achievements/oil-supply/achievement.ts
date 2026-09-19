@@ -38,6 +38,7 @@ const raw: AchievementInput = {
   title: "원유 수입처 다변화",
   subtitle: "중동에서 전쟁이 나는 동안, 기대는 곳을 옮겼다",
   kicker: "외교·경제",
+  category: "diplomacy",
   summary:
     "2026년 중동 무력 충돌로 호르무즈 해협과 홍해가 위태로워지는 사이, 정부는 " +
     "원유 수입처를 미국·호주·알제리·남미 등으로 넓혔다. 중동산 비중은 2024년 " +

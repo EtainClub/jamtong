@@ -27,6 +27,7 @@ const raw: AchievementInput = {
   title: "경기도 위안부 피해자 지원",
   subtitle: "열 분에게, 전국에서 가장 높은 수준으로",
   kicker: "주요 업적",
+  category: "welfare",
   summary:
     "경기도는 2015년 10월 관련 조례를 만든 뒤, 2018년 10월 도내 거주 일본군 위안부 " +
     "피해자에 대한 월 지원금을 203만 원에서 293만 원으로 올리겠다고 밝혔다. " +

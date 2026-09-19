@@ -27,6 +27,7 @@ const raw: AchievementInput = {
   title: "경기도 건설 불공정 단속",
   subtitle: "원가를 보이게, 실체 없는 업체를 걸러내게",
   kicker: "주요 업적",
+  category: "institution",
   summary:
     "건설 현장에서 돈이 새는 두 곳을 각각 막은 일이다. 하나는 원가다. 경기도는 " +
     "2018년 9월 1일부터 계약금액 10억 원 이상 공공건설공사의 설계내역서와 " +

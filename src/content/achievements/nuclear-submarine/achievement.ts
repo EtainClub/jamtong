@@ -38,6 +38,7 @@ const raw: AchievementInput = {
   title: "핵추진잠수함 건조 승인",
   subtitle: "40년 막혀 있던 문이 열렸다. 배는 아직 한 척도 없다",
   kicker: "외교·안보",
+  category: "diplomacy",
   summary:
     "2025년 10월 29일 경주 한미정상회담에서 이재명 대통령이 핵추진잠수함 연료 " +
     "공급을 요청했고, 11월 14일 한미 공동 팩트시트에 미국의 건조 승인이 담겼다. " +

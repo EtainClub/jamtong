@@ -1,4 +1,4 @@
-import type { Achievement } from "@/content/schema";
+import type { Achievement, AchievementCategory } from "@/content/schema";
 import { arcticRoute } from "./arctic-route/achievement";
 import { daejangdong } from "./daejangdong/achievement";
 import { stockMarket } from "./stock-market/achievement";
@@ -135,6 +135,76 @@ export function latestEventDate(achievement: Achievement): string {
  */
 export function byRecency(a: Achievement, b: Achievement): number {
   return latestEventDate(b).localeCompare(latestEventDate(a)) || a.slug.localeCompare(b.slug);
+}
+
+/* ────────────────────────────────────────────────────────────────
+ * 분야별 묶음
+ * ──────────────────────────────────────────────────────────────── */
+
+export const GROUP_LABEL: Record<AchievementCategory, string> = {
+  diplomacy: "외교·안보",
+  institution: "제도·행정",
+  welfare: "민생·복지",
+  region: "지역·인프라",
+  economy: "재정·경제",
+  disaster: "재난 대응",
+};
+
+/**
+ * 묶음마다 무엇을 모은 것인지 한 줄.
+ *
+ * 이름만 적어 두면 읽는 사람이 경계를 짐작하게 되고, 짐작은 대개 어긋난다.
+ * "왜 원유가 경제가 아니라 외교에 있나"에 답할 수 있어야 한다.
+ */
+export const GROUP_NOTE: Record<AchievementCategory, string> = {
+  diplomacy: "나라 밖과의 관계로 무언가를 바꾼 것. 항로·자원·안보가 여기 있습니다.",
+  institution: "법과 기관을 바꾸거나, 있는 규칙을 실제로 집행한 것.",
+  welfare: "돈과 서비스가 사람에게 직접 간 것.",
+  region: "땅과 길과 도시를 바꾼 것.",
+  economy: "살림과 시장에 관한 것.",
+  disaster: "닥친 일에 대응한 것. 감염병과 재난이 여기 있습니다.",
+};
+
+export interface AchievementGroup {
+  category: AchievementCategory;
+  label: string;
+  note: string;
+  items: Achievement[];
+}
+
+/**
+ * 분야로 묶어 최근 순으로 세운다.
+ *
+ * 묶음끼리의 순서도 최근 순이다 — 가장 최근에 무슨 일이 있었던 분야가 위로
+ * 온다. 목록 안에서 쓰는 규칙과 같은 규칙을 묶음에도 한 번 더 적용하는 것이라,
+ * 자리가 왜 그런지 설명할 말이 하나면 된다.
+ *
+ * 비어 있는 묶음은 내보내지 않는다. 이름만 있고 아무것도 없는 칸은 읽는
+ * 사람에게 "여기 뭔가 있어야 하는데 없다"로 읽힌다.
+ */
+export function groupAchievements(list: Achievement[]): AchievementGroup[] {
+  const buckets = new Map<AchievementCategory, Achievement[]>();
+  for (const achievement of list) {
+    const bucket = buckets.get(achievement.category);
+    if (bucket) bucket.push(achievement);
+    else buckets.set(achievement.category, [achievement]);
+  }
+
+  const groups: AchievementGroup[] = [];
+  for (const [category, items] of buckets) {
+    groups.push({
+      category,
+      label: GROUP_LABEL[category],
+      note: GROUP_NOTE[category],
+      items: items.slice().sort(byRecency),
+    });
+  }
+
+  return groups.sort(
+    (a, b) =>
+      latestEventDate(b.items[0]).localeCompare(latestEventDate(a.items[0])) ||
+      a.label.localeCompare(b.label),
+  );
 }
 
 /**

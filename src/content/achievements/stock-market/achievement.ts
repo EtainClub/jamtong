@@ -27,6 +27,7 @@ const raw: AchievementInput = {
   title: "주식시장 개선",
   subtitle: "코리아 디스카운트를 줄이려는 제도 개편",
   kicker: "주요 정책",
+  category: "economy",
   summary:
     "한국 주식시장은 오래 '코리아 디스카운트'라 불리는 저평가를 겪었다. " +
     "이사의 충실의무 확대와 자사주 소각 의무화는 상법 개정으로 이미 시행됐고, 상장폐지 제도와 " +

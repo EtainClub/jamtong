@@ -29,6 +29,7 @@ const raw: AchievementInput = {
   title: "검찰개혁",
   subtitle: "한 기관이 쥐던 수사와 기소를 둘로 나눈다",
   kicker: "주요 정책",
+  category: "institution",
   featured: true,
   summary:
     "수사와 기소를 한 기관이 함께 쥐던 구조를 바꾸는 일이다. 2026년 3월 국회가 " +

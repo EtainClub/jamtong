@@ -21,6 +21,7 @@ const raw: AchievementInput = {
   title: "북극항로",
   subtitle: "새로운 길이 대한민국의 미래를 넓힙니다",
   kicker: "주요 정책",
+  category: "diplomacy",
   summary:
     "부산에서 유럽으로 가는 뱃길은 지금까지 수에즈 운하나 희망봉을 지나 남쪽으로 크게 돌아갔다. " +
     "북극을 가로지르면 로테르담까지 거리는 20,400km에서 13,000km로 줄어든다. " +

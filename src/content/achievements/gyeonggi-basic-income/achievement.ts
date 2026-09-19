@@ -27,6 +27,7 @@ const raw: AchievementInput = {
   title: "경기도 재난기본소득",
   subtitle: "현금 대신 지역화폐로, 3개월 기한을 걸어서",
   kicker: "주요 정책",
+  category: "disaster",
   summary:
     "코로나19 때 경기도가 세 차례에 걸쳐 지급한 재난기본소득이다. 1차는 소득을 " +
     "가리지 않고 전 도민 1,326만 명에게 1인당 10만 원, 2차는 외국인까지 포함해 " +
