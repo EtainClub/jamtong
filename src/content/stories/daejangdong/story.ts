@@ -5,17 +5,23 @@ import { ISDC_DAEJANG, ISDC_PARK } from "@/content/sources";
  * 성남 판교대장 도시개발사업 (통칭 대장동) — Sprint 2.
  *
  * 출처
- *  - `src-isdc-daejang`: 성남도시개발공사 추진사업 페이지. 사업개요·추진경위·토지이용계획.
- *  - `src-isdc-park`: 같은 곳의 제1공단 도시계획시설(공원화) 사업 페이지.
+ *  - `src-isdc-daejang` / `src-isdc-park`: 성남도시개발공사 추진사업 페이지.
+ *    사업개요·추진경위·토지이용계획. 면적과 절차는 전부 여기서 나온다.
+ *  - 나머지는 보도다. 사업협약서와 공사의 환수 내역은 공개되어 있지 않다.
  *
  * ⚠ publishStatus: "draft"
- *   **금액은 아직 어느 것도 검증되지 않았다.** 공사 공개 자료에는 사업 개요와
- *   토지이용계획은 있으나 개발이익 환수액·배분 내역이 없다. 5,503억을 비롯한
- *   금액 claim은 전부 verified: false이며, published로 올리면 빌드가 깨진다.
+ *   미검증은 0이지만 금액 쪽 근거가 전부 press다. 면적·절차(1차 자료)와 금액(보도)
+ *   사이에 근거의 무게가 다르고, 이 스토리는 가장 공격받기 쉬운 주제다.
+ *   공개 여부는 편집 판단으로 남겨 둔다.
  *
- * 그래서 이 초안의 무게중심은 금액이 아니라 **면적과 절차**에 있다.
- * 토지이용계획상 공공용지 비율과 결합 도시개발구역 지정은 인허가 고시에 실리는
- * 값이라 검증이 쉽고 다툼의 여지도 적다. 금액 자료가 확보되면 그때 보강한다.
+ * 금액을 다루는 방식
+ *   5,503억은 사실이 아니라 **성남시의 계산**이다. 환수 범위를 어디까지로 보느냐에
+ *   따라 셈이 달라지므로 assertionType을 CLAIM으로 두고 assertedBy로 누구의
+ *   계산인지 밝힌다. 숫자를 사실로 못 박으면 같은 방식으로 반대편에서 공격받는다.
+ *   누가 무엇을 근거로 그렇게 셈했는지를 보이는 쪽이 이 위키의 방식이다.
+ *
+ * 그래도 무게중심은 여전히 **면적과 절차**에 있다. 토지이용계획상 공공용지 비율과
+ * 결합 도시개발구역 지정은 인허가 고시에 실리는 값이라 다툼의 여지가 가장 적다.
  *
  * 설계 원칙 (설계 검토 문서 2.2)
  *   - 노드에 실존 개인을 올리지 않는다. 기관과 용처만으로 구조가 설명된다.
@@ -369,98 +375,113 @@ const raw: StoryInput = {
       verified: true,
     },
 
-    // ── 아래부터 출처 미확정 ───────────────────────────
     {
       id: "claim-lh-exit",
-      text: "LH는 대장동 개발사업에서 철수했고, 이후 사업은 민간개발로 전환될 상황이었다.",
+      text:
+        "한국토지주택공사는 2010년 6월 성남 판교대장 도시개발사업에서 철수했다. " +
+        "LH가 국회에 제출한 자료에 따르면 철회 검토의 기점은 2009년 10월 " +
+        "\"민간회사와 경쟁할 필요가 없다\"는 발언이었다. 공영개발 경로가 닫히면서 " +
+        "이후 사업은 민간개발로 전환될 상황이었다.",
       assertionType: "CLAIM",
-      assertedBy: "성남시",
-      sourceIds: ["src-need-lh"],
-      verified: false,
+      assertedBy: "한국토지주택공사가 국회에 제출한 자료 · 성남시",
+      sourceIds: ["src-lh-withdraw"],
+      verified: true,
     },
     {
       id: "claim-ppp-structure",
       text:
         "성남도시개발공사가 의결권 과반(50%+1주)을 갖는 구조로 프로젝트금융투자회사가 설립되었다.",
       assertionType: "FACT",
-      sourceIds: ["src-need-agreement"],
-      verified: false,
+      sourceIds: ["src-structure", "src-isdc-daejang"],
+      verified: true,
     },
     {
       id: "claim-recovery-total",
-      text: "대장동 개발사업에서 공공이 환수한 개발이익은 약 5,503억 원이다.",
+      text:
+        "성남시는 대장동 개발사업에서 공공이 환수한 개발이익을 약 5,503억 원으로 본다. " +
+        "환수 범위를 어디까지로 볼지에 따라 셈이 달라지므로, 이 수치는 확정된 사실이 아니라 " +
+        "성남시의 계산이다.",
       assertionType: "CLAIM",
       assertedBy: "성남시",
-      sourceIds: ["src-need-smdc"],
-      verified: false,
+      sourceIds: ["src-recovery-claim", "src-recovery-check"],
+      verified: true,
     },
     {
       id: "claim-recovery-breakdown",
       text:
-        "공공 환수분은 제1공단 공원 조성, 광역 기반시설 조성, 확정이익 배당으로 구성된다.",
+        "성남시가 밝힌 환수 내역은 임대주택용지 배분 1,822억 원, 제1공단 공원 조성 2,561억 원, " +
+        "서판교 터널·진입로·주차장 등 광역 기반시설 1,120억 원이다. " +
+        "이 가운데 현금으로 배당된 것은 확정이익 1,822억 원이고, 나머지는 현물 형태의 환수다.",
       assertionType: "CLAIM",
       assertedBy: "성남시",
-      sourceIds: ["src-need-smdc"],
-      verified: false,
+      sourceIds: ["src-recovery-claim", "src-recovery-check"],
+      verified: true,
     },
     {
       id: "claim-private-path",
-      text: "순수 민간개발로 진행되었을 경우 공공이 환수하는 개발이익은 발생하지 않는다.",
+      text:
+        "LH 철수로 공영개발 경로가 닫힌 뒤 순수 민간개발로 진행되었다면, " +
+        "공공이 사업 구조 안에서 환수하는 몫은 발생하지 않는다. " +
+        "환수가 가능했던 것은 공사가 사업시행자 지분을 갖는 구조를 만들었기 때문이다.",
       assertionType: "INTERPRETATION",
-      sourceIds: ["src-need-comparison"],
-      verified: false,
+      sourceIds: ["src-lh-withdraw", "src-structure"],
+      verified: true,
     },
     {
       id: "claim-fixed-profit",
       text:
-        "확정이익 방식은 부동산 경기 변동에 따른 위험을 공공이 지지 않는 대신 상승분도 나누지 않는 구조다.",
+        "확정이익 방식은 지분율에 따라 배당하지 않고 공공의 몫을 미리 정해 두는 구조다. " +
+        "부동산 경기가 내려가도 공공은 정해진 몫을 먼저 가져가지만, 올라도 상승분을 나누지 않는다.",
       assertionType: "INTERPRETATION",
-      sourceIds: ["src-need-agreement"],
-      verified: false,
+      sourceIds: ["src-structure"],
+      verified: true,
     },
     {
       id: "claim-comparison-context",
-      text: "동시기 도시개발사업에서 공공이 환수한 개발이익 규모와 비교할 필요가 있다.",
+      text:
+        "환수 규모를 판단하려면 한쪽 숫자만이 아니라 토지이용계획상 공공용지 비율과 " +
+        "현금·현물 환수 내역을 함께 놓고 봐야 한다.",
       assertionType: "INTERPRETATION",
-      sourceIds: ["src-need-comparison"],
-      verified: false,
+      sourceIds: ["src-recovery-check", "src-isdc-daejang"],
+      verified: true,
     },
   ],
 
   sources: [ISDC_DAEJANG, ISDC_PARK,
     {
-      id: "src-need-lh",
-      title: "[필요] LH 대장동 사업 참여 및 철수 경위 자료 — 국회·국정감사 제출본 또는 LH 공식 자료",
-      publisher: "미정",
-      type: "official",
+      id: "src-lh-withdraw",
+      title: "LH \"대장동 사업철회 기점은 이명박 발언\" — LH가 국회에 제출한 사업철회 경위 자료",
+      url: "https://m.khan.co.kr/national/national-general/article/202109281310001",
+      publisher: "경향신문",
+      publishedAt: "2021-09-28",
+      // LH가 국회에 낸 자료를 옮긴 보도다. 원자료(국정감사 제출본)를 구하면 교체한다.
+      type: "press",
       license: "link-only",
-      archivedUrl: "https://example.invalid/need/lh-exit",
     },
     {
-      id: "src-need-agreement",
-      title:
-        "[필요] 성남의뜰 사업협약서·정관 중 공개분 — 지분구조와 이익배분 방식 확인용",
-      publisher: "미정",
-      type: "official",
+      id: "src-structure",
+      title: "[대장동 의혹 해부] 대장동 사업이란 무엇인가 — 사업 구조와 지분·이익배분 방식 정리",
+      url: "https://www.khan.co.kr/article/202110041959001",
+      publisher: "경향신문",
+      publishedAt: "2021-10-04",
+      type: "press",
       license: "link-only",
-      archivedUrl: "https://example.invalid/need/agreement",
     },
     {
-      id: "src-need-smdc",
-      title: "[필요] 성남도시개발공사 대장동 공공환수 내역 — 항목별 금액 확인용",
-      publisher: "미정",
-      type: "official",
+      id: "src-recovery-claim",
+      title: "[대장동 리뷰] ②공익환수 5503억 — 성남시 환수 내역 주장과 항목별 금액",
+      url: "https://www.mindlenews.com/news/articleView.html?idxno=537",
+      publisher: "시민언론 민들레",
+      type: "press",
       license: "link-only",
-      archivedUrl: "https://example.invalid/need/smdc-recovery",
     },
     {
-      id: "src-need-comparison",
-      title:
-        "[필요] 동시기 도시개발사업 공공 환수 실적 비교 자료 — 국토연구원·감사원·국회입법조사처 등",
-      publisher: "미정",
-      type: "research",
+      id: "src-recovery-check",
+      title: "\"대장동 개발이익 환수 10% 뿐\" 주장은 '사실 반 거짓 반' — 환수 항목별 사실확인",
+      url: "https://www.ohmynews.com/NWS_Web/OhmyFact/at_pg.aspx?CNTN_CD=A0002781713",
+      publisher: "오마이뉴스",
+      type: "press",
       license: "link-only",
-      archivedUrl: "https://example.invalid/need/comparison",
     },
   ],
 };
