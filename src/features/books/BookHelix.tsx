@@ -51,7 +51,17 @@ const COVER = 126;
  * 누를 때 곧바로 끌기로 치면 손가락이 몇 픽셀 떨리는 것만으로 책이 열리지
  * 않는다. 반대로 문턱이 너무 크면 서가가 늦게 따라온다.
  */
-const DRAG_SLOP = 5;
+const DRAG_SLOP = 8;
+
+/**
+ * 클릭을 접는 문턱은 따로, 더 크게 둔다.
+ *
+ * 마우스를 누르고 떼는 사이에 사람 손은 몇 픽셀씩 흔들리고, 트랙패드에서는
+ * 열 몇 픽셀도 흔한다. 끌기 문턱을 그대로 쓰면 그 흔들림이 전부 "끌었다"로
+ * 읽혀 클릭이 사라진다 — 눌러도 책이 안 열리던 두 번째 이유가 이것이다.
+ * 여기서부터는 사람이 의도해서 민 것으로 본다.
+ */
+const CLICK_SLOP = 16;
 
 export function BookHelix({ books }: { books: Book[] }) {
   /** 지금 앞에 있는 자리. 끄는 동안에는 정수가 아니다. */
@@ -156,6 +166,10 @@ export function BookHelix({ books }: { books: Book[] }) {
           setDragging(false);
           setAt((prev) => clamp(Math.round(prev)));
         }}
+        onPointerLeave={() => {
+          /* 끌지 않은 채 상자를 벗어났으면 누르던 것은 없던 일이다. */
+          if (!dragging) from.current = null;
+        }}
         onWheel={(event) => {
           /* 트랙패드 가로 스크롤. 세로로만 굴리는 마우스는 건드리지 않는다. */
           const delta = event.deltaX;
@@ -214,7 +228,9 @@ export function BookHelix({ books }: { books: Book[] }) {
         <Arrow dir={-1} disabled={front === 0} onClick={() => go(-1)} />
         <p className="min-w-0 truncate text-center text-[11px] text-white/45">
           {front + 1} / {books.length}
-          <span className="ml-2 tracking-[0.14em] text-white/25">끌어서 넘기기</span>
+          <span className="ml-2 tracking-[0.14em] text-white/25">
+            끌어서 넘기고, 앞의 책을 눌러 펼치기
+          </span>
         </p>
         <Arrow dir={1} disabled={front === books.length - 1} onClick={() => go(1)} />
       </div>
@@ -255,6 +271,12 @@ function Placed({
           ? "blur(16px) brightness(.5)"
           : `brightness(${Math.max(1 - away * 0.26, 0.2)}) blur(${away > 2 ? Math.min((away - 2) * 2, 4) : 0}px)`,
         opacity: echo ? (away > 3 ? 0 : 0.35) : away > 3.6 ? 0 : 1,
+        /*
+         * 멀리 있는 표지는 눌리지 않게 한다. opacity가 0이어도 엘리먼트는
+         * 그대로 있어서, 3D로 접힌 자리에 따라 앞 표지 위에 겹쳐 클릭을
+         * 가로챌 수 있다. 앞과 바로 옆까지만 손이 닿는다.
+         */
+        pointerEvents: echo || away > 1.6 ? "none" : "auto",
         zIndex: echo ? 0 : 20 - Math.round(away),
         transition: animate
           ? "transform 560ms cubic-bezier(.2,.8,.2,1), filter 420ms linear, opacity 420ms linear"
@@ -316,7 +338,7 @@ function Cover({
          * 끌고 나서 손을 뗀 것은 클릭이 아니다. 몇 픽셀만 밀려도 브라우저는
          * 클릭으로 치므로, 움직인 거리를 보고 가른다.
          */
-        if (moved.current > DRAG_SLOP) {
+        if (moved.current > CLICK_SLOP) {
           event.preventDefault();
           return;
         }
