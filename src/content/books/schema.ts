@@ -126,6 +126,14 @@ export const bookSchema = z.object({
   }),
   /** 편집자가 적는 한 줄. 이 책이 무엇인지까지만. 평가하지 않는다. */
   note: z.string().optional(),
+  /**
+   * 화면을 보이려고 만든 샘플인가.
+   *
+   * true면 표지·책 페이지·장 페이지가 모두 "샘플"이라고 밝힌다. 실제 저서에
+   * 지어낸 요약을 붙이는 대신 편집부가 쓴 책을 따로 세우는 쪽을 골랐다 —
+   * 이 자리에서 한 번 흐려지면 나머지 전부가 의심받는다.
+   */
+  sample: z.boolean().optional(),
   chapters: z.array(chapterSchema),
 });
 export type Book = z.infer<typeof bookSchema>;

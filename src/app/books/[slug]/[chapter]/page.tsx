@@ -68,6 +68,9 @@ export default async function ChapterPage({
           <span className="rounded-full bg-taupe px-2 py-0.5 text-navy">
             {current.order}장 / {ordered.length}
           </span>
+          {book.sample && (
+            <span className="rounded-full bg-ink px-2 py-0.5 text-eggshell">샘플</span>
+          )}
           <span>{current.minutes}분</span>
         </div>
 

@@ -325,12 +325,19 @@ function Cover({
         {book.title}
       </span>
       <span className="mt-1.5 block text-[9.5px] text-white/35">{book.publisher}</span>
-      <span
-        className={`mt-2 inline-block rounded-full px-1.5 py-0.5 text-[9px] ${
-          ready ? "bg-white/15 text-white/80" : "border border-white/15 text-white/40"
-        }`}
-      >
-        {ready ? `${book.chapters.length}장` : "정리 전"}
+      <span className="mt-2 flex flex-wrap gap-1">
+        {book.sample && (
+          <span className="rounded-full bg-white/80 px-1.5 py-0.5 text-[9px] font-bold text-[#0b0c0f]">
+            샘플
+          </span>
+        )}
+        <span
+          className={`rounded-full px-1.5 py-0.5 text-[9px] ${
+            ready ? "bg-white/15 text-white/80" : "border border-white/15 text-white/40"
+          }`}
+        >
+          {ready ? `${book.chapters.length}장` : "정리 전"}
+        </span>
       </span>
     </Link>
   );

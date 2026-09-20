@@ -59,12 +59,23 @@ export default async function BookPage({
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-10 pt-6">
         <div className="flex items-center gap-2 text-[11px] font-semibold text-ash">
           <span className="rounded-full bg-taupe px-2 py-0.5 text-navy">자서전</span>
+          {book.sample && (
+            <span className="rounded-full bg-ink px-2 py-0.5 text-eggshell">샘플</span>
+          )}
           <span>{book.year}</span>
         </div>
 
         <h1 className="mt-2.5 text-2xl font-light tracking-[-0.02em] text-ink">{book.title}</h1>
         {book.subtitle && <p className="mt-1 text-[14px] text-smoke">{book.subtitle}</p>}
         <p className="mt-2 text-[12px] text-ash">{book.publisher}</p>
+
+        {book.sample && (
+          <p className="mt-4 rounded-card border-2 border-ink bg-taupe/60 px-4 py-3 text-[13px] leading-relaxed text-ink">
+            <strong className="font-bold">이 책은 샘플입니다.</strong> 이재명 대통령이 쓴
+            책이 아니라, 장 구성과 할 일이 화면에서 어떻게 보이는지 확인하려고 편집부가
+            쓴 것입니다. 실제 저서 여섯 권은 아직 서지 정보만 있습니다.
+          </p>
+        )}
 
         {book.note && (
           <p className="mt-4 border-l-2 border-stone pl-3 text-[13px] leading-relaxed text-smoke">

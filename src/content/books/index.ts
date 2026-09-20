@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { SAMPLE_BOOK } from "./sample";
 import { bookSchema, type Book } from "./schema";
 
 /**
@@ -86,10 +87,22 @@ const raw: z.input<typeof bookSchema>[] = [
   },
 ];
 
-export const BOOKS: Book[] = raw.map((book) => bookSchema.parse(book));
+/*
+ * 샘플을 뒤에 붙인다.
+ *
+ * 서가에서 앞자리를 차지하면 안 되지만, 감춰 두면 화면을 확인할 수 없다.
+ * 맨 끝에 두고 표지·책 페이지·장 페이지가 모두 샘플이라고 밝힌다.
+ */
+export const BOOKS: Book[] = [...raw.map((book) => bookSchema.parse(book)), SAMPLE_BOOK];
 
-/** 오래된 것부터. 한 사람이 무엇을 거쳐 왔는지가 순서로 읽힌다. */
-export const BOOKS_BY_YEAR: Book[] = [...BOOKS].sort((a, b) => a.year - b.year);
+/**
+ * 오래된 것부터. 한 사람이 무엇을 거쳐 왔는지가 순서로 읽힌다.
+ * 샘플은 해와 무관하게 맨 뒤다 — 저서 사이에 끼면 한 권처럼 보인다.
+ */
+export const BOOKS_BY_YEAR: Book[] = [...BOOKS].sort((a, b) => {
+  if (Boolean(a.sample) !== Boolean(b.sample)) return a.sample ? 1 : -1;
+  return a.year - b.year;
+});
 
 export function getBook(slug: string): Book | undefined {
   return BOOKS.find((book) => book.slug === slug);
