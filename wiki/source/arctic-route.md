@@ -67,3 +67,4 @@ updated: 2026-09-20
 
 - [[source/resource-diplomacy]]
 - [[source/oil-supply]]
+- [[event/mideast-2026]]

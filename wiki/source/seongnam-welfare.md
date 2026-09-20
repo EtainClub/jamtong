@@ -76,3 +76,4 @@ updated: 2026-09-20
 
 - [[concept/power-and-responsibility]]
 - [[source/words-constitution]]
+- [[concept/sources-and-weight]]

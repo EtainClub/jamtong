@@ -68,3 +68,4 @@ updated: 2026-09-20
 - [[concept/announced-vs-done]]
 - [[source/resource-diplomacy]]
 - [[source/arctic-route]]
+- [[event/mideast-2026]]

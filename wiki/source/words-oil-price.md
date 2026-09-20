@@ -57,3 +57,4 @@ updated: 2026-09-20
 
 - [[concept/announced-vs-done]]
 - [[source/oil-supply]]
+- [[event/mideast-2026]]

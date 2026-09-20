@@ -65,3 +65,4 @@ updated: 2026-09-20
 
 - [[concept/power-and-responsibility]]
 - [[source/seongnam-welfare]]
+- [[concept/sources-and-weight]]
