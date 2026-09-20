@@ -229,7 +229,9 @@ export function BookHelix({ books }: { books: Book[] }) {
         <p className="min-w-0 truncate text-center text-[11px] text-white/45">
           {front + 1} / {books.length}
           <span className="ml-2 tracking-[0.14em] text-white/25">
-            끌어서 넘기고, 앞의 책을 눌러 펼치기
+            {books[front]?.chapters.length
+              ? "앞의 책을 눌러 펼치기"
+              : "서지 정보만 있는 책"}
           </span>
         </p>
         <Arrow dir={1} disabled={front === books.length - 1} onClick={() => go(1)} />
@@ -311,6 +313,12 @@ function Arrow({ dir, disabled, onClick }: { dir: -1 | 1; disabled: boolean; onC
  * 앞이든 아니든 늘 같은 <a>로 그린다. 앞일 때만 링크로 두고 아닐 때 버튼으로
  * 바꾸면, 끄는 도중 앞자리가 넘어갈 때마다 손 밑의 노드가 갈아 끼워진다.
  * 무엇을 하느냐는 클릭에서 가른다.
+ *
+ * ★ 정리한 책과 아직 못 한 책을 같은 무게로 세우지 않는다.
+ *   배지 하나로만 가르니 서가에서는 일곱 권이 똑같이 단단해 보였다. 장이
+ *   들어온 책만 실물처럼 칠하고, 서지 정보만 있는 책은 **비워 둔 자리**처럼
+ *   윤곽만 남긴다. 감추지는 않는다 — 무엇이 아직 안 됐는지 보이는 편이
+ *   이 사이트의 태도에 맞다.
  */
 function Cover({
   book,
@@ -351,23 +359,39 @@ function Cover({
           onPick();
         }
       }}
-      className={`block rounded-[10px] px-3 py-3.5 text-left shadow-[0_22px_48px_rgba(0,0,0,.6)] ${
-        front ? "ring-1 ring-white/10" : ""
-      }`}
+      className={`block rounded-[10px] px-3 py-3.5 text-left ${
+        ready ? "shadow-[0_22px_48px_rgba(0,0,0,.6)]" : ""
+      } ${front ? "ring-1 ring-white/10" : ""}`}
       style={{
         width: COVER,
-        background: `linear-gradient(150deg, ${tone.from}, ${tone.to})`,
-        borderRight: `4px solid ${tone.edge}`,
+        /* 정리한 책은 색면, 아직인 책은 윤곽만. */
+        background: ready
+          ? `linear-gradient(150deg, ${tone.from}, ${tone.to})`
+          : `linear-gradient(150deg, ${tone.from}22, ${tone.to}22)`,
+        border: ready ? undefined : "1px dashed rgba(255,255,255,.22)",
+        borderRight: ready ? `4px solid ${tone.edge}` : "1px dashed rgba(255,255,255,.22)",
         aspectRatio: "3 / 4.3",
       }}
     >
-      <span className="block text-[9.5px] font-semibold tracking-[0.14em] text-white/35">
+      <span
+        className={`block text-[9.5px] font-semibold tracking-[0.14em] ${
+          ready ? "text-white/35" : "text-white/25"
+        }`}
+      >
         {book.year}
       </span>
-      <span className="mt-1.5 block text-[12.5px] font-bold leading-snug tracking-[-0.01em] text-white/90">
+      <span
+        className={`mt-1.5 block text-[12.5px] font-bold leading-snug tracking-[-0.01em] ${
+          ready ? "text-white/90" : "text-white/45"
+        }`}
+      >
         {book.title}
       </span>
-      <span className="mt-1.5 block text-[9.5px] text-white/35">{book.publisher}</span>
+      <span
+        className={`mt-1.5 block text-[9.5px] ${ready ? "text-white/35" : "text-white/20"}`}
+      >
+        {book.publisher}
+      </span>
       <span className="mt-2 flex flex-wrap gap-1">
         {book.sample && (
           <span className="rounded-full bg-white/80 px-1.5 py-0.5 text-[9px] font-bold text-[#0b0c0f]">
@@ -376,7 +400,7 @@ function Cover({
         )}
         <span
           className={`rounded-full px-1.5 py-0.5 text-[9px] ${
-            ready ? "bg-white/15 text-white/80" : "border border-white/15 text-white/40"
+            ready ? "bg-white/15 text-white/80" : "border border-white/20 text-white/35"
           }`}
         >
           {ready ? `${book.chapters.length}장` : "정리 전"}
@@ -392,11 +416,15 @@ function BookRow({ book }: { book: Book }) {
   return (
     <Link
       href={`/books/${book.slug}`}
-      className="flex items-baseline justify-between gap-3 rounded-card border border-stone px-4 py-3 transition-colors hover:border-graphite"
+      className={`flex items-baseline justify-between gap-3 rounded-card px-4 py-3 transition-colors hover:border-graphite ${
+        ready ? "border border-stone" : "border border-dashed border-stone"
+      }`}
     >
       <span className="min-w-0">
-        <span className="block text-[14px] font-bold text-ink">{book.title}</span>
-        <span className="mt-0.5 block text-[12px] text-smoke">
+        <span className={`block text-[14px] font-bold ${ready ? "text-ink" : "text-ash"}`}>
+          {book.title}
+        </span>
+        <span className={`mt-0.5 block text-[12px] ${ready ? "text-smoke" : "text-ash"}`}>
           {book.publisher} · {book.year}
         </span>
       </span>
