@@ -101,3 +101,8 @@ updated: 2026-09-20
   ^[words:sports-reform#s-vote]
 - 개헌은 아직 입장이다. 절차가 시작되면 그때 다시 적는다.
   ^[words:constitution#c-old]
+
+## 관련
+
+- [[synthesis/what-he-is-trying-to-do]] — 「무엇을 이루려 하는가」에 답하며
+  이 페이지를 썼다.
