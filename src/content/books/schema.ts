@@ -50,6 +50,10 @@ export const BookArt = z.enum([
   "startline", // 출발선이 다르다
   "hands", // 손을 내민다
   "cut-tape", // 앞뒤가 잘린 녹취
+  // 1장 — 수를 그리는 것들
+  "age-twelve", // 또래는 학교에, 그는 공장에
+  "no-safety-net", // 다친 것 셋, 받은 것 0
+  "bottom-to-top", // 두 번 바닥을 치고 올라온 선
 ]);
 export type BookArt = z.infer<typeof BookArt>;
 
