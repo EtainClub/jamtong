@@ -281,9 +281,9 @@ export const CHAPTERS: ChapterMeta[] = [
     shorts: [
       {
         id: "t5-s1",
-        title: "광화문 광장 11일 단식의 진짜 이유",
-        youtubeId: "xiWTTAWgh-o",
-        summary: "3대 무상복지를 지키려던 열하루 — 5장을 한 편으로.",
+        title: "이재명 대통령을 만든 성남시장 시절의 결정적 순간들",
+        youtubeId: "JyvbBMpcFOA",
+        summary: "단식이 그 시절의 한 대목이다 — 성남시장 때의 결정들을 한 편으로.",
       },
     ],
   },
@@ -347,7 +347,7 @@ export const CHAPTERS: ChapterMeta[] = [
       {
         id: "t7-p1",
         title: "목표를 작고 낮게 잡으라고 해요",
-        figure: { kind: "versus", left: { label: "닿기 어려운 목표", value: "불안" , tone: "burgundy" }, right: { label: "작고 낮은 목표", value: "자주 이룬다", tone: "navy" }, caption: "목표를 한 칸 낮춘다" },
+        figure: { kind: "versus", left: { label: "닿기 어려운 목표", value: "불안", tone: "burgundy" }, right: { label: "작고 낮은 목표", value: "자주 이룬다", tone: "navy" }, caption: "목표를 한 칸 낮춘다" },
         say: "닿기 어려운 목표에 매여 불안해하기보다 작은 목표를 자주 이루며 기쁨을 쌓으라고 말합니다.",
       },
       {
