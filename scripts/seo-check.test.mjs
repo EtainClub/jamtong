@@ -27,11 +27,11 @@ function loadModule(path, dependencies) {
   );
   assert.equal(errors.length, 0, `${path}: TypeScript 구문 오류`);
 
-  const module = { exports: {} };
+  const sandboxModule = { exports: {} };
   new Script(compiled.outputText, { filename }).runInNewContext(
     {
-      module,
-      exports: module.exports,
+      module: sandboxModule,
+      exports: sandboxModule.exports,
       URLSearchParams,
       require(id) {
         assert.ok(Object.hasOwn(dependencies, id), `${path}: 미등록 의존성 ${id}`);
@@ -40,7 +40,7 @@ function loadModule(path, dependencies) {
     },
     { timeout: 1000 },
   );
-  return module.exports;
+  return sandboxModule.exports;
 }
 
 const SITE_URL = "https://example.test";
