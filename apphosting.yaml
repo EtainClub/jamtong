@@ -30,6 +30,15 @@ env:
     availability:
       - RUNTIME
 
+  # 위키 질의에 쓸 모델. /api/ask보다 무겁게 간다 — 저쪽은 '어느 화면을
+  # 보여줄지' 고르는 일이라 Haiku로 충분하지만, 위키는 여러 장을 읽고
+  # 앵커를 그대로 옮겨야 해서 판단이 더 필요하다. 생략하면 ASK_MODEL,
+  # 그것도 없으면 claude-haiku-4-5로 내려간다.
+  - variable: WIKI_ASK_MODEL
+    value: claude-sonnet-5
+    availability:
+      - RUNTIME
+
   # 남용 방지 상한. 코드 기본값과 같은 값을 적어 둔다 —
   # 배포 후에 코드를 고치지 않고 여기서 조일 수 있어야 한다.
   - variable: ASK_IP_LIMIT
