@@ -11,6 +11,22 @@ import type { BookShort } from "@/content/books/schema";
  *   사람도 여기에 무엇이 올지 모른다. 다만 "준비 중"이라고 분명히 적는다 —
  *   빈 액자를 걸어 두고 그림이 있는 척하지 않는다.
  */
+/** 유튜브 틀. 재생 전에는 추적 쿠키를 심지 않는다. */
+function Frame({ short }: { short: BookShort }) {
+  return (
+    <div className="relative aspect-[9/16] overflow-hidden rounded-card border border-stone bg-taupe">
+      <iframe
+        src={`https://www.youtube-nocookie.com/embed/${short.youtubeId}?rel=0&modestbranding=1`}
+        title={short.title}
+        loading="lazy"
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+        className="absolute inset-0 h-full w-full"
+      />
+    </div>
+  );
+}
+
 export function ChapterShorts({
   shorts,
   chapterTitle,
@@ -41,20 +57,28 @@ export function ChapterShorts({
             영상이 올라오면 제목과 함께 이 자리에 뜹니다.
           </p>
         </div>
+      ) : shorts.length === 1 ? (
+        /*
+         * 한 편이면 스크롤할 것이 없다. 카드 폭(178px)으로 그리면 560px 칸의
+         * 왼쪽에 몰려 세로 영상이 우표만 해진다. 업적 쇼츠와 같은 300px로
+         * 세워 가운데 둔다.
+         */
+        <figure className="mx-auto mt-3 w-full max-w-[300px]">
+          <Frame short={shorts[0]} />
+          <figcaption className="mt-3">
+            <p className="text-[14px] font-bold leading-snug text-ink">{shorts[0].title}</p>
+            {shorts[0].summary && (
+              <p className="mt-1.5 text-[12.5px] leading-relaxed text-smoke">
+                {shorts[0].summary}
+              </p>
+            )}
+          </figcaption>
+        </figure>
       ) : (
         <ul className="no-scrollbar -mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1">
           {shorts.map((short) => (
-            <li key={short.id} className="w-[178px] shrink-0 snap-start">
-              <div className="relative aspect-[9/16] overflow-hidden rounded-card border border-stone bg-taupe">
-                <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${short.youtubeId}?rel=0&modestbranding=1`}
-                  title={short.title}
-                  loading="lazy"
-                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="absolute inset-0 h-full w-full"
-                />
-              </div>
+            <li key={short.id} className="w-[210px] shrink-0 snap-start">
+              <Frame short={short} />
               <p className="mt-2 text-[12.5px] font-bold leading-snug text-ink">{short.title}</p>
               {short.summary && (
                 <p className="mt-1 text-[11.5px] leading-relaxed text-smoke">{short.summary}</p>
