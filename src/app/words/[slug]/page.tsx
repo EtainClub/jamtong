@@ -6,6 +6,7 @@ import { STATEMENTS, getStatement } from "@/content/words";
 import { KIND_LABEL } from "@/content/words/schema";
 import { getAchievement } from "@/content/achievements";
 import { BackButton } from "@/features/app/BackButton";
+import { CorrectionLink } from "@/features/correction/CorrectionLink";
 import { BottomNav } from "@/features/app/BottomNav";
 import { ShareStatementButton } from "@/features/words/ShareStatementButton";
 import { StatementView } from "@/features/words/StatementView";
@@ -151,6 +152,10 @@ export default async function StatementPage({
             </ul>
           </section>
         )}
+
+        <div className="mt-10">
+          <CorrectionLink page={`/words/${statement.slug}`} className="" />
+        </div>
       </main>
 
       <BottomNav />

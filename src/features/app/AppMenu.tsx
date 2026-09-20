@@ -19,6 +19,7 @@ const LINKS = [
   { href: "/words", label: "이재명 대통령의 언행" },
   { href: "/links", label: "관련 사이트" },
   { href: "/feedback", label: "피드백" },
+  { href: "/correction", label: "정정·반론" },
   { href: "/about", label: "이 사이트에 대하여" },
 ];
 

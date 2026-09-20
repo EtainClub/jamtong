@@ -164,6 +164,7 @@ async function main() {
   await deleteDoc(doc(db, "feedback", mine.id));
   ok("점검용 글 지우기 — 통과했다");
   await cheerChecks(uid);
+  await correctionChecks(uid);
   await adminChecks(uid);
 
 
@@ -171,6 +172,74 @@ async function main() {
   process.exit(failed ? 1 : 0);
 }
 
+
+/*
+ * 정정·반론 접수.
+ *
+ * 피드백과 반대로, 여기는 **읽히지 않는 것**이 핵심이다. 접수한 글에는
+ * 남에 대한 이야기와 연락처가 들어간다. 목록이 열리면 창구가 아니라
+ * 발행면이 된다.
+ */
+async function correctionChecks(uid: string) {
+  console.log("\n정정·반론");
+
+  await expectDenied("접수 목록 훔쳐보기", () =>
+    getDocs(query(collection(db, "corrections"), limit(1))),
+  );
+
+  await expectDenied("처음부터 '처리됨'으로 접수하기", () =>
+    addDoc(collection(db, "corrections"), {
+      page: "/achievement/daejangdong",
+      kind: "fact",
+      role: "reader",
+      body: "[점검용] 상태 위조 — 지워도 됩니다",
+      evidenceUrl: "",
+      contact: "",
+      authorUid: uid,
+      status: "fixed",
+      createdAt: serverTimestamp(),
+    }),
+  );
+
+  await expectDenied("없는 종류로 접수하기", () =>
+    addDoc(collection(db, "corrections"), {
+      page: "/achievement/daejangdong",
+      kind: "whatever",
+      role: "reader",
+      body: "[점검용] 종류 위조 — 지워도 됩니다",
+      evidenceUrl: "",
+      contact: "",
+      authorUid: uid,
+      status: "received",
+      createdAt: serverTimestamp(),
+    }),
+  );
+
+  const mine = await addDoc(collection(db, "corrections"), {
+    page: "/achievement/daejangdong",
+    kind: "fact",
+    role: "reader",
+    body: "[점검용] 지워도 되는 접수입니다",
+    evidenceUrl: "",
+    contact: "",
+    authorUid: uid,
+    status: "received",
+    createdAt: serverTimestamp(),
+  }).catch((e) => {
+    bad(`제 uid로 접수하기 — 막혔다: ${e instanceof Error ? e.message : String(e)}`);
+    return null;
+  });
+
+  if (!mine) return;
+  ok("제 uid로 접수하기 — 통과했다");
+
+  await expectDenied("일반 사용자가 상태 바꾸기", () =>
+    updateDoc(doc(db, "corrections", mine.id), { status: "fixed" }),
+  );
+
+  await deleteDoc(doc(db, "corrections", mine.id));
+  ok("제 접수 거두기 — 통과했다");
+}
 
 /*
  * 운영자 쪽 검사.

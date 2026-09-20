@@ -14,6 +14,7 @@ import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareButton } from "@/features/achievement/ShareButton";
 import { SceneNav } from "@/features/achievement/SceneNav";
 import { BackButton } from "@/features/app/BackButton";
+import { CorrectionLink } from "@/features/correction/CorrectionLink";
 import { BottomNav } from "@/features/app/BottomNav";
 import { scenesFor } from "@/features/achievement/scenes";
 import { AskGuide } from "@/features/agent/AskGuide";
@@ -702,6 +703,10 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
               </>
             }
           />
+        </div>
+
+        <div className="mt-10">
+          <CorrectionLink page={`/achievement/${achievement.slug}`} />
         </div>
       </main>
 
