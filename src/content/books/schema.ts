@@ -24,6 +24,35 @@ import { z } from "zod";
  *   적는다. 행동이 하나도 없는 챕터는 공개되지 않는다 — 스키마가 막는다.
  */
 
+/**
+ * 장 삽화.
+ *
+ * 업적의 ELI5_ART, 언행의 WORD_ART와 한 통에 담지 않는다. 저쪽은 항로·예산
+ * 같은 사실의 모양이고 언행은 사람 사이에 오가는 일인데, 책은 한 사람의
+ * 생애에서 되풀이되는 장면이다 — 공장, 밤공부, 갈림길, 저울.
+ *
+ * 그래서 수를 적게 두고 여러 장에서 다시 쓴다. 장마다 새 그림을 그리면
+ * 스물두 장에 예순여섯 장이 필요하고, 그렇게 늘어난 그림은 장면이 아니라
+ * 장식이 된다.
+ */
+export const BookArt = z.enum([
+  "factory", // 공장과 다친 손
+  "night-study", // 밤에 하는 공부
+  "two-roads", // 안에서 바꿀까 밖에서 바꿀까
+  "promise", // 약속
+  "scale", // 강한 쪽을 누르고 약한 쪽을 든다
+  "square", // 광장
+  "signatures", // 이름을 모은다
+  "ledger", // 빚을 적은 장부
+  "open-door", // 문을 열어 둔 방
+  "alley", // 골목
+  "network", // 흩어진 사람들이 이어진다
+  "startline", // 출발선이 다르다
+  "hands", // 손을 내민다
+  "cut-tape", // 앞뒤가 잘린 녹취
+]);
+export type BookArt = z.infer<typeof BookArt>;
+
 /** 표지. 실제 표지 그림은 저작물이라 쓰지 않는다. 색으로만 가른다. */
 export const bookToneSchema = z.enum(["ink", "clay", "moss", "dusk", "rust", "slate"]);
 export type BookTone = z.infer<typeof bookToneSchema>;
@@ -66,11 +95,27 @@ export const actionItemSchema = z.object({
 });
 export type ActionItem = z.infer<typeof actionItemSchema>;
 
+/**
+ * 이 장으로 만든 숏츠 한 편.
+ *
+ * 영상은 유튜브에 두고 여기서는 틀기만 한다. 주소가 아니라 id만 적는다 —
+ * youtube.com/shorts/<id>와 youtu.be/<id>가 같은 영상이기 때문이다.
+ */
+export const bookShortSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  youtubeId: z.string().regex(/^[\w-]{11}$/, "유튜브 영상 id는 11자다"),
+  summary: z.string().optional(),
+});
+export type BookShort = z.infer<typeof bookShortSchema>;
+
 /** 쉽게 보기의 한 토막. 언행의 것과 같은 모양이되 quote가 선택이다. */
 export const bookPointSchema = z.object({
   id: z.string(),
   title: z.string(),
   say: z.string(),
+  /** 이 토막의 그림. 없으면 글만 나온다. */
+  art: BookArt.optional(),
   /**
    * 옮긴 자리의 본문. 챕터에 body가 있으면 **그 안에 그대로** 있어야 한다.
    * 본문을 싣지 못한 장에서는 비워 둔다 — 없는 글을 가리키게 할 수는 없다.
@@ -115,6 +160,14 @@ export const chapterSchema = z.object({
    */
   truncated: z.boolean().optional(),
   actions: z.array(actionItemSchema).min(1, "행동이 없는 챕터는 둘 수 없다"),
+  /**
+   * 이 장으로 만든 숏츠.
+   *
+   * 업적 쪽 shortSchema를 쓰지 않는다. 저쪽은 claimId를 반드시 달게 해서
+   * "근거 없는 쇼츠는 없다"를 지키는데, 책에는 claim이 없다 — 이 장의 근거는
+   * 그 장의 본문이다. 대신 몇 장을 옮긴 것인지가 화면에 늘 붙는다.
+   */
+  shorts: z.array(bookShortSchema).default([]),
 });
 export type Chapter = z.infer<typeof chapterSchema>;
 
