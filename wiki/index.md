@@ -12,6 +12,8 @@
 
 여러 소스에 걸친 이야기가 모이는 곳. 이 위키의 값어치는 대부분 여기 있다.
 
+- [[concept/announced-vs-done]] — 발표된 것과 일어난 것. **국정 업적을 읽기
+  전에 이 페이지를 먼저 본다.**
 - [[concept/reform]] — 개혁. 무엇이 언제 바뀌었는가.
 - [[concept/power-and-responsibility]] — 권한과 책임. 왜 그런 모양으로
   쪼개는가.
@@ -22,11 +24,21 @@
 ## 소스 (source)
 
 raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온다.
+**업적 22건은 모두 들어왔다.**
 
-### 국정
+### 국정 — 제도
 
 - [[source/prosecution-reform]] — 검찰개혁. 수사·기소 분리, 2026-10-02 시행 예정.
 - [[source/judicial-reform]] — 사법개혁 3법. 법왜곡죄·재판소원·대법관 증원.
+- [[source/stock-market]] — 주식시장 개선. 상법 두 건은 시행, 지수는 되밀렸다.
+- [[source/rail-merger]] — KTX·SRT 통합. 2026-09-01 통합 운행.
+
+### 국정 — 외교·산업
+
+- [[source/nuclear-submarine]] — 핵추진잠수함. 승인은 났고 연료는 협상 중.
+- [[source/resource-diplomacy]] — 핵심광물 공급망 외교. 74건 중 대부분이 MOU.
+- [[source/oil-supply]] — 원유 수입처 다변화. 중동산 71.5% → 62.8%.
+- [[source/arctic-route]] — 북극항로. 거의 전부가 계획이다.
 
 ### 경기도지사
 
@@ -46,6 +58,7 @@ raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온�
 - [[source/seongnam-meals]] — 무상급식. 세 시정이 이어서 한 일.
 - [[source/seongnam-hospital]] — 시의료원. 시민이 발의하고 17년.
 - [[source/seongnam-debt]] — 모라토리엄. 7,285억을 3년 6개월에.
+- [[source/daejangdong]] — 판교대장 도시개발사업. 공공용지 53.5%, 환수는 CLAIM.
 
 ### 언행
 
@@ -71,6 +84,5 @@ raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온�
 
 ## 진행 상황
 
-raw source 37건 가운데 20건이 들어왔다. 남은 것은 `pnpm wiki:ingest --list`
-— 업적 8건(대장동·주식시장·북극항로·KTX·SRT 통합·핵추진잠수함·자원외교·
-원유 다변화)과 언행 9건이다.
+raw source 37건 가운데 27건이 들어왔다. **업적 22건은 전부 끝났고, 남은
+10건은 모두 언행이다.** 목록은 `pnpm wiki:ingest --list`.
