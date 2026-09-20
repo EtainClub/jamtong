@@ -12,7 +12,9 @@
 
 여러 소스에 걸친 이야기가 모이는 곳. 이 위키의 값어치는 대부분 여기 있다.
 
-- [[concept/reform]] — 개혁. 검찰개혁·사법개혁과 방법론 발언이 만나는 자리. (소스 3)
+- [[concept/reform]] — 개혁. 무엇이 언제 바뀌었는가. (소스 7)
+- [[concept/power-and-responsibility]] — 권한과 책임. 왜 그런 모양으로
+  쪼개는가. (소스 6)
 
 ## 소스 (source)
 
@@ -21,6 +23,10 @@ raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온�
 - [[source/prosecution-reform]] — 검찰개혁. 수사·기소 분리, 2026-10-02 시행 예정.
 - [[source/judicial-reform]] — 사법개혁 3법. 법왜곡죄·재판소원·대법관 증원.
 - [[source/words-reform-is-hard]] — 「개혁은 혁명보다 어렵습니다」 2026-09-12 X 글.
+- [[source/words-power-responsibility]] — 「책임과 권력」 2026-03-07 X 글.
+- [[source/words-sports-reform]] — 「인사가 만사임이 다시 증명됐습니다」 2026-06-28 X 글.
+- [[source/words-constitution]] — 「개헌에 대한 제 입장은 변함이 없습니다」 2026-08-14 X 글.
+- [[source/words-noh-acquittal]] — 「노웅래 선배님, 죄송합니다」 2026-08-21 X 글.
 
 ## 인물·기관 (entity)
 
@@ -38,4 +44,4 @@ raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온�
 
 ## 진행 상황
 
-raw source 37건 가운데 3건이 들어왔다. 남은 것은 `pnpm wiki:ingest --list`.
+raw source 37건 가운데 7건이 들어왔다. 남은 것은 `pnpm wiki:ingest --list`.

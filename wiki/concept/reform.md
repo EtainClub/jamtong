@@ -11,6 +11,9 @@ updated: 2026-09-20
 모일 자리가 없기 때문이다. [[source/prosecution-reform]]과 [[source/judicial-reform]],
 그리고 [[source/words-reform-is-hard]]가 만나는 자리가 여기다.
 
+권한을 왜 그런 모양으로 쪼개는가는 [[concept/power-and-responsibility]]가
+따로 맡는다. 여기는 무엇이 언제 바뀌었는가를 본다.
+
 ## 지금까지 들어온 것
 
 | | 무엇 | 층 |
@@ -18,6 +21,10 @@ updated: 2026-09-20
 | [[source/prosecution-reform]] | 수사와 기소를 가른다 | 일어난 일 |
 | [[source/judicial-reform]] | 판결을 다시 볼 길을 늘린다 | 일어난 일 |
 | [[source/words-reform-is-hard]] | 어떤 속도로 해야 하는가 | 말 |
+| [[source/words-power-responsibility]] | 권한을 가진 사람은 어떠해야 하는가 | 말 |
+| [[source/words-sports-reform]] | 사람을 어떻게 뽑아야 하는가 | 말 |
+| [[source/words-constitution]] | 헌법을 어떻게 고쳤으면 하는가 | 말 |
+| [[source/words-noh-acquittal]] | 왜 바꾸려 하는가 | 말 |
 
 ## 두 개혁은 방향이 다르다
 
@@ -68,5 +75,7 @@ updated: 2026-09-20
 - 재판소원 청구 건수와 인용률. ^[judicial-reform]
 - 중수청 최종 충원 결과 (지원 61.3%는 채용 결과가 아니다).
   ^[prosecution-reform#claim-staffing]
-- 「개혁」을 다룬 나머지 언행 — 아직 [[source/words-reform-is-hard]] 한 편만
-  들어왔다.
+- 체육단체 직선제가 실제로 도입됐는지. 지시했다는 말까지가 확인된 전부다.
+  ^[words:sports-reform#s-vote]
+- 개헌은 아직 입장이다. 절차가 시작되면 그때 다시 적는다.
+  ^[words:constitution#c-old]
