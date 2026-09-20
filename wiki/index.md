@@ -24,7 +24,7 @@
 ## 소스 (source)
 
 raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온다.
-**업적 22건은 모두 들어왔다.**
+**37건 전부 들어왔다.**
 
 ### 국정 — 제도
 
@@ -60,13 +60,26 @@ raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온�
 - [[source/seongnam-debt]] — 모라토리엄. 7,285억을 3년 6개월에.
 - [[source/daejangdong]] — 판교대장 도시개발사업. 공공용지 53.5%, 환수는 CLAIM.
 
-### 언행
+### 언행 — 방법론과 권한
 
-- [[source/words-reform-is-hard]] — 「개혁은 혁명보다 어렵습니다」 2026-09-12.
+- [[source/words-wish]] — 「소원성취」 2026-02-17. 20년 전 문장을 다시 꺼낸다.
 - [[source/words-power-responsibility]] — 「책임과 권력」 2026-03-07.
+- [[source/words-vote]] — 「투표의 힘은 생각보다 강합니다」 2026-05-31.
 - [[source/words-sports-reform]] — 「인사가 만사임이…」 2026-06-28.
+- [[source/words-reform-is-hard]] — 「개혁은 혁명보다 어렵습니다」 2026-09-12.
+- [[source/words-president-friend]] — 「대통령의 친구」 2026-09-19.
+
+### 언행 — 제도와 사건
+
+- [[source/words-bundang-house]] — 「돈 때문에 산 것도…」 2026-02-27.
+- [[source/words-national-interest]] — 「존중해야 존중받는다」 2026-04-12.
+- [[source/words-sewol-mockery]] — 「제발 사실이 아니길…」 2026-05-23. 미확인 사안.
 - [[source/words-constitution]] — 「개헌에 대한 제 입장은…」 2026-08-14.
 - [[source/words-noh-acquittal]] — 「노웅래 선배님, 죄송합니다」 2026-08-21.
+- [[source/words-housing-supply]] — 「부동산 투기에 관심 가진 분들께」 2026-08-30.
+- [[source/words-developmental-care]] — 「별이 된 '피터팬' 아빠…」 2026-09-10.
+- [[source/words-oil-price]] — 「국민 여러분, 걱정 마십시오」 2026-09-12.
+- [[source/words-youth-day]] — 「청년의 목소리를…」 2026-09-19.
 
 ## 인물·기관 (entity)
 
@@ -84,5 +97,5 @@ raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온�
 
 ## 진행 상황
 
-raw source 37건 가운데 27건이 들어왔다. **업적 22건은 전부 끝났고, 남은
-10건은 모두 언행이다.** 목록은 `pnpm wiki:ingest --list`.
+**raw source 37건이 전부 들어왔다.** 업적 22건, 언행 15건. 새 소스가
+커밋되면 `pnpm wiki:ingest --list`가 다시 알려 준다.

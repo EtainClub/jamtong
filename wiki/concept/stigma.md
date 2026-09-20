@@ -28,6 +28,8 @@ updated: 2026-09-20
 전체로 갔다. ^[seongnam-welfare#claim-uniform-universal]
 
 청년배당은 아예 처음부터 소득·재산·취업 여부를 따지지 않았다.
+^[seongnam-welfare#claim-youth] 「청년 예산은 늘 뒤로 밀렸다」는 진단은
+[[source/words-youth-day]]에 있다. ^[words:youth-day#y-gap]
 ^[seongnam-welfare#claim-youth]
 
 ### 티 나는 물건을 바꾼다

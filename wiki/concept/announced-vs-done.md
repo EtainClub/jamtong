@@ -43,6 +43,9 @@ updated: 2026-09-20
   28조 9,000억 원은 「윤곽」이다. ^[nuclear-submarine#claim-plan] 연료
   협상은 2026-09-19 기준 타결되지 않았고 미국 의회 동의도 남아 있다.
   ^[nuclear-submarine#claim-fuel] [[source/nuclear-submarine]]
+- **발달장애인 돌봄** — 2026-09-10 범정부 대책이 발표됐다. 발표까지가 일어난
+  일이고 무엇이 언제부터 얼마나인지는 그 글에 없다.
+  ^[words:developmental-care#d-plan] [[source/words-developmental-care]]
 - **의무공개매수** — 자본시장법 개정으로 추진 중이고 법이 되지 않았다.
   ^[stock-market#claim-mto]
 
@@ -63,7 +66,7 @@ updated: 2026-09-20
 
 **원유 중동 의존도.** 대통령은 2026-09-12에 「50%대로 낮췄다」고 했고,
 ^[oil-supply#claim-president] 위키가 대조한 정부 통계는 2026년 1~5월
-62.8%까지다. ^[oil-supply#claim-share] [[source/oil-supply]]
+62.8%까지다. ^[oil-supply#claim-share] [[source/oil-supply]]·[[source/words-oil-price]]
 
 같은 성격의 자리가 더 있다. 재난기본소득의 소비 견인효과 1.85배,
 ^[gyeonggi-basic-income#claim-effect] 원가 공개 찬성 여론 90%,

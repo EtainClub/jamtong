@@ -21,6 +21,8 @@ updated: 2026-09-20
 | 2026-06-28 | [[source/words-sports-reform]] | 엉터리 인사가 가능한 것은 인사권자를 감시·문책하지 못하기 때문 |
 | 2026-08-14 | [[source/words-constitution]] | 대통령 권한 일부를 국회로 넘기자 |
 | 2026-09-12 | [[source/words-reform-is-hard]] | 권한이 없을 때의 주장과 권한을 가진 뒤의 책임은 다르다 |
+| 2026-05-31 | [[source/words-vote]] | 머슴이 될지 지배자가 될지는 주권자의 손에 ^[words:vote] |
+| (20년 전 인용) | [[source/words-wish]] | 권력이 아니라 일 할 수 있는 권한이 필요합니다 ^[words:wish] |
 
 반년 넘는 간격으로 네 번 나왔다. ^[words:power-responsibility#pr-equal]
 ^[words:sports-reform#s-why] ^[words:constitution#c-power]

@@ -25,6 +25,8 @@ updated: 2026-09-20
 | [[source/words-sports-reform]] | 사람을 어떻게 뽑아야 하는가 | 말 |
 | [[source/words-constitution]] | 헌법을 어떻게 고쳤으면 하는가 | 말 |
 | [[source/words-noh-acquittal]] | 왜 바꾸려 하는가 | 말 |
+| [[source/words-housing-supply]] | 같은 방법론을 13일 먼저 ^[words:housing-supply#h-build] | 말 |
+| [[source/words-president-friend]] | 지지자에게 요구한 방식 ^[words:president-friend#p-harm] | 말 |
 
 ## 두 개혁은 방향이 다르다
 

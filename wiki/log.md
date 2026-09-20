@@ -112,3 +112,34 @@ concept 두 장이 새로 섰다.
 숫자가 어긋나는 자리 하나를 기록해 둔다. 대통령은 2026-09-12에 원유 중동
 의존도를 "50%대로 낮췄다"고 밝혔는데, 대조한 정부 통계는 1~5월 62.8%까지이고
 6월 이후는 확인하지 못했다. 원본도 이 발언을 CLAIM으로 표시했다.
+
+## [2026-09-20] ingest | 언행 열 편 — raw source 37건 완료
+
+oil-price·housing-supply·bundang-house·national-interest·vote·sewol-mockery·
+president-friend·youth-day·developmental-care·wish. 이로써 raw source 37건이
+전부 위키에 들어왔다. `wiki:lint` 경고도 0이 됐다 — 남은 소스가 없다.
+
+이번 묶음에서 배운 것 셋.
+
+**앵커가 하나뿐인 글이 넷 있었다.** national-interest·vote·wish·sewol-mockery는
+「쉽게 보기」 토막이 없어 글 전체를 가리키는 앵커 하나만 쓸 수 있다. 그런
+페이지는 짧게 쓰고, 문단마다 같은 앵커를 반복해 달았다. 앵커 문법이 페이지
+분량까지 정하는 셈이다.
+
+**sewol-mockery는 가장 조심한 페이지다.** 원문이 기업 이름을 적지 않았고,
+본인이 「제발 사실이 아니길 바랍니다」라는 단서를 달았고, 이 위키는 그 행사를
+확인하지 않았다. 셋을 페이지 앞머리에 못 박고 「이 소스로는 어느 기업이 무엇을
+했다고 쓸 수 없다」고 적었다.
+
+**같은 방법론이 다섯 번째로 나왔다.** housing-supply(8-30)의 뒷부분은 개혁을
+어떻게 하는가이고 reform-is-hard(9-12)보다 13일 먼저다. president-friend
+(9-19)의 「우군을 줄이고 적을 늘린다」도 같은 셈법이다. wish(2-17)가 인용한
+20년 전 「권력이 아니라 일 할 수 있는 권한이 필요합니다」가 이 계열의 가장
+이른 진술이라 [[concept/power-and-responsibility]] 표 맨 위에 넣었다.
+
+숫자가 어긋나는 자리를 하나 더 확인했다. oil-price 글의 「중동 의존도를
+50%대로 낮췄다」는 [[source/oil-supply]]가 대조한 1~5월 62.8%와 다르다.
+두 페이지가 서로를 가리키게 해 뒀다.
+
+이제 ingest는 끝났고, 다음은 읽어야 아는 검사(모순·낡은 서술·없는 개념
+페이지·CLAIM을 FACT처럼 쓴 곳·자료 공백)와 synthesis다.
