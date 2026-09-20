@@ -18,7 +18,12 @@ import {
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 
-export const metadata: Metadata = { title: "업적" };
+export const metadata: Metadata = {
+  title: "업적",
+  description:
+    "이재명 대통령의 업적을 분야별로 모아 봅니다. 업적마다 무엇이 일어났고 무엇이 아직인지, 그 근거가 무엇인지 함께 있습니다.",
+  alternates: { canonical: "/explore" },
+};
 
 /**
  * 업적 목록.

@@ -65,6 +65,27 @@ export function allPages(): WikiPage[] {
   return cache;
 }
 
+/**
+ * 페이지를 한 줄로.
+ *
+ * 검색 결과와 메타 설명이 같은 문장을 쓴다. 두 곳에서 따로 만들면 한쪽은
+ * "개념 페이지. 갱신 2026-09-20."처럼 내용이 없는 문장이 된다 — 실제로
+ * 그랬다.
+ */
+export function pageSummary(page: WikiPage, max = 150): string {
+  const first = page.body
+    /* 앵커와 위키링크 껍데기를 벗기고 안의 말만 남긴다. */
+    .replace(/\^\[[^\]]+\]/g, " ")
+    .replace(/\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g, "$1")
+    .split(/\n{2,}/)
+    .map((block) => block.replace(/\s+/g, " ").trim())
+    /* 제목·표·인용은 건너뛴다. 설명이 될 만한 첫 문단을 찾는다. */
+    .find((block) => block.length > 20 && !/^[#>|`*-]/.test(block));
+
+  if (!first) return page.title;
+  return first.length > max ? first.slice(0, max - 1) + "…" : first;
+}
+
 export function getPage(name: string): WikiPage | undefined {
   return allPages().find((page) => page.name === name);
 }

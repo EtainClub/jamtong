@@ -9,6 +9,7 @@ import { BottomNav } from "@/features/app/BottomNav";
 export const metadata: Metadata = {
   title: "타임라인",
   description: "업적별 연표를 한 줄로 합쳐 같은 때에 무엇과 무엇이 함께 있었는지 봅니다.",
+  alternates: { canonical: "/timeline" },
 };
 
 /**

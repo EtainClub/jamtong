@@ -10,6 +10,7 @@ import { BUILD } from "@/lib/build-info";
 export const metadata: Metadata = {
   title: "이 사이트에 대하여",
   description: "잼통이 무엇을 어떻게 다루는지, 그리고 지금 어떤 빌드가 떠 있는지.",
+  alternates: { canonical: "/about" },
 };
 
 function formatDateTime(iso: string): string {

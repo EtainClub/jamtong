@@ -5,7 +5,8 @@ import type { Metadata } from "next";
 import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
 import { WikiNotes } from "@/features/wiki/WikiNotes";
-import { allPages, contentPages, getPage } from "@/lib/wiki/load";
+import { allPages, contentPages, getPage, pageSummary } from "@/lib/wiki/load";
+import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 import { renderWiki } from "@/lib/wiki/markdown";
 
 const KIND_LABEL: Record<string, string> = {
@@ -30,9 +31,24 @@ export async function generateMetadata({
   const page = getPage(slug.join("/"));
   if (!page) return {};
 
+  const summary = pageSummary(page);
+  const path = `/wiki/${page.name}`;
+  /* 위키 주소가 catch-all이라 opengraph-image 파일을 둘 수 없다. 카드는 라우트가 그린다. */
+  const card = `/api/wiki-card?name=${encodeURIComponent(page.name)}`;
+
   return {
     title: `${page.title} · 위키`,
-    description: `${KIND_LABEL[page.kind] ?? page.kind} 페이지. 갱신 ${page.updated ?? "—"}.`,
+    description: summary,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "article",
+      url: path,
+      title: `${page.title} — ${KIND_LABEL[page.kind] ?? page.kind}`,
+      description: summary,
+      modifiedTime: page.updated,
+      images: [{ url: card, width: 1200, height: 630, alt: `${page.title} 위키 카드` }],
+    },
+    twitter: { card: "summary_large_image", images: [card] },
   };
 }
 
@@ -56,6 +72,23 @@ export default async function WikiPage({
 
   return (
     <>
+      <JsonLd
+        data={articleLd({
+          path: `/wiki/${page.name}`,
+          headline: page.title,
+          description: pageSummary(page),
+          dateModified: page.updated,
+          image: `/api/wiki-card?name=${encodeURIComponent(page.name)}`,
+        })}
+      />
+      <JsonLd
+        data={breadcrumbLd([
+          { name: "홈", path: "/" },
+          { name: "위키", path: "/wiki" },
+          { name: page.title, path: `/wiki/${page.name}` },
+        ])}
+      />
+
       <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-full max-w-[560px] items-center gap-1.5 px-4">
           <BackButton />

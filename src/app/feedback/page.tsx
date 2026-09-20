@@ -7,6 +7,7 @@ import { FeedbackBoard } from "@/features/feedback/FeedbackBoard";
 export const metadata: Metadata = {
   title: "피드백",
   description: "잼통에 바라는 것을 남기고, 남들이 남긴 것을 함께 봅니다.",
+  alternates: { canonical: "/feedback" },
 };
 
 /**

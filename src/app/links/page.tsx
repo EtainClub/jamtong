@@ -7,6 +7,7 @@ import { BottomNav } from "@/features/app/BottomNav";
 export const metadata: Metadata = {
   title: "관련 사이트",
   description: "이재명 대통령 관련 사이트를 성격별로 모았습니다.",
+  alternates: { canonical: "/links" },
 };
 
 /**

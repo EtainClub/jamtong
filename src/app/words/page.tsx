@@ -13,6 +13,7 @@ import { WordsTabs } from "@/features/words/WordsTabs";
 export const metadata: Metadata = {
   title: "언행",
   description: "이재명 대통령이 직접 공개적으로 한 말과 행동을 원문 그대로 모읍니다.",
+  alternates: { canonical: "/words" },
 };
 
 /**

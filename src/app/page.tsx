@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { ACHIEVEMENT_CARDS, byRecency, getPublishedAchievements } from "@/content/achievements";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import { findScene, validateMilestones } from "@/content/schema";
@@ -8,6 +10,7 @@ import { HomeFeed, type HeroSlide } from "@/features/home/HomeFeed";
 import { ArcticHeroVisual, NumberHeroVisual } from "@/features/home/HeroVisuals";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { conceptCards } from "@/lib/wiki/load";
+import { JsonLd, webSiteLd } from "@/lib/seo/jsonld";
 
 /**
  * 홈 — 모바일 앱 화면.
@@ -18,6 +21,15 @@ import { conceptCards } from "@/lib/wiki/load";
  */
 
 const TONES = ["ice", "warm", "deep"] as const;
+
+/*
+ * 제목과 설명은 layout.tsx의 기본값을 그대로 쓴다. 홈에서 한 번 더 적으면
+ * 두 곳이 갈라진다. 다만 정본 주소는 여기서 못 박는다 — 홈은 여러 경로로
+ * 닿는 자리다.
+ */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function Home() {
   const published = getPublishedAchievements();
@@ -84,9 +96,20 @@ export default function Home() {
 
   return (
     <>
+      <JsonLd data={webSiteLd()} />
+
       <AppTopBar />
 
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-8">
+        {/*
+          * 화면에서는 상단 바의 이름이 이 자리를 대신한다. 그래도 문서에는
+          * h1이 있어야 한다 — 검색엔진과 스크린리더는 이 페이지가 무엇인지를
+          * 거기서 읽는다. 홈에만 h1이 없었다.
+          */}
+        <h1 className="sr-only">
+          이재명 업적 위키 — 업적·언행·위키를 근거와 함께 봅니다
+        </h1>
+
         <HomeFeed
           slides={slides}
           achievements={ACHIEVEMENT_CARDS}

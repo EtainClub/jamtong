@@ -18,9 +18,26 @@ export async function generateMetadata({
   const { slug } = await params;
   const book = getBook(slug);
   if (!book) return {};
+  const description =
+    book.chapters.length > 0
+      ? `${book.publisher} ${book.year}. ${book.chapters.length}장을 쉽게 보기와 할 일로 옮겼습니다.`
+      : `${book.publisher} ${book.year}. 서지 정보만 있고 아직 장을 옮기지 않았습니다.`;
+
   return {
     title: `${book.title} · 자서전`,
-    description: `${book.publisher} ${book.year}. 장마다 쉽게 보기와 할 일을 함께 둡니다.`,
+    description,
+    alternates: { canonical: `/books/${slug}` },
+    /*
+     * 아직 옮기지 않은 책은 색인하지 않는다. 서지 정보 한 줄뿐인 주소가
+     * 검색 결과에 서면 열어 본 사람에게 읽을 것이 없다.
+     */
+    robots: book.chapters.length === 0 ? { index: false, follow: true } : undefined,
+    openGraph: {
+      type: "book",
+      url: `/books/${slug}`,
+      title: book.title,
+      description,
+    },
   };
 }
 

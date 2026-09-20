@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: "위키",
   description:
     "업적과 언행을 가로지르는 지식층. 에이전트가 쓰고 사람이 읽습니다. 모든 단정문에 원자료 앵커가 붙습니다.",
+  alternates: { canonical: "/wiki" },
 };
 
 /**

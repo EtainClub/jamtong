@@ -7,6 +7,11 @@ import { MyPanel } from "@/features/my/MyPanel";
 export const metadata: Metadata = {
   title: "MY",
   description: "내 계정과 AI에게 물어본 이력.",
+  /*
+   * 색인하지 않는다. 남이 검색으로 닿을 화면이 아니고, 로그인 전에는 빈
+   * 껍데기로 보인다. robots.txt도 같은 곳을 막는다 — 둘 다 둔다.
+   */
+  robots: { index: false, follow: false },
 };
 
 export default function MyPage() {

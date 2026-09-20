@@ -1,6 +1,6 @@
 import { BOOKS_BY_YEAR } from "@/content/books";
 import { SEARCH_INDEX, normalize, type SearchEntry } from "@/content/search";
-import { allPages, type WikiPage } from "@/lib/wiki/load";
+import { allPages, pageSummary, type WikiPage } from "@/lib/wiki/load";
 
 /**
  * 검색 인덱스 — 디스크에서 읽어 오는 몫.
@@ -34,23 +34,13 @@ function plain(text: string): string {
     .replace(/[*`>|#-]/g, " ");
 }
 
-/** 목록에 적을 한 줄. 첫 문단에서 가져온다. */
-function blurb(page: WikiPage): string {
-  const first = plain(page.body)
-    .split(/\n{2,}/)
-    .map((p) => p.replace(/\s+/g, " ").trim())
-    .find((p) => p.length > 20);
-  if (!first) return WIKI_KIND_LABEL[page.kind] ?? page.kind;
-  return first.length > 90 ? first.slice(0, 89) + "…" : first;
-}
-
 /** 소스 페이지가 내주는 것 — 제목과 소제목, 그리고 첫 문단. */
 function sourceHaystack(page: WikiPage): string {
   const headings = page.body
     .split("\n")
     .filter((line) => line.startsWith("#"))
     .join(" ");
-  return plain(`${headings} ${blurb(page)}`);
+  return plain(`${headings} ${pageSummary(page)}`);
 }
 
 function wikiEntries(): SearchEntry[] {
@@ -67,7 +57,7 @@ function wikiEntries(): SearchEntry[] {
       id: `wiki:${page.name}`,
       kind: "wiki",
       title: isIndex ? "위키 카탈로그" : page.title,
-      detail: blurb(page),
+      detail: pageSummary(page, 90),
       context: `위키 · ${WIKI_KIND_LABEL[page.kind] ?? page.kind}`,
       href: isIndex ? "/wiki" : `/wiki/${page.name}`,
       haystack: normalize(

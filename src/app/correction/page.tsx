@@ -9,6 +9,7 @@ import { CorrectionForm } from "@/features/correction/CorrectionForm";
 export const metadata: Metadata = {
   title: "정정·반론",
   description: "실린 내용이 사실과 다르거나 반론을 함께 실어야 한다면 여기로 알려 주세요.",
+  alternates: { canonical: "/correction" },
 };
 
 /**

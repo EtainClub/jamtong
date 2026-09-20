@@ -15,6 +15,7 @@ import { ShareButton } from "@/features/achievement/ShareButton";
 import { SceneNav } from "@/features/achievement/SceneNav";
 import { BackButton } from "@/features/app/BackButton";
 import { CorrectionLink } from "@/features/correction/CorrectionLink";
+import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 import { BottomNav } from "@/features/app/BottomNav";
 import { scenesFor } from "@/features/achievement/scenes";
 import { AskGuide } from "@/features/agent/AskGuide";
@@ -581,7 +582,14 @@ export async function generateMetadata({
     description: achievement.summary,
     // 검증 전 골격은 색인되지 않는다.
     robots: isDraft ? { index: false, follow: false } : undefined,
+    /*
+     * 화면 상태가 주소에 실린다(`?view=full&scene=…&at=…`). 그대로 두면 같은
+     * 업적이 수십 개의 주소로 색인될 수 있다. 정본은 쿼리 없는 주소 하나다.
+     */
+    alternates: { canonical: `/achievement/${slug}` },
     openGraph: {
+      type: "article",
+      url: `/achievement/${slug}`,
       title: `${achievement.title} — ${achievement.subtitle}`,
       description: achievement.summary,
     },
@@ -654,6 +662,22 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
 
   return (
     <>
+      <JsonLd
+        data={articleLd({
+          path: `/achievement/${achievement.slug}`,
+          headline: achievement.title,
+          description: achievement.summary,
+          image: `/achievement/${achievement.slug}/opengraph-image`,
+        })}
+      />
+      <JsonLd
+        data={breadcrumbLd([
+          { name: "홈", path: "/" },
+          { name: "업적", path: "/explore" },
+          { name: achievement.title, path: `/achievement/${achievement.slug}` },
+        ])}
+      />
+
       <Suspense fallback={null}>
         <UrlSyncBoundary achievementId={achievement.id} />
       </Suspense>

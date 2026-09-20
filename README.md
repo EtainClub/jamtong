@@ -286,6 +286,32 @@ pnpm lint
 4. `src/app/achievement/[slug]/page.tsx`의 `LAYOUTS`에 레이아웃과 추천 질문 등록
 5. `pnpm check`
 
+### 검색 노출
+
+`sitemap.xml`과 `robots.txt`는 `src/app/sitemap.ts`·`robots.ts`가 만든다.
+콘텐츠에서 오는 주소(업적·언행·위키·자서전)는 저절로 따라오고, **새로 만든
+고정 화면은 `sitemap.ts`의 목록에 손으로 넣어야 한다.**
+
+지키는 것 셋.
+
+- **lastmod에 거짓을 적지 않는다.** 배포 시각을 전부에 박으면 모든 페이지가
+  매번 "방금 바뀌었다"고 말하게 되고, 그러면 검색엔진이 이 값을 통째로
+  무시한다. 콘텐츠가 제 날짜를 들고 있는 곳(위키 `updated`, 언행 `postedAt`,
+  업적의 최근 연표 시점)에만 적고 나머지는 비운다.
+- **빈 껍데기는 싣지 않는다.** 초안 업적, 장이 없는 책, 샘플 책, ingest
+  기록(`wiki/log`)은 sitemap에 없다. 장이 없는 책은 `noindex`이기도 하다.
+- **정본 주소를 못 박는다.** 업적 화면은 상태를 쿼리에 싣는다
+  (`?view=full&scene=…&at=…`). canonical이 없으면 같은 업적이 수십 개
+  주소로 색인된다. 상세 화면은 전부 `alternates.canonical`을 둔다.
+
+`/my`와 `/s/...`는 robots.txt와 메타데이터 양쪽에서 막는다. **`/api`는 막지
+않는다** — 공유 카드 그림이 `/api/share-card`와 `/api/wiki-card`에서 나오고,
+크롤러는 robots.txt를 보고 그림을 가져갈지 정한다.
+
+구조화 데이터는 `src/lib/seo/jsonld.tsx`에 모여 있다. 홈에 `WebSite`, 상세
+화면에 `Article` + `BreadcrumbList`를 둔다. 화면에 없는 것은 적지 않는다 —
+모르는 날짜는 비우고, 샘플 책에는 저자를 적지 않는다.
+
 ### 릴리스와 배포
 
 ```bash

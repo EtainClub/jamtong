@@ -7,6 +7,7 @@ import { KIND_LABEL } from "@/content/words/schema";
 import { getAchievement } from "@/content/achievements";
 import { BackButton } from "@/features/app/BackButton";
 import { CorrectionLink } from "@/features/correction/CorrectionLink";
+import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 import { BottomNav } from "@/features/app/BottomNav";
 import { ShareStatementButton } from "@/features/words/ShareStatementButton";
 import { StatementView } from "@/features/words/StatementView";
@@ -24,9 +25,20 @@ export async function generateMetadata({
   const statement = getStatement(slug);
   if (!statement) return {};
 
+  /* 날짜와 채널만 적으면 검색 결과에 무슨 말인지가 없다. 요지를 앞에 둔다. */
+  const summary = statement.easy?.intro ?? statement.body.slice(0, 120).replace(/\s+/g, " ");
+
   return {
     title: `${statement.title} · 언행`,
-    description: `${statement.displayDate} ${statement.channel}`,
+    description: `${summary} (${statement.displayDate} · ${statement.channel})`,
+    alternates: { canonical: `/words/${slug}` },
+    openGraph: {
+      type: "article",
+      url: `/words/${slug}`,
+      title: statement.title,
+      description: summary,
+      publishedTime: statement.postedAt,
+    },
   };
 }
 
@@ -57,6 +69,25 @@ export default async function StatementPage({
 
   return (
     <>
+      <JsonLd
+        data={articleLd({
+          path: `/words/${statement.slug}`,
+          headline: statement.title,
+          description: statement.easy?.intro ?? statement.body.slice(0, 120),
+          /* 그 말이 나온 날. 이 페이지가 만들어진 날이 아니라 원문의 날짜다. */
+          datePublished: statement.postedAt,
+          citation: statement.url,
+          image: `/words/${statement.slug}/opengraph-image`,
+        })}
+      />
+      <JsonLd
+        data={breadcrumbLd([
+          { name: "홈", path: "/" },
+          { name: "언행", path: "/words" },
+          { name: statement.title, path: `/words/${statement.slug}` },
+        ])}
+      />
+
       <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-full max-w-[560px] items-center justify-between gap-2 px-4">
           {/* 뒤로와 목록을 한 덩어리로. 왼쪽 위는 '나가는 길'이 있는 자리다. */}

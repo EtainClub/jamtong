@@ -7,6 +7,7 @@ import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
 import { ActionList } from "@/features/books/ActionList";
 import { ChapterView } from "@/features/books/ChapterView";
+import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 
 export function generateStaticParams() {
   return BOOKS.flatMap((book) =>
@@ -22,9 +23,18 @@ export async function generateMetadata({
   const { slug, chapter } = await params;
   const found = getChapter(slug, chapter);
   if (!found) return {};
+  const path = `/books/${slug}/${chapter}`;
+
   return {
     title: `${found.chapter.title} · ${found.book.title}`,
     description: found.chapter.summary,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "article",
+      url: path,
+      title: found.chapter.title,
+      description: found.chapter.summary,
+    },
   };
 }
 
@@ -51,6 +61,36 @@ export default async function ChapterPage({
 
   return (
     <>
+      <JsonLd
+        data={articleLd({
+          path: `/books/${book.slug}/${current.slug}`,
+          headline: current.title,
+          description: current.summary,
+          image: `/books/${book.slug}/${current.slug}/opengraph-image`,
+          isPartOf: {
+            "@type": "Book",
+            name: book.title,
+            /*
+             * 저자는 책의 저자다. 이 요약을 쓴 사람이 아니다.
+             * 샘플 책은 편집부가 지어낸 것이므로 저자를 적지 않는다 —
+             * 화면에서 샘플이라고 밝히는 것을 구조화 데이터에서 뒤집으면
+             * 그게 가장 나쁜 거짓말이 된다.
+             */
+            ...(book.sample ? {} : { author: { "@type": "Person", name: "이재명" } }),
+            publisher: { "@type": "Organization", name: book.publisher },
+            datePublished: String(book.year),
+          },
+        })}
+      />
+      <JsonLd
+        data={breadcrumbLd([
+          { name: "홈", path: "/" },
+          { name: "언행", path: "/words" },
+          { name: book.title, path: `/books/${book.slug}` },
+          { name: current.title, path: `/books/${book.slug}/${current.slug}` },
+        ])}
+      />
+
       <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-full max-w-[560px] items-center gap-1.5 px-4">
           <BackButton />
