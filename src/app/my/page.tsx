@@ -9,7 +9,8 @@ export const metadata: Metadata = {
   description: "내 계정과 AI에게 물어본 이력.",
   /*
    * 색인하지 않는다. 남이 검색으로 닿을 화면이 아니고, 로그인 전에는 빈
-   * 껍데기로 보인다. robots.txt도 같은 곳을 막는다 — 둘 다 둔다.
+   * 껍데기로 보인다. 크롤링은 허용해야 검색엔진이 이 noindex를 읽을 수 있다.
+   * 개인 이력의 접근 제어는 기존 인증과 Firestore 보안 규칙이 맡는다.
    */
   robots: { index: false, follow: false },
 };

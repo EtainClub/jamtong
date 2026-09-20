@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { getPublishedAchievements, latestEventDate } from "@/content/achievements";
+import { getPublishedAchievements } from "@/content/achievements";
 import { BOOKS_BY_YEAR } from "@/content/books";
 import { STATEMENTS } from "@/content/words";
 import { contentPages } from "@/lib/wiki/load";
@@ -9,23 +9,21 @@ import { abs } from "@/lib/seo/site";
 /**
  * sitemap.xml.
  *
- * ★ lastModified에 거짓을 적지 않는다.
- *   가장 쉬운 길은 빌드 시각을 전부에 박는 것인데, 그러면 배포할 때마다 모든
- *   페이지가 "방금 바뀌었다"고 말하게 된다. 한 번 그러면 검색엔진은 이 값을
- *   통째로 무시한다. 콘텐츠가 제 날짜를 들고 있는 곳에만 적고, 모르는 곳은
- *   비운다 — 비우는 것은 거짓이 아니다.
+ * lastModified는 이 웹페이지의 마지막 실질적인 수정일이다.
+ * 사건일, 발언일, 빌드 시각을 편집일 대신 넣지 않는다.
+ * 실제 편집일을 추적하는 곳에만 적고, 모르는 곳은 생략한다.
  *
  *     위키   frontmatter의 `updated`
- *     언행   `postedAt` (그 말이 나온 날)
- *     업적   연표에서 오늘까지의 가장 최근 시점
- *     자서전 비운다. 책의 발행 연도는 이 페이지가 바뀐 날이 아니다.
+ *     업적   생략. 연표의 사건 날짜는 이 페이지의 수정일이 아니다.
+ *     언행   생략. `postedAt`은 발언일이지 이 페이지의 수정일이 아니다.
+ *     자서전 생략. 책의 발행 연도는 이 페이지의 수정일이 아니다.
  *
  * ★ 빈 껍데기는 싣지 않는다.
  *   초안 업적(`publishStatus: draft`), 장이 없는 책, 화면을 보이려고 만든
  *   샘플 책, ingest 기록(`wiki/log`)은 뺀다. 열었을 때 읽을 것이 없는
  *   주소를 색인에 넣으면 사이트 전체의 품질 신호가 내려간다.
  *
- * `/my`와 `/s/...`는 robots.txt가 막는 자리라 여기에도 없다.
+ * `/my`와 `/s/...`는 페이지 메타데이터로 noindex를 지정하므로 여기에도 없다.
  */
 
 /** YYYY / YYYY-MM / YYYY-MM-DD를 Date로. 정밀도가 낮으면 그달·그해 1일로 본다. */
@@ -65,7 +63,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const achievement of getPublishedAchievements()) {
     out.push({
       url: abs(`/achievement/${achievement.slug}`),
-      lastModified: toDate(latestEventDate(achievement)),
       priority: 0.9,
     });
   }
@@ -73,7 +70,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const statement of STATEMENTS) {
     out.push({
       url: abs(`/words/${statement.slug}`),
-      lastModified: toDate(statement.postedAt),
       priority: 0.7,
     });
   }
