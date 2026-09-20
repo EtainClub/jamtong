@@ -123,6 +123,14 @@ export const CHAPTERS: ChapterMeta[] = [
         horizon: "week",
       },
     ],
+    shorts: [
+      {
+        id: "t2-s1",
+        title: "평생을 증오했던 아버지의 진짜 얼굴",
+        youtubeId: "MIVErPud0jA",
+        summary: "원망하던 아버지와 임종 앞의 화해 — 2장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "03.md",
@@ -164,6 +172,14 @@ export const CHAPTERS: ChapterMeta[] = [
         title: "다른 방식으로 같은 것을 바라는 사람과 이야기한다",
         detail: "안에서 바꾸는 쪽과 밖에서 바꾸는 쪽이 서로를 깎아내리면 둘 다 잃습니다. 방식이 다른 사람과 목표부터 맞춰 봅니다.",
         horizon: "week",
+      },
+    ],
+    shorts: [
+      {
+        id: "t3-s1",
+        title: "최루탄과 법전  두 대학생의 위대한 약속",
+        youtubeId: "j0cn-pTWnMk",
+        summary: "광주를 알고 난 뒤 친구와 나눈 약속 — 3장을 한 편으로.",
       },
     ],
   },
@@ -210,6 +226,14 @@ export const CHAPTERS: ChapterMeta[] = [
         horizon: "week",
       },
     ],
+    shorts: [
+      {
+        id: "t4-s1",
+        title: "96  공약 이행률을 만든 하얀 거짓말",
+        youtubeId: "b2PlXvDypRQ",
+        summary: "판검사 대신 인권변호사, 그리고 어머니에게 한 거짓말 — 4장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "05.md",
@@ -252,6 +276,14 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "이 장의 다툼은 '지방이 어디까지 정할 수 있는가'였습니다. 사는 곳의 자체 복지 사업 목록을 한 번 봅니다.",
         horizon: "week",
         link: { label: "권한과 책임", href: "/wiki/concept/power-and-responsibility" },
+      },
+    ],
+    shorts: [
+      {
+        id: "t5-s1",
+        title: "광화문 광장 11일 단식의 진짜 이유",
+        youtubeId: "xiWTTAWgh-o",
+        summary: "3대 무상복지를 지키려던 열하루 — 5장을 한 편으로.",
       },
     ],
   },
@@ -297,6 +329,14 @@ export const CHAPTERS: ChapterMeta[] = [
         horizon: "week",
       },
     ],
+    shorts: [
+      {
+        id: "t6-s1",
+        title: "공간의 투명성이 진정한 민주주의를 만드는 방식",
+        youtubeId: "4p_meL72YBI",
+        summary: "9층 시장실을 2층으로 내린 이야기 — 6장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "07.md",
@@ -336,6 +376,14 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "같은 사람이 2026년에 '청년 예산은 늘 뒤로 밀렸다'고 적었습니다. 그 진단과 이 장의 조언을 나란히 놓고 봅니다.",
         horizon: "week",
         link: { label: "청년의 목소리를…", href: "/words/youth-day" },
+      },
+    ],
+    shorts: [
+      {
+        id: "t7-s1",
+        title: "인공지능 시대, 공감 능력이 최고의 무기인 이유",
+        youtubeId: "wG5rPiR2jvQ",
+        summary: "목표를 낮게 잡으라는 말과 교육에 대한 생각 — 7장을 한 편으로.",
       },
     ],
   },
@@ -380,6 +428,14 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "개혁", href: "/wiki/concept/reform" },
       },
     ],
+    shorts: [
+      {
+        id: "t8-s1",
+        title: "진정한 보수  정치인들이 숨겨온 진짜 조건",
+        youtubeId: "tnkcgE3Wx3A",
+        summary: "보수와 진보가 진영 싸움이 된 내력 — 8장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "09.md",
@@ -422,6 +478,14 @@ export const CHAPTERS: ChapterMeta[] = [
         horizon: "always",
       },
     ],
+    shorts: [
+      {
+        id: "t9-s1",
+        title: "연속 낙선한 후보가 사람의 마음을 얻은 비결",
+        youtubeId: "upzsblM5B94",
+        summary: "낙선 뒤 골목을 세 바퀴 돈 선거 — 9장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "10.md",
@@ -462,6 +526,14 @@ export const CHAPTERS: ChapterMeta[] = [
         title: "내 '다섯 번째'를 한 줄로 적는다",
         detail: "개인의 소원 넷 다음에 무엇을 둘지 한 줄로 적어 둡니다. 적지 않으면 세워지지 않습니다.",
         horizon: "today",
+      },
+    ],
+    shorts: [
+      {
+        id: "t10-s1",
+        title: "가장 거친 도시가 낳은 다섯 번째 꿈",
+        youtubeId: "NO5V4SmBzt4",
+        summary: "소원 넷을 이룬 뒤 세운 다섯 번째 꿈 — 10장을 한 편으로.",
       },
     ],
   },
@@ -508,6 +580,14 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "대통령의 친구", href: "/words/president-friend" },
       },
     ],
+    shorts: [
+      {
+        id: "t11-s1",
+        title: "시민들은 왜 미소를 잃어버렸을까",
+        youtubeId: "fyZfNUPaZNk",
+        summary: "「사이다」를 칭찬이 아니라 명령으로 읽는 이유 — 11장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "12.md",
@@ -550,6 +630,14 @@ export const CHAPTERS: ChapterMeta[] = [
         horizon: "always",
       },
     ],
+    shorts: [
+      {
+        id: "t12-s1",
+        title: "시련을 성장의 무기로 바꾸는 반작용의 법칙",
+        youtubeId: "NLHXpkgKdms",
+        summary: "앞뒤가 잘린 녹취와 작용·반작용 — 12장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "13.md",
@@ -590,6 +678,14 @@ export const CHAPTERS: ChapterMeta[] = [
         title: "퍼 나르기 전에 한 번 멈춘다",
         detail: "연결된 시대에는 틀린 것도 같은 속도로 퍼집니다. 공유 버튼을 누르기 전에 출처를 봅니다.",
         horizon: "always",
+      },
+    ],
+    shorts: [
+      {
+        id: "t13-s1",
+        title: "권력의 거짓말을 깨는 집단지성의 원리",
+        youtubeId: "Wfh9Qb3GrDQ",
+        summary: "봉화의 거짓말에서 집단지성까지 — 13장을 한 편으로.",
       },
     ],
   },
