@@ -13,15 +13,28 @@ import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
  *   "판교특별회계"는 어느 업적의 제목에도 부제에도 없지만 근거에는 있다.
  *   위키에서 찾는 말은 대개 요약문이 아니라 본문에 있다. 다만 찾은 뒤에 보여줄
  *   것은 그 업적이지 근거 문장 조각이 아니다.
+ *
+ * ★ 이 파일은 브라우저에도 실린다 — fs를 부르는 것을 들이지 않는다.
+ *   위키(`wiki/**`)와 자서전 본문(`text/*.md`)은 디스크에서 읽어 오므로 여기
+ *   있을 수 없다. 그 둘은 `search-server.ts`가 붙이고, 인덱스를 합치는 자리는
+ *   `/api/search-index` 하나다. 화면은 만들어진 인덱스만 받는다.
  */
 
-export type SearchKind = "achievement" | "moment" | "milestone" | "words";
+export type SearchKind =
+  | "achievement"
+  | "moment"
+  | "milestone"
+  | "words"
+  | "book"
+  | "wiki";
 
 export const KIND_LABEL: Record<SearchKind, string> = {
   achievement: "업적",
   moment: "시점",
   milestone: "세부 성과",
   words: "언행",
+  book: "자서전",
+  wiki: "위키",
 };
 
 export interface SearchEntry {
@@ -139,6 +152,7 @@ function build(): SearchEntry[] {
   return out;
 }
 
+/** 저장소 안 자료만. 위키와 자서전은 `search-server.ts`가 덧붙인다. */
 export const SEARCH_INDEX: SearchEntry[] = build();
 
 /**
@@ -147,16 +161,22 @@ export const SEARCH_INDEX: SearchEntry[] = build();
  * 띄어쓴 말은 모두 들어 있어야 한다("성남 병원" → 둘 다 있는 것만). 한국어는
  * 형태소를 나누지 않으면 부분 문자열이 가장 잘 맞는다. 이 크기에서는 그걸로 충분하다.
  *
- * 순서는 업적 → 언행 → 시점 → 세부 성과. 같은 종류 안에서는 제목에 맞은 것이 앞이다.
+ * 순서는 업적 → 언행 → 자서전 → 위키 → 시점 → 세부 성과. 같은 종류 안에서는
+ * 제목에 맞은 것이 앞이다.
  *
  * 언행을 시점보다 위에 둔 이유: 본인이 한 말은 그 자체로 찾을 값어치가 있다.
  * 시점은 어느 업적의 한 칸이라 그 업적을 먼저 보는 편이 대개 맞다.
+ *
+ * 위키를 본인이 쓴 것들 아래에 둔 이유: 위키는 우리가 raw source를 읽고 다시
+ * 쓴 것이다. 같은 말이 원본과 위키에 다 걸리면 원본이 먼저 보여야 한다.
  */
 const KIND_ORDER: Record<SearchKind, number> = {
   achievement: 0,
   words: 1,
-  moment: 2,
-  milestone: 3,
+  book: 2,
+  wiki: 3,
+  moment: 4,
+  milestone: 5,
 };
 
 export function search(index: SearchEntry[], query: string, limit = 12): SearchEntry[] {
