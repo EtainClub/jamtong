@@ -17,7 +17,7 @@ updated: 2026-09-20
 
 | 무엇 | 언제 | 어디 |
 |---|---|---|
-| 법왜곡죄·재판소원 시행 ^[judicial-reform#claim-pass] | 2026-03-12 | [[source/judicial-reform]] |
+| 법왜곡죄·재판소원 시행 ^[judicial-reform#claim-distort] | 2026-03-12 | [[source/judicial-reform]] |
 | 이사 충실의무 확대(상법) ^[stock-market#claim-duty] | 2025-07-22 | [[source/stock-market]] |
 | 자사주 소각 의무화(상법) ^[stock-market#claim-buyback] | 2026-03-06 | [[source/stock-market]] |
 | 석유 최고가격제 ^[oil-supply#claim-cap] | 2026-03-13 | [[source/oil-supply]] |
@@ -43,6 +43,10 @@ updated: 2026-09-20
   28조 9,000억 원은 「윤곽」이다. ^[nuclear-submarine#claim-plan] 연료
   협상은 2026-09-19 기준 타결되지 않았고 미국 의회 동의도 남아 있다.
   ^[nuclear-submarine#claim-fuel] [[source/nuclear-submarine]]
+- **부동산** — 조기 대량 공급, 500세대 이하 구청장 인허가, 폭락 대비
+  매입 시스템까지 모두 「하겠다」와 「지시했다」다.
+  ^[words:housing-supply#h-build] ^[words:housing-supply#h-floor]
+  [[source/words-housing-supply]]
 - **발달장애인 돌봄** — 2026-09-10 범정부 대책이 발표됐다. 발표까지가 일어난
   일이고 무엇이 언제부터 얼마나인지는 그 글에 없다.
   ^[words:developmental-care#d-plan] [[source/words-developmental-care]]

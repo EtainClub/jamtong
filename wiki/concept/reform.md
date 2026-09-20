@@ -8,8 +8,8 @@ updated: 2026-09-20
 
 사이트 어디에도 이 페이지에 해당하는 화면이 없다. 업적 페이지는 업적 하나가
 단위이고 언행 페이지는 글 하나가 단위라, 여러 업적과 여러 발언에 걸친 이야기가
-모일 자리가 없기 때문이다. [[source/prosecution-reform]]과 [[source/judicial-reform]],
-그리고 [[source/words-reform-is-hard]]가 만나는 자리가 여기다.
+모일 자리가 없기 때문이다. 제도 둘과 언행 일곱, 그리고 방법이 갈린 경기도
+사례 둘이 여기서 만난다. ^[words:reform-is-hard#r-how]
 
 권한을 왜 그런 모양으로 쪼개는가는 [[concept/power-and-responsibility]]가
 따로 맡는다. 여기는 무엇이 언제 바뀌었는가를 본다.
@@ -27,6 +27,8 @@ updated: 2026-09-20
 | [[source/words-noh-acquittal]] | 왜 바꾸려 하는가 | 말 |
 | [[source/words-housing-supply]] | 같은 방법론을 13일 먼저 ^[words:housing-supply#h-build] | 말 |
 | [[source/words-president-friend]] | 지지자에게 요구한 방식 ^[words:president-friend#p-harm] | 말 |
+| [[source/gyeonggi-valley]] | 기다린 쪽 — 96%가 자진철거 ^[gyeonggi-valley#claim-2020] | 일어난 일 |
+| [[source/gyeonggi-shincheonji]] | 기다리지 않은 쪽 — 강제 역학조사 ^[gyeonggi-shincheonji#claim-entry] | 일어난 일 |
 
 ## 두 개혁은 방향이 다르다
 
@@ -43,7 +45,8 @@ updated: 2026-09-20
 
 ## 시간표 — 무엇이 이미 일어났나
 
-- **2026-03-12 시행됨** — 법왜곡죄, 재판소원. ^[judicial-reform#claim-pass]
+- **2026-03-12 시행됨** — 법왜곡죄, 재판소원. ^[judicial-reform#claim-distort]
+  ^[judicial-reform#claim-appeal] (3법 공포도 같은 날이다. ^[judicial-reform#claim-pass])
 - **2026-10-02 시행 예정** — 중수청·공소청 출범, 검찰청 폐지.
   ^[prosecution-reform#claim-law]
 - **2028-03 시작 예정** — 대법관 증원. 3년에 걸쳐 14명 → 26명.
@@ -70,6 +73,23 @@ updated: 2026-09-20
 놓았을 뿐이고, 어느 쪽이 옳은지는 적지 않는다. 판단에 필요한 자료 — 시행 이후의
 충원 결과, 재판소원 청구·인용 통계 — 를 이 위키는 아직 갖고 있지 않다.
 ^[prosecution-reform]
+
+## 방법은 하나가 아니었다
+
+같은 시정 안에서 정반대 방법이 함께 쓰였다.
+
+- **기다린 쪽** — 청정계곡은 곧바로 철거하는 대신 알리고 자진철거를
+  지원했고, 2020년 4월 기준 철거된 1,347곳 중 1,298곳이 자진철거였다.
+  행정대집행은 49곳이다. ^[gyeonggi-valley#claim-2020]
+  [[source/gyeonggi-valley]]
+- **기다리지 않은 쪽** — 신천지 대응은 명단 제출을 기다리지 않고
+  감염병예방법 제47조·제49조를 들어 강제 역학조사에 들어갔다.
+  ^[gyeonggi-shincheonji#claim-entry] [[source/gyeonggi-shincheonji]]
+
+「고통과 저항의 최소화」라는 잣대를 ^[words:reform-is-hard#r-how] 양쪽에
+대면 결과가 갈린다. 위키는 어느 쪽이 옳았는지 가리지 않고, **방법이 사안에
+따라 달랐다는 것**만 적는다. ^[gyeonggi-valley#claim-2020]
+^[gyeonggi-shincheonji#claim-entry]
 
 ## 채워야 할 곳
 

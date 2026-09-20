@@ -19,7 +19,8 @@ updated: 2026-09-20
 - **칠레** — 광물자원 파트너십 양해각서. 정부는 이를 통해 연간 21억
   달러(약 3조 300억 원) 규모의 광물 수급 **안정성을 확보**했다고 밝혔다.
   **원본에 CLAIM으로 표시돼 있고, 도입 실적이 아니다.** 칠레는 리튬·구리
-  매장량 세계 1위다. ^[resource-diplomacy#claim-chile]
+  매장량이 세계 1위라고 원본은 적는다(같은 claim이 CLAIM으로 표시돼 있다).
+  ^[resource-diplomacy#claim-chile]
 - **브라질** — 재생에너지·전력망 등 에너지 분야 협력 양해각서.
   ^[resource-diplomacy#claim-chile]
 

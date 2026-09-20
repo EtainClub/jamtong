@@ -36,10 +36,11 @@ updated: 2026-09-20
 
 성남 청년배당이 성남사랑상품권으로 지급됐고,
 ^[seongnam-welfare#claim-youth] 경기도 재난기본소득이 소멸성 지역화폐로
-1,326만 명에게 지급됐다. ^[gyeonggi-basic-income#claim-first] 시 단위
-6만~10만 명 규모에서 도 단위 1,300만 명으로 커진 셈이다.
-^[seongnam-welfare#claim-budget-2016]
-^[gyeonggi-basic-income#claim-first]
+1,326만 명에게 지급됐다. ^[gyeonggi-basic-income#claim-first]
+규모로 보면 성남 청년배당 예산이 113억 원이고
+^[seongnam-welfare#claim-budget-2016] 1차 재난기본소득이 1조 3,642억 원이다.
+^[gyeonggi-basic-income#claim-first] **대상 인원은 청년배당 쪽 수치를 raw가
+갖고 있지 않아 비교하지 않는다.** ^[seongnam-welfare#claim-youth]
 
 3차 재난기본소득에서는 **정부와 역할을 나눴다** — 정부가 하위 88%를 맡고
 경기도가 남은 12%를 맡았다. ^[gyeonggi-basic-income#claim-third]

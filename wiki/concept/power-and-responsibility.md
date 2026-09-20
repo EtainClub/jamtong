@@ -13,7 +13,7 @@ updated: 2026-09-20
 [[concept/reform]]이 「무엇을 바꿨는가」를 모으는 자리라면, 여기는 **「왜
 그런 모양으로 바꾸는가」**의 자리다.
 
-## 원칙 — 말로 두 번
+## 원칙 — 말로 여섯 번
 
 | 언제 | 어디서 | 무엇 |
 |---|---|---|
@@ -24,7 +24,7 @@ updated: 2026-09-20
 | 2026-05-31 | [[source/words-vote]] | 머슴이 될지 지배자가 될지는 주권자의 손에 ^[words:vote] |
 | (20년 전 인용) | [[source/words-wish]] | 권력이 아니라 일 할 수 있는 권한이 필요합니다 ^[words:wish] |
 
-반년 넘는 간격으로 네 번 나왔다. ^[words:power-responsibility#pr-equal]
+20년 전 인용까지 세면 여섯 번 나왔다. ^[words:power-responsibility#pr-equal]
 ^[words:sports-reform#s-why] ^[words:constitution#c-power]
 ^[words:reform-is-hard#r-power]
 
@@ -74,6 +74,37 @@ updated: 2026-09-20
 
 **이 절은 대조이지 평가가 아니다.** 원칙을 말한 사람이 자기 일에서도 그
 원칙을 지켰는지는 이 위키가 판단하지 않는다.
+^[words:power-responsibility#pr-equal]
+
+## 지방정부는 어디까지 정할 수 있나
+
+같은 물음이 지방 단위에서 두 번, 반대 결말로 나왔다.
+
+- **중앙이 지방을 막은 쪽** — 성남시 3대 무상복지에서 보건복지부가
+  사회보장기본법상 사전협의를 들어 재의요구를 지시하도록 통보했고,
+  ^[seongnam-welfare#claim-mohw] 경기도가 대법원에 예산안 의결 무효확인을
+  청구했다. ^[seongnam-welfare#claim-lawsuit] **소는 2018년 7월 2일
+  취하돼 절차 위반 여부는 법적으로 결론나지 않았다.**
+  ^[seongnam-welfare#claim-withdraw] [[source/seongnam-welfare]]
+- **지방이 민간을 상대로 졌다** — 일산대교 공익처분은 22일 만에 집행이
+  정지됐고 ^[gyeonggi-ilsan-bridge#claim-back] 2024년 10월 대법원에서
+  최종 패소했다. ^[gyeonggi-ilsan-bridge#claim-final]
+  [[source/gyeonggi-ilsan-bridge]]
+
+[[source/words-constitution]]이 개헌 항목으로 지방자치 강화를 드는 것은
+^[words:constitution#c-power] 이 두 사례와 같은 물음 위에 있다. 다만
+그쪽은 아직 입장이다. ^[words:constitution#c-old]
+
+## 회사 안의 권한도 같은 모양이다
+
+2025년 7월 22일 상법 개정으로 이사가 회사뿐 아니라 **총주주의 이익을
+보호하고 전체 주주를 공평하게 대우**하도록 하는 조항이 신설됐고,
+^[stock-market#claim-duty] 경영권 변경 시 일반주주도 프리미엄을 나눠 받게
+하는 의무공개매수가 추진되고 있다(**법이 되지 않았다**).
+^[stock-market#claim-mto] [[source/stock-market]]
+
+지배주주와 일반주주 사이의 권한 배분이라는 점에서, 이 페이지가 모으는
+「한 손에 모인 것을 쪼갠다」와 같은 계열이다.
 ^[words:power-responsibility#pr-equal]
 
 ## 채워야 할 곳
