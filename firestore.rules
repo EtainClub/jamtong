@@ -11,11 +11,12 @@ rules_version = '2';
  *
  * 익명 계정도 uid를 가지므로 같은 규칙이 그대로 적용된다.
  *
- * ★ 예외가 하나 있다: feedback.
- *   피드백은 누구나 읽는다. 공개인 것이 기능이기 때문이다 — 남이 무엇을
- *   남겼는지 보이지 않으면 같은 말이 계속 쌓인다. 그래서 여기만 경로로
- *   가르지 못하고 필드와 모양을 일일이 검사한다. 예외를 하나 두면 검사가
- *   늘어난다는 것을 이 파일이 그대로 보여 준다.
+ * ★ 예외가 셋 있다: feedback, cheerVideos, cheerNotes.
+ *   셋 다 누구나 읽는다. 공개인 것이 기능이기 때문이다 — 남이 무엇을
+ *   남겼는지 보이지 않으면 같은 말이 계속 쌓이고, 응원판은 아예 성립하지
+ *   않는다. 그래서 여기만 경로로 가르지 못하고 필드와 모양을 일일이
+ *   검사한다. 예외를 하나 두면 검사가 얼마나 늘어나는지를 이 파일이
+ *   그대로 보여 준다.
  */
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -31,10 +32,12 @@ service cloud.firestore {
      * agreeCount 한 칸만 움직여야 하고, 그 방향이 이 커밋에서 agrees 문서가
      * 생겼는지 지워졌는지와 맞아야 한다. 짝을 맞추지 않으면 카운터만 올리는
      * 요청이 통과한다.
+     *
+     * 표시 문서의 경로를 인자로 받는다. 피드백과 응원이 같은 모양을 쓰므로,
+     * 컬렉션 이름을 안에 박아 두면 두 벌이 생기고 둘 중 하나는 반드시 덜
+     * 검사된다. 이 불변식은 한 군데에만 있어야 한다.
      */
-    function isAgreeDelta(id) {
-      let uid = request.auth.uid;
-      let agreePath = /databases/$(database)/documents/feedback/$(id)/agrees/$(uid);
+    function isAgreeDelta(agreePath) {
       let before = resource.data.agreeCount;
       let after = request.resource.data.agreeCount;
       return request.auth != null
@@ -100,12 +103,87 @@ service cloud.firestore {
         ? request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['status', 'reply', 'repliedAt'])
           && request.resource.data.status in ['open', 'planned', 'done', 'wontfix']
-        : isAgreeDelta(id);
+        : isAgreeDelta(
+            /databases/$(database)/documents/feedback/$(id)/agrees/$(request.auth.uid)
+          );
 
       /*
        * 나도요. 한 사람이 한 번만 누르도록 uid를 문서 id로 쓴다.
        * 카운터는 부모 문서에 있고, 위 isAgreeDelta가 이 문서와 짝이 맞는지 본다.
        */
+      match /agrees/{uid} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow create, delete: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    /*
+     * 지지자 응원 — 영상.
+     *
+     * ★ 문서 id가 곧 유튜브 영상 id다.
+     *   같은 영상이 두 번 올라오는 것을 규칙이나 화면이 아니라 **저장소가**
+     *   막는다. 필드로 두면 목록을 다 읽어 봐야 알 수 있고, 두 사람이 같은
+     *   순간에 올리면 둘 다 통과한다.
+     *
+     * ★ 제목과 채널은 규칙이 보증하지 못한다.
+     *   화면은 /api/youtube가 준 것을 그대로 올리지만, 규칙이 볼 수 있는 것은
+     *   길이뿐이다. 거짓 제목을 붙인 문서를 손으로 만들 수는 있다는 뜻이다.
+     *   그래서 운영자가 내릴 수 있게 해 두었고, 그게 여기서 감당하는 방식이다.
+     */
+    match /cheerVideos/{youtubeId} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && youtubeId.matches('^[A-Za-z0-9_-]{11}$')
+        && request.resource.data.youtubeId == youtubeId
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.channel is string
+        && request.resource.data.channel.size() > 0
+        && request.resource.data.channel.size() <= 100;
+
+      // 올린 사람은 제 것을 거둘 수 있고, 운영자는 무엇이든 내린다.
+      allow delete: if request.auth != null
+        && (resource.data.authorUid == request.auth.uid || isAdmin());
+
+      /*
+       * 한 번 걸린 영상은 고쳐지지 않는다. 내리고 다시 올린다.
+       * 이 한 줄이 겹침 방지이기도 하다 — setDoc이 덮어쓰려 들면 여기서 막힌다.
+       */
+      allow update: if false;
+    }
+
+    /*
+     * 지지자 응원 — 한 줄.
+     *
+     * ★ 80자다. 이 숫자가 설계 전부다.
+     *   한 줄로는 남을 헐뜯거나 논쟁을 벌일 수 없고, 운영자가 한 건 읽는 데
+     *   2초면 된다. 길이를 늘리는 순간 이것은 응원판이 아니라 정치 게시판이
+     *   되고, 그때부터 옆 탭에 있는 근거까지 같이 의심받는다.
+     *
+     * ★ 답글이 없다. 오가는 말이 생기면 그것도 게시판이다.
+     *   그래서 여기 update로 열려 있는 것은 '나도요' 카운터뿐이다 — 운영자도
+     *   남의 글을 고치지 못하고, 지울 수만 있다.
+     */
+    match /cheerNotes/{id} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 80
+        && request.resource.data.agreeCount == 0;
+
+      allow delete: if request.auth != null
+        && (resource.data.authorUid == request.auth.uid || isAdmin());
+
+      allow update: if isAgreeDelta(
+        /databases/$(database)/documents/cheerNotes/$(id)/agrees/$(request.auth.uid)
+      );
+
       match /agrees/{uid} {
         allow read: if request.auth != null && request.auth.uid == uid;
         allow create, delete: if request.auth != null && request.auth.uid == uid;

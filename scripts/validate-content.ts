@@ -9,6 +9,8 @@ import { validateAchievement, validateMilestones } from "../src/content/schema";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "../src/content/milestones";
 import { STATEMENTS } from "../src/content/words";
 import { validateStatement } from "../src/content/words/schema";
+import { CHEERS } from "../src/content/cheers";
+import { validateCheers } from "../src/content/cheers/schema";
 
 let failed = false;
 
@@ -75,6 +77,22 @@ for (const statement of STATEMENTS) {
     `✓ 언행 ${statement.slug} — 원문 ${statement.body.length}자, ` +
       `쉬운 토막 ${points}, 말풀이 ${statement.glossary.length}`,
   );
+}
+
+/*
+ * 지지자 응원.
+ *
+ * 여기서 볼 것은 겹침뿐이다. 영상 내용은 우리가 검증하지 않는다 — 검증한
+ * 것처럼 보이게 하는 순간 업적에 붙는 근거와 구분이 사라진다. 다만 같은
+ * 영상이 두 번 걸리는 것은 우리 잘못이므로 빌드에서 잡는다.
+ */
+const cheerErrors = validateCheers(CHEERS);
+if (cheerErrors.length > 0) {
+  failed = true;
+  console.error("\n✗ 지지자 응원");
+  for (const error of cheerErrors) console.error(`    ${error}`);
+} else {
+  console.log(`✓ 지지자 응원 — 영상 ${CHEERS.length}편`);
 }
 if (failed) {
   console.error("\n\ucf58\ud150\uce20 \uac80\uc99d \uc2e4\ud328.");

@@ -18,6 +18,7 @@ import {
   limit,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   writeBatch,
 } from "firebase/firestore";
@@ -162,6 +163,7 @@ async function main() {
   await deleteDoc(doc(db, "feedback", mine.id, "agrees", uid));
   await deleteDoc(doc(db, "feedback", mine.id));
   ok("점검용 글 지우기 — 통과했다");
+  await cheerChecks(uid);
   await adminChecks(uid);
 
 
@@ -248,8 +250,138 @@ async function adminChecks(uid: string) {
     deleteDoc(doc(db, "feedback", ref.id)),
   );
 
+  /*
+   * 응원도 같은 손이 내린다. isAdmin()을 세 군데에서 부르므로, 한 군데에서만
+   * 도는지 아닌지는 세 군데를 다 눌러 봐야 안다.
+   */
+  const strayVideo = "zzAdminVid1";
+  await adminDb.collection("cheerVideos").doc(strayVideo).set({
+    youtubeId: strayVideo,
+    title: "[점검용] 남이 올린 영상",
+    channel: "[점검용] 채널",
+    channelUrl: null,
+    authorUid: "someone-else",
+    createdAt: new Date(),
+  });
+  await expectAllowed("운영자가 남의 영상 내리기", () =>
+    deleteDoc(doc(db, "cheerVideos", strayVideo)),
+  );
+
+  const strayNote = (
+    await adminDb.collection("cheerNotes").add({
+      body: "[점검용] 남이 남긴 한 줄",
+      authorUid: "someone-else",
+      agreeCount: 0,
+      createdAt: new Date(),
+    })
+  ).id;
+  await expectAllowed("운영자가 남의 한 줄 지우기", () =>
+    deleteDoc(doc(db, "cheerNotes", strayNote)),
+  );
+
   await adminDoc.delete();
   ok("점검 계정 운영자 해제");
+}
+
+/*
+ * 응원 쪽 검사.
+ *
+ * 피드백과 같은 모양을 쓰지만 같은 규칙이 도는 것은 아니다. isAgreeDelta를
+ * 경로 받는 함수 하나로 묶어 두었어도, 그 경로를 cheerNotes 쪽에서 제대로
+ * 넘겼는지는 실제로 눌러 봐야 안다. 한 글자 틀리면 카운터가 통째로 열린다.
+ *
+ * 영상에는 피드백에 없는 불변식이 하나 더 있다 — 같은 영상이 두 번 걸리지
+ * 않는다. 그 불변식을 update 금지 한 줄에 맡겨 두었으므로, 그 한 줄이 실제로
+ * 두 번째 시도를 막는지 여기서 확인한다.
+ */
+async function cheerChecks(uid: string) {
+  console.log("\n응원 — 한 줄");
+
+  const note = await addDoc(collection(db, "cheerNotes"), {
+    body: "[점검용] 지워도 되는 한 줄",
+    authorUid: uid,
+    agreeCount: 0,
+    createdAt: serverTimestamp(),
+  });
+  ok("제 uid로 한 줄 남기기 — 통과했다");
+
+  await expectDenied("80자를 넘겨 남기기", () =>
+    addDoc(collection(db, "cheerNotes"), {
+      body: "가".repeat(81),
+      authorUid: uid,
+      agreeCount: 0,
+      createdAt: serverTimestamp(),
+    }),
+  );
+
+  await expectDenied("한 줄에 카운터만 +1", () =>
+    updateDoc(doc(db, "cheerNotes", note.id), { agreeCount: increment(1) }),
+  );
+
+  await expectAllowed("한 줄에 표시 문서와 함께 +1 (배치)", () => {
+    const b = writeBatch(db);
+    b.set(doc(db, "cheerNotes", note.id, "agrees", uid), { at: serverTimestamp() });
+    b.update(doc(db, "cheerNotes", note.id), { agreeCount: increment(1) });
+    return b.commit();
+  });
+
+  await expectDenied("제 한 줄이라도 본문 고치기", () =>
+    updateDoc(doc(db, "cheerNotes", note.id), { body: "몰래 고침" }),
+  );
+
+  console.log("\n응원 — 영상");
+  const videoId = "zzTestVid01";
+
+  await expectAllowed("제 uid로 영상 걸기", () =>
+    setDoc(doc(db, "cheerVideos", videoId), {
+      youtubeId: videoId,
+      title: "[점검용] 지워도 되는 영상",
+      channel: "[점검용] 채널",
+      channelUrl: null,
+      authorUid: uid,
+      createdAt: serverTimestamp(),
+    }),
+  );
+
+  // 같은 영상을 두 번. 이게 통과하면 응원 벽에 같은 영상이 두 칸을 차지한다.
+  await expectDenied("같은 영상 다시 걸기", () =>
+    setDoc(doc(db, "cheerVideos", videoId), {
+      youtubeId: videoId,
+      title: "[점검용] 덮어쓰기 시도",
+      channel: "[점검용] 채널",
+      channelUrl: null,
+      authorUid: uid,
+      createdAt: serverTimestamp(),
+    }),
+  );
+
+  await expectDenied("문서 id와 다른 영상 id로 걸기", () =>
+    setDoc(doc(db, "cheerVideos", "zzTestVid02"), {
+      youtubeId: videoId,
+      title: "[점검용] 어긋난 id",
+      channel: "[점검용] 채널",
+      channelUrl: null,
+      authorUid: uid,
+      createdAt: serverTimestamp(),
+    }),
+  );
+
+  await expectDenied("남의 uid로 영상 걸기", () =>
+    setDoc(doc(db, "cheerVideos", "zzTestVid03"), {
+      youtubeId: "zzTestVid03",
+      title: "[점검용] 남의 것인 척",
+      channel: "[점검용] 채널",
+      channelUrl: null,
+      authorUid: "somebody-else",
+      createdAt: serverTimestamp(),
+    }),
+  );
+
+  console.log("\n치우기 (응원)");
+  await deleteDoc(doc(db, "cheerNotes", note.id, "agrees", uid));
+  await deleteDoc(doc(db, "cheerNotes", note.id));
+  await deleteDoc(doc(db, "cheerVideos", videoId));
+  ok("점검용 응원 지우기 — 통과했다");
 }
 main().catch((e) => {
   console.error("점검 중 오류:", e);
