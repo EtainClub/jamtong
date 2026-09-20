@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { Chapter } from "@/content/books/schema";
 import { CardCarousel } from "@/features/carousel/CardCarousel";
+import { ChapterBody } from "./ChapterBody";
 import { ChapterShorts } from "./ChapterShorts";
 import { BOOK_ART } from "./art";
 
@@ -141,13 +142,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
         </section>
       ) : (
         <section aria-label="요약 원문" className="mt-6">
-          <div className="space-y-4">
-            {(chapter.body ?? "").split("\n\n").map((paragraph, index) => (
-              <p key={index} className="text-[14.5px] leading-[1.9] text-ink">
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          <ChapterBody chapter={chapter} />
 
           {chapter.truncated && (
             <p className="mt-5 rounded-card border border-stone bg-taupe/50 px-4 py-3 text-[12px] leading-relaxed text-smoke">
