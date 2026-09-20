@@ -8,11 +8,12 @@ import { ScrollArrow, useScroller } from "@/features/app/Scroller";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 import { KIND_LABEL, search, type SearchEntry } from "@/content/search";
+import type { WikiConceptCard } from "@/lib/wiki/load";
 
 /**
  * 홈 피드.
  *
- * 순서에 의도가 있다: 히어로 → 업적 → 세부 성과.
+ * 순서에 의도가 있다: 히어로 → 업적 → 위키 → 세부 성과.
  * 단위는 업적이므로 업적이 먼저 오고, 한 부처 업무계획에서 뽑은 세부 성과는
  * 그 아래에 소속을 밝혀 둔다. 둘을 같은 층에 늘어놓으면 무엇이 단위인지
  * 보이지 않는다 — 예전 둘러보기가 그랬다.
@@ -60,12 +61,14 @@ export function HomeFeed({
   achievements,
   topics,
   totalPublished,
-
+  wikiConcepts,
   claims,
 }: {
   slides: HeroSlide[];
   achievements: AchievementCardData[];
   topics: Milestone[];
+  /** 위키의 개념 페이지. 업적 하나로는 보이지 않는 이야기가 여기 모인다. */
+  wikiConcepts: WikiConceptCard[];
   /** 공개된 업적 전체 수. 히어로가 몇 건 중 몇 건인지 밝히는 데 쓴다. */
   totalPublished: number;
 
@@ -173,6 +176,37 @@ export function HomeFeed({
             label="다음 업적"
           />
         </div>
+      </section>
+
+      <section aria-labelledby="home-wiki" className="mt-9">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="home-wiki" className="text-[17px] font-bold tracking-tight text-ink">
+            위키
+          </h2>
+          <Link href="/wiki" className="text-[12px] font-medium text-navy">
+            전체 보기
+          </Link>
+        </div>
+        <p className="mt-1 text-[12px] leading-relaxed text-ash">
+          업적 하나, 언행 하나로는 보이지 않는 이야기를 모읍니다. 여기서도 모든
+          단정문에 원자료 근거가 붙습니다.
+        </p>
+
+        <ul className="mt-4 divide-y divide-stone border-y border-stone">
+          {wikiConcepts.map((concept) => (
+            <li key={concept.name}>
+              <Link
+                href={`/wiki/${concept.name}`}
+                className="block py-3 transition-colors hover:bg-taupe/40"
+              >
+                <span className="text-[14px] font-bold text-ink">{concept.title}</span>
+                <span className="mt-0.5 block text-[12px] leading-relaxed text-smoke">
+                  {concept.blurb}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section aria-labelledby="home-topics" className="mt-9">

@@ -73,3 +73,60 @@ export function getPage(name: string): WikiPage | undefined {
 export function contentPages(): WikiPage[] {
   return allPages().filter((page) => page.name !== "index");
 }
+
+export interface WikiConceptCard {
+  name: string;
+  title: string;
+  /** 카탈로그가 그 페이지에 붙여 둔 한 줄. */
+  blurb: string;
+}
+
+/**
+ * 홈에 세울 개념 페이지 목록.
+ *
+ * 한 줄 소개를 따로 두지 않고 `index.md`가 이미 적어 둔 것을 읽는다. 카탈로그는
+ * ingest마다 에이전트가 갱신하므로, 화면에 문구를 복사해 두면 그날부터 두 곳이
+ * 갈라진다. 카탈로그에 없는 개념 페이지는 홈에도 나오지 않는다 — 그게 맞다,
+ * 카탈로그에 없으면 lint가 이미 오류로 잡는다.
+ */
+export function conceptCards(): WikiConceptCard[] {
+  const index = getPage("index");
+  if (!index) return [];
+
+  /* 카탈로그 항목은 두 줄로 접혀 있기도 하다. 들여쓴 줄을 앞줄에 붙인다. */
+  const lines: string[] = [];
+  for (const raw of index.body.split("\n")) {
+    if (/^\s{2,}\S/.test(raw) && lines.length > 0) {
+      lines[lines.length - 1] += " " + raw.trim();
+      continue;
+    }
+    lines.push(raw);
+  }
+
+  const titles = new Map(allPages().map((page) => [page.name, page]));
+  const out: WikiConceptCard[] = [];
+
+  for (const line of lines) {
+    const match = /^-\s+\[\[(concept\/[^\]]+)\]\]\s+—\s+(.*)$/.exec(line.trim());
+    if (!match) continue;
+    const page = titles.get(match[1]);
+    if (!page) continue;
+    /*
+     * 카탈로그의 한 줄은 제목을 한 번 더 적고 시작한다("개혁. 무엇이 언제
+     * 바뀌었는가."). 목록에서는 그게 자연스럽지만 카드에서는 제목이 두 번
+     * 보인다. 앞머리가 제목과 같으면 떼어낸다.
+     */
+    const plain = match[2].replace(/\*\*/g, "").trim();
+    const withoutTitle = plain.startsWith(page.title + ".")
+      ? plain.slice(page.title.length + 1).trim()
+      : plain;
+
+    out.push({
+      name: page.name,
+      title: page.title,
+      blurb: withoutTitle.length > 0 ? withoutTitle : plain,
+    });
+  }
+
+  return out;
+}

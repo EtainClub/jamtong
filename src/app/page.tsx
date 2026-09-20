@@ -7,6 +7,7 @@ import { HomeFeed, type HeroSlide } from "@/features/home/HomeFeed";
 
 import { ArcticHeroVisual, NumberHeroVisual } from "@/features/home/HeroVisuals";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
+import { conceptCards } from "@/lib/wiki/load";
 
 /**
  * 홈 — 모바일 앱 화면.
@@ -91,7 +92,7 @@ export default function Home() {
           achievements={ACHIEVEMENT_CARDS}
           topics={topics}
           totalPublished={totalPublished}
-
+          wikiConcepts={conceptCards()}
           claims={ALL_CLAIMS}
         />
       </main>
