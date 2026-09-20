@@ -69,6 +69,13 @@ const raw: z.input<typeof siteLinkSchema>[] = [
     kind: "official",
   },
   {
+    id: "bluecheernote",
+    title: "이잼 응원 공간",
+    url: "https://bluecheernote.com/",
+    description: "이재명 대통령에게 전하고 싶은 응원과 감사의 마음을 한 장의 메모에 담아주세요.",
+    kind: "community",
+  },
+  {
     id: "cafe-jamgallery",
     title: "재명이네 (네이버 카페)",
     url: "https://cafe.naver.com/jamgallery",
