@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { SAMPLE_BOOK } from "./sample";
+import { TOGETHER_BOOK } from "./together";
 import { bookSchema, type Book } from "./schema";
 
 /**
@@ -66,16 +67,6 @@ const raw: z.input<typeof bookSchema>[] = [
     chapters: [],
   },
   {
-    id: "book-together",
-    slug: "not-lonely-together",
-    title: "함께 가는 길은 외롭지 않습니다",
-    publisher: "위즈덤하우스",
-    year: 2022,
-    tone: "dusk",
-    source: WIKIPEDIA,
-    chapters: [],
-  },
-  {
     id: "book-people",
     slug: "people-do-it",
     title: "결국 국민이 합니다",
@@ -93,7 +84,11 @@ const raw: z.input<typeof bookSchema>[] = [
  * 서가에서 앞자리를 차지하면 안 되지만, 감춰 두면 화면을 확인할 수 없다.
  * 맨 끝에 두고 표지·책 페이지·장 페이지가 모두 샘플이라고 밝힌다.
  */
-export const BOOKS: Book[] = [...raw.map((book) => bookSchema.parse(book)), SAMPLE_BOOK];
+export const BOOKS: Book[] = [
+  ...raw.map((book) => bookSchema.parse(book)),
+  TOGETHER_BOOK,
+  SAMPLE_BOOK,
+];
 
 /**
  * 오래된 것부터. 한 사람이 무엇을 거쳐 왔는지가 순서로 읽힌다.

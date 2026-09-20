@@ -62,9 +62,9 @@ const raw: z.input<typeof bookSchema> = {
           },
         ],
       },
-      excerpt:
+      body:
         "근거 없는 것은 그리지 않습니다. 화면에 뜨는 모든 수치와 단정은 출처를 가리키고, 출처가 없으면 그 항목 자체가 렌더링되지 않습니다. 빌드가 이를 강제합니다.\n\n사실과 주장을 구분합니다. 다툼이 있는 수치는 사실로 적지 않고 누구의 계산인지 밝힙니다. 쟁점을 빼지 않습니다.",
-      excerptSource: "「이 사이트에 대하여」 중 '지키는 것'",
+      bodySource: "「이 사이트에 대하여」 중 '지키는 것'",
       actions: [
         {
           id: "s1-a1",
@@ -110,9 +110,9 @@ const raw: z.input<typeof bookSchema> = {
           },
         ],
       },
-      excerpt:
+      body:
         "법이 된 것, 시행된 것, 계획된 것, 합의문에 적힌 것은 서로 다른 무게를 갖는다.\n\n이 구분이 무너지면 위키는 보도자료 모음이 된다. 「했다」로 적힌 문장 하나가 다음 ingest에서 다른 페이지로 옮겨지고, 그때는 출처가 「위키에 그렇게 적혀 있다」가 된다.",
-      excerptSource: "위키 「발표된 것과 일어난 것」 중",
+      bodySource: "위키 「발표된 것과 일어난 것」 중",
       actions: [
         {
           id: "s2-a1",
@@ -158,9 +158,9 @@ const raw: z.input<typeof bookSchema> = {
           },
         ],
       },
-      excerpt:
+      body:
         "4층은 단독 근거로 쓰지 않는다. 같은 사실이 1~3층에서 확인될 때만 곁들이고, 확인되지 않으면 그 사실을 그렇게 적는다.",
-      excerptSource: "위키 「자료의 무게」 중",
+      bodySource: "위키 「자료의 무게」 중",
       actions: [
         {
           id: "s3-a1",

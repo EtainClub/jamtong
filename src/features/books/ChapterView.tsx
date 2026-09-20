@@ -12,17 +12,17 @@ import type { Chapter } from "@/content/books/schema";
  * 있게 두는 것이 이 화면의 전부다.
  *
  * 다른 점 하나. 언행은 원문 전체가 있어서 "원문 보기"가 곧 전문이지만, 책은
- * 전문을 실을 수 없다. 그래서 오른쪽 탭은 **요약 원문(발췌)**이고, 발췌를
- * 싣지 못한 장에서는 그 탭이 아예 뜨지 않는다 — 없는 것을 있는 것처럼 두지
- * 않는다.
+ * 전문을 실을 수 없다. 그래서 오른쪽 탭은 **요약 원문**이고, 그 글이 저자의
+ * 문장인지 우리가 옮긴 요약인지를 탭 아래에 밝힌다. 본문을 싣지 못한 장에서는
+ * 탭이 아예 뜨지 않는다 — 없는 것을 있는 것처럼 두지 않는다.
  */
 export function ChapterView({ chapter }: { chapter: Chapter }) {
-  const [view, setView] = useState<"easy" | "excerpt">("easy");
-  const hasExcerpt = Boolean(chapter.excerpt);
+  const [view, setView] = useState<"easy" | "body">("easy");
+  const hasBody = Boolean(chapter.body);
 
   return (
     <>
-      {hasExcerpt && (
+      {hasBody && (
         <div
           role="radiogroup"
           aria-label="보기 방식"
@@ -31,7 +31,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
           {(
             [
               ["easy", "쉽게 보기"],
-              ["excerpt", "요약 원문"],
+              ["body", "요약 원문"],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -50,7 +50,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
         </div>
       )}
 
-      {view === "easy" || !hasExcerpt ? (
+      {view === "easy" || !hasBody ? (
         <section aria-label="쉽게 보기" className="mt-6">
           <p className="text-[14.5px] leading-relaxed text-ink">{chapter.easy.lead}</p>
 
@@ -66,7 +66,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
                 {point.quote && (
                   <details className="mt-2">
                     <summary className="cursor-pointer text-[11px] font-semibold text-navy">
-                      발췌에서 이 대목
+                      요약 원문에서 이 대목
                     </summary>
                     <p className="mt-1.5 border-l border-stone pl-3 text-[12.5px] leading-relaxed text-graphite">
                       {point.quote}
@@ -77,20 +77,34 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
             ))}
           </ol>
 
-          {!hasExcerpt && (
+          {!hasBody && (
             <p className="mt-6 rounded-card border border-stone bg-taupe/50 px-4 py-3 text-[12px] leading-relaxed text-smoke">
-              이 장은 발췌를 싣지 못했습니다. 위의 글은 우리가 옮긴 요약이며, 원문과
-              대보려면 책을 직접 보셔야 합니다.
+              이 장은 요약 원문을 싣지 못했습니다. 위의 글은 쉽게 보기뿐이며, 자세한
+              내용은 책을 직접 보셔야 합니다.
             </p>
           )}
         </section>
       ) : (
         <section aria-label="요약 원문" className="mt-6">
-          <p className="whitespace-pre-wrap text-[14.5px] leading-[1.9] text-ink">
-            {chapter.excerpt}
-          </p>
+          <div className="space-y-4">
+            {(chapter.body ?? "").split("\n\n").map((paragraph, index) => (
+              <p key={index} className="text-[14.5px] leading-[1.9] text-ink">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+
+          {chapter.truncated && (
+            <p className="mt-5 rounded-card border border-stone bg-taupe/50 px-4 py-3 text-[12px] leading-relaxed text-smoke">
+              이 장의 요약 자료가 중간에서 끊겼습니다. 마지막 대목이 비어 있습니다.
+            </p>
+          )}
+
           <p className="mt-4 text-[11px] leading-relaxed text-ash">
-            인용 범위 안의 발췌입니다. 전문이 아닙니다 — {chapter.excerptSource}
+            {chapter.bodyKind === "excerpt"
+              ? "인용 범위 안의 발췌입니다. 전문이 아닙니다"
+              : "책을 읽고 우리가 옮긴 요약입니다. 저자의 문장이 아닙니다"}
+            {chapter.bodySource ? ` — ${chapter.bodySource}` : "."}
           </p>
         </section>
       )}

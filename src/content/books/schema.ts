@@ -10,13 +10,14 @@ import { z } from "zod";
  * 그래서 세 가지를 지킨다.
  *
  * ★ 전문을 싣지 않는다.
- *   챕터마다 우리가 옮긴 요약을 두고, 원문은 **인용 범위 안의 발췌**만 싣는다.
- *   발췌가 없으면 그 챕터는 "요약만 있는 챕터"라고 화면이 밝힌다.
+ *   장마다 본문이 하나 있는데, 그것이 **책의 문장인지 우리가 옮긴 요약인지**를
+ *   bodyKind가 가른다. 지금 들어온 자료는 전부 요약이다 — 책을 읽고 우리가
+ *   다시 쓴 글이지 저자의 문장이 아니다. 화면도 그렇게 밝힌다. 저자의 문장을
+ *   그대로 실을 때는 인용 범위 안의 발췌만 싣고 어디서 옮겼는지 적는다.
  *
  * ★ 옮긴 토막에는 옮긴 자리를 붙인다.
- *   발췌를 실은 챕터에서는 쉽게 보기의 각 토막이 발췌의 어느 대목을 옮긴
- *   것인지 그대로 붙인다. 붙인 문장이 발췌에 없으면 빌드가 깨진다. 언행의
- *   규율을 그대로 가져온다.
+ *   쉽게 보기의 각 토막이 본문의 어느 대목을 줄인 것인지 그대로 붙인다.
+ *   붙인 문장이 본문에 없으면 빌드가 깨진다. 언행의 규율을 그대로 가져온다.
  *
  * ★ 읽고 끝나지 않게 한다.
  *   이 섹션의 목적은 독후감이 아니다. 챕터마다 **읽은 사람이 할 수 있는 일**을
@@ -71,8 +72,8 @@ export const bookPointSchema = z.object({
   title: z.string(),
   say: z.string(),
   /**
-   * 옮긴 자리의 발췌. 챕터에 excerpt가 있으면 **그 안에 그대로** 있어야 한다.
-   * 발췌를 싣지 못한 챕터에서는 비워 둔다 — 없는 원문을 가리키게 할 수는 없다.
+   * 옮긴 자리의 본문. 챕터에 body가 있으면 **그 안에 그대로** 있어야 한다.
+   * 본문을 싣지 못한 장에서는 비워 둔다 — 없는 글을 가리키게 할 수는 없다.
    */
   quote: z.string().optional(),
 });
@@ -93,14 +94,26 @@ export const chapterSchema = z.object({
     points: z.array(bookPointSchema).min(1),
   }),
   /**
-   * 요약 원문 — 인용 범위 안의 발췌.
+   * 요약 원문.
    *
-   * 없으면 화면이 "발췌를 싣지 못했다"고 밝히고 요약만 보인다. 있는 척하지
-   * 않는다.
+   * 없으면 화면이 그렇게 밝히고 쉽게 보기만 보인다. 있는 척하지 않는다.
    */
-  excerpt: z.string().optional(),
-  /** 발췌의 출처. 몇 쪽인지까지. excerpt가 있으면 반드시 있어야 한다. */
-  excerptSource: z.string().optional(),
+  body: z.string().optional(),
+  /**
+   * 그 본문이 무엇인가.
+   *   summary  우리가 읽고 다시 쓴 요약. 저자의 문장이 아니다.
+   *   excerpt  저자의 문장 그대로. 인용 범위 안에서만.
+   */
+  bodyKind: z.enum(["summary", "excerpt"]).default("summary"),
+  /** 어디서 온 본문인지. 발췌라면 몇 쪽인지까지. */
+  bodySource: z.string().optional(),
+  /**
+   * 본문이 중간에서 끊겼는가.
+   *
+   * 자료가 잘린 채 들어오는 일이 실제로 있었다. 조용히 지우면 읽는 사람은
+   * 그 장을 다 읽었다고 여긴다. 그래서 끊겼다고 화면에 적는다.
+   */
+  truncated: z.boolean().optional(),
   actions: z.array(actionItemSchema).min(1, "행동이 없는 챕터는 둘 수 없다"),
 });
 export type Chapter = z.infer<typeof chapterSchema>;
@@ -163,24 +176,25 @@ export function validateBook(book: Book): string[] {
   for (const chapter of book.chapters) {
     const where = `${chapter.slug}`;
 
-    if (chapter.excerpt && !chapter.excerptSource) {
-      errors.push(`${where}: 발췌를 실었으면 어디서 옮겼는지 적어야 한다`);
+    if (chapter.bodyKind === "excerpt" && !chapter.bodySource) {
+      errors.push(`${where}: 저자의 문장을 실었으면 어디서 옮겼는지 적어야 한다`);
     }
 
     for (const point of chapter.easy.points) {
       if (!point.quote) continue;
-      if (!chapter.excerpt) {
-        errors.push(`${where}/${point.id}: 발췌가 없는데 옮긴 자리를 가리킨다`);
+      if (!chapter.body) {
+        errors.push(`${where}/${point.id}: 본문이 없는데 옮긴 자리를 가리킨다`);
         continue;
       }
-      /* 언행과 같은 불변식 — 붙인 문장이 발췌에 그대로 있어야 한다. */
-      if (!chapter.excerpt.includes(point.quote)) {
-        errors.push(`${where}/${point.id}: 옮긴 자리가 발췌에 없다 — "${point.quote.slice(0, 30)}…"`);
+      /* 언행과 같은 불변식 — 붙인 문장이 본문에 그대로 있어야 한다. */
+      if (!chapter.body.includes(point.quote)) {
+        errors.push(`${where}/${point.id}: 옮긴 자리가 본문에 없다 — "${point.quote.slice(0, 30)}…"`);
       }
     }
 
     for (const action of chapter.actions) {
-      if (action.link && !/^(https?:\/\/|\/)/.test(action.link.href)) {
+      /* 사이트 안(/), 바깥(http), 그리고 전화. 상담 전화는 실제로 할 수 있는 행동이다. */
+      if (action.link && !/^(https?:\/\/|tel:|\/)/.test(action.link.href)) {
         errors.push(`${where}/${action.id}: 갈 곳이 주소가 아니다 — ${action.link.href}`);
       }
     }

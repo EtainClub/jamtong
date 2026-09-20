@@ -45,7 +45,14 @@ export function ActionList({ actions }: { actions: ActionItem[] }) {
               <p className="mt-1 text-[13px] leading-relaxed text-smoke">{action.detail}</p>
 
               {action.link &&
-                (action.link.href.startsWith("/") ? (
+                (action.link.href.startsWith("tel:") ? (
+                  <a
+                    href={action.link.href}
+                    className="mt-2 inline-block text-[12px] font-medium text-navy hover:underline"
+                  >
+                    {action.link.label} ☎
+                  </a>
+                ) : action.link.href.startsWith("/") ? (
                   <Link
                     href={action.link.href}
                     className="mt-2 inline-block text-[12px] font-medium text-navy hover:underline"

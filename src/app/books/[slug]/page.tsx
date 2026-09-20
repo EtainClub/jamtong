@@ -121,9 +121,9 @@ export default async function BookPage({
                       <span className="rounded-full bg-taupe px-2 py-0.5 font-semibold text-navy">
                         할 일 {chapter.actions.length}
                       </span>
-                      {!chapter.excerpt && (
+                      {!chapter.body && (
                         <span className="rounded-full border border-stone px-2 py-0.5 text-ash">
-                          발췌 없음
+                          요약 원문 없음
                         </span>
                       )}
                     </span>

@@ -106,7 +106,7 @@ if (cheerErrors.length > 0) {
 for (const book of BOOKS) {
   const errors = validateBook(book);
   const actions = book.chapters.reduce((n, c) => n + c.actions.length, 0);
-  const excerpts = book.chapters.filter((c) => c.excerpt).length;
+  const bodies = book.chapters.filter((c) => c.body).length;
 
   if (errors.length > 0) {
     failed = true;
@@ -122,7 +122,7 @@ for (const book of BOOKS) {
 
   console.log(
     `\u2713 자서전 ${book.slug} — 챕터 ${book.chapters.length}, ` +
-      `발췌 ${excerpts}, 행동 ${actions}`,
+      `본문 ${bodies}, 행동 ${actions}`,
   );
 }
 
