@@ -45,13 +45,20 @@ const RISE = 16;
 const TILT = 24;
 /** 표지 너비. */
 const COVER = 126;
+/**
+ * 이만큼 움직이기 전에는 끌기가 아니다.
+ *
+ * 누를 때 곧바로 끌기로 치면 손가락이 몇 픽셀 떨리는 것만으로 책이 열리지
+ * 않는다. 반대로 문턱이 너무 크면 서가가 늦게 따라온다.
+ */
+const DRAG_SLOP = 5;
 
 export function BookHelix({ books }: { books: Book[] }) {
   /** 지금 앞에 있는 자리. 끄는 동안에는 정수가 아니다. */
   const [at, setAt] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [flat, setFlat] = useState(false);
-  const from = useRef<{ x: number; at: number } | null>(null);
+  const from = useRef<{ x: number; at: number; id: number } | null>(null);
   const wheeled = useRef(0);
   /* 이번 몸짓에서 손이 움직인 거리. 끌고 놓았는데 책이 열리면 안 된다. */
   const moved = useRef(0);
@@ -99,39 +106,53 @@ export function BookHelix({ books }: { books: Book[] }) {
           event.preventDefault();
           go(step);
         }}
+        /*
+         * ★ 누르는 순간에 몸짓을 정하지 않는다.
+         *
+         *   처음에는 pointerdown에서 preventDefault를 불렀다. 그러면 네이티브
+         *   링크 드래그는 막히지만 **브라우저가 클릭까지 함께 삼킨다.** 표지를
+         *   눌러도 책이 열리지 않고 어쩌다 한 번만 열리던 것이 이것 때문이다.
+         *
+         *   그래서 누름과 끌기를 갈랐다. 누를 때는 자리만 기억하고 아무것도
+         *   막지 않는다. 손이 5px 넘게 움직인 뒤에야 끌기로 바꾸고, 그때부터
+         *   포인터를 이 상자에 묶는다. 움직이지 않고 뗀 것은 그냥 클릭이다.
+         */
         onPointerDown={(event) => {
-          /*
-           * 표지는 <a>다. 마우스로 누르는 순간 브라우저가 링크를 잡아
-           * 네이티브 드래그를 시작하고, 그때부터 pointermove가 오지 않는다.
-           * 처음에 마우스로 밀리지 않던 이유가 이것이었다. 기본 동작을 막고
-           * 포인터를 이 상자에 묶는다.
-           */
-          event.preventDefault();
-          from.current = { x: event.clientX, at };
+          from.current = { x: event.clientX, at, id: event.pointerId };
           moved.current = 0;
-          setDragging(true);
-          /* 포인터를 놓친 채 끌면 상자 밖에서 멈춘다. 잡히지 않는 환경도 있다. */
-          try {
-            event.currentTarget.setPointerCapture(event.pointerId);
-          } catch {
-            /* 잡지 못해도 끄는 것 자체는 된다. */
-          }
         }}
         onPointerMove={(event) => {
           const start = from.current;
           if (!start) return;
-          moved.current = Math.max(moved.current, Math.abs(event.clientX - start.x));
-          /* 한 칸 너비만큼 끌면 한 권이 넘어간다. 손끝과 서가가 같이 움직인다. */
-          setAt(clamp(start.at - (event.clientX - start.x) / SPACING));
+
+          const dx = event.clientX - start.x;
+          moved.current = Math.max(moved.current, Math.abs(dx));
+          if (moved.current <= DRAG_SLOP) return;
+
+          if (!dragging) {
+            setDragging(true);
+            /* 여기서부터는 끌기다. 상자 밖으로 나가도 놓치지 않게 잡아 둔다. */
+            try {
+              event.currentTarget.setPointerCapture(start.id);
+            } catch {
+              /* 잡지 못해도 끄는 것 자체는 된다. */
+            }
+          }
+
+          /* 밀린 거리에서 문턱을 빼야 손끝과 서가가 같은 속도로 움직인다. */
+          const pulled = dx - Math.sign(dx) * DRAG_SLOP;
+          setAt(clamp(start.at - pulled / SPACING));
         }}
         onPointerUp={() => {
           if (!from.current) return;
           from.current = null;
+          if (!dragging) return;
           setDragging(false);
           setAt((prev) => clamp(Math.round(prev)));
         }}
         onPointerCancel={() => {
           from.current = null;
+          if (!dragging) return;
           setDragging(false);
           setAt((prev) => clamp(Math.round(prev)));
         }}
@@ -295,7 +316,7 @@ function Cover({
          * 끌고 나서 손을 뗀 것은 클릭이 아니다. 몇 픽셀만 밀려도 브라우저는
          * 클릭으로 치므로, 움직인 거리를 보고 가른다.
          */
-        if (moved.current > 6) {
+        if (moved.current > DRAG_SLOP) {
           event.preventDefault();
           return;
         }
