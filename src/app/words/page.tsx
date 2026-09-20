@@ -6,6 +6,7 @@ import { STATEMENTS } from "@/content/words";
 import { KIND_LABEL } from "@/content/words/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
+import { BooksPanel } from "@/features/books/BooksPanel";
 import { CheerBoard } from "@/features/words/CheerBoard";
 import { WordsTabs } from "@/features/words/WordsTabs";
 
@@ -34,11 +35,11 @@ export default function WordsPage() {
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-10 pt-6">
         <h1 className="text-2xl font-light tracking-[-0.02em] text-ink">언행</h1>
         <p className="mt-2 text-[13px] leading-relaxed text-smoke">
-          이재명 대통령이 직접 한 말과 행동, 그리고 지지자들이 만들어 올린 응원
-          영상을 나누어 둡니다.
+          이재명 대통령이 직접 한 말과 행동, 지지자들이 만들어 올린 응원 영상,
+          그리고 본인이 쓴 책을 나누어 둡니다.
         </p>
 
-        <WordsTabs words={<WordsPanel />} cheers={<CheerPanel />} />
+        <WordsTabs words={<WordsPanel />} cheers={<CheerPanel />} books={<BooksPanel />} />
       </main>
 
       <BottomNav />

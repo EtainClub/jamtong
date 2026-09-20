@@ -11,6 +11,8 @@ import { STATEMENTS } from "../src/content/words";
 import { validateStatement } from "../src/content/words/schema";
 import { CHEERS } from "../src/content/cheers";
 import { validateCheers } from "../src/content/cheers/schema";
+import { BOOKS } from "../src/content/books";
+import { validateBook } from "../src/content/books/schema";
 
 let failed = false;
 
@@ -94,6 +96,44 @@ if (cheerErrors.length > 0) {
 } else {
   console.log(`✓ 지지자 응원 — 영상 ${CHEERS.length}편`);
 }
+/*
+ * 자서전.
+ *
+ * 두 가지를 본다. 옮긴 토막이 발췌에 실재하는가(언행과 같은 규율), 그리고
+ * 챕터마다 행동이 하나라도 있는가. 뒤의 것이 이 섹션의 존재 이유다 —
+ * 읽고 끝나는 글을 하나 더 만들려는 것이 아니다.
+ */
+for (const book of BOOKS) {
+  const errors = validateBook(book);
+  const actions = book.chapters.reduce((n, c) => n + c.actions.length, 0);
+  const excerpts = book.chapters.filter((c) => c.excerpt).length;
+
+  if (errors.length > 0) {
+    failed = true;
+    console.error(`\n\u2717 자서전 ${book.slug}`);
+    for (const error of errors) console.error(`    ${error}`);
+    continue;
+  }
+
+  if (book.chapters.length === 0) {
+    console.warn(`  \u26a0 자서전 ${book.slug} — 챕터가 아직 없습니다 (서지 정보만)`);
+    continue;
+  }
+
+  console.log(
+    `\u2713 자서전 ${book.slug} — 챕터 ${book.chapters.length}, ` +
+      `발췌 ${excerpts}, 행동 ${actions}`,
+  );
+}
+
+const unsourced = BOOKS.filter((book) => !book.source.verified);
+if (unsourced.length > 0) {
+  console.warn(
+    `  \u26a0 서지 정보를 1차 자료로 대조하지 않은 책 ${unsourced.length}권: ` +
+      unsourced.map((b) => b.slug).join(", "),
+  );
+}
+
 if (failed) {
   console.error("\n\ucf58\ud150\uce20 \uac80\uc99d \uc2e4\ud328.");
   process.exit(1);

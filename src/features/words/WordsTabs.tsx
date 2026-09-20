@@ -5,11 +5,11 @@ import { useRef, useState } from "react";
 /**
  * 언행 탭.
  *
- * ★ 두 탭에 있는 것은 같은 종류의 자료가 아니다.
- *   왼쪽은 본인이 한 말 그 자체이고, 오른쪽은 남들이 만들어 올린 영상이다.
- *   한 목록에 섞으면 "대통령이 그렇게 말했다"와 "누가 대통령을 두고 그렇게
- *   말했다"가 같은 줄에 선다. 탭으로 가르는 이유가 그것이고, 그래서 처음
- *   열리는 쪽은 늘 왼쪽이다.
+ * ★ 세 탭에 있는 것은 같은 종류의 자료가 아니다.
+ *   첫째는 본인이 한 말 그 자체이고, 둘째는 남들이 만들어 올린 영상이며,
+ *   셋째는 본인이 쓴 책이다. 한 목록에 섞으면 "대통령이 그렇게 말했다"와
+ *   "누가 대통령을 두고 그렇게 말했다"가 같은 줄에 선다. 탭으로 가르는
+ *   이유가 그것이고, 그래서 처음 열리는 쪽은 늘 왼쪽이다.
  *
  * ★ 주소에 담지 않는다.
  *   담으려면 searchParams를 읽어야 하고, 그러면 이 페이지가 통째로 매 요청
@@ -20,6 +20,7 @@ import { useRef, useState } from "react";
 const TABS = [
   { id: "words", label: "대통령의 언행" },
   { id: "cheers", label: "지지자 응원" },
+  { id: "books", label: "자서전" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -27,9 +28,11 @@ type TabId = (typeof TABS)[number]["id"];
 export function WordsTabs({
   words,
   cheers,
+  books,
 }: {
   words: React.ReactNode;
   cheers: React.ReactNode;
+  books: React.ReactNode;
 }) {
   const [active, setActive] = useState<TabId>("words");
   const listRef = useRef<HTMLDivElement>(null);
@@ -111,6 +114,16 @@ export function WordsTabs({
         hidden={active !== "cheers"}
       >
         {opened.has("cheers") && cheers}
+      </div>
+
+      <div
+        role="tabpanel"
+        id="panel-books"
+        aria-labelledby="tab-books"
+        hidden={active !== "books"}
+        className="mt-6"
+      >
+        {opened.has("books") && books}
       </div>
     </>
   );
