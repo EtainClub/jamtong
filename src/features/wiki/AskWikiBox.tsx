@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
+import { track } from "@/lib/analytics";
 import { useAuth } from "@/lib/firebase/auth";
 import { firebaseAuth } from "@/lib/firebase/client";
 import type { ResolvedAnchor } from "@/lib/wiki/anchors";
@@ -63,7 +64,15 @@ export function AskWikiBox() {
         setError(data.error ?? "답을 불러오지 못했습니다.");
         return;
       }
-      setAnswer(data as WikiAnswer);
+      const parsed = data as WikiAnswer;
+      /* 물음 자체는 보내지 않는다. 길이와 근거가 붙었는지만 센다. */
+      track("agent_question", {
+        surface: "wiki",
+        grounded: parsed.grounded,
+        length: trimmed.length,
+        pages: parsed.pages.length,
+      });
+      setAnswer(parsed);
     } catch {
       setError("연결에 실패했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {

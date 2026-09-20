@@ -21,13 +21,28 @@ const config = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 export const firebaseConfigured = Boolean(config.apiKey && config.projectId);
 
+/**
+ * 계측을 켤 것인가.
+ *
+ * 측정 ID가 없으면 계측은 아예 붙지 않는다 — 스크립트도, 쿠키도 없다.
+ * 로그인·이력과 달리 계측은 운영자가 환경변수를 넣어 **켜는** 것이고,
+ * 넣지 않은 환경(손에서 도는 dev 포함)에서는 없는 기능이다.
+ */
+export const analyticsConfigured = Boolean(firebaseConfigured && config.measurementId);
+
 function app(): FirebaseApp | null {
   if (typeof window === "undefined" || !firebaseConfigured) return null;
   return getApps().length ? getApp() : initializeApp(config);
+}
+
+/** 계측 모듈이 앱 인스턴스를 받는다. 그 밖에는 auth/db로 충분하다. */
+export function firebaseApp(): FirebaseApp | null {
+  return app();
 }
 
 export function firebaseAuth(): Auth | null {

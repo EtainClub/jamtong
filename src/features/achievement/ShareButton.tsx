@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { track } from "@/lib/analytics";
 import { useVisualState } from "@/lib/visual-state/store";
 import { buildShareUrl } from "@/lib/visual-state/url-sync";
 
@@ -17,7 +18,10 @@ export function ShareButton({ compact = false }: { compact?: boolean } = {}) {
   const [copied, setCopied] = useState(false);
 
   const onShare = async () => {
-    const url = buildShareUrl(window.location.origin, pathname, useVisualState.getState());
+    const state = useVisualState.getState();
+    const url = buildShareUrl(window.location.origin, pathname, state);
+    /* 무엇을 공유했는지가 아니라 어느 장면에서 공유가 나오는지를 센다. */
+    track("share_create", { surface: "achievement", scene: state.sceneId });
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);

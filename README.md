@@ -239,10 +239,29 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
+
+# 계측 (없으면 계측 자체가 없다 — 스크립트도 쿠키도 붙지 않는다)
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-...
 ```
 
-둘 다 **부속이다.** 없어도 사이트의 본체(업적·연표·관계도·모션·근거)는 그대로
+셋 다 **부속이다.** 없어도 사이트의 본체(업적·연표·관계도·모션·근거)는 그대로
 동작한다.
+
+### 계측
+
+측정 ID를 넣은 환경에서만 다섯 가지를 센다(설계서 41장).
+
+| 이벤트 | 언제 |
+|---|---|
+| `share_create` | 업적·언행의 공유 링크를 만들었을 때 |
+| `evidence_open` | 주장 옆의 근거를 열었을 때 |
+| `timeline_seek` | 연표를 **직접** 옮겼을 때 (스크롤은 세지 않는다) |
+| `agent_question` | AI 안내나 위키에 물었을 때 |
+| `agent_action` | 그 답이 화면을 움직였을 때 |
+
+조회수는 세지 않는다 — 설계서가 보려는 것은 "근거를 열었는가"이지 "몇 명이
+지나갔는가"가 아니다. **사람이 쓴 글은 보내지 않는다.** 질문 문장 대신 길이와
+근거가 붙었는지만 올라간다.
 
 ### 검사
 

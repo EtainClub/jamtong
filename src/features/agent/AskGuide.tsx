@@ -6,6 +6,7 @@ import type { AgentAction } from "@/lib/agent/actions";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 import { SCENES_BY_ACHIEVEMENT } from "@/features/achievement/scenes";
 import { runActions } from "./execute";
+import { track } from "@/lib/analytics";
 import { useAuth } from "@/lib/firebase/auth";
 import { saveAsk } from "@/lib/firebase/history";
 
@@ -95,6 +96,15 @@ export function AskGuide({
 
       setAnswer(data);
 
+      /* 물음 자체는 보내지 않는다. 길이와 근거가 붙었는지만 센다. */
+      track("agent_question", {
+        surface: "guide",
+        grounded: Boolean(data.grounded),
+        length: trimmed.length,
+        actions: data.actions.length,
+        achievement: achievementSlug,
+      });
+
       /*
        * 이력을 남긴다. 실패해도 답변은 이미 화면에 있다 — 저장이 안 됐다고
        * 답을 못 보게 하지 않는다. 로그인은 여기서 처음 필요해진다.
@@ -115,7 +125,10 @@ export function AskGuide({
         // 조용히 넘긴다. 이력은 부속이고 답변이 본체다.
       }
 
-      if (data.actions.length > 0) await runActions(data.actions);
+      if (data.actions.length > 0) {
+        track("agent_action", { achievement: achievementSlug, count: data.actions.length });
+        await runActions(data.actions);
+      }
     } catch {
       setError("연결에 실패했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {

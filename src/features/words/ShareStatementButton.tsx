@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
+import { track } from "@/lib/analytics";
+
 /**
  * 언행 한 편을 공유한다.
  *
@@ -27,6 +29,7 @@ export function ShareStatementButton({
 
   const onShare = async () => {
     const url = `${window.location.origin}${pathname}`;
+    track("share_create", { surface: "words" });
 
     if (navigator.share) {
       try {

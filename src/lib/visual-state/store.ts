@@ -2,6 +2,8 @@
 
 import { create } from "zustand";
 
+import { track } from "@/lib/analytics";
+
 /**
  * Global Visual State (설계서 11장).
  *
@@ -124,14 +126,24 @@ export const useVisualState = create<VisualState & VisualActions>((set) => ({
 
   setActiveRoute: (activeRouteId) => set({ activeRouteId }),
   toggleBaseline: () => set((s) => ({ showBaseline: !s.showBaseline })),
-  seekTimeline: (timelineCursor) => set({ timelineCursor }),
+  /*
+   * 연표를 직접 옮긴 것만 센다. 스크롤로 흘러가는 것은 setScrollProgress이지
+   * 이 길로 오지 않는다 — "직접 움직였는가"가 설계서 41장이 보려는 것이다.
+   */
+  seekTimeline: (timelineCursor) => {
+    if (timelineCursor) track("timeline_seek", { event_id: timelineCursor });
+    set({ timelineCursor });
+  },
   setScenario: (activeScenarioId) => set({ activeScenarioId }),
 
   focusEntity: (entityId) =>
     set((s) => ({ focusedEntityId: s.focusedEntityId === entityId ? null : entityId })),
   hoverRelation: (hoveredRelationId) => set({ hoveredRelationId }),
 
-  openEvidence: (claimId) => set({ openPanel: "evidence", selectedClaimId: claimId }),
+  openEvidence: (claimId) => {
+    track("evidence_open", { claim_id: claimId });
+    set({ openPanel: "evidence", selectedClaimId: claimId });
+  },
   closePanel: () => set({ openPanel: null, selectedClaimId: null }),
   setScrubbing: (isScrubbing) => set({ isScrubbing }),
 
