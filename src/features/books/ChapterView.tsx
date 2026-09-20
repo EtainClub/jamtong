@@ -6,7 +6,7 @@ import type { Chapter } from "@/content/books/schema";
 import { CardCarousel } from "@/features/carousel/CardCarousel";
 import { ChapterBody } from "./ChapterBody";
 import { ChapterShorts } from "./ChapterShorts";
-import { BOOK_ART } from "./art";
+import { Figure } from "./Figure";
 
 /**
  * 장 하나 — 쉽게 보기와 요약 원문.
@@ -76,13 +76,11 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
               itemLabel={(i) => `${i + 1}번 장면`}
             >
               {(point, i, total) => {
-                const Art = point.art ? BOOK_ART[point.art] : null;
-
                 return (
                   <>
-                    {Art && (
+                    {point.figure && (
                       <div className="aspect-[4/3] w-full">
-                        <Art />
+                        <Figure figure={point.figure} />
                       </div>
                     )}
 

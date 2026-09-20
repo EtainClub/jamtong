@@ -25,37 +25,97 @@ import { z } from "zod";
  */
 
 /**
- * 장 삽화.
+ * 장면 도형.
  *
- * 업적의 ELI5_ART, 언행의 WORD_ART와 한 통에 담지 않는다. 저쪽은 항로·예산
- * 같은 사실의 모양이고 언행은 사람 사이에 오가는 일인데, 책은 한 사람의
- * 생애에서 되풀이되는 장면이다 — 공장, 밤공부, 갈림길, 저울.
+ * ★ 그림을 낱장으로 그리지 않는다.
+ *   스물두 장에 장면이 예순여섯이다. 하나씩 그리면 예순여섯 장의 그림이
+ *   생기고, 그 그림들은 서로 말이 달라 결국 장식이 된다. 업적의 쉬운 설명이
+ *   힘을 갖는 이유는 그림이 예뻐서가 아니라 **수를 나란히 놓기 때문**이다
+ *   (20,400km 옆에 13,000km).
  *
- * 그래서 수를 적게 두고 여러 장에서 다시 쓴다. 장마다 새 그림을 그리면
- * 스물두 장에 예순여섯 장이 필요하고, 그렇게 늘어난 그림은 장면이 아니라
- * 장식이 된다.
+ *   그래서 도형을 일곱으로 정해 두고 장면마다 **데이터만** 넘긴다. 무엇을
+ *   보여줄지 고민하는 자리가 "어떤 도형인가"로 좁아지고, 새 장을 넣을 때
+ *   그림을 그릴 필요가 없다.
+ *
+ * 톤은 셋뿐이다. navy는 이야기의 주체, burgundy는 대가나 상처, ash는 배경.
  */
-export const BookArt = z.enum([
-  "factory", // 공장과 다친 손
-  "night-study", // 밤에 하는 공부
-  "two-roads", // 안에서 바꿀까 밖에서 바꿀까
-  "promise", // 약속
-  "scale", // 강한 쪽을 누르고 약한 쪽을 든다
-  "square", // 광장
-  "signatures", // 이름을 모은다
-  "ledger", // 빚을 적은 장부
-  "open-door", // 문을 열어 둔 방
-  "alley", // 골목
-  "network", // 흩어진 사람들이 이어진다
-  "startline", // 출발선이 다르다
-  "hands", // 손을 내민다
-  "cut-tape", // 앞뒤가 잘린 녹취
-  // 1장 — 수를 그리는 것들
-  "age-twelve", // 또래는 학교에, 그는 공장에
-  "no-safety-net", // 다친 것 셋, 받은 것 0
-  "bottom-to-top", // 두 번 바닥을 치고 올라온 선
+export const figureToneSchema = z.enum(["navy", "burgundy", "ash"]);
+export type FigureTone = z.infer<typeof figureToneSchema>;
+
+const cell = z.object({
+  label: z.string(),
+  value: z.string().optional(),
+  tone: figureToneSchema.optional(),
+});
+
+export const bookFigureSchema = z.discriminatedUnion("kind", [
+  /** 큰 수 하나. 이 장면이 수 하나로 끝날 때. */
+  z.object({
+    kind: z.literal("number"),
+    value: z.string(),
+    unit: z.string().optional(),
+    note: z.string().optional(),
+    caption: z.string(),
+    tone: figureToneSchema.optional(),
+  }),
+  /** 둘을 맞붙인다. "또래가 있던 곳 / 그가 있던 곳". */
+  z.object({
+    kind: z.literal("versus"),
+    left: cell,
+    right: cell,
+    middle: z.string().optional(),
+    caption: z.string(),
+  }),
+  /** 항목을 쌓고 아래에 합을 둔다. 다친 것 셋과 받은 것 0처럼. */
+  z.object({
+    kind: z.literal("stack"),
+    title: z.string(),
+    items: z.array(cell).min(2).max(4),
+    footer: cell.optional(),
+  }),
+  /** 오르내리는 선. 시간이 흐르며 무엇이 달라졌는가. */
+  z.object({
+    kind: z.literal("line"),
+    points: z.array(
+      z.object({
+        label: z.string(),
+        /** 0이 바닥, 100이 꼭대기. */
+        y: z.number().min(0).max(100),
+        tone: figureToneSchema.optional(),
+      }),
+    ).min(3).max(5),
+    caption: z.string(),
+  }),
+  /** 단계. 하나가 다음으로 이어질 때. */
+  z.object({
+    kind: z.literal("steps"),
+    steps: z.array(cell).min(2).max(4),
+    caption: z.string(),
+  }),
+  /** 길이를 견주는 막대. 수가 둘 이상일 때. */
+  z.object({
+    kind: z.literal("bars"),
+    bars: z.array(
+      z.object({
+        label: z.string(),
+        /** 막대 길이의 비율(0~100). 값의 크기가 아니라 보이는 길이다. */
+        ratio: z.number().min(4).max(100),
+        value: z.string(),
+        tone: figureToneSchema.optional(),
+      }),
+    ).min(2).max(3),
+    caption: z.string(),
+  }),
+  /** 여럿 가운데 얼마. 광장의 사람, 서명한 이름. */
+  z.object({
+    kind: z.literal("grid"),
+    total: z.number().int().min(8).max(60),
+    filled: z.number().int().min(1),
+    label: z.string(),
+    caption: z.string(),
+  }),
 ]);
-export type BookArt = z.infer<typeof BookArt>;
+export type BookFigure = z.infer<typeof bookFigureSchema>;
 
 /** 표지. 실제 표지 그림은 저작물이라 쓰지 않는다. 색으로만 가른다. */
 export const bookToneSchema = z.enum(["ink", "clay", "moss", "dusk", "rust", "slate"]);
@@ -118,8 +178,8 @@ export const bookPointSchema = z.object({
   id: z.string(),
   title: z.string(),
   say: z.string(),
-  /** 이 토막의 그림. 없으면 글만 나온다. */
-  art: BookArt.optional(),
+  /** 이 토막의 도형. 없으면 글만 나온다. */
+  figure: bookFigureSchema.optional(),
   /**
    * 옮긴 자리의 본문. 챕터에 body가 있으면 **그 안에 그대로** 있어야 한다.
    * 본문을 싣지 못한 장에서는 비워 둔다 — 없는 글을 가리키게 할 수는 없다.
