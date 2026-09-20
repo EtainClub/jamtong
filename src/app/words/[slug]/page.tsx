@@ -7,6 +7,7 @@ import { KIND_LABEL } from "@/content/words/schema";
 import { getAchievement } from "@/content/achievements";
 import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
+import { ShareStatementButton } from "@/features/words/ShareStatementButton";
 import { StatementView } from "@/features/words/StatementView";
 
 export function generateStaticParams() {
@@ -56,14 +57,18 @@ export default async function StatementPage({
   return (
     <>
       <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
-        <div className="mx-auto flex h-full max-w-[560px] items-center gap-1.5 px-4">
-          <BackButton />
-          <Link
-            href="/words"
-            className="shrink-0 text-sm font-semibold text-smoke transition-colors hover:text-ink"
-          >
-            언행
-          </Link>
+        <div className="mx-auto flex h-full max-w-[560px] items-center justify-between gap-2 px-4">
+          {/* 뒤로와 목록을 한 덩어리로. 왼쪽 위는 '나가는 길'이 있는 자리다. */}
+          <div className="flex min-w-0 items-center gap-1.5">
+            <BackButton />
+            <Link
+              href="/words"
+              className="shrink-0 text-sm font-semibold text-smoke transition-colors hover:text-ink"
+            >
+              언행
+            </Link>
+          </div>
+          <ShareStatementButton title={statement.title} compact />
         </div>
       </header>
 
