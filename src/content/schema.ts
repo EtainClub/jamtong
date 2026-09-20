@@ -568,15 +568,52 @@ export const EntityKind = z.enum([
 ]);
 export type EntityKind = z.infer<typeof EntityKind>;
 
+/**
+ * 이 노드가 법적으로 누구인가 (검토 문서 3장).
+ *
+ * `kind`와 겹쳐 보이지만 보는 것이 다르다. `kind`는 화면에서 무엇으로
+ * 그릴지를 정하고, 이것은 **무엇을 적어도 되는지**를 정한다. 한국은 사실
+ * 적시도 명예훼손이 되고(정보통신망법 §70①), 그 위험은 상대가 사인일 때
+ * 가장 크다.
+ *
+ *   public-figure       공직자·후보처럼 공적 검증의 대상
+ *   organization        기관·기업·사업·장소·국가·집단
+ *   private-individual  실존 사인 — **올리지 않는다**
+ */
+export const SubjectType = z.enum(["public-figure", "organization", "private-individual"]);
+export type SubjectType = z.infer<typeof SubjectType>;
+
+/** kind로 정해지는 기본값. 사람 노드가 생길 때만 entity가 직접 적는다. */
+const SUBJECT_BY_KIND: Record<EntityKind, SubjectType> = {
+  government: "organization",
+  organization: "organization",
+  company: "organization",
+  project: "organization",
+  place: "organization",
+  country: "organization",
+  group: "organization",
+};
+
 export const entitySchema = z.object({
   id: z.string(),
   name: z.string(),
   kind: EntityKind,
+  /**
+   * 적지 않으면 kind에서 정해진다. 지금 EntityKind에는 사람이 없어서 전부
+   * organization이 된다 — 사람 노드를 처음 세우는 사람이 이 칸을 마주하게
+   * 하려고 스키마에 둔다. 나중에 붙이면 그때는 마이그레이션이 된다.
+   */
+  subjectType: SubjectType.optional(),
   description: z.string().optional(),
   /** 화면 중앙에 두고 나머지를 둘러 배치한다. 스토리당 하나만. */
   isFocus: z.boolean().default(false),
 });
 export type Entity = z.infer<typeof entitySchema>;
+
+/** 이 노드를 어떤 대상으로 다뤄야 하는가. 적혀 있으면 그것, 아니면 kind에서. */
+export function subjectTypeOf(entity: Entity): SubjectType {
+  return entity.subjectType ?? SUBJECT_BY_KIND[entity.kind];
+}
 
 export const relationSchema = z.object({
   id: z.string(),
@@ -588,6 +625,13 @@ export const relationSchema = z.object({
   startDate: z.string(),
   startPrecision: DatePrecision,
   endDate: z.string().optional(),
+  /**
+   * 끝난 시점을 얼마나 아는가 (검토 문서 4.1).
+   *
+   * 시작에만 precision이 있었다. 관계가 언제 끝났는지는 대개 시작보다 더
+   * 흐린데, 그것을 적을 칸이 없으면 흐린 날짜가 확정된 날짜처럼 그려진다.
+   */
+  endPrecision: DatePrecision.optional(),
   assertionType: AssertionType,
   assertedBy: z.string().optional(),
   /** ★ 불변식: 근거 없는 관계는 그리지 않는다. */
@@ -631,6 +675,27 @@ export function validateGraph(graph: Graph, claimIds: Set<string>): string[] {
     }
     if (relation.endDate && relation.endDate < relation.startDate) {
       errors.push(`relation "${relation.id}" → endDate가 startDate보다 이르다`);
+    }
+    /* 끝난 날짜를 적었으면 얼마나 아는지도 적는다. 둘은 한 쌍이다. */
+    if (relation.endDate && !relation.endPrecision) {
+      errors.push(`relation "${relation.id}" → endDate가 있는데 endPrecision이 없다`);
+    }
+    if (!relation.endDate && relation.endPrecision) {
+      errors.push(`relation "${relation.id}" → endPrecision만 있고 endDate가 없다`);
+    }
+  }
+
+  /*
+   * 실존 사인은 그리지 않는다 (검토 문서 3장).
+   *
+   * 지금까지 이 원칙은 EntityKind 옆 주석에만 있었다. 주석은 빌드를 멈추지
+   * 못한다. subjectType이 생겼으므로 여기서 막는다.
+   */
+  for (const entity of graph.entities) {
+    if (subjectTypeOf(entity) === "private-individual") {
+      errors.push(
+        `entity "${entity.id}" → 실존 사인은 관계도에 올리지 않는다 (검토 문서 3장)`,
+      );
     }
   }
 

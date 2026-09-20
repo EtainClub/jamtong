@@ -326,6 +326,13 @@ firebase deploy --only firestore:rules
   무엇이 어떻게 다른지 적는다.
 - **한 사람의 공으로 몰지 않는다.** 여러 시정에 걸친 정책은 그렇게 적는다.
   시작도 완성도 남의 몫이라고 적는 편이, 전부 제 몫이라고 적는 것보다 강하다.
+- **실존 사인은 관계도에 올리지 않는다.** 한국은 사실 적시도 명예훼손이 되고
+  (정보통신망법 §70①), 그 위험은 상대가 사인일 때 가장 크다. entity의
+  `subjectType`이 `private-individual`이면 `pnpm validate`가 막는다.
+- **흐린 날짜를 또렷하게 적지 않는다.** relation의 `startPrecision`·
+  `endPrecision`에 `circa`·`unknown`이 있다. 그렇게 적으면 관계도가 흐리게
+  그리고, 연표 커서로 걸러 내지도 않는다 — 자료에 없는 정밀도를 화면이
+  주장하게 두지 않는다.
 
 ---
 

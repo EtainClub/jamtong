@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type {
   Claim,
+  DatePrecision,
   Entity,
   EntityKind,
   Graph,
@@ -53,6 +54,17 @@ interface Props {
   claims: Claim[];
   /** 커서는 연표 이벤트 id로 들어온다. 비교하려면 날짜로 바꿔야 한다. */
   timeline: TimelineEvent[];
+}
+
+/**
+ * 날짜가 흐린 관계인가 (검토 문서 4.1).
+ *
+ * 흐린 날짜를 또렷하게 그리는 순간, 화면은 자료에 없는 정밀도를 주장한다.
+ * 관계도의 신뢰는 거기서 무너진다.
+ */
+function isVagueDate(relation: Relation): boolean {
+  const vague = (p: DatePrecision | undefined) => p === "circa" || p === "unknown";
+  return vague(relation.startPrecision) || vague(relation.endPrecision);
 }
 
 export function RelationshipBoard({ graph, layout, claims, timeline }: Props) {
@@ -127,11 +139,13 @@ export function RelationshipBoard({ graph, layout, claims, timeline }: Props) {
             const isVisible = visibleRelations.some((r) => r.id === relation.id);
             const isHovered = relation.id === hoveredRelationId;
             const isClaim = relation.assertionType !== "FACT";
+            /* 흐림 = 날짜 불확실 (검토 문서 4.1의 UI 규칙) */
+            const isVague = isVagueDate(relation);
 
             return (
               <g
                 key={relation.id}
-                opacity={isVisible ? 1 : 0.07}
+                opacity={isVisible ? (isVague ? 0.45 : 1) : 0.07}
                 style={{ transition: "opacity 320ms var(--ease-out-expo)" }}
                 className={isVisible ? "cursor-pointer" : "pointer-events-none"}
                 onPointerEnter={() => isVisible && hoverRelation(relation.id)}
@@ -312,8 +326,16 @@ function RelationDetail({
       <p className="mt-2 text-[15px] leading-relaxed text-smoke">{relation.label}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="tabular rounded-full bg-taupe px-2 py-1 text-[11px] text-ash">
-          {relation.startDate}
+          {relation.startPrecision === "unknown" ? "시점 미상" : relation.startDate}
           {relation.startPrecision === "circa" && " 무렵"}
+          {/* 끝난 시점도 적는다. 안 적으면 아직 이어지는 관계로 읽힌다. */}
+          {relation.endDate && (
+            <>
+              {" ~ "}
+              {relation.endPrecision === "unknown" ? "미상" : relation.endDate}
+              {relation.endPrecision === "circa" && " 무렵"}
+            </>
+          )}
         </span>
         {relation.assertionType !== "FACT" && relation.assertedBy && (
           <span className="rounded-full bg-burgundy-tint px-2 py-1 text-[11px] font-medium text-burgundy ring-1 ring-burgundy/25">

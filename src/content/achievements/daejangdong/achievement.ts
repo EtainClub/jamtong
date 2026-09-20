@@ -396,6 +396,7 @@ const raw: AchievementInput = {
         startDate: "2016-04",
         startPrecision: "month",
         endDate: "2022-03",
+        endPrecision: "month",
         assertionType: "FACT",
         claimIds: ["claim-first-park"],
       },

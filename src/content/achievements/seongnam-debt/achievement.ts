@@ -328,6 +328,7 @@ const raw: AchievementInput = {
         startDate: "2010-07",
         startPrecision: "month",
         endDate: "2014-01-27",
+        endPrecision: "day",
         assertionType: "INTERPRETATION",
         claimIds: ["claim-graduation"],
       },

@@ -170,7 +170,15 @@ function collectTimePoints(relations: Relation[]): string[] {
 /** 커서 시점에 존재하는 관계만 남긴다. endDate가 지난 관계는 빠진다. */
 export function relationsAt(relations: Relation[], cursor: string | null): Relation[] {
   if (!cursor) return relations;
-  return relations.filter(
-    (r) => r.startDate <= cursor && (!r.endDate || r.endDate >= cursor),
-  );
+  return relations.filter((r) => {
+    /*
+     * 시점을 모르는 관계는 커서로 걸러 내지 않는다 (검토 문서 4.1).
+     *
+     * startDate에 적힌 값은 있지만 그것이 "이때쯤"이라는 뜻이면, 커서를
+     * 하루 옮겼다고 관계가 사라지거나 나타나는 것은 자료에 없는 정밀도다.
+     * 남겨 두고 화면이 흐리게 그린다.
+     */
+    if (r.startPrecision === "unknown") return true;
+    return r.startDate <= cursor && (!r.endDate || r.endDate >= cursor);
+  });
 }
