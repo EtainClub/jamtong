@@ -1,4 +1,15 @@
-import type { Category, MilestoneStatus, SourceType } from "./schema";
+import type { AssertionType, Category, MilestoneStatus, SourceType } from "./schema";
+
+/**
+ * 문장의 층. 화면과 공유 카드가 같은 말을 써야 한다 —
+ * 서랍에서는 "주장"인데 카드에서는 "CLAIM"으로 나가면 안 된다.
+ */
+export const ASSERTION_LABEL: Record<AssertionType, string> = {
+  FACT: "사실",
+  CLAIM: "주장",
+  INTERPRETATION: "해석",
+  OPINION: "의견",
+};
 
 export const CATEGORY_LABEL: Record<Category, string> = {
   economy: "경제·물류",

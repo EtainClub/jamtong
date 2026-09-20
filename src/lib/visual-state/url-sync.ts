@@ -122,8 +122,19 @@ export function useUrlSync(achievementId: string) {
   }, [router, pathname]);
 }
 
-/** 현재 화면 상태를 그대로 담은 공유용 절대 URL. */
+/**
+ * 현재 화면 상태를 그대로 담은 공유용 절대 URL.
+ *
+ * `/achievement/<slug>`가 아니라 `/s/<slug>`로 내보낸다. 카드가 공유된 상태를
+ * 비추려면 쿼리를 읽는 자리를 지나야 하는데, 업적 페이지는 빌드 때 구워 둔
+ * 정적 페이지라 쿼리를 읽을 수 없다. `/s`는 그 한 가지 일만 하는 가벼운
+ * 주소이고, 링크를 연 사람은 브라우저에서 곧장 원래 주소로 옮겨진다.
+ * (`src/app/s/[slug]/page.tsx`)
+ *
+ * 상태는 같은 함수가 직렬화한다 — 주소가 둘이어도 규약은 하나다.
+ */
 export function buildShareUrl(origin: string, pathname: string, state: VisualState): string {
   const qs = writeToParams(state);
-  return qs ? `${origin}${pathname}?${qs}` : `${origin}${pathname}`;
+  const shared = pathname.replace(/^\/achievement\//, "/s/");
+  return qs ? `${origin}${shared}?${qs}` : `${origin}${shared}`;
 }

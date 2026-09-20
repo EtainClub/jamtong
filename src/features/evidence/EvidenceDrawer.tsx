@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { Claim, Source } from "@/content/schema";
-import { SOURCE_TYPE_LABEL, SOURCE_TYPE_TIER } from "@/content/labels";
+import { ASSERTION_LABEL, SOURCE_TYPE_LABEL, SOURCE_TYPE_TIER } from "@/content/labels";
 import { useVisualState } from "@/lib/visual-state/store";
 
 /**
@@ -12,11 +12,12 @@ import { useVisualState } from "@/lib/visual-state/store";
  * 여기서 FACT / CLAIM / INTERPRETATION / OPINION을 시각적으로 구분한다.
  */
 
+/* 말은 labels.ts가 갖는다. 여기는 색만 정한다 — 공유 카드도 같은 말을 쓴다. */
 const ASSERTION_STYLE: Record<Claim["assertionType"], { label: string; className: string }> = {
-  FACT: { label: "사실", className: "bg-navy-tint text-navy ring-navy/25" },
-  CLAIM: { label: "주장", className: "bg-burgundy-tint text-burgundy ring-burgundy/25" },
-  INTERPRETATION: { label: "해석", className: "bg-taupe text-graphite ring-stone" },
-  OPINION: { label: "의견", className: "bg-taupe text-graphite ring-stone" },
+  FACT: { label: ASSERTION_LABEL.FACT, className: "bg-navy-tint text-navy ring-navy/25" },
+  CLAIM: { label: ASSERTION_LABEL.CLAIM, className: "bg-burgundy-tint text-burgundy ring-burgundy/25" },
+  INTERPRETATION: { label: ASSERTION_LABEL.INTERPRETATION, className: "bg-taupe text-graphite ring-stone" },
+  OPINION: { label: ASSERTION_LABEL.OPINION, className: "bg-taupe text-graphite ring-stone" },
 };
 
 interface Props {
