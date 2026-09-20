@@ -30,6 +30,7 @@ const chapters = CHAPTERS.map((meta, index) => {
     bodySource: `『함께 가는 길은 외롭지 않습니다』 ${index + 1}장`,
     truncated: meta.truncated,
     actions: meta.actions,
+    shorts: meta.shorts ?? [],
   };
 });
 

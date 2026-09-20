@@ -1,4 +1,4 @@
-import type { ActionItem, BookPoint } from "../schema";
+import type { ActionItem, BookPoint, BookShort } from "../schema";
 
 /**
  * 『함께 가는 길은 외롭지 않습니다』 스물두 장.
@@ -19,6 +19,8 @@ export interface ChapterMeta {
   lead: string;
   points: BookPoint[];
   actions: ActionItem[];
+  /** 이 장으로 만든 숏츠. 없으면 화면이 "준비 중" 자리를 보인다. */
+  shorts?: BookShort[];
   /** 자료에 남은 생성 흔적. 뺀 문단의 자리와 이유를 적는다. */
   drop?: number[];
   /** 이 말이 나오는 자리에서 본문을 끊는다. 문단 안쪽에 붙은 흔적을 걷을 때. */
@@ -69,6 +71,14 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "이 장에서 사람을 살린 것은 제도가 아니라 이상한 낌새를 눈치채고 찾아온 사람이었습니다. 요즘 힘들어 보이는 사람에게 안부를 먼저 묻습니다.",
         horizon: "today",
         link: { label: "자살예방상담 109", href: "tel:109" },
+      },
+    ],
+    shorts: [
+      {
+        id: "t1-s1",
+        title: "가장 지독한 절망이 희망으로 바뀌는 원리",
+        youtubeId: "GoaXMogJb1o",
+        summary: "안동 산골에서 공장으로, 두 번의 바닥에서 대학 합격까지 — 1장을 한 편으로.",
       },
     ],
   },
