@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 
 import { ACHIEVEMENTS } from "@/content/achievements";
@@ -70,6 +71,26 @@ export default function AboutPage() {
               </div>
             ))}
           </dl>
+        </section>
+
+        <section className="mt-8">
+          <h2 className="text-[13px] font-semibold text-smoke">위키</h2>
+          <p className="mt-2.5 text-[15px] leading-relaxed text-graphite">
+            업적 페이지는 업적 하나가, 언행 페이지는 글 하나가 단위입니다. 여러 건에
+            걸친 이야기가 모일 자리가 없어서, 그것만 따로 쌓는 층을 두었습니다.
+            에이전트가 쓰고 사람이 읽습니다.
+          </p>
+          <p className="mt-3 text-[15px] leading-relaxed text-graphite">
+            여기에도 같은 규칙이 걸립니다. 모든 단정문은 원자료의 id를 가리키고,
+            가리킬 것이 없는 문장은 들어오지 못합니다.
+          </p>
+          <Link
+            href="/wiki"
+            className="mt-3 inline-flex items-center gap-2 rounded-full border border-stone px-4 py-2 text-sm font-medium text-graphite transition-colors hover:border-graphite hover:text-ink"
+          >
+            위키 읽기
+            <span aria-hidden="true">→</span>
+          </Link>
         </section>
 
         <section className="mt-8">
