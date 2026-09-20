@@ -13,6 +13,7 @@ import { sewolMockery } from "./sewol-mockery";
 import { bundangHouse } from "./bundang-house";
 import { wish } from "./wish";
 import { sportsReform } from "./sports-reform";
+import { frontier } from "./frontier";
 import { validateStatement, type Statement } from "./schema";
 
 /**
@@ -37,6 +38,8 @@ export const STATEMENTS: Statement[] = [
   bundangHouse,
   wish,
   sportsReform,
+  /* 책에 실린 글. 2022년이라 목록 맨 아래다. */
+  frontier,
 ].sort((a, b) => b.postedAt.localeCompare(a.postedAt) || a.slug.localeCompare(b.slug));
 
 export function getStatement(slug: string): Statement | undefined {

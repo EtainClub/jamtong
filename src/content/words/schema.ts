@@ -7,6 +7,13 @@ import { z } from "zod";
  * 매다는 일이고, 언행은 **본인이 한 말 그 자체**다. 그래서 여기서는 근거를
  * 따로 달지 않는다. 원문이 곧 근거다.
  *
+ * ★ 책에 실린 글도 여기 온다.
+ *   SNS 글이든 책의 한 꼭지든 **본인이 쓴 글**이라는 점은 같다. 다만 책은
+ *   저작물이라 통째로 싣지 않는다 — 한 꼭지를 인용 범위 안에서 옮기고 어느
+ *   책에서 왔는지 밝힌다. 자서전 섹션(`content/books`)은 다른 일을 한다.
+ *   저기는 스물두 장을 요약으로 옮기는 자리이고, 여기는 한 꼭지를 원문
+ *   그대로 두는 자리다.
+ *
  * ★ 원문에 손대지 않는다.
  *   오탈자도, 띄어쓰기도, 줄바꿈도 그대로 둔다. 읽기 좋게 고치는 순간 이것은
  *   원문이 아니라 우리가 다듬은 글이 된다. 이 자료의 값어치는 전부 '그대로'에
@@ -29,6 +36,7 @@ export const statementKindSchema = z.enum([
   "interview", // 인터뷰
   "letter", // 서한·편지
   "act", // 말이 아닌 행동
+  "book", // 본인이 쓴 책에 실린 글
 ]);
 export type StatementKind = z.infer<typeof statementKindSchema>;
 
@@ -38,6 +46,7 @@ export const KIND_LABEL: Record<StatementKind, string> = {
   interview: "인터뷰",
   letter: "서한",
   act: "행동",
+  book: "책",
 };
 
 /**
