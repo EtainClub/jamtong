@@ -63,6 +63,11 @@ const entries = loadModule("src/app/sitemap.ts", {
       { slug: "sample-fixture", sample: true, chapters: [{ slug: "intro" }] },
     ],
   },
+  "@/content/cartels": {
+    // 목록에 이름만 선 표적은 `OPEN_CARTELS`에서 이미 빠져 나온다.
+    // 사이트맵이 지키는 것은 "받은 것만 싣고 날짜를 지어내지 않는다"까지다.
+    OPEN_CARTELS: [{ slug: "cartel-fixture" }],
+  },
   "@/lib/wiki/load": {
     contentPages: () => [
       { name: "concept/fixture", kind: "concept", updated: "2026-09-20" },
@@ -98,6 +103,7 @@ test("수정일을 모르면 날짜를 만들어 넣지 않는다", () => {
     "/books/book-fixture/intro",
     "/wiki/concept/no-date",
     "/wiki/concept/bad-date",
+    "/cartel/cartel-fixture",
   ]) {
     assert.equal(entryAt(path).lastModified, undefined, path);
   }
