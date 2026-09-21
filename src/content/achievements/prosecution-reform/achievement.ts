@@ -48,35 +48,234 @@ const raw: AchievementInput = {
 
   scenes: [
     {
-      id: "staffing",
-      kind: "composition",
-      heading: "출범을 앞둔 중수청의 인력",
+      id: "explain",
+      kind: "explainer",
+      heading: "한 기관이 쥐던 두 일",
       lede:
-        "새 기관이 사람을 채웠는지가 이 개혁의 첫 시험대입니다. 2026년 9월 16일 기준입니다.",
-      claimIds: ["claim-staffing"],
-      composition: {
-        total: 2874,
-        unit: "명",
-        totalLabel: "중대범죄수사청 정원",
-        claimId: "claim-staffing",
+        "구조·권한·시점·준비는 서로 다른 이야기입니다. 막대 하나로 넷을 말할 수 " +
+        "없어 한 장씩 그렸습니다. 셋째 장에서는 손잡이를 끌어 시점을 직접 옮겨 " +
+        "볼 수 있습니다 — 기준일을 넘기면 화면이 그렇게 밝힙니다.",
+      claimIds: ["claim-law", "claim-agencies", "claim-staffing"],
+      explainer: {
         note:
-          "지원자가 정원에 미치지 못한다는 사실은 수사력 공백 우려의 근거로 쓰였다. " +
-          "다만 지원자 수가 곧 채용 결과는 아니며, 시행 이후의 실제 충원은 " +
-          "확인하지 못했다.",
-        groups: [
+          "이 업적의 기준일은 2026년 9월 19일이고 시행일은 10월 2일입니다. " +
+          "그림은 정해진 것까지만 그리고, 그 뒤는 예정으로 적습니다. " +
+          "시행 뒤에 실제로 무엇이 달라졌는지는 그날이 지나야 적을 수 있습니다.",
+        chapters: [
           {
-            id: "st-applied",
-            label: "지원",
-            amount: 1761,
-            sharePercent: 61.3,
-            tone: "primary",
+            id: "split",
+            question: "한 기관이 쥐던 두 일이 어디로 가나?",
+            heading: "갈라지는 몸",
+            claimId: "claim-law",
+            takeaway:
+              "하나가 둘이 되는 것이 아닙니다. 하나가 없어지고 둘이 생기는 것입니다.",
+            steps: [
+              {
+                id: "sp-one",
+                label: "한 기관",
+                caption:
+                  "검찰청이 수사와 기소를 함께 맡아 왔습니다. 죄를 찾아내는 일과 재판에 넘기는 일입니다.",
+              },
+              {
+                id: "sp-loop",
+                label: "이어진 구조",
+                caption:
+                  "찾아내는 일과 재판에 넘기는 일이 한 기관 안에서 이어집니다. 이 구조를 바꾸자는 것이 이 개혁입니다.",
+              },
+              {
+                id: "sp-split",
+                label: "법이 정한 갈림",
+                caption:
+                  "2026년 3월 국회가 중대범죄수사청법과 공소청법을 통과시켰습니다. 수사는 중수청으로, 기소는 공소청으로 갑니다.",
+                readout: { value: "2026년 3월", note: "국회 본회의 통과" },
+              },
+              {
+                id: "sp-end",
+                label: "검찰청 폐지",
+                caption:
+                  "시행일에 검찰청은 폐지됩니다. 두 일이 옮겨 가고 원래 기관은 남지 않습니다.",
+                readout: { value: "2026. 10. 2.", note: "시행 예정일" },
+              },
+            ],
+            visual: {
+              kind: "split-powers",
+              origin: { label: "검찰청", endLabel: "시행일에 폐지" },
+              loopLabel: "한 기관 안에서 이어진다",
+              whenLabel: "2026년 10월 2일 시행",
+              branches: [
+                {
+                  id: "b-inv",
+                  label: "중대범죄수사청",
+                  power: "수사",
+                  note: "행정안전부 산하",
+                },
+                { id: "b-ind", label: "공소청", power: "기소" },
+              ],
+            },
           },
           {
-            id: "st-open",
-            label: "아직 채워지지 않음",
-            amount: 1113,
-            sharePercent: 38.7,
-            tone: "accent",
+            id: "powers",
+            question: "그러면 검사에게는 무엇이 남나?",
+            heading: "권한이 가는 곳",
+            claimId: "claim-agencies",
+            takeaway:
+              "검사는 수사를 시작할 수 없게 되고, 재판에 넘기고 그 재판을 끌고 가는 일만 맡습니다.",
+            steps: [
+              {
+                id: "pw-all",
+                label: "쥐던 네 가지",
+                caption: "수사 개시, 영장 청구, 기소, 공소유지입니다.",
+              },
+              {
+                id: "pw-inv",
+                label: "수사는 중수청으로",
+                caption:
+                  "권력형 부패범죄와 대규모 경제범죄 등의 수사는 신설되는 중대범죄수사청이 맡습니다.",
+              },
+              {
+                id: "pw-ind",
+                label: "나머지는 공소청으로",
+                caption: "영장 청구와 기소, 공소유지는 공소청이 맡습니다.",
+              },
+              {
+                id: "pw-actor",
+                label: "잃는 것과 남는 것",
+                caption:
+                  "검사는 수사개시권을 완전히 잃고, 영장 청구·기소·공소유지 업무만 맡게 됩니다.",
+                readout: {
+                  value: "수사개시권",
+                  note: "검사가 잃는 권한 · 현행 검사 정원은 2,292명",
+                },
+              },
+            ],
+            visual: {
+              kind: "powers-ledger",
+              fromLabel: "검찰청이 쥐던 것",
+              actor: "검사",
+              lostPowerId: "p-open",
+              lostLabel: "수사개시권을 잃는다",
+              keptLabel: "영장 청구·기소·공소유지를 맡는다",
+              holders: [
+                { id: "h-inv", label: "중대범죄수사청", note: "행정안전부 산하" },
+                { id: "h-ind", label: "공소청", note: "검사가 일하는 곳" },
+              ],
+              powers: [
+                { id: "p-open", label: "수사 개시", holderId: "h-inv" },
+                { id: "p-warrant", label: "영장 청구", holderId: "h-ind" },
+                { id: "p-indict", label: "기소", holderId: "h-ind" },
+                { id: "p-keep", label: "공소유지", holderId: "h-ind" },
+              ],
+            },
+          },
+          {
+            id: "when",
+            question: "그래서 검찰청은 없어졌나?",
+            heading: "아직 오지 않은 날",
+            claimId: "claim-law",
+            takeaway:
+              "법으로 정해졌을 뿐입니다. 기준일인 2026년 9월 19일까지 달라진 것은 없습니다.",
+            steps: [
+              {
+                id: "wh-pass",
+                label: "2026년 3월",
+                caption:
+                  "국회 본회의가 중대범죄수사청법과 공소청법을 통과시켰습니다. 검찰청 폐지가 정해졌습니다.",
+              },
+              {
+                id: "wh-asof",
+                label: "2026년 9월 19일",
+                caption:
+                  "이 위키가 대조한 마지막 날입니다. 여기까지가 “정해졌다”이고, 그 뒤는 “이렇게 하기로 했다”입니다.",
+              },
+              {
+                id: "wh-start",
+                label: "2026년 10월 2일",
+                caption:
+                  "중수청과 공소청이 출범하고 검찰청이 폐지될 예정입니다. 아직 오지 않은 날이라 무엇이 달라졌는지는 적을 수 없습니다.",
+                readout: {
+                  value: "2026. 10. 2.",
+                  note: "시행 예정 · 기준일은 2026년 9월 19일",
+                },
+              },
+            ],
+            visual: {
+              kind: "timeline-gate",
+              start: "2026-02",
+              end: "2026-11",
+              spanLabel: "통과에서 시행까지 약 일곱 달",
+              futureLabel: "기준일 뒤는 예정입니다",
+              marks: [
+                {
+                  id: "m-pass",
+                  date: "2026-03",
+                  displayDate: "2026년 3월",
+                  label: "중수청법·공소청법이 국회 본회의를 통과했습니다.",
+                  status: "done",
+                },
+                {
+                  id: "m-asof",
+                  date: "2026-09-19",
+                  displayDate: "2026년 9월 19일",
+                  label: "이 위키가 대조한 마지막 날입니다.",
+                  status: "asof",
+                },
+                {
+                  id: "m-start",
+                  date: "2026-10-02",
+                  displayDate: "2026년 10월 2일",
+                  label: "중수청·공소청 출범과 검찰청 폐지가 예정된 날입니다.",
+                  status: "planned",
+                },
+              ],
+            },
+          },
+          {
+            id: "staffing",
+            question: "새 기관은 사람을 채웠나?",
+            heading: "자리와 사람",
+            claimId: "claim-staffing",
+            takeaway:
+              "지원자 수가 곧 채용 결과는 아닙니다. 실제 충원은 시행 이후에야 확인할 수 있습니다.",
+            steps: [
+              {
+                id: "se-capacity",
+                label: "자리",
+                caption: "중대범죄수사청 정원은 2,874명입니다.",
+              },
+              {
+                id: "se-applied",
+                label: "지원",
+                caption:
+                  "2026년 9월 16일 기준 1,761명이 지원했습니다. 정원의 61.3%입니다.",
+                readout: { value: "61.3", unit: "%", note: "정원 2,874명 · 지원 1,761명" },
+              },
+              {
+                id: "se-gap",
+                label: "덜 찬 자리",
+                caption:
+                  "1,113자리가 남습니다. 수사력 공백 우려가 근거로 든 수가 이것입니다.",
+              },
+              {
+                id: "se-ref",
+                label: "견줄 수 있는 수",
+                caption:
+                  "현행 검사 정원은 2,292명입니다. 같은 눈금 위에 놓은 것일 뿐, 두 수가 같은 것을 세는지는 자료가 밝히지 않았습니다.",
+                readout: { value: "2,292", unit: "명", note: "현행 검사 정원" },
+              },
+            ],
+            visual: {
+              kind: "seats",
+              unit: "명",
+              per: 50,
+              capacity: { label: "중대범죄수사청 정원", value: 2874 },
+              filled: { label: "지원", value: 1761 },
+              gapLabel: "아직 채워지지 않음",
+              reference: {
+                label: "현행 검사 정원",
+                value: 2292,
+                note: "두 수를 같은 눈금 위에 놓았을 뿐입니다.",
+              },
+            },
           },
         ],
       },

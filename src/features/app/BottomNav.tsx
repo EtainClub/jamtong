@@ -29,7 +29,14 @@ interface Tab {
 const TABS: Tab[] = [
   { href: "/", label: "홈", ready: true, icon: <HomeIcon /> },
   { href: "/timeline", label: "타임라인", ready: true, icon: <TimelineIcon /> },
-  { href: "/explore", label: "업적", ready: true, owns: ["/achievement"], icon: <ExploreIcon /> },
+  {
+    href: "/explore",
+    label: "업적",
+    ready: true,
+    /* 카르텔은 업적을 가로질러 보는 축이다. 주소는 다르지만 같은 탭 아래다. */
+    owns: ["/achievement", "/cartel"],
+    icon: <ExploreIcon />,
+  },
   { href: "/words", label: "언행", ready: true, icon: <QuoteIcon /> },
   { href: "/my", label: "MY", ready: true, icon: <MyIcon /> },
 ];

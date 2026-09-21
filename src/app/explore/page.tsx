@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 
 import {
@@ -8,6 +9,7 @@ import {
   groupAchievements,
 } from "@/content/achievements";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
+import { EMPTY_CARTELS, OPEN_CARTELS } from "@/content/cartels";
 import { CATEGORY_LABEL, STATUS_LABEL, formatDate } from "@/content/labels";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
@@ -66,6 +68,29 @@ export default function ExplorePage() {
           아직 채워지지 않은 것은 채워지지 않은 대로 보입니다.
         </p>
 
+        {/*
+         * 두 번째 축으로 들어가는 문.
+         *
+         * 분야(외교·제도·복지…)는 "무엇에 관한 일인가"로 묶고, 카르텔은
+         * "무엇을 겨냥한 일인가"로 묶는다. 축이 다르므로 분야 고르기 안에
+         * 끼워 넣지 않고 그 앞에 문을 하나 둔다.
+         */}
+        <Link
+          href="/cartel"
+          className="mt-5 flex items-center justify-between gap-3 rounded-card border border-stone bg-taupe/60 px-4 py-3.5 transition-colors hover:border-graphite"
+        >
+          <span className="min-w-0">
+            <span className="text-[14px] font-bold text-ink">카르텔로 보기</span>
+            <span className="mt-0.5 block text-[12px] leading-relaxed text-smoke">
+              분야 대신 표적으로 묶어 봅니다. 들여다본 것 {OPEN_CARTELS.length}, 아직
+              정리하지 않은 것 {EMPTY_CARTELS.length}.
+            </span>
+          </span>
+          <span aria-hidden="true" className="shrink-0 text-smoke">
+            →
+          </span>
+        </Link>
+
         <AchievementBrowser
           cards={ACHIEVEMENT_CARDS}
           groups={groups}
@@ -77,10 +102,12 @@ export default function ExplorePage() {
           <h2 id="ex-milestones" className="text-[15px] font-bold text-ink">
             세부 성과 {milestones.length}건
           </h2>
-          {/* 이 18건은 독립된 업적이 아니라 한 부처 업무계획에서 뽑은 항목들이다.
+          {/* 이 카드들은 독립된 업적이 아니라 부처 자료에서 뽑은 항목들이다.
               업적과 같은 층에 두면 단위가 흐려지므로 아래에 따로 둔다. */}
           <p className="mt-1.5 text-[12px] leading-relaxed text-ash">
-            해양수산부 2026년 업무계획에서 뽑은 항목입니다. 아직 업적으로 묶이지 않았습니다.
+            부처 업무계획·보고회 자료와 카르텔 조사에서 뽑은 항목입니다. 아직
+            업적으로 묶이지 않았습니다. 「계획」이라 적힌 것은 발표일 뿐 결과가
+            아닙니다.
           </p>
           <ul className="mt-3 space-y-2">
             {milestones.map((item) => {

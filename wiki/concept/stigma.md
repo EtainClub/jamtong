@@ -1,7 +1,7 @@
 ---
 title: 낙인을 지우는 설계
 kind: concept
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 # 낙인을 지우는 설계
@@ -28,9 +28,10 @@ updated: 2026-09-20
 전체로 갔다. ^[seongnam-welfare#claim-uniform-universal]
 
 청년배당은 아예 처음부터 소득·재산·취업 여부를 따지지 않았다.
-^[seongnam-welfare#claim-youth] 「청년 예산은 늘 뒤로 밀렸다」는 진단은
-[[source/words-youth-day]]에 있다. ^[words:youth-day#y-gap]
-^[seongnam-welfare#claim-youth]
+^[seongnam-welfare#claim-youth] 「청소년기를 지나면 예산이 거의 제로에
+가깝다」는 그때의 진단은 [[source/words-youth-day]]에 있고,
+^[words:youth-day#y-zero] 본인이 그 사업을 「청년 기본소득」이라 부르며
+회고한다. ^[words:youth-day#y-quarter] ^[seongnam-welfare#claim-youth]
 
 ### 티 나는 물건을 바꾼다
 

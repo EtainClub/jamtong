@@ -26,7 +26,10 @@ import { analyticsConfigured, firebaseApp } from "@/lib/firebase/client";
  */
 
 export type AnalyticsEvent =
-  /** 지금 이 화면의 링크를 만들었다. surface: achievement | words */
+  /**
+   * 지금 이 화면의 링크를 만들었다.
+   * surface: achievement | words | book(자서전 한 권) | chapter(그 안의 장)
+   */
   | "share_create"
   /** 주장 옆의 근거를 열었다. 이 사이트에서 가장 중요한 한 번이다. */
   | "evidence_open"

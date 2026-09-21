@@ -61,51 +61,343 @@ const raw: AchievementInput = {
 
   scenes: [
     {
-      id: "share",
-      kind: "quantity-track",
-      heading: "중동에 기대던 몫이 줄어든 자리",
+      id: "explain",
+      kind: "explainer",
+      heading: "전쟁이 난 해에 한 일, 다섯 갈래",
       lede:
-        "원유 수입 가운데 중동산이 차지한 비중입니다. 스크롤하면 그 사이를 지나갑니다.",
-      claimIds: ["claim-share"],
-      track: {
-        label: "원유 수입 중 중동산 비중",
-        unit: "%",
-        direction: "down",
-        max: 71.5,
+        "의존도·운임·비축·가격상한·유가는 서로 다른 이야기입니다. 막대 하나로 " +
+        "다섯을 말할 수 없어 한 장씩 그렸습니다. 단계를 넘기면 그림이 움직이고, " +
+        "첫 장에서는 손잡이를 직접 옮겨 볼 수 있습니다.",
+      claimIds: [
+        "claim-share",
+        "claim-freight",
+        "claim-swap",
+        "claim-cap",
+        "claim-price",
+        "claim-president",
+      ],
+      explainer: {
         note:
-          "정부와 국회가 밝힌 시점만 그린다. 2026년 값은 1~5월 누계이고 그 뒤는 " +
-          "확인하지 못했다. 이 대통령은 9월 12일 “50%대로 낮췄다”고 밝혔으나 " +
-          "대조할 정부 통계를 찾지 못해 이 추이에는 넣지 않았다.",
-        checkpoints: [
+          "그림은 자료에 있는 값만 그립니다. 손잡이를 자료 밖으로 옮기면 그 통은 " +
+          "검증 전 색으로 바뀌고, 화면이 “자료에 없는 값”이라고 적습니다. " +
+          "움직일 수 있다는 것과 주장할 수 있다는 것은 다릅니다.",
+        chapters: [
           {
-            id: "os-2024",
-            displayDate: "2024년",
-            title: "71.5%",
-            amount: 71.5,
-            caption:
-              "원유 열 통 중 일곱 통이 중동에서 왔습니다. 사우디·미국·UAE 세 나라가 전체의 62.3%였습니다.",
-            art: "oil-mideast",
+            id: "dependence",
+            question: "원유는 어디서 왔고, 어디로 옮겨 앉았나?",
+            heading: "기대던 곳",
             claimId: "claim-share",
+            takeaway:
+              "2024년 71.5%에서 2026년 1~5월 62.8%까지는 정부와 국회 자료로 확인됩니다. 그 아래는 아직 확인되지 않았습니다.",
+            steps: [
+              {
+                id: "s-2024",
+                label: "2024년",
+                caption:
+                  "원유 열 통 중 일곱 통이 중동에서 왔습니다. 사우디·미국·UAE 세 나라가 전체의 62.3%였습니다.",
+                readout: { value: "71.5", unit: "%", note: "국회 입법조사처 분석" },
+              },
+              {
+                id: "s-2025",
+                label: "2025년",
+                caption: "7억 1,100만 배럴이 중동에서 들어왔습니다.",
+                readout: { value: "69.1", unit: "%", note: "산업통상부 발표" },
+              },
+              {
+                id: "s-2026",
+                label: "2026년 1~5월",
+                caption:
+                  "2억 4,700만 배럴입니다. 산업통상부가 7월 13일 공개한 값이고, 이 위키가 대조한 마지막 수치입니다.",
+                readout: { value: "62.8", unit: "%", note: "2026년 1~5월 누계" },
+              },
+              {
+                id: "s-target",
+                label: "목표, 그리고 그 너머",
+                caption:
+                  "정부 목표는 50% 아래입니다. 이 대통령은 9월 12일 이미 50%대로 낮췄다고 밝혔지만, 대조할 정부 통계를 찾지 못했습니다.",
+                readout: {
+                  value: "50",
+                  unit: "% 아래",
+                  note: "정부 목표 · 달성 여부는 확인되지 않았습니다",
+                },
+              },
+            ],
+            visual: {
+              kind: "origin-shift",
+              unit: "%",
+              marks: 40,
+              from: {
+                label: "중동",
+                note: "2024년에는 사우디·미국·UAE 세 나라가 전체의 62.3%를 차지했다",
+              },
+              to: { label: "미국·호주·알제리·남미", note: "새로 넓힌 수입처" },
+              points: [
+                { id: "p-2024", displayDate: "2024년", share: 71.5 },
+                { id: "p-2025", displayDate: "2025년", share: 69.1 },
+                { id: "p-2026", displayDate: "2026년 1~5월", share: 62.8 },
+              ],
+              target: { share: 50, label: "정부 목표" },
+              unconfirmed: {
+                label: "확인하지 못한 구간",
+                claim: "“70%에 이르던 원유 중동 의존도를 50%대로 낮췄다”",
+                assertedBy: "이재명 대통령",
+                claimId: "claim-president",
+              },
+            },
           },
           {
-            id: "os-2025",
-            displayDate: "2025년",
-            title: "69.1%",
-            amount: 69.1,
-            caption:
-              "7억 1,100만 배럴이 중동에서 들어왔습니다.",
-            art: "oil-mideast",
-            claimId: "claim-share",
+            id: "freight",
+            question: "먼 데서 사면 배삯이 더 드는데, 어떻게 늘렸나?",
+            heading: "먼 길의 값",
+            claimId: "claim-freight",
+            takeaway:
+              "값 차이가 문턱이었고, 정부가 그 차액을 전액 부담하자 비중동산 도입이 늘었습니다.",
+            steps: [
+              {
+                id: "f-far",
+                label: "먼 길",
+                caption:
+                  "비중동에서 원유를 들여오면 항로가 길어집니다. 같은 기름이라도 들여오는 값이 달라집니다.",
+              },
+              {
+                id: "f-gap",
+                label: "운임 차액",
+                caption:
+                  "길어진 만큼 운임이 더 붙습니다. 이 차액이 비중동산을 고르지 못하게 하는 문턱이 됩니다.",
+              },
+              {
+                id: "f-support",
+                label: "전액 지원",
+                caption:
+                  "정부는 비중동 지역 원유 도입에서 생기는 운임 차액을 전액 지원합니다. 2026년 9월분부터 재시행했습니다.",
+              },
+              {
+                id: "f-result",
+                label: "시행 결과",
+                caption:
+                  "4~6월 시행 때 에콰도르산이 422.1% 늘었습니다. 캐나다산 160.8%, 아프리카산 156.7%, 미국산 14.2%입니다.",
+                readout: {
+                  value: "422.1",
+                  unit: "%",
+                  note: "에콰도르산 도입 증가 · 2026년 4~6월 시행기",
+                },
+              },
+            ],
+            visual: {
+              kind: "freight-gap",
+              origin: "비중동 산지",
+              destination: "국내 정유사",
+              gapLabel: "운임 차액",
+              offLabel: "지원 없음",
+              onLabel: "운임 차액 전액 지원",
+              baselineLabel: "지원 전 = 100",
+              periodLabel: "2026년 4~6월 시행 결과",
+              routes: [
+                { id: "r-us", label: "미국산", growthPercent: 14.2 },
+                { id: "r-ca", label: "캐나다산", growthPercent: 160.8 },
+                { id: "r-ec", label: "에콰도르산", growthPercent: 422.1 },
+                { id: "r-af", label: "아프리카산", growthPercent: 156.7 },
+              ],
+            },
           },
           {
-            id: "os-2026",
-            displayDate: "2026년 1~5월",
-            title: "62.8%",
-            amount: 62.8,
-            caption:
-              "2억 4,700만 배럴입니다. 정부 목표는 50% 아래입니다.",
-            art: "oil-spread",
-            claimId: "claim-share",
+            id: "swap",
+            question: "정유사가 들여올 기름이 모자라면 어떻게 하나?",
+            heading: "돌려받는 고리",
+            claimId: "claim-swap",
+            takeaway:
+              "파는 것이 아니라 빌려주는 것입니다. 정부가 먼저 내주고, 정유사가 대체유를 들여온 뒤 같은 양을 돌려줍니다.",
+            steps: [
+              {
+                id: "w-reserve",
+                label: "정부 비축유",
+                caption: "위기 때 먼저 내줄 수 있도록 정부가 쌓아 둔 재고가 있습니다.",
+              },
+              {
+                id: "w-lend",
+                label: "선제 공급",
+                caption:
+                  "2026년 8월 24일부터 그 비축유를 정유사에 먼저 공급합니다. 2개월 운영하되 필요하면 연장합니다.",
+              },
+              {
+                id: "w-import",
+                label: "대체유 도입",
+                caption: "정유사는 그사이 해외에서 대체 원유를 들여옵니다.",
+              },
+              {
+                id: "w-return",
+                label: "같은 양 반환",
+                caption:
+                  "들여온 뒤 같은 양을 정부에 돌려줍니다. 7~8월 도입 원유는 전년 대비 100% 이상, 9~10월은 90% 이상 확보됐습니다.",
+                readout: {
+                  value: "100% 이상",
+                  note: "7~8월 도입 원유 · 전년 대비. 9~10월은 90% 이상",
+                },
+              },
+            ],
+            visual: {
+              kind: "reserve-loop",
+              nodes: [
+                { id: "n-reserve", label: "정부 비축유" },
+                { id: "n-lend", label: "정유사에 선제 공급" },
+                { id: "n-import", label: "해외 대체유 도입" },
+                { id: "n-return", label: "같은 양 반환" },
+              ],
+              counter: {
+                label: "도입 원유 확보",
+                laps: [
+                  { id: "lap-78", label: "7~8월", value: "전년 대비 100% 이상" },
+                  { id: "lap-910", label: "9~10월", value: "전년 대비 90% 이상" },
+                ],
+              },
+              note: "2026년 8월 24일 재시행했습니다. 2개월 운영하되 필요하면 연장합니다.",
+            },
+          },
+          {
+            id: "cap",
+            question: "최고가격제는 어디에 걸린 상한인가?",
+            heading: "천장이 걸린 자리",
+            claimId: "claim-cap",
+            takeaway:
+              "상한은 주유소 판매가격이 아니라 정유사가 출고하는 공급가격에 걸렸습니다. 1994년 유가 자유화 이후 30여 년 만의 가격 개입입니다.",
+            steps: [
+              {
+                id: "c-chain",
+                label: "기름이 오는 길",
+                caption: "정유사가 주유소·대리점에 넘기고, 주유소가 운전자에게 팝니다.",
+              },
+              {
+                id: "c-where",
+                label: "상한이 걸린 자리",
+                caption:
+                  "상한은 첫 마디, 정유사 공급가격에 걸립니다. 석유사업법 제23조에 근거합니다.",
+                readout: {
+                  value: "1,784",
+                  unit: "원/리터",
+                  note: "휘발유 · 2026년 8월 21일 지정된 9차 최고가격",
+                },
+              },
+              {
+                id: "c-not",
+                label: "걸리지 않은 자리",
+                caption:
+                  "주유소 판매가격에는 상한이 없습니다. “기름값에 천장을 씌웠다”가 아닙니다.",
+              },
+              {
+                id: "c-cadence",
+                label: "2주마다 다시",
+                caption:
+                  "상한은 2주마다 국제유가 변동을 반영해 다시 정합니다. 천장은 고정된 선이 아닙니다.",
+              },
+            ],
+            visual: {
+              kind: "price-cap",
+              links: [
+                { id: "l-refiner", label: "정유사" },
+                { id: "l-station", label: "주유소·대리점" },
+                { id: "l-driver", label: "운전자" },
+              ],
+              capAt: 0,
+              capLabel: "공급가격 상한",
+              uncappedLabel: "상한 없음",
+              cadence: "2주마다 국제유가 변동을 반영해 재조정",
+              caps: [
+                { id: "cap-gas", label: "휘발유", value: "1,784원" },
+                { id: "cap-diesel", label: "경유", value: "1,773원" },
+                { id: "cap-kero", label: "등유", value: "1,380원" },
+              ],
+            },
+          },
+          {
+            id: "price",
+            question: "그래서 기름값이 싸졌나?",
+            heading: "갈라진 방향",
+            claimId: "claim-price",
+            takeaway:
+              "싸진 것이 아닙니다. 국제 가격이 오르는 동안 국내 값이 따라 오르지 않았다는 것까지가 자료입니다.",
+            steps: [
+              {
+                id: "d-apr",
+                label: "4월",
+                caption:
+                  "국내 휘발유가 리터당 2,000원을 넘었습니다. 값이 오른 구간을 빼고 그리지 않습니다.",
+              },
+              {
+                id: "d-sep",
+                label: "9월 둘째 주",
+                caption:
+                  "9월 6~10일 전국 평균 1,859.1원으로 전주보다 1.1원 내렸습니다. 17주 연속 하락입니다.",
+                readout: {
+                  value: "1,859.1",
+                  unit: "원/리터",
+                  note: "17주 연속 하락 · 낮은 값은 아닙니다",
+                },
+              },
+              {
+                id: "d-dubai",
+                label: "같은 주 국제 유가",
+                caption:
+                  "같은 기간 두바이유는 배럴당 114.7달러로 한 주에만 14.4달러 올랐습니다.",
+                readout: { value: "114.7", unit: "달러/배럴", note: "한 주간 14.4달러 상승" },
+              },
+              {
+                id: "d-split",
+                label: "갈라진 방향",
+                caption:
+                  "국제 가격은 오르고 국내 가격은 내렸습니다. 그 원인이 정부 대책인지는 이 위키가 말하지 않습니다.",
+              },
+            ],
+            visual: {
+              kind: "divergence",
+              gapLabel:
+                "방향이 갈린 것까지가 자료입니다. 환율·정제마진·수요·유류세를 가려낼 자료가 없어, 국내 값이 내린 원인은 단정하지 않습니다.",
+              lanes: [
+                {
+                  id: "lane-dubai",
+                  label: "두바이유",
+                  unit: "달러/배럴",
+                  direction: "up",
+                  moveLabel: "한 주에 14.4달러 올랐다",
+                  marks: [
+                    {
+                      id: "m-dubai-prev",
+                      displayDate: "2026년 9월 첫째 주",
+                      value: 100.3,
+                      display: "100.3달러",
+                      note: "114.7달러에서 한 주간 상승분 14.4달러를 되짚은 값",
+                    },
+                    {
+                      id: "m-dubai-now",
+                      displayDate: "2026년 9월 둘째 주",
+                      value: 114.7,
+                      display: "114.7달러",
+                    },
+                  ],
+                },
+                {
+                  id: "lane-gas",
+                  label: "전국 주유소 휘발유",
+                  unit: "원/리터",
+                  direction: "down",
+                  moveLabel: "17주 연속 내렸다",
+                  marks: [
+                    {
+                      id: "m-gas-apr",
+                      displayDate: "2026년 4월",
+                      value: 2000,
+                      display: "2,000원 돌파",
+                    },
+                    {
+                      id: "m-gas-sep",
+                      displayDate: "2026년 9월 6~10일",
+                      value: 1859.1,
+                      display: "1,859.1원",
+                      note: "전주보다 1.1원 하락",
+                    },
+                  ],
+                },
+              ],
+            },
           },
         ],
       },

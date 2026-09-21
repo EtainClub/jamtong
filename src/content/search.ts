@@ -1,5 +1,6 @@
 import { ACHIEVEMENTS } from "@/content/achievements";
 import { MILESTONES } from "@/content/milestones";
+import { CARTEL_ENTRIES, isOpen } from "@/content/cartels";
 import { STATEMENTS } from "@/content/words";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
 
@@ -26,7 +27,8 @@ export type SearchKind =
   | "milestone"
   | "words"
   | "book"
-  | "wiki";
+  | "wiki"
+  | "cartel";
 
 export const KIND_LABEL: Record<SearchKind, string> = {
   achievement: "업적",
@@ -35,6 +37,7 @@ export const KIND_LABEL: Record<SearchKind, string> = {
   words: "언행",
   book: "자서전",
   wiki: "위키",
+  cartel: "카르텔",
 };
 
 export interface SearchEntry {
@@ -131,6 +134,43 @@ function build(): SearchEntry[] {
       ),
     });
   }
+  /*
+   * 카르텔.
+   *
+   * ★ 비어 있는 표적은 넣지 않는다.
+   *   이름 한 줄뿐인 페이지가 검색에 잡히면 열어 봤을 때 읽을 것이 없다.
+   *   장이 없는 책을 넣지 않는 것과 같은 규칙이다. 목록에는 그대로 남아 있다.
+   *
+   * ★ 걸린 업적의 제목을 haystack에 넣지 않는다.
+   *   넣으면 "대장동"으로 찾았을 때 업적과 카르텔이 두 줄로 잡힌다. 위키
+   *   소스 페이지에서 본문을 빼는 것과 같은 이유다 — 같은 말은 원본이 맡는다.
+   *
+   * ★ 확인하지 못한 것도 넣지 않는다.
+   *   "언론"으로 찾았는데 "언론 자료를 찾지 못했습니다"가 걸리면, 없는 것이
+   *   있는 것처럼 잡히는 셈이 된다.
+   */
+  for (const entry of CARTEL_ENTRIES) {
+    const { cartel } = entry;
+    if (!isOpen(cartel)) continue;
+
+    out.push({
+      id: `cartel:${cartel.slug}`,
+      kind: "cartel",
+      title: `${cartel.name} 카르텔`,
+      detail: cartel.summary,
+      href: `/cartel/${cartel.slug}`,
+      haystack: normalize(
+        [
+          // 화면에 보이는 제목 그대로. 「카르텔」이 빠져 있으면 "의료 카르텔"로
+          // 찾았을 때 제목이 그대로 적힌 항목이 걸리지 않는다.
+          `${cartel.name} 카르텔`,
+          cartel.summary,
+          cartel.problems.map((p) => p.text).join(" "),
+        ].join(" "),
+      ),
+    });
+  }
+
   for (const item of MILESTONES) {
     out.push({
       id: item.id,
@@ -161,22 +201,26 @@ export const SEARCH_INDEX: SearchEntry[] = build();
  * 띄어쓴 말은 모두 들어 있어야 한다("성남 병원" → 둘 다 있는 것만). 한국어는
  * 형태소를 나누지 않으면 부분 문자열이 가장 잘 맞는다. 이 크기에서는 그걸로 충분하다.
  *
- * 순서는 업적 → 언행 → 자서전 → 위키 → 시점 → 세부 성과. 같은 종류 안에서는
- * 제목에 맞은 것이 앞이다.
+ * 순서는 업적 → 언행 → 자서전 → 위키 → 카르텔 → 시점 → 세부 성과. 같은 종류
+ * 안에서는 제목에 맞은 것이 앞이다.
  *
  * 언행을 시점보다 위에 둔 이유: 본인이 한 말은 그 자체로 찾을 값어치가 있다.
  * 시점은 어느 업적의 한 칸이라 그 업적을 먼저 보는 편이 대개 맞다.
  *
  * 위키를 본인이 쓴 것들 아래에 둔 이유: 위키는 우리가 raw source를 읽고 다시
  * 쓴 것이다. 같은 말이 원본과 위키에 다 걸리면 원본이 먼저 보여야 한다.
+ *
+ * 카르텔을 시점보다 위에 둔 이유: 표적은 업적 여럿을 모은 자리라, 같은 말이
+ * 걸렸다면 업적의 한 칸보다 표적 전체를 먼저 보는 편이 대개 맞다.
  */
 const KIND_ORDER: Record<SearchKind, number> = {
   achievement: 0,
   words: 1,
   book: 2,
   wiki: 3,
-  moment: 4,
-  milestone: 5,
+  cartel: 4,
+  moment: 5,
+  milestone: 6,
 };
 
 export function search(index: SearchEntry[], query: string, limit = 12): SearchEntry[] {

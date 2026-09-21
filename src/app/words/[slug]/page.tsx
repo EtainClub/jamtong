@@ -9,7 +9,7 @@ import { BackButton } from "@/features/app/BackButton";
 import { CorrectionLink } from "@/features/correction/CorrectionLink";
 import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 import { BottomNav } from "@/features/app/BottomNav";
-import { ShareStatementButton } from "@/features/words/ShareStatementButton";
+import { ShareLinkButton } from "@/features/app/ShareLinkButton";
 import { StatementView } from "@/features/words/StatementView";
 
 export function generateStaticParams() {
@@ -100,7 +100,16 @@ export default async function StatementPage({
               언행
             </Link>
           </div>
-          <ShareStatementButton title={statement.title} compact />
+          <ShareLinkButton
+            title={statement.title}
+            surface="words"
+            label={{
+              text: "공유",
+              aria: "이 언행 공유",
+              copied: "이 언행의 링크를 클립보드에 복사했습니다.",
+            }}
+            compact
+          />
         </div>
       </header>
 

@@ -731,6 +731,14 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "주민e직접", href: "https://www.juminegov.go.kr" },
       },
     ],
+    shorts: [
+      {
+        id: "t14-s1",
+        title: "십만 명의 서명을 47초 만에 부결시킨 사람들",
+        youtubeId: "gu06UG9h20Q",
+        summary: "십만 서명과 부결, 그리고 10년 뒤 기공식까지 — 14장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "15.md",
@@ -775,6 +783,14 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "권한과 책임", href: "/wiki/concept/power-and-responsibility" },
       },
     ],
+    shorts: [
+      {
+        id: "t15-s1",
+        title: "큰 도둑과 작은 도둑을 가르는 억강부약의 기준",
+        youtubeId: "T1px_eyaA7k",
+        summary: "억강부약과 머슴론 — 15장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "16.md",
@@ -816,6 +832,14 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "경기도 재난기본소득은 세 차례 지급됐고 대상이 매번 달랐습니다. 효과 수치는 지급한 쪽이 낸 것이라는 표시까지 함께 봅니다.",
         horizon: "week",
         link: { label: "경기도 재난기본소득", href: "/achievement/gyeonggi-basic-income" },
+      },
+    ],
+    shorts: [
+      {
+        id: "t16-s1",
+        title: "버니 샌더스가 시장 시절에 증명한 것",
+        youtubeId: "ws9H0HSZMGQ",
+        summary: "양극화와 벌링턴 시장 시절 — 16장을 한 편으로.",
       },
     ],
   },
@@ -863,6 +887,14 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "지방재정365", href: "https://lofin.mois.go.kr" },
       },
     ],
+    shorts: [
+      {
+        id: "t17-s1",
+        title: "빚을 숨기지 않고 정면 돌파한 모라토리엄의 교훈",
+        youtubeId: "LlNqvfgu2mw",
+        summary: "지불유예 선언과 긴축으로 갚은 3년 6개월 — 17장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "18.md",
@@ -907,6 +939,14 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "복지로 맞춤급여 안내", href: "https://www.bokjiro.go.kr" },
       },
     ],
+    shorts: [
+      {
+        id: "t18-s1",
+        title: "행복할 권리는 왜 기회의 불평등에서 갈릴까",
+        youtubeId: "rdo8NTLx76g",
+        summary: "헌법 34조와 기회의 불평등 — 18장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "19.md",
@@ -948,6 +988,14 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "같은 사람이 2026년에 '투표의 힘은 생각보다 강하다'고 썼습니다. 다음 선거일을 미리 적어 둡니다.",
         horizon: "always",
         link: { label: "투표의 힘은…", href: "/words/vote" },
+      },
+    ],
+    shorts: [
+      {
+        id: "t19-s1",
+        title: "웃음을 잃은 국민에게 필요한 지도자의 조건",
+        youtubeId: "n6iaZNczZ48",
+        summary: "할로넨과 무히카, 봉사하는 정치 — 19장을 한 편으로.",
       },
     ],
   },
@@ -999,6 +1047,14 @@ export const CHAPTERS: ChapterMeta[] = [
         horizon: "week",
       },
     ],
+    shorts: [
+      {
+        id: "t20-s1",
+        title: "회유와 협박을 견딘 시민운동의 첫 기억",
+        youtubeId: "M3QZL_cW87U",
+        summary: "저유소 반대운동과 파크뷰 특혜 분양 사건 — 20장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "21.md",
@@ -1042,6 +1098,14 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "발표된 것과 일어난 것", href: "/wiki/concept/announced-vs-done" },
       },
     ],
+    shorts: [
+      {
+        id: "t21-s1",
+        title: "구한말과 지금이 겹쳐 보이는 이유",
+        youtubeId: "eOyRtHdRRMs",
+        summary: "가쓰라 태프트 밀약과 분단비용 — 21장을 한 편으로.",
+      },
+    ],
   },
   {
     file: "22.md",
@@ -1083,6 +1147,14 @@ export const CHAPTERS: ChapterMeta[] = [
         title: "다 읽었으면 한 장을 골라 남에게 옮긴다",
         detail: "스물두 장 가운데 가장 남은 한 장을 골라 주변 한 사람에게 말로 옮깁니다. 읽은 것은 옮길 때 남습니다.",
         horizon: "week",
+      },
+    ],
+    shorts: [
+      {
+        id: "t22-s1",
+        title: "성남에서 입증된 복지를 나라 전체로 넓히는 법",
+        youtubeId: "qNxXFjyJLbA",
+        summary: "출발선의 공정과 복지 확장 — 22장을 한 편으로.",
       },
     ],
   },

@@ -6,22 +6,32 @@ import { usePathname } from "next/navigation";
 import { track } from "@/lib/analytics";
 
 /**
- * 언행 한 편을 공유한다.
+ * 지금 보고 있는 글 하나의 주소를 건넨다.
  *
  * 업적 쪽 ShareButton과 다른 점 하나. 저기는 VisualState를 URL에 실어
  * "지금 이 화면"을 보내지만, 여기에는 담을 화면 상태가 없다. 쉽게 보기와
  * 원문 사이의 전환은 URL에 없고, 링크를 연 사람은 이 글의 처음을 본다.
  * 그래서 보내는 것은 글 하나의 주소다.
  *
+ * 언행 한 편, 자서전 한 권, 그 안의 장 하나가 모두 같은 모양이다. 껍데기를
+ * 세 벌로 두면 한쪽에서 공유 시트의 순서를 고치고 다른 쪽을 잊는다.
+ *
  * 공유 시트가 있으면 그것을 먼저 쓴다. 이 화면은 손에 들고 보는 쪽에
  * 맞춰져 있고, 거기서는 링크를 복사해 붙이는 것보다 시트가 짧다. 없으면
  * 클립보드, 그것도 막히면 prompt로 내려간다.
  */
-export function ShareStatementButton({
+export function ShareLinkButton({
   title,
+  surface,
+  label,
   compact = false,
 }: {
+  /** 공유 시트에 뜨는 이름. 주소가 아니라 사람이 읽는 제목이다. */
   title: string;
+  /** 어느 화면에서 공유가 나왔는지. 무엇을 공유했는지는 세지 않는다. */
+  surface: "words" | "book" | "chapter";
+  /** 버튼에 적는 말과 스크린리더가 읽는 말. */
+  label: { text: string; aria: string; copied: string };
   compact?: boolean;
 }) {
   const pathname = usePathname();
@@ -29,7 +39,7 @@ export function ShareStatementButton({
 
   const onShare = async () => {
     const url = `${window.location.origin}${pathname}`;
-    track("share_create", { surface: "words" });
+    track("share_create", { surface });
 
     if (navigator.share) {
       try {
@@ -57,7 +67,7 @@ export function ShareStatementButton({
     <button
       type="button"
       onClick={onShare}
-      aria-label="이 언행 공유"
+      aria-label={label.aria}
       className={`inline-flex shrink-0 items-center gap-2 rounded-full border border-stone bg-taupe py-2 text-sm font-medium text-smoke transition-colors hover:border-graphite hover:text-navy ${
         compact ? "px-3 sm:px-4" : "px-4"
       }`}
@@ -69,10 +79,10 @@ export function ShareStatementButton({
        * 되면 눌린 것인지 알 수 없고, 그 환경이 바로 이 좁은 화면이다.
        */}
       <span className={compact && !copied ? "hidden sm:inline" : undefined}>
-        {copied ? "링크를 복사했습니다" : "공유"}
+        {copied ? "링크를 복사했습니다" : label.text}
       </span>
       <span className="sr-only" aria-live="polite">
-        {copied ? "이 언행의 링크를 클립보드에 복사했습니다." : ""}
+        {copied ? label.copied : ""}
       </span>
     </button>
   );

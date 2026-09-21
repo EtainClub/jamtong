@@ -118,6 +118,34 @@ body {
 }
 
 /*
+ * 해설 씬의 천장이 제자리에서 오르내린다.
+ *
+ * "2주마다 다시 정한다"를 그림으로 말하는 유일한 방법이다. scale이 아니라
+ * translate를 쓴다 — svg에서 transform-origin은 viewBox를 기준으로 풀려서,
+ * 크기를 바꾸면 가장자리의 도형이 숨 쉬는 대신 옆으로 미끄러진다.
+ * 위 media 규칙이 이 애니메이션도 함께 끈다.
+ */
+@keyframes explainer-bob {
+  0%,
+  100% {
+    transform: translateY(-3px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+/* 해설 씬의 고리가 한 바퀴 그려진다. key가 바뀔 때마다 처음부터 다시 돈다. */
+@keyframes explainer-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
  * prefers-reduced-motion 존중.
  * 모션 씬은 정적 요약으로 폴백하고, 장식 애니메이션은 전부 끈다.
  */

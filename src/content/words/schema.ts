@@ -105,6 +105,13 @@ export const WordArt = z.enum([
   "power-split", // 대통령 권한 일부를 국회로
   "term-four", // 임기를 바꾸자
   "not-parliamentary", // 분권형은 내각제가 아니다
+  // 9·18 기자회견
+  "own-fault", // 모두 저의 부족함 때문입니다
+  "reform-finish", // 검찰개혁을 완수하겠다
+  "police-check", // 경찰이 무소불위가 되지 않도록
+  "for-everyone", // 모두의 대통령이 되겠다
+  "no-second-term", // 연임할 생각이 전혀 없다
+  "two-capitals", // 경제수도 서울, 행정수도 세종
   // 책임과 권력
   "cannot-fool", // 국민은 속일 수 없다
   // 분당집
@@ -115,6 +122,19 @@ export const WordArt = z.enum([
   "wrong-pick", // 능력보다 내 편
   "direct-vote", // 소수 대의원에서 모두의 직선제로
   "check-system", // 감시와 책임
+  // 상대원시장 연설
+  "toilet-coin", // 10원 20원 받던 공중화장실
+  "basement-eight", // 여덟 식구가 반지하방 한 곳에
+  "pit-hand", // 빠져나온 사람이 아직 그 안에 있는 사람에게
+  "family-lever", // 자리를 미끼로 시정에 끼어들려던 것을 막다
+  "recording-choice", // 망신이냐 개입 허용이냐, 둘 중 하나
+  "night-fruit", // 냉장고가 없어 그날 밤에 다 먹었다
+  "no-uniform", // 입어보지 못한 교복
+  // 청년의 날 기념사
+  "quarterly-25", // 분기마다 얼마씩, 한 해에 얼마
+  "no-entry-rung", // 사다리의 첫 칸이 없어졌다
+  "far-from-field", // 권한은 가장 큰데 현장과는 가장 멀다
+  "new-desk", // 전담할 자리를 따로 만들까
 ]);
 export type WordArt = z.infer<typeof WordArt>;
 

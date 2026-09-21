@@ -36,7 +36,14 @@ export function NarrativeLayout({
   achievement: Achievement;
   copy: NarrativeCopy;
 }) {
-  const motion = findScene(achievement, "quantity-track");
+  /*
+   * 모션 자리에 오는 씬.
+   *
+   * 해설이 있으면 그것이 먼저다. 논지가 여러 갈래인 업적에서 수량 추이를
+   * 함께 두면 같은 숫자를 두 번 말하게 되고, 어느 쪽이 그 업적의 이야기인지
+   * 화면이 정하지 못한다. 둘 중 하나만 온다.
+   */
+  const motion = findScene(achievement, "explainer") ?? findScene(achievement, "quantity-track");
   const composition = findScene(achievement, "composition");
   const graphLayout = achievement.graph ? buildGraphLayout(achievement.graph) : null;
 

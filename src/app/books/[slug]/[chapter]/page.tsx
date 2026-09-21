@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { BOOKS, getChapter } from "@/content/books";
 import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
+import { ShareLinkButton } from "@/features/app/ShareLinkButton";
 import { ActionList } from "@/features/books/ActionList";
 import { ChapterView } from "@/features/books/ChapterView";
 import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
@@ -92,14 +93,26 @@ export default async function ChapterPage({
       />
 
       <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
-        <div className="mx-auto flex h-full max-w-[560px] items-center gap-1.5 px-4">
-          <BackButton />
-          <Link
-            href={`/books/${book.slug}`}
-            className="min-w-0 truncate text-sm font-semibold text-smoke transition-colors hover:text-ink"
-          >
-            {book.title}
-          </Link>
+        <div className="mx-auto flex h-full max-w-[560px] items-center justify-between gap-2 px-4">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <BackButton />
+            <Link
+              href={`/books/${book.slug}`}
+              className="min-w-0 truncate text-sm font-semibold text-smoke transition-colors hover:text-ink"
+            >
+              {book.title}
+            </Link>
+          </div>
+          <ShareLinkButton
+            title={`${current.title} · ${book.title}`}
+            surface="chapter"
+            label={{
+              text: "공유",
+              aria: "이 장 공유",
+              copied: "이 장의 링크를 클립보드에 복사했습니다.",
+            }}
+            compact
+          />
         </div>
       </header>
 
@@ -132,6 +145,25 @@ export default async function ChapterPage({
             <span className="mt-0.5 block text-[14px] font-bold text-ink">{next.title}</span>
           </Link>
         )}
+
+        {/*
+         * 다 읽은 자리에 한 번 더 둔다. 상단 바의 것은 들어오자마자 보이지만,
+         * 보낼 마음은 읽고 난 뒤에 생긴다. 다음 장 링크 아래가 그 자리다.
+         */}
+        <div className="mt-6 flex items-center justify-between gap-3 border-t border-stone pt-6">
+          <p className="text-[12px] leading-relaxed text-smoke">
+            이 장이 누군가에게 필요하다면 링크를 건네세요.
+          </p>
+          <ShareLinkButton
+            title={`${current.title} · ${book.title}`}
+            surface="chapter"
+            label={{
+              text: "이 장 공유",
+              aria: "이 장 공유",
+              copied: "이 장의 링크를 클립보드에 복사했습니다.",
+            }}
+          />
+        </div>
       </main>
 
       <BottomNav />

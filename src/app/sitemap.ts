@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { getPublishedAchievements, latestEventDate } from "@/content/achievements";
 import { BOOKS_BY_YEAR } from "@/content/books";
 import { STATEMENTS } from "@/content/words";
+import { OPEN_CARTELS } from "@/content/cartels";
 import { contentPages } from "@/lib/wiki/load";
 import { abs } from "@/lib/seo/site";
 
@@ -94,6 +95,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     for (const chapter of book.chapters) {
       out.push({ url: abs(`/books/${book.slug}/${chapter.slug}`), priority: 0.6 });
     }
+  }
+
+  /*
+   * 카르텔. 비어 있는 표적은 싣지 않는다 — 이름 한 줄뿐인 주소를 색인에
+   * 넣으면 사이트 전체의 품질 신호가 내려간다. 장이 없는 책과 같은 처리다.
+   * lastModified는 비운다. 이 페이지는 제 날짜를 갖지 않고 모으기만 한다.
+   */
+  for (const cartel of OPEN_CARTELS) {
+    out.push({ url: abs(`/cartel/${cartel.slug}`), priority: 0.6 });
   }
 
   return out;

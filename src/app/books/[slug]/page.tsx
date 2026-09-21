@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { BOOKS, getBook } from "@/content/books";
 import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
+import { ShareLinkButton } from "@/features/app/ShareLinkButton";
 
 export function generateStaticParams() {
   return BOOKS.map((book) => ({ slug: book.slug }));
@@ -62,14 +63,31 @@ export default async function BookPage({
   return (
     <>
       <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
-        <div className="mx-auto flex h-full max-w-[560px] items-center gap-1.5 px-4">
-          <BackButton />
-          <Link
-            href="/words"
-            className="shrink-0 text-sm font-semibold text-smoke transition-colors hover:text-ink"
-          >
-            자서전
-          </Link>
+        <div className="mx-auto flex h-full max-w-[560px] items-center justify-between gap-2 px-4">
+          {/* 뒤로와 목록을 한 덩어리로. 왼쪽 위는 '나가는 길'이 있는 자리다. */}
+          <div className="flex min-w-0 items-center gap-1.5">
+            <BackButton />
+            <Link
+              href="/words"
+              className="shrink-0 text-sm font-semibold text-smoke transition-colors hover:text-ink"
+            >
+              자서전
+            </Link>
+          </div>
+          {/*
+           * 책 한 권을 통째로 건넨다. 장 하나가 좋았던 사람이 그 장만 보내면
+           * 받은 사람은 나머지 스물한 장이 있다는 것을 모른다.
+           */}
+          <ShareLinkButton
+            title={`${book.title} · 자서전`}
+            surface="book"
+            label={{
+              text: "공유",
+              aria: "이 책 공유",
+              copied: "이 책의 링크를 클립보드에 복사했습니다.",
+            }}
+            compact
+          />
         </div>
       </header>
 

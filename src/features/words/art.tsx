@@ -1288,6 +1288,483 @@ function CheckSystem() {
     </svg>
   );
 }
+/* ── 상대원시장 연설 ────────────────────────────────────────── */
+
+/** 10원 20원 받던 공중화장실. */
+function ToiletCoin() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="시장 한켠의 공중화장실과 사용료로 받던 동전">
+      <rect x={26} y={66} width={116} height={118} rx={4} fill="var(--graphite)" opacity={0.85} />
+      <rect x={26} y={120} width={116} height={3} fill="var(--eggshell)" opacity={0.35} />
+      <rect x={66} y={128} width={36} height={56} rx={3} fill="var(--eggshell)" opacity={0.8} />
+      <text x={84} y={104} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">
+        화장실
+      </text>
+      <Person x={168} y={166} fill="var(--navy)" scale={0.72} />
+      <circle cx={240} cy={94} r={29} fill="var(--navy)" />
+      <text x={240} y={100} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--eggshell)">10원</text>
+      <circle cx={276} cy={152} r={29} fill="var(--burgundy)" />
+      <text x={276} y={158} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--eggshell)">20원</text>
+      <text x={160} y={216} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        어머니와 여동생이 지켰대요
+      </text>
+    </svg>
+  );
+}
+
+/** 여덟 식구가 반지하방 한 곳에. */
+function BasementEight() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="땅 아래 방 한 칸에 여덟 사람이 함께 있는 모습">
+      <path d="M12 86 H308" stroke="var(--graphite)" strokeWidth={3} strokeLinecap="round" />
+      <text x={300} y={78} textAnchor="end" fontSize={11} {...LABEL} fill="var(--ash)">땅</text>
+      <rect x={62} y={86} width={196} height={100} rx={4}
+            fill="var(--navy)" opacity={0.1} stroke="var(--navy)" strokeWidth={2.5} />
+      <rect x={84} y={86} width={54} height={12} fill="var(--navy)" opacity={0.35} />
+      {[0, 1, 2, 3].map((i) => (
+        <Person key={`a-${i}`} x={90 + i * 47} y={126} fill="var(--navy)" scale={0.52} />
+      ))}
+      {[0, 1, 2, 3].map((i) => (
+        <Person key={`b-${i}`} x={90 + i * 47} y={170} fill="var(--navy)" scale={0.52} />
+      ))}
+      <text x={160} y={216} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        여덟 식구가 한 방에서
+      </text>
+    </svg>
+  );
+}
+
+/**
+ * 빠져나온 사람이 아직 그 안에 있는 사람에게.
+ *
+ * 손을 그리지 않는다. 손을 그리면 누가 누구를 건져 올리는 그림이 되고, 그건
+ * 이 위키가 평가를 하나 보태는 셈이다. 밖에 선 사람에게서 안쪽으로 선 하나를
+ * 내리는 데까지만 그린다.
+ */
+function PitHand() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="웅덩이 밖으로 나온 사람과 아직 그 안에 있는 사람들">
+      <path d="M96 96 V140 A64 44 0 0 0 224 140 V96" fill="var(--graphite)" opacity={0.12} />
+      <path d="M96 96 V140 A64 44 0 0 0 224 140 V96" fill="none"
+            stroke="var(--graphite)" strokeWidth={3} strokeLinejoin="round" />
+      <path d="M20 96 H96 M224 96 H300" stroke="var(--graphite)" strokeWidth={3} strokeLinecap="round" />
+      {[132, 160, 188].map((x) => (
+        <Person key={x} x={x} y={152} fill="var(--graphite)" scale={0.55} opacity={0.55} />
+      ))}
+      <Person x={268} y={74} fill="var(--navy)" scale={0.78} />
+      <path d="M252 84 C222 92, 204 112, 196 132" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeDasharray="7 6" strokeLinecap="round" />
+      <text x={160} y={216} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        그 안에 남은 사람들 때문에
+      </text>
+    </svg>
+  );
+}
+
+/** 자리를 미끼로 시정에 끼어들려던 것을 막다. */
+function FamilyLever() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="자리를 미끼로 시정에 끼어들려는 것을 가로막은 모습">
+      <rect x={18} y={78} width={92} height={54} rx={8}
+            fill="var(--burgundy)" opacity={0.14} stroke="var(--burgundy)" strokeWidth={2.5} />
+      <text x={64} y={100} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--burgundy)">공천</text>
+      <text x={64} y={120} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--burgundy)">의장 자리</text>
+      <text x={64} y={152} textAnchor="middle" fontSize={11} fill="var(--ash)">미끼</text>
+      <path d="M118 105 H148" stroke="var(--burgundy)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M139 96 L150 105 L139 114" fill="none" stroke="var(--burgundy)"
+            strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M156 98 L170 112 M170 98 L156 112" stroke="var(--burgundy)"
+            strokeWidth={3} strokeLinecap="round" />
+      <rect x={180} y={62} width={12} height={92} rx={4} fill="var(--navy)" />
+      <rect x={210} y={70} width={92} height={70} rx={6} fill="var(--navy)" />
+      <text x={256} y={112} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--eggshell)">시정</text>
+      <text x={160} y={216} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        끼어들지 못하게 막았대요
+      </text>
+    </svg>
+  );
+}
+
+/** 망신이냐 개입 허용이냐, 둘 중 하나. */
+function RecordingChoice() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="녹음을 공개하겠다는 압박 앞에서 둘 중 하나를 고르는 갈림길">
+      <rect x={124} y={26} width={72} height={40} rx={6} fill="var(--graphite)" />
+      <circle cx={144} cy={46} r={9} fill="none" stroke="var(--eggshell)" strokeWidth={2.5} />
+      <circle cx={176} cy={46} r={9} fill="none" stroke="var(--eggshell)" strokeWidth={2.5} />
+      <text x={160} y={84} textAnchor="middle" fontSize={11} fill="var(--ash)">공개하겠다는 녹음</text>
+      <path d="M150 94 C126 112, 108 120, 92 128" fill="none" stroke="var(--graphite)"
+            strokeWidth={3} strokeDasharray="7 6" strokeLinecap="round" opacity={0.6} />
+      <path d="M170 94 C194 112, 212 120, 228 128" fill="none" stroke="var(--navy)"
+            strokeWidth={3.5} strokeLinecap="round" />
+      <g opacity={0.45}>
+        <rect x={20} y={132} width={112} height={50} rx={8}
+              fill="none" stroke="var(--graphite)" strokeWidth={2.5} strokeDasharray="6 5" />
+        <text x={76} y={154} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">요구를</text>
+        <text x={76} y={172} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">들어준다</text>
+      </g>
+      <rect x={188} y={132} width={112} height={50} rx={8} fill="var(--navy)" />
+      <text x={244} y={154} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">망신당해도</text>
+      <text x={244} y={172} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--eggshell)">막는다</text>
+      <text x={160} y={216} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        오른쪽을 골랐대요
+      </text>
+    </svg>
+  );
+}
+
+/** 냉장고가 없어 그날 밤에 다 먹었다. */
+function NightFruit() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="냉장고가 없어 그날 밤 다 먹어야 했던 과일과, 넣어 두고 꺼내 먹는 냉장고">
+      <path d="M44 40 A15 15 0 1 0 62 58 A18 18 0 1 1 44 40 Z" fill="var(--ash)" />
+      {[
+        { x: 52, y: 128 },
+        { x: 82, y: 122 },
+        { x: 112, y: 130 },
+        { x: 66, y: 154 },
+        { x: 98, y: 152 },
+      ].map((f) => (
+        <circle key={`${f.x}-${f.y}`} cx={f.x} cy={f.y} r={13} fill="var(--burgundy)" />
+      ))}
+      <text x={82} y={192} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--burgundy)">
+        오늘 밤에 다
+      </text>
+      <text x={82} y={214} textAnchor="middle" fontSize={11} fill="var(--ash)">냉장고가 없어서</text>
+      <path d="M140 132 H176" stroke="var(--navy)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M167 123 L178 132 L167 141" fill="none" stroke="var(--navy)"
+            strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
+      <rect x={200} y={62} width={90} height={126} rx={8} fill="var(--navy)" />
+      <rect x={200} y={112} width={90} height={3} fill="var(--eggshell)" opacity={0.45} />
+      <rect x={276} y={92} width={5} height={18} rx={2.5} fill="var(--eggshell)" opacity={0.7} />
+      <rect x={276} y={126} width={5} height={18} rx={2.5} fill="var(--eggshell)" opacity={0.7} />
+      {[
+        { x: 224, y: 90 },
+        { x: 252, y: 90 },
+        { x: 238, y: 148 },
+      ].map((f) => (
+        <circle key={`${f.x}-${f.y}`} cx={f.x} cy={f.y} r={11} fill="var(--eggshell)" opacity={0.85} />
+      ))}
+      <text x={245} y={212} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">
+        먹고 싶을 때 꺼내서
+      </text>
+    </svg>
+  );
+}
+
+/** 교복 한 벌의 실루엣. 빈 옷걸이와 새 교복이 같은 모양이어야 견줘진다. */
+const SHIRT = "M-30 -26 L-14 -34 L0 -26 L14 -34 L30 -26 L36 6 L22 10 L22 46 L-22 46 L-22 10 L-36 6 Z";
+
+/** 입어보지 못한 교복. */
+function NoUniform() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="비어 있는 옷걸이와 새 교복 한 벌">
+      <path d="M84 56 v14 M64 74 L84 68 L104 74" fill="none" stroke="var(--ash)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <g transform="translate(84 110)">
+        <path d={SHIRT} fill="none" stroke="var(--ash)" strokeWidth={2.5} strokeDasharray="7 6" />
+      </g>
+      <text x={84} y={196} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--ash)">
+        입어보지 못했대요
+      </text>
+      <path d="M140 110 H176" stroke="var(--navy)" strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M167 101 L178 110 L167 119" fill="none" stroke="var(--navy)"
+            strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M236 56 v14 M216 74 L236 68 L256 74" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <g transform="translate(236 110)">
+        <path d={SHIRT} fill="var(--navy)" />
+        <path d="M-14 -34 L0 -8 L14 -34" fill="none" stroke="var(--eggshell)" strokeWidth={2.5} />
+      </g>
+      <text x={236} y={196} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">
+        그래서 무상교복
+      </text>
+    </svg>
+  );
+}
+
+/* ── 청년의 날 기념사 ────────────────────────────────────────── */
+
+/** 분기마다 얼마씩, 한 해에 얼마. */
+function Quarterly25() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="분기마다 네 번 나눠 주어 한 해 몫이 되는 지원">
+      <text x={160} y={52} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--ash)">
+        분기마다 네 번
+      </text>
+      {[0, 1, 2, 3].map((i) => (
+        <g key={i}>
+          <rect x={24 + i * 72} y={64} width={62} height={44} rx={8} fill="var(--navy)" />
+          <text
+            x={55 + i * 72}
+            y={92}
+            textAnchor="middle"
+            fontSize={13}
+            {...LABEL}
+            fill="var(--eggshell)"
+          >
+            25만 원
+          </text>
+        </g>
+      ))}
+      <path d="M28 120 v8 H292 v-8" fill="none" stroke="var(--ash)" strokeWidth={2} />
+      <path d="M160 128 v14" stroke="var(--ash)" strokeWidth={2} />
+      <text x={160} y={176} textAnchor="middle" fontSize={24} {...LABEL} fill="var(--navy)">
+        연 100만 원
+      </text>
+      <text x={160} y={214} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        스물네 살에 딱 한 번
+      </text>
+    </svg>
+  );
+}
+
+/** 사다리의 첫 칸이 없어졌다. */
+function NoEntryRung() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="첫 칸이 빠진 사다리. 아래 칸 없이 위 칸부터 시작한다">
+      <path d="M126 48 V186 M194 48 V186" stroke="var(--graphite)" strokeWidth={4}
+            strokeLinecap="round" />
+      {[74, 106, 138].map((y) => (
+        <path key={y} d={`M126 ${y} H194`} stroke="var(--navy)" strokeWidth={5} strokeLinecap="round" />
+      ))}
+      <path d="M126 170 H194" stroke="var(--burgundy)" strokeWidth={5}
+            strokeDasharray="8 7" strokeLinecap="round" />
+      <text x={116} y={175} textAnchor="end" fontSize={12} {...LABEL} fill="var(--burgundy)">
+        견습 자리
+      </text>
+      <text x={204} y={111} fontSize={12} {...LABEL} fill="var(--navy)">
+        경력직부터
+      </text>
+      <text x={160} y={216} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        첫 칸이 없어졌대요
+      </text>
+    </svg>
+  );
+}
+
+/** 권한은 가장 큰데 현장과는 가장 멀다. */
+function FarFromField() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="권한이 가장 큰 쪽과 현장이 서로 멀리 떨어져 있는 모습">
+      <circle cx={62} cy={112} r={42} fill="var(--navy)" />
+      <text x={62} y={118} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--eggshell)">
+        권한
+      </text>
+      <path d="M114 112 H206" stroke="var(--ash)" strokeWidth={2.5} strokeDasharray="8 7" />
+      <path d="M122 104 L112 112 L122 120 M198 104 L208 112 L198 120" fill="none"
+            stroke="var(--ash)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={96} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--ash)">
+        거리
+      </text>
+      {[228, 262, 296].map((x) => (
+        <Person key={x} x={x} y={118} fill="var(--graphite)" scale={0.62} />
+      ))}
+      <text x={262} y={158} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--graphite)">
+        현장
+      </text>
+      <text x={160} y={212} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        권한은 큰데 현장과는 멀대요
+      </text>
+    </svg>
+  );
+}
+
+/**
+ * 전담할 자리를 따로 만들까.
+ *
+ * 점선으로 그린다. 아직 만든 것이 아니라 만들까 고민한다는 말이고, 실선으로
+ * 그리면 그림이 원문보다 한 걸음 앞서 나간다.
+ */
+function NewDesk() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="기존 조직들 아래에 점선으로 그려진 아직 만들어지지 않은 전담 조직">
+      <g opacity={0.45}>
+        {[24, 116, 208].map((x) => (
+          <rect key={x} x={x} y={48} width={88} height={42} rx={6} fill="var(--graphite)" />
+        ))}
+      </g>
+      <text x={160} y={108} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--ash)">
+        기존 조직
+      </text>
+      <path d="M160 118 V138" stroke="var(--ash)" strokeWidth={2} strokeDasharray="5 4" />
+      <path d="M152 130 L160 140 L168 130" fill="none" stroke="var(--ash)"
+            strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <rect x={72} y={146} width={176} height={52} rx={10}
+            fill="none" stroke="var(--navy)" strokeWidth={2.5} strokeDasharray="8 6" />
+      <text x={160} y={178} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--navy)">
+        청년정책 전담
+      </text>
+      <text x={160} y={222} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">
+        만들까 고민 중이래요
+      </text>
+    </svg>
+  );
+}
+
+/* ── 9·18 기자회견 ────────────────────────────────────────────── */
+
+/** 모두 저의 부족함 때문입니다. */
+function OwnFault() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="몸을 숙인 사람 쪽으로 화살표가 되돌아와 자기 자신을 가리키는 모습">
+      <Person x={160} y={96} fill="var(--navy)" scale={1.6} rotate={14} />
+      <path d="M160 150 C 108 170, 108 206, 152 214"
+            fill="none" stroke="var(--burgundy)" strokeWidth={2.5}
+            strokeDasharray="6 6" strokeLinecap="round" />
+      <path d="M144 206 L152 216 L162 208" fill="none" stroke="var(--burgundy)"
+            strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={40} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        모두 제 부족함 때문입니다
+      </text>
+      <text x={222} y={214} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        책임을 스스로에게
+      </text>
+    </svg>
+  );
+}
+
+/** 검찰개혁을 완수하겠다. */
+function ReformFinish() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="검찰개혁이라는 막대가 거의 끝까지 채워져 종착점에 다다른 모습">
+      <text x={160} y={54} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ash)">
+        검찰개혁
+      </text>
+      <rect x={30} y={104} width={260} height={28} rx={14} fill="var(--stone)" />
+      <rect x={30} y={104} width={224} height={28} rx={14} fill="var(--navy)" />
+      <circle cx={270} cy={118} r={18} fill="var(--canvas)" stroke="var(--navy)" strokeWidth={3} />
+      <path d="M262 118 L268 125 L280 110" fill="none" stroke="var(--navy)"
+            strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={168} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        수사·기소 분리
+      </text>
+      <text x={160} y={210} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        종착점에 다다랐대요
+      </text>
+    </svg>
+  );
+}
+
+/** 경찰이 무소불위가 되지 않도록. */
+function PoliceCheck() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="커지는 경찰 권한 옆에 견제 장치가 함께 놓인 모습">
+      <circle cx={130} cy={108} r={54} fill="var(--navy)" />
+      <text x={130} y={114} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--eggshell)">
+        경찰
+      </text>
+      <rect x={214} y={78} width={80} height={60} rx={10}
+            fill="none" stroke="var(--burgundy)" strokeWidth={3} strokeDasharray="7 6" />
+      <text x={254} y={102} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--burgundy)">
+        견제
+      </text>
+      <text x={254} y={122} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--burgundy)">
+        보완 장치
+      </text>
+      <text x={160} y={200} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        무소불위는 안 된대요
+      </text>
+    </svg>
+  );
+}
+
+/** 모두의 대통령이 되겠다. */
+function ForEveryone() {
+  const others = [
+    { x: 62, y: 92 },
+    { x: 62, y: 172 },
+    { x: 258, y: 92 },
+    { x: 258, y: 172 },
+    { x: 160, y: 50 },
+  ];
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="가운데 선 대통령을 여러 사람이 둘러싸고 있는 모습">
+      {others.map((p, i) => (
+        <Person key={i} x={p.x} y={p.y} fill="var(--graphite)" scale={0.9} opacity={0.75} />
+      ))}
+      <Person x={160} y={140} fill="var(--navy)" scale={1.35} />
+      <text x={160} y={186} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--navy)">
+        대통령
+      </text>
+      <text x={160} y={222} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        모두를 대표해야 한대요
+      </text>
+    </svg>
+  );
+}
+
+/** 연임할 생각이 전혀 없다. */
+function NoSecondTerm() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="한 번의 임기 상자 옆에 두 번째 임기가 X 표시로 지워진 모습">
+      <rect x={44} y={86} width={104} height={52} rx={8} fill="var(--navy)" />
+      <text x={96} y={118} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--eggshell)">
+        임기
+      </text>
+      <g opacity={0.5}>
+        <rect x={172} y={86} width={104} height={52} rx={8}
+              fill="none" stroke="var(--burgundy)" strokeWidth={3} />
+        <text x={224} y={118} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--burgundy)">
+          연임
+        </text>
+      </g>
+      <path d="M172 86 L276 138 M276 86 L172 138" stroke="var(--burgundy)" strokeWidth={3}
+            strokeLinecap="round" />
+      <text x={160} y={180} textAnchor="middle" fontSize={12} fill="var(--ash)">
+        생각해 본 적조차 없대요
+      </text>
+      <text x={160} y={210} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--ink)">
+        연임할 생각 전혀 없대요
+      </text>
+    </svg>
+  );
+}
+
+/** 경제수도 서울, 행정수도 세종. */
+function TwoCapitals() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="경제수도 서울과 행정수도 세종이 나란히 선 모습">
+      <circle cx={96} cy={110} r={50} fill="var(--navy)" />
+      <text x={96} y={104} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--eggshell)">
+        서울
+      </text>
+      <text x={96} y={122} textAnchor="middle" fontSize={11} fill="var(--eggshell)">
+        경제수도
+      </text>
+      <circle cx={224} cy={110} r={50} fill="var(--burgundy)" />
+      <text x={224} y={104} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--eggshell)">
+        세종
+      </text>
+      <text x={224} y={122} textAnchor="middle" fontSize={11} fill="var(--eggshell)">
+        행정수도
+      </text>
+      <text x={160} y={64} textAnchor="middle" fontSize={12} {...LABEL} fill="var(--ash)">
+        경제·행정 2수도
+      </text>
+      <text x={160} y={210} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        두 수도 시대를 열겠대요
+      </text>
+    </svg>
+  );
+}
 export const WORD_ART: Record<WordArt, () => React.ReactNode> = {
   "quote-pick": QuotePick,
   "part-whole": PartWhole,
@@ -1337,4 +1814,21 @@ export const WORD_ART: Record<WordArt, () => React.ReactNode> = {
   "wrong-pick": WrongPick,
   "direct-vote": DirectVote,
   "check-system": CheckSystem,
+  "toilet-coin": ToiletCoin,
+  "basement-eight": BasementEight,
+  "pit-hand": PitHand,
+  "family-lever": FamilyLever,
+  "recording-choice": RecordingChoice,
+  "night-fruit": NightFruit,
+  "no-uniform": NoUniform,
+  "quarterly-25": Quarterly25,
+  "no-entry-rung": NoEntryRung,
+  "far-from-field": FarFromField,
+  "new-desk": NewDesk,
+  "own-fault": OwnFault,
+  "reform-finish": ReformFinish,
+  "police-check": PoliceCheck,
+  "for-everyone": ForEveryone,
+  "no-second-term": NoSecondTerm,
+  "two-capitals": TwoCapitals,
 };

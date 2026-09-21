@@ -1063,6 +1063,405 @@ export function validateIndexSeries(series: IndexSeries): string[] {
 }
 
 /* ────────────────────────────────────────────────────────────────
+ * 해설 — 논지를 장으로 끊어 그린다
+ *
+ * ★ 수량 추이와 무엇이 다른가.
+ *   수량 추이는 숫자 하나가 시점을 지나며 변하는 것이다. 여기는 **한 업적의
+ *   논지가 여러 갈래일 때** 쓴다. 원유 수급은 의존도·운임·비축·가격상한·유가가
+ *   서로 다른 주장이고, 막대 하나로 다섯 가지를 말할 수는 없다.
+ *
+ * ★ 장마다 그림이 다르다.
+ *   같은 그림에 이름표만 갈아 다는 순간 이 씬은 목차가 된다. 그래서 visual은
+ *   장마다 종류가 다른 판별 유니온이고, 종류를 늘리는 일은 그 논지가 정말
+ *   다른 모양일 때만 한다. 두 장이 같아 보이면 둘 중 하나는 제 내용을
+ *   나르고 있지 않은 것이다.
+ *
+ * ★ 화면에 나오는 낱말은 전부 여기 있다.
+ *   그림 컴포넌트에는 이 업적의 고유명사가 한 글자도 없다. 콘텐츠에 없는
+ *   말이 그림에서 나오면 그 말은 누구도 대조하지 않은 말이다.
+ *
+ * ★ 단계는 그림을 미는 축이다.
+ *   장 하나는 순서 있는 단계들이고, 그림은 step의 함수다. 단계를 넘기면
+ *   같은 그림이 변형된다 — 다른 그림으로 갈아 끼우면 그건 슬라이드쇼다.
+ *
+ * ★ 읽는 사람이 직접 움직이는 자리가 하나는 있어야 한다.
+ *   준비된 단계를 넘기는 것은 순서를 가르치고, 손잡이를 직접 움직이는 것은
+ *   구조를 가르친다. 다만 자료에 없는 값에 손잡이가 멈추면 화면이 그렇게
+ *   밝힌다 — 움직인다고 해서 주장이 되지는 않는다.
+ * ──────────────────────────────────────────────────────────────── */
+
+export const explainerStepSchema = z.object({
+  id: z.string(),
+  /** 단계 레일에 적히는 짧은 이름. 두세 낱말. */
+  label: z.string(),
+  /** 이 단계에서 무슨 일이 일어났는지. 그림 아래에 그대로 나온다. */
+  caption: z.string(),
+  /** 이 단계에서만 뜨는 수치. 그림 밖 배지로 나간다. */
+  readout: z
+    .object({ value: z.string(), unit: z.string().optional(), note: z.string().optional() })
+    .optional(),
+});
+export type ExplainerStep = z.infer<typeof explainerStepSchema>;
+
+/**
+ * 장마다 하나씩 붙는 그림의 데이터.
+ *
+ * 좌표는 여기 없다. 여기 있는 것은 이름과 수치뿐이고, 어디에 그릴지는
+ * 그림 컴포넌트가 정한다. 콘텐츠가 좌표를 갖기 시작하면 편집자가 그림을
+ * 고치게 되고, 그러면 자료와 그림이 한 덩어리로 굳는다.
+ */
+export const explainerVisualSchema = z.discriminatedUnion("kind", [
+  /**
+   * 한 곳에 묶여 있던 몫이 다른 곳으로 옮겨 앉는다.
+   * 통 하나가 몇 %인지는 marks가 정한다 — 40개면 한 통이 2.5%다.
+   */
+  z.object({
+    kind: z.literal("origin-shift"),
+    from: z.object({ label: z.string(), note: z.string().optional() }),
+    to: z.object({ label: z.string(), note: z.string().optional() }),
+    unit: z.string(),
+    marks: z.number().int().min(10).max(60),
+    /** 자료로 확인된 시점. 손잡이가 여기 멈추면 근거가 붙는다. */
+    points: z
+      .array(
+        z.object({
+          id: z.string(),
+          displayDate: z.string(),
+          share: z.number().min(0).max(100),
+          note: z.string().optional(),
+        }),
+      )
+      .min(2),
+    target: z.object({ share: z.number().min(0).max(100), label: z.string() }),
+    /** 자료로 대조하지 못한 구간. 그림에서 점선으로 남는다. */
+    unconfirmed: z
+      .object({ label: z.string(), claim: z.string(), assertedBy: z.string(), claimId: z.string() })
+      .optional(),
+  }),
+
+  /** 먼 길에 붙는 비용이 문턱이 되고, 그 문턱을 없애자 물량이 흘렀다. */
+  z.object({
+    kind: z.literal("freight-gap"),
+    origin: z.string(),
+    destination: z.string(),
+    gapLabel: z.string(),
+    offLabel: z.string(),
+    onLabel: z.string(),
+    /** 막대의 기준선. "지원 전 = 100". */
+    baselineLabel: z.string(),
+    routes: z
+      .array(z.object({ id: z.string(), label: z.string(), growthPercent: z.number().min(0) }))
+      .min(2),
+    periodLabel: z.string(),
+  }),
+
+  /** 먼저 내주고 같은 양을 돌려받는 순환. 한 바퀴가 한 기간이다. */
+  z.object({
+    kind: z.literal("reserve-loop"),
+    nodes: z
+      .array(z.object({ id: z.string(), label: z.string(), detail: z.string().optional() }))
+      .min(3)
+      .max(5),
+    counter: z.object({
+      label: z.string(),
+      /** 한 바퀴마다 적히는 말. 자료에 있는 기간만 적는다. */
+      laps: z.array(z.object({ id: z.string(), label: z.string(), value: z.string() })).min(1),
+    }),
+    note: z.string().optional(),
+  }),
+
+  /** 사슬의 어느 마디에 상한이 걸렸는지. 걸리지 않은 마디를 함께 그린다. */
+  z.object({
+    kind: z.literal("price-cap"),
+    links: z.array(z.object({ id: z.string(), label: z.string() })).min(3),
+    /** 상한이 걸린 화살표. 0이면 첫 마디와 둘째 마디 사이다. */
+    capAt: z.number().int().min(0),
+    capLabel: z.string(),
+    caps: z.array(z.object({ id: z.string(), label: z.string(), value: z.string() })).min(1),
+    /** 상한이 걸리지 않은 화살표에 적는 말. */
+    uncappedLabel: z.string(),
+    /** 얼마나 자주 다시 정하는지. */
+    cadence: z.string(),
+  }),
+
+  /** 두 수치가 같은 기간에 반대로 움직였다. 사이 값은 그리지 않는다. */
+  z.object({
+    kind: z.literal("divergence"),
+    lanes: z
+      .array(
+        z.object({
+          id: z.string(),
+          label: z.string(),
+          unit: z.string(),
+          direction: z.enum(["up", "down"]),
+          /** 움직임을 한마디로. "한 주에 14.4달러 올랐다". */
+          moveLabel: z.string(),
+          /** 자료에 있는 시점만. 사이는 점선으로 남는다. */
+          marks: z
+            .array(
+              z.object({
+                id: z.string(),
+                displayDate: z.string(),
+                value: z.number(),
+                display: z.string(),
+                note: z.string().optional(),
+              }),
+            )
+            .min(2),
+        }),
+      )
+      .length(2),
+    /** 두 줄 사이에 적는 말. 방향이 갈렸다는 사실까지만 적는다. */
+    gapLabel: z.string(),
+  }),
+
+  /** 한 몸이 쥐던 두 일이 둘로 갈라지고, 원래 몸은 없어진다. */
+  z.object({
+    kind: z.literal("split-powers"),
+    origin: z.object({
+      label: z.string(),
+      /** 갈라진 뒤 이 기관이 어떻게 되는지. */
+      endLabel: z.string(),
+    }),
+    /** 한 기관 안에서 두 일이 이어져 있다는 표시에 붙는 말. */
+    loopLabel: z.string(),
+    branches: z
+      .array(
+        z.object({
+          id: z.string(),
+          label: z.string(),
+          /** 이 기관이 가져가는 일. 갈라지기 전에는 origin 안에 있다. */
+          power: z.string(),
+          note: z.string().optional(),
+        }),
+      )
+      .length(2),
+    /** 갈라지는 날. */
+    whenLabel: z.string(),
+  }),
+
+  /** 권한이 어느 기관으로 가는지, 그리고 누가 무엇을 잃는지. */
+  z.object({
+    kind: z.literal("powers-ledger"),
+    fromLabel: z.string(),
+    holders: z
+      .array(z.object({ id: z.string(), label: z.string(), note: z.string().optional() }))
+      .length(2),
+    powers: z
+      .array(z.object({ id: z.string(), label: z.string(), holderId: z.string() }))
+      .min(3),
+    /**
+     * 어떤 권한을 누가 잃는가.
+     *
+     * 가져가는 기관만 그리면 절반만 그린 것이다. 권한이 기관 사이를 옮겨 앉는
+     * 동안 그 일을 하던 사람에게서 무엇이 빠지는지가 이 개혁의 절반이다.
+     */
+    actor: z.string(),
+    lostPowerId: z.string(),
+    lostLabel: z.string(),
+    keptLabel: z.string(),
+  }),
+
+  /**
+   * 정해진 것과 아직 오지 않은 것.
+   *
+   * 기준일이 축 위에 있고, 그 뒤는 예정이다. 이 그림의 일은 시간을 그리는 것이
+   * 아니라 **어디까지가 확인된 것인지**를 그리는 것이다.
+   */
+  z.object({
+    kind: z.literal("timeline-gate"),
+    start: z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, "start는 YYYY-MM[-DD] 형식이어야 한다"),
+    end: z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, "end는 YYYY-MM[-DD] 형식이어야 한다"),
+    /** 처음과 끝 사이에 적는 말. "약 일곱 달". */
+    spanLabel: z.string(),
+    /** 기준일 뒤 구간에 적는 말. */
+    futureLabel: z.string(),
+    marks: z
+      .array(
+        z.object({
+          id: z.string(),
+          date: z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, "date는 YYYY-MM[-DD] 형식이어야 한다"),
+          displayDate: z.string(),
+          label: z.string(),
+          /**
+           *   done     일어난 일
+           *   asof     이 위키가 대조한 마지막 날
+           *   planned  아직 오지 않은 일
+           */
+          status: z.enum(["done", "asof", "planned"]),
+        }),
+      )
+      .min(3),
+  }),
+
+  /** 자리와 사람. 눈금 하나가 몇 명인지는 per가 정한다. */
+  z.object({
+    kind: z.literal("seats"),
+    unit: z.string(),
+    per: z.number().int().positive(),
+    capacity: z.object({ label: z.string(), value: z.number().int().positive() }),
+    filled: z.object({ label: z.string(), value: z.number().int().min(0) }),
+    /** 덜 찬 자리에 붙는 말. */
+    gapLabel: z.string(),
+    /** 같은 눈금 위에 견줘 놓는 다른 수. 견줄 것이 없으면 비운다. */
+    reference: z
+      .object({ label: z.string(), value: z.number().int().positive(), note: z.string().optional() })
+      .optional(),
+  }),
+]);
+export type ExplainerVisual = z.infer<typeof explainerVisualSchema>;
+export type ExplainerVisualKind = ExplainerVisual["kind"];
+
+export const explainerChapterSchema = z.object({
+  id: z.string(),
+  /** 이 장이 답하는 질문. 제목이 아니라 질문으로 적는다. */
+  question: z.string(),
+  heading: z.string(),
+  steps: z.array(explainerStepSchema).min(2, "단계가 둘은 있어야 그림이 움직인다"),
+  visual: explainerVisualSchema,
+  /** 이 장이 남기는 한 문장. 그림을 끄고 읽어도 말이 되어야 한다. */
+  takeaway: z.string(),
+  claimId: z.string(),
+});
+export type ExplainerChapter = z.infer<typeof explainerChapterSchema>;
+
+export const explainerSchema = z.object({
+  chapters: z.array(explainerChapterSchema).min(2),
+  /** 읽는 법. 껍데기가 한 번 적는다. */
+  note: z.string().optional(),
+});
+export type Explainer = z.infer<typeof explainerSchema>;
+
+/**
+ * 그림 종류마다 제 데이터를 갖췄는지.
+ *
+ * 종류별로 함수를 나눠 둔다. 한 switch 안에 다 넣으면 종류가 늘 때마다
+ * 그 함수 하나가 길어지고, 새 종류를 넣는 사람이 남의 검사까지 읽게 된다.
+ */
+type VisualCheck<K extends ExplainerVisualKind> = (
+  visual: Extract<ExplainerVisual, { kind: K }>,
+  at: string,
+) => string[];
+
+const checkOriginShift: VisualCheck<"origin-shift"> = (visual, at) => {
+  /* 목표가 확인된 값보다 높으면 "낮추는 이야기"가 아니다. */
+  const lowest = Math.min(...visual.points.map((p) => p.share));
+  return visual.target.share > lowest
+    ? [`${at} → 목표(${visual.target.share})가 확인된 최저값(${lowest})보다 높다`]
+    : [];
+};
+
+const checkPriceCap: VisualCheck<"price-cap"> = (visual, at) =>
+  /* 화살표는 마디 수보다 하나 적다. 없는 화살표에 상한을 걸 수 없다. */
+  visual.capAt > visual.links.length - 2
+    ? [`${at} → capAt(${visual.capAt})이 가리키는 화살표가 없다`]
+    : [];
+
+const checkDivergence: VisualCheck<"divergence"> = (visual, at) =>
+  visual.lanes[0].direction === visual.lanes[1].direction
+    ? [`${at} → 두 줄의 방향이 같다. 갈라지지 않는다`]
+    : [];
+
+const checkPowersLedger: VisualCheck<"powers-ledger"> = (visual, at) => {
+  const errors: string[] = [];
+  const holderIds = new Set(visual.holders.map((h) => h.id));
+  for (const power of visual.powers) {
+    if (!holderIds.has(power.holderId)) {
+      errors.push(`${at} → 권한 "${power.id}"가 없는 기관 "${power.holderId}"으로 간다`);
+    }
+  }
+  if (!visual.powers.some((p) => p.id === visual.lostPowerId)) {
+    errors.push(`${at} → lostPowerId "${visual.lostPowerId}"에 해당하는 권한이 없다`);
+  }
+  return errors;
+};
+
+const checkTimelineGate: VisualCheck<"timeline-gate"> = (visual, at) => {
+  const errors: string[] = [];
+  const { marks } = visual;
+
+  /* 날짜순이 아니면 축이 뒤엉킨다. 문자열 비교로 충분하다 — 전부 ISO다. */
+  if (!marks.every((m, i, all) => i === 0 || all[i - 1].date <= m.date)) {
+    errors.push(`${at} → 시점이 날짜순이 아니다`);
+  }
+
+  /*
+   * 기준일은 하나여야 한다. 이 그림의 전부가 "어디까지가 확인된 것인가"이고,
+   * 그 선이 둘이거나 없으면 그릴 것이 없다.
+   */
+  const asOf = marks.filter((m) => m.status === "asof");
+  if (asOf.length !== 1) {
+    errors.push(`${at} → 기준일(asof)이 ${asOf.length}개다 (하나여야 한다)`);
+  }
+
+  /* 기준일보다 이른 것은 예정이 아니다. */
+  for (const mark of marks) {
+    if (mark.status === "planned" && asOf[0] && mark.date <= asOf[0].date) {
+      errors.push(`${at} → "${mark.id}"가 기준일보다 이른데 예정으로 적혀 있다`);
+    }
+  }
+
+  if (marks[0].date < visual.start || marks[marks.length - 1].date > visual.end) {
+    errors.push(`${at} → 축(${visual.start}~${visual.end}) 밖에 놓인 시점이 있다`);
+  }
+
+  return errors;
+};
+
+const checkSeats: VisualCheck<"seats"> = (visual, at) =>
+  visual.filled.value > visual.capacity.value
+    ? [`${at} → 찬 자리(${visual.filled.value})가 정원(${visual.capacity.value})보다 많다`]
+    : [];
+
+function checkVisual(visual: ExplainerVisual, at: string): string[] {
+  switch (visual.kind) {
+    case "origin-shift":
+      return checkOriginShift(visual, at);
+    case "price-cap":
+      return checkPriceCap(visual, at);
+    case "divergence":
+      return checkDivergence(visual, at);
+    case "powers-ledger":
+      return checkPowersLedger(visual, at);
+    case "timeline-gate":
+      return checkTimelineGate(visual, at);
+    case "seats":
+      return checkSeats(visual, at);
+    /* 한 레코드 안에서 어긋날 수 있는 것이 없는 종류들. */
+    case "freight-gap":
+    case "reserve-loop":
+    case "split-powers":
+      return [];
+  }
+}
+
+/** 장 사이의 약속. 그림 하나 안의 약속은 checkVisual이 본다. */
+function validateExplainer(
+  explainer: Explainer,
+  where: string,
+  checkClaim: (owner: string, claimId: string) => void,
+): string[] {
+  const errors: string[] = [];
+  const ids = new Set<string>();
+
+  for (const chapter of explainer.chapters) {
+    const at = `${where} chapter "${chapter.id}"`;
+    if (ids.has(chapter.id)) errors.push(`${at} → 장 id가 중복이다`);
+    ids.add(chapter.id);
+    checkClaim(at, chapter.claimId);
+
+    /* 그림이 따로 근거를 다는 경우. 장의 근거로는 받칠 수 없는 주장이 있다. */
+    if (chapter.visual.kind === "origin-shift" && chapter.visual.unconfirmed) {
+      checkClaim(`${at} unconfirmed`, chapter.visual.unconfirmed.claimId);
+    }
+
+    for (const error of checkVisual(chapter.visual, at)) errors.push(error);
+  }
+
+  return errors;
+}
+
+/* ────────────────────────────────────────────────────────────────
  * 씬 — 스토리 전용 개념의 확장 지점
  *
  * 스토리 셋을 만들고 나서 확인된 것:
@@ -1122,6 +1521,11 @@ export const sceneSchema = z.discriminatedUnion("kind", [
     ...sceneBase,
     kind: z.literal("quantity-track"),
     track: quantityTrackSchema,
+  }),
+  z.object({
+    ...sceneBase,
+    kind: z.literal("explainer"),
+    explainer: explainerSchema,
   }),
 ]);
 export type Scene = z.infer<typeof sceneSchema>;
@@ -1216,6 +1620,12 @@ export function validateScene(
       }
       break;
     }
+
+    case "explainer":
+      for (const error of validateExplainer(scene.explainer, where, checkClaim)) {
+        errors.push(error);
+      }
+      break;
   }
 
   return errors;

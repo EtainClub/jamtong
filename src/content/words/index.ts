@@ -1,4 +1,5 @@
 import { presidentFriend } from "./president-friend";
+import { chuseokPressConference } from "./chuseok-press-conference";
 import { youthDay } from "./youth-day";
 import { oilPrice } from "./oil-price";
 import { reformIsHard } from "./reform-is-hard";
@@ -13,6 +14,7 @@ import { sewolMockery } from "./sewol-mockery";
 import { bundangHouse } from "./bundang-house";
 import { wish } from "./wish";
 import { sportsReform } from "./sports-reform";
+import { sangdaewonMarket } from "./sangdaewon-market";
 import { frontier } from "./frontier";
 import { validateStatement, type Statement } from "./schema";
 
@@ -25,6 +27,7 @@ import { validateStatement, type Statement } from "./schema";
 export const STATEMENTS: Statement[] = [
   presidentFriend,
   youthDay,
+  chuseokPressConference,
   oilPrice,
   reformIsHard,
   developmentalCare,
@@ -38,7 +41,8 @@ export const STATEMENTS: Statement[] = [
   bundangHouse,
   wish,
   sportsReform,
-  /* 책에 실린 글. 2022년이라 목록 맨 아래다. */
+  /* 2022년. 현장에서 한 말과 책에 실린 글이라 목록 맨 아래다. */
+  sangdaewonMarket,
   frontier,
 ].sort((a, b) => b.postedAt.localeCompare(a.postedAt) || a.slug.localeCompare(b.slug));
 
