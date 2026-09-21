@@ -5,15 +5,13 @@ import { SITE_URL } from "@/lib/seo/site";
 /**
  * robots.txt.
  *
- * 막는 것은 둘뿐이다.
- *   /my  — 내 계정과 내가 물어본 이력. 남이 볼 화면이 아니다.
- *   /s/  — 공유 링크가 지나가는 자리. 같은 내용이 업적 주소로 이미 있고,
- *          이쪽은 메타데이터로도 noindex다. 색인에 두 벌이 서면 안 된다.
+ * /my와 /s/의 색인 제외는 각 페이지의 noindex가 맡는다.
+ * 여기서 크롤링을 막으면 검색엔진이 그 noindex를 읽을 수 없다.
+ * 두 경로는 사이트맵에서도 계속 제외한다.
+ * 개인 데이터 보호는 robots.txt가 아니라 인증과 Firestore 보안 규칙이 맡는다.
  *
- * ★ /api를 막지 않는다.
- *   공유 카드 그림이 `/api/share-card`에서 나온다. 크롤러는 robots.txt를 보고
- *   그림을 가져갈지 정하므로, 여기서 막으면 카드가 통째로 비어서 뜬다.
- *   나머지 API는 POST 전용이라 크롤러가 얻어 갈 것이 없다.
+ * 공유 카드가 사용하는 /api/share-card, /api/wiki-card와 페이지 렌더링에
+ * 필요한 정적 자원도 막지 않는다.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -21,7 +19,6 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/my", "/s/"],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
