@@ -1,5 +1,16 @@
 # 변경 기록
 
+## 0.22.0 — 2026-09-21
+
+### 새 기능
+
+- 카르텔 섹션과 explainer 모션그래픽을 세운다 (0e3c04c)
+
+### 고친 것
+
+- 카르텔을 seo 검사 픽스처에 등록한다 (c453447)
+- avoid reserved module variable in SEO checks (4faa5bb)
+
 ## 0.21.1 — 2026-09-20
 
 ### 고친 것
