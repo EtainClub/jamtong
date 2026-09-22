@@ -45,6 +45,25 @@ export default function AboutPage() {
           있었는지 직접 확인합니다.
         </p>
 
+        {/*
+          * 이 페이지는 규칙을 적는 자리다. 처음 온 사람이 먼저 알아야 하는 것은
+          * 규칙이 아니라 무엇이 어디 있는지이므로, 맨 위에서 그쪽으로 보낸다.
+          */}
+        <Link
+          href="/guide"
+          className="mt-4 flex items-center justify-between gap-3 rounded-card border border-stone bg-taupe px-4 py-3 transition-colors hover:border-graphite"
+        >
+          <span>
+            <span className="block text-[14px] font-semibold text-ink">처음 오셨나요</span>
+            <span className="mt-0.5 block text-[12px] leading-relaxed text-smoke">
+              무엇이 어디 있고 무엇을 해볼 수 있는지 3분 안내
+            </span>
+          </span>
+          <span aria-hidden="true" className="text-[13px] text-ash">
+            →
+          </span>
+        </Link>
+
         <section className="mt-8">
           <h2 className="text-[13px] font-semibold text-smoke">지키는 것</h2>
           <p className="mt-2.5 text-[15px] leading-relaxed text-graphite">

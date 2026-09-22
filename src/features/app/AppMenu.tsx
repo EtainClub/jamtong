@@ -15,6 +15,8 @@ import { formatVersion } from "@/lib/build-info";
 
 const LINKS = [
   { href: "/", label: "홈" },
+  /* 처음 온 사람이 가장 먼저 찾을 것. 홈 바로 다음에 둔다. */
+  { href: "/guide", label: "처음 오셨나요 · 둘러보기" },
   { href: "/explore", label: "업적" },
   { href: "/words", label: "이재명 대통령의 언행" },
   { href: "/links", label: "관련 사이트" },

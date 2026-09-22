@@ -133,6 +133,25 @@ export function HomeFeed({
       ) : (
         <>
 
+      {/*
+       * 처음 온 사람에게 주는 한 줄. 히어로 위에 둔다 — 아래에 두면 스크롤해야
+       * 보이는데, 이 줄이 필요한 사람은 첫 화면에서 이미 막혀 있다.
+       *
+       * 닫기 버튼은 두지 않는다. 브라우저 저장소에 기대는 순간 첫 렌더가
+       * 사람마다 달라지고, 한 줄을 지우자고 그 값을 치를 이유가 없다.
+       */}
+      <Link
+        href="/guide"
+        className="mt-3 flex items-center justify-between gap-3 rounded-card border border-stone bg-taupe px-4 py-2.5 transition-colors hover:border-graphite"
+      >
+        <span className="text-[12px] leading-relaxed text-smoke">
+          <strong className="font-semibold text-ink">처음 오셨나요</strong> · 무엇이 어디
+          있고 무엇을 해볼 수 있는지
+        </span>
+        <span aria-hidden="true" className="shrink-0 text-[13px] text-ash">
+          →
+        </span>
+      </Link>
       <HeroCarousel slides={slides} total={totalPublished} />
 
       <section aria-labelledby="home-achievements" className="mt-9">
