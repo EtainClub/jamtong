@@ -2,7 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import type { Claim, Source } from "@/content/schema";
-import { ASSERTION_LABEL, SOURCE_TYPE_LABEL, SOURCE_TYPE_TIER } from "@/content/labels";
+import {
+  ASSERTION_LABEL,
+  ASSERTION_STYLE,
+  SOURCE_TYPE_LABEL,
+  SOURCE_TYPE_TIER,
+} from "@/content/labels";
 import { useVisualState } from "@/lib/visual-state/store";
 
 /**
@@ -12,13 +17,7 @@ import { useVisualState } from "@/lib/visual-state/store";
  * 여기서 FACT / CLAIM / INTERPRETATION / OPINION을 시각적으로 구분한다.
  */
 
-/* 말은 labels.ts가 갖는다. 여기는 색만 정한다 — 공유 카드도 같은 말을 쓴다. */
-const ASSERTION_STYLE: Record<Claim["assertionType"], { label: string; className: string }> = {
-  FACT: { label: ASSERTION_LABEL.FACT, className: "bg-navy-tint text-navy ring-navy/25" },
-  CLAIM: { label: ASSERTION_LABEL.CLAIM, className: "bg-burgundy-tint text-burgundy ring-burgundy/25" },
-  INTERPRETATION: { label: ASSERTION_LABEL.INTERPRETATION, className: "bg-taupe text-graphite ring-stone" },
-  OPINION: { label: ASSERTION_LABEL.OPINION, className: "bg-taupe text-graphite ring-stone" },
-};
+/* 말도 색도 labels.ts가 갖는다. 여기서 따로 표를 들면 카르텔 카드와 갈라진다. */
 
 interface Props {
   claims: Claim[];
@@ -61,8 +60,6 @@ export function EvidenceDrawer({ claims, sources }: Props) {
     .map((id) => sources.find((s) => s.id === id))
     .filter((s): s is Source => Boolean(s));
 
-  const style = ASSERTION_STYLE[claim.assertionType];
-
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button
@@ -98,9 +95,11 @@ export function EvidenceDrawer({ claims, sources }: Props) {
         <div className="px-6 py-6">
           <div className="flex flex-wrap items-center gap-2">
             <span
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${style.className}`}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${
+                ASSERTION_STYLE[claim.assertionType]
+              }`}
             >
-              {style.label}
+              {ASSERTION_LABEL[claim.assertionType]}
             </span>
             {!claim.verified && (
               <span className="rounded-full bg-pending-tint px-2.5 py-1 text-[11px] font-semibold text-pending ring-1 ring-pending/30">

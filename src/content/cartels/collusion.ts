@@ -45,6 +45,8 @@ const raw: CartelInput = {
       text:
         "대통령은 2026년 2월 19일 담합을 ‘암적 존재’로 규정하고, 설탕·밀가루·육고기·교복·부동산 등 경제·산업 전반에 뿌리 깊게 퍼져 있다고 말했습니다. 이것은 본인의 규정이며, 각 분야에 실제로 담합이 얼마나 있는지를 이 위키가 따로 대조한 것은 아닙니다.",
       claimId: "ct-collusion-president",
+      headline: "암적 존재",
+      tags: ["설탕", "밀가루", "육고기", "교복", "부동산"],
     },
   ],
   milestoneIds: ["ct-ftc-repeat", "ct-ftc-structural", "ct-ftc-bidding"],

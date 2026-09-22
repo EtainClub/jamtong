@@ -39,6 +39,9 @@ const raw: CartelInput = {
       text:
         "도로공사에서 운영업체를 거쳐 입점매장으로 이어지는 다단계 임대 구조였고, 단계마다 수수료가 붙었습니다. 그 수수료가 음식값에 얹힌다는 것이 이 구조를 손보는 이유로 제시됐습니다.",
       claimId: "ct-restarea-tiers",
+      headline: "다단계 임대 구조",
+      tags: ["한국도로공사", "휴게소 운영업체", "입점매장"],
+      tagKind: "steps",
     },
   ],
   milestoneIds: ["ct-restarea-direct"],

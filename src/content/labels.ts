@@ -11,6 +11,20 @@ export const ASSERTION_LABEL: Record<AssertionType, string> = {
   OPINION: "의견",
 };
 
+/*
+ * 문장의 층에 붙는 색.
+ *
+ * 말이 labels.ts에 있으므로 색도 여기 둔다 — 서랍과 카르텔 카드가 따로 제
+ * 표를 들고 있으면 "주장"이 한쪽에서는 버건디, 한쪽에서는 회색이 된다.
+ * 사실은 navy, 주장은 burgundy다. 확정되지 않은 말에 확정된 색을 주지 않는다.
+ */
+export const ASSERTION_STYLE: Record<AssertionType, string> = {
+  FACT: "bg-navy-tint text-navy ring-navy/25",
+  CLAIM: "bg-burgundy-tint text-burgundy ring-burgundy/25",
+  INTERPRETATION: "bg-taupe text-graphite ring-stone",
+  OPINION: "bg-taupe text-graphite ring-stone",
+};
+
 export const CATEGORY_LABEL: Record<Category, string> = {
   economy: "경제·물류",
   welfare: "복지",

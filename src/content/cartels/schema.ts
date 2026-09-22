@@ -29,11 +29,31 @@ import { claimSchema, sourceSchema, type Claim, type Source } from "@/content/sc
  *   못 했는지가 보이지 않는다. 자서전 여섯 권과 같은 처리를 한다.
  */
 
-/** 무엇이 문제인가. 한 줄마다 근거를 단다. */
+/**
+ * 무엇이 문제인가. 한 줄마다 근거를 단다.
+ *
+ * ★ 카드에 크게 세우는 말은 원문에서 그대로 떼어 온다.
+ *   `headline`과 `tags`는 화면에서 가장 크게, 가장 먼저 읽히는 자리다. 거기에
+ *   편집자가 고쳐 쓴 말이 들어가면 근거가 붙지 않은 문장이 가장 눈에 띄는
+ *   자리를 차지하게 된다. 그래서 둘 다 걸린 claim의 원문에 글자 그대로 있어야
+ *   하고, `validateCartel`이 빌드에서 그것을 검사한다.
+ */
 export const cartelProblemSchema = z.object({
   id: z.string(),
   text: z.string(),
   claimId: z.string(),
+  /** 카드 머리에 세우는 한 마디. 원문에서 떼어 온 짧은 조각. */
+  headline: z.string().optional(),
+  /** 이 문장이 이름 댄 것들. 원문에 있는 낱말만. */
+  tags: z.array(z.string()).default([]),
+  /**
+   * 칩을 나열로 볼지 거쳐 가는 단계로 볼지.
+   *
+   * 좌표가 아니라 뜻이다 — 「설탕·밀가루·육고기」는 나열이고
+   * 「도로공사 → 운영업체 → 입점매장」은 단계다. 둘을 같은 모양으로 그리면
+   * 순서가 있는 것과 없는 것이 구별되지 않는다.
+   */
+  tagKind: z.enum(["list", "steps"]).default("list"),
 });
 export type CartelProblem = z.infer<typeof cartelProblemSchema>;
 
@@ -97,7 +117,7 @@ export function validateCartel(
   const { cartel } = entry;
   const where = `cartel "${cartel.slug}"`;
 
-  const claimIds = new Set(entry.claims.map((c) => c.id));
+  const claimById = new Map(entry.claims.map((c) => [c.id, c]));
   const sourceIds = new Set(entry.sources.map((s) => s.id));
 
   for (const claim of entry.claims) {
@@ -116,8 +136,29 @@ export function validateCartel(
   }
 
   for (const problem of cartel.problems) {
-    if (!claimIds.has(problem.claimId)) {
+    const claim = claimById.get(problem.claimId);
+    if (!claim) {
       errors.push(`${where} problem "${problem.id}" → 존재하지 않는 claim "${problem.claimId}"`);
+      continue;
+    }
+
+    /*
+     * 카드에 크게 세운 말이 원문에 있는가.
+     *
+     * 화면에서 가장 먼저 읽히는 자리에 편집자가 고쳐 쓴 말이 들어가면, 근거가
+     * 붙지 않은 문장이 가장 눈에 띄는 자리를 차지하게 된다. 띄어쓰기만 고르고
+     * 글자는 그대로여야 한다.
+     */
+    const original = claim.text.replace(/\s+/g, " ");
+    const shown = [problem.headline, ...problem.tags].filter(
+      (piece): piece is string => Boolean(piece),
+    );
+    for (const piece of shown) {
+      if (!original.includes(piece.replace(/\s+/g, " "))) {
+        errors.push(
+          `${where} problem "${problem.id}" → 카드에 세운 "${piece}"가 근거 원문에 없다`,
+        );
+      }
     }
   }
 
