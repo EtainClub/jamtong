@@ -7,7 +7,6 @@ import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { HomeFeed, type HeroSlide } from "@/features/home/HomeFeed";
 
-import { ArcticHeroVisual, NumberHeroVisual } from "@/features/home/HeroVisuals";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { conceptCards } from "@/lib/wiki/load";
 import { JsonLd, webSiteLd } from "@/lib/seo/jsonld";
@@ -20,7 +19,16 @@ import { JsonLd, webSiteLd } from "@/lib/seo/jsonld";
  * 정작 대다수가 쓰는 쪽이 부실해진다.
  */
 
-const TONES = ["ice", "warm", "deep"] as const;
+const HERO_IMAGES: Partial<Record<string, string>> = {
+  "arctic-route": "/images/heroes/arctic-route.jpg",
+  daejangdong: "/images/heroes/daejangdong.jpg",
+  "gyeonggi-valley": "/images/heroes/gyeonggi-valley.jpg",
+  "nuclear-submarine": "/images/heroes/nuclear-submarine-plan.jpg",
+  "oil-supply": "/images/heroes/oil-supply.jpg",
+  "prosecution-reform": "/images/heroes/prosecution-reform.jpg",
+  "seongnam-debt": "/images/heroes/seongnam-debt.jpg",
+  "stock-market": "/images/heroes/stock-market.jpg",
+};
 
 /*
  * 제목과 설명은 layout.tsx의 기본값을 그대로 쓴다. 홈에서 한 번 더 적으면
@@ -38,13 +46,13 @@ export default function Home() {
    * 넘기게 할 수 없고, 화면이 임의로 고르면 "왜 이것들인가"에 답할 수 없다.
    * 하나도 표시되지 않은 경우에만 앞에서 다섯을 세운다 — 첫 화면이 비면 안 된다.
    *
-   * 그 안에서 세우는 순서는 **최근 순**이다. featured가 '무엇이 중요한가'를
-   * 정하고, 정렬이 '무엇이 새것인가'를 정한다. 등록 순서로 두면 첫 장이 늘
-   * 같은 업적이고, 이번 주에 끝난 일을 보려면 끝까지 넘겨야 했다.
+   * 북극항로를 첫 장에 두고, 나머지는 최근 순으로 보여준다.
    */
   const byNewest = published.slice().sort(byRecency);
   const featured = byNewest.filter((a) => a.featured);
-  const stories = featured.length > 0 ? featured : byNewest.slice(0, 5);
+  const stories = (featured.length > 0 ? featured : byNewest.slice(0, 5)).sort(
+    (a, b) => Number(b.slug === "arctic-route") - Number(a.slug === "arctic-route") || byRecency(a, b),
+  );
 
   const errors = validateMilestones({
     milestones: MILESTONES,
@@ -55,7 +63,7 @@ export default function Home() {
     throw new Error(`성과 카드 검증 실패:\n${errors.join("\n")}`);
   }
 
-  const achievementSlides: HeroSlide[] = stories.map((achievement, index) => {
+  const achievementSlides: HeroSlide[] = stories.map((achievement) => {
     const map = findScene(achievement, "route-map");
     const headline =
       achievement.keyNumbers.find((k) => k.id === achievement.headlineKeyNumberId) ??
@@ -69,16 +77,7 @@ export default function Home() {
       subtitle: achievement.summary.split(". ")[0] + ".",
       href: `/achievement/${achievement.slug}`,
       note: map ? "직접 움직여보기" : headline?.value,
-      /*
-       * 지도가 있는 업적은 지도를, 없는 업적은 대표 수치를 배경으로 쓴다.
-       * 배경이 비면 카드가 전부 같아 보이고, 캐러셀에서 몇 장을 지났는지
-       * 감이 오지 않는다.
-       */
-      visual: map ? (
-        <ArcticHeroVisual routes={map.routes} />
-      ) : headline ? (
-        <NumberHeroVisual value={headline.value} tone={TONES[index % TONES.length]} />
-      ) : undefined,
+      image: HERO_IMAGES[achievement.slug],
     };
   });
 

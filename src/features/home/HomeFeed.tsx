@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { Milestone, Category, Claim } from "@/content/schema";
 import { PART_LABELS, type AchievementCardData } from "@/content/achievements";
 import { ScrollArrow, useScroller } from "@/features/app/Scroller";
@@ -32,8 +33,8 @@ export interface HeroSlide {
   title: string;
   subtitle: string;
   href: string;
-  /** 서버에서 미리 그린 배경 비주얼. 없으면 단색 그라디언트. */
-  visual?: React.ReactNode;
+  /** 대표 업적의 사진 배경. */
+  image?: string;
   note?: string;
 }
 
@@ -428,9 +429,9 @@ function HeroCarousel({ slides, total }: { slides: HeroSlide[]; total: number })
         onScroll={onScroll}
         className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 overflow-x-auto px-4"
       >
-        {slides.map((slide) => (
+        {slides.map((slide, i) => (
           <li key={slide.id} className="w-full shrink-0 snap-center pr-3 last:pr-0">
-            <HeroCard slide={slide} />
+            <HeroCard slide={slide} preload={i === 0} />
           </li>
         ))}
       </ul>
@@ -480,43 +481,57 @@ function HeroCarousel({ slides, total }: { slides: HeroSlide[]; total: number })
   );
 }
 
-function HeroCard({ slide }: { slide: HeroSlide }) {
+function HeroCard({ slide, preload }: { slide: HeroSlide; preload: boolean }) {
   return (
     <Link
       href={slide.href}
-      className="group relative block aspect-[4/5] overflow-hidden rounded-card-lg border border-stone bg-taupe sm:aspect-[16/10]"
+      className="group relative block aspect-[4/5] overflow-hidden rounded-card-lg bg-navy sm:aspect-[16/10]"
     >
-      <div className="absolute inset-0">{slide.visual}</div>
-      {/* 글자를 읽히게 하는 최소한의 빛. 비주얼을 다 덮지는 않는다. */}
+      {slide.image && (
+        <Image
+          src={slide.image}
+          alt=""
+          fill
+          sizes="(max-width: 560px) calc(100vw - 32px), 528px"
+          preload={preload}
+          className="object-cover"
+        />
+      )}
+      {/* 사진의 질감을 살리면서 제목과 설명에 충분한 대비를 준다. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-eggshell via-eggshell/85 to-eggshell/10"
+        className="absolute inset-0 bg-gradient-to-b from-[#071a2c]/85 via-[#071a2c]/35 to-[#071a2c]/45"
       />
 
-      <div className="relative flex h-full flex-col justify-end p-5">
+      <div className="relative flex h-full flex-col items-start p-5">
         <div className="flex flex-wrap gap-1.5">
-          <span className="rounded bg-ink px-2 py-0.5 text-[10px] font-bold text-eggshell">
+          <span className="rounded bg-[#246c9b] px-2 py-0.5 text-[10px] font-bold text-white">
             {slide.kicker}
           </span>
-          <span className="rounded bg-stone px-2 py-0.5 text-[10px] font-semibold text-graphite">
+          <span className="rounded bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-[#12283a]">
             {slide.tag}
           </span>
         </div>
 
-        <h3 className="mt-3 text-[26px] font-light leading-[1.25] tracking-[-0.02em] text-ink">
+        <h3 className="mt-3 max-w-[90%] text-[26px] font-semibold leading-[1.25] tracking-[-0.02em] text-white drop-shadow-sm">
           {slide.title}
         </h3>
-        <p className="mt-2 text-[13px] leading-relaxed text-graphite">{slide.subtitle}</p>
+        <p className="mt-2 max-w-[90%] text-[13px] leading-relaxed text-white/90 drop-shadow-sm">{slide.subtitle}</p>
 
-        <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 text-xs font-semibold text-eggshell transition-colors group-hover:bg-graphite">
+        <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-[#12283a] transition-colors group-hover:bg-white/85">
           자세히 보기
           <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
             →
           </span>
         </span>
 
+        {slide.image && (
+          <span className="absolute bottom-5 left-5 text-[10px] font-medium text-white/85">
+            AI 생성 이미지
+          </span>
+        )}
         {slide.note && (
-          <span className="absolute right-5 top-5 rounded-full bg-eggshell/90 px-2.5 py-1 text-[10px] font-semibold text-graphite ring-1 ring-stone backdrop-blur">
+          <span className="absolute bottom-5 right-5 max-w-[40%] rounded-full bg-[#071a2c]/65 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur">
             {slide.note}
           </span>
         )}
