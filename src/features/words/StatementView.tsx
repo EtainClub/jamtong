@@ -49,22 +49,87 @@ export function StatementView({ statement }: { statement: Statement }) {
         </div>
       )}
 
-      {view === "easy" && statement.easy ? (
+      {!statement.body && statement.overview ? (
+        <section className="mt-7" aria-labelledby="overview-heading">
+          <h2 id="overview-heading" className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ash">
+            영상에서 다룬 주요 내용 · 제공된 요약
+          </h2>
+          <p className="mt-3 whitespace-pre-line text-[15px] leading-[1.9] text-ink">
+            {statement.overview}
+          </p>
+        </section>
+      ) : view === "easy" && statement.easy ? (
         <EasyView statement={statement} onOpenFull={() => setView("full")} />
       ) : (
         <FullView statement={statement} />
       )}
+      {statement.media.length > 0 && <MediaList statement={statement} />}
     </>
   );
 }
 
-/**
- * 원문.
- *
- * `whitespace-pre-wrap`으로 줄바꿈과 빈 줄을 그대로 살린다. 문단을 우리가
- * 다시 나누면 글의 호흡이 바뀐다 — 어디서 끊어 썼는지도 이 사람의 말이다.
- */
+/** Extract IDs from YouTube watch, share, embed, Shorts, and live URLs. */
+function youtubeVideoId(value: string): string | null {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.replace(/^www\./, "");
+    const path = url.pathname.split("/").filter(Boolean);
+    const id =
+      host === "youtu.be"
+        ? path[0]
+        : ["youtube.com", "m.youtube.com", "youtube-nocookie.com"].includes(host)
+          ? url.searchParams.get("v") ??
+            (["embed", "shorts", "live"].includes(path[0]) ? path[1] : null)
+          : null;
+    return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+function MediaList({ statement }: { statement: Statement }) {
+  return (
+    <section aria-labelledby="media-heading" className="mt-8">
+      <h2 id="media-heading" className="text-[13px] font-bold text-ink">
+        영상 자료
+      </h2>
+      <ul className="mt-3 space-y-5">
+        {statement.media.map((media) => {
+          const videoId = media.type === "youtube" ? youtubeVideoId(media.url) : null;
+          return (
+            <li key={media.url}>
+              {videoId && (
+                <div className="aspect-video overflow-hidden rounded-card border border-stone bg-black">
+                  <iframe
+                    className="h-full w-full"
+                    src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+                    title={media.title}
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+              <a
+                href={media.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="mt-2 inline-block text-[13px] font-semibold text-navy hover:underline"
+              >
+                {media.title} ↗
+              </a>
+              {media.credit && <p className="mt-1 text-[12px] text-ash">{media.credit}</p>}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/** Display the verbatim transcript when one is available. */
 function FullView({ statement }: { statement: Statement }) {
+  if (!statement.body) return null;
   return (
     <article className="mt-7">
       <div className="rounded-card border border-stone bg-taupe/50 px-5 py-5">

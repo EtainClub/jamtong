@@ -127,12 +127,23 @@ function dumpStatement(statement: Statement): string {
   L.push(`- 주제: ${statement.topics.join(", ") || "(없음)"}`);
   L.push("");
 
-  L.push("## 원문 — 고치지 않는다");
-  L.push("");
-  L.push("```");
-  L.push(statement.body);
-  L.push("```");
-  L.push("");
+  if (statement.body) {
+    L.push("## 원문 — 고치지 않는다");
+    L.push("");
+    L.push("```");
+    L.push(statement.body);
+    L.push("```");
+    L.push("");
+  } else if (statement.overview) {
+    L.push("## 영상 개요 — 제공된 요약이며 원문이 아니다");
+    L.push("");
+    L.push(statement.overview);
+    L.push("");
+  }
+  for (const media of statement.media) {
+    L.push(`- 영상 자료: [${media.title}](${media.url})${media.credit ? ` · ${media.credit}` : ""}`);
+  }
+  if (statement.media.length > 0) L.push("");
 
   if (statement.glossary.length > 0) {
     L.push("## 말풀이");

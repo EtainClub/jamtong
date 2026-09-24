@@ -76,7 +76,7 @@ for (const statement of STATEMENTS) {
   }
 
   console.log(
-    `✓ 언행 ${statement.slug} — 원문 ${statement.body.length}자, ` +
+    `✓ 언행 ${statement.slug} — ${statement.body ? `원문 ${statement.body.length}자` : "영상 개요"}, ` +
       `쉬운 토막 ${points}, 말풀이 ${statement.glossary.length}`,
   );
 }

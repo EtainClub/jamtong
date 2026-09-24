@@ -62,7 +62,12 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     );
   }
 
-  const excerpt = clip(statement.easy?.points[0]?.quote ?? statement.body, 120);
+  const excerpt = clip(
+    statement.easy?.points[0]?.quote ??
+      statement.body ??
+      "영상 기반 항목입니다. 연설 전문은 영상 자료에서 확인할 수 있습니다.",
+    120,
+  );
 
   return new ImageResponse(
     (

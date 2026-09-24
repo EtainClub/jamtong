@@ -155,6 +155,14 @@ export const easyPointSchema = z.object({
 });
 export type EasyPoint = z.infer<typeof easyPointSchema>;
 
+export const wordMediaSchema = z.object({
+  type: z.enum(["youtube"]),
+  url: z.string().url(),
+  title: z.string(),
+  credit: z.string().optional(),
+});
+export type WordMedia = z.infer<typeof wordMediaSchema>;
+
 export const statementSchema = z.object({
   id: z.string(),
   slug: z.string(),
@@ -168,8 +176,12 @@ export const statementSchema = z.object({
   postedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "postedAt은 YYYY-MM-DD여야 한다"),
   /** 화면에 그대로 적는 시각. 원문이 밝힌 만큼만. */
   displayDate: z.string(),
-  /** 원문. 절대 손대지 않는다. */
-  body: z.string().min(1),
+  /** 원문 전문. 제공된 요약과 구분하기 위해 전문이 없을 수 있다. */
+  body: z.string().min(1).optional(),
+  /** 전문 대신 제공된 영상의 개요. 발언 원문으로 표시하지 않는다. */
+  overview: z.string().min(1).optional(),
+  /** 연설 영상 등 참고 자료. 자료 형식은 늘릴 수 있다. */
+  media: z.array(wordMediaSchema).default([]),
   /**
    * 이 글이 놓인 자리. 편집자가 적는 한 줄.
    *
@@ -201,6 +213,8 @@ export const statementSchema = z.object({
     .optional(),
   /** 이 말과 맞물리는 업적. slug로 건다. */
   relatedAchievements: z.array(z.string()).default([]),
+}).refine((statement) => Boolean(statement.body || statement.overview), {
+  message: "원문 또는 자료 개요가 필요하다",
 });
 export type Statement = z.infer<typeof statementSchema>;
 export type StatementInput = z.input<typeof statementSchema>;
@@ -224,7 +238,7 @@ function squash(text: string): string {
  */
 export function validateStatement(statement: Statement): string[] {
   const errors: string[] = [];
-  const haystack = squash(statement.body);
+  const haystack = squash(statement.body ?? "");
 
   const quoted = [
     ...(statement.easy?.points ?? []).map((p) => ({ where: `easy.points "${p.id}"`, quote: p.quote })),
@@ -232,6 +246,10 @@ export function validateStatement(statement: Statement): string[] {
       ? [{ where: "easy.caveat", quote: statement.easy.caveat.quote }]
       : []),
   ];
+  if (quoted.length > 0 && !statement.body) {
+    errors.push("원문 전문이 없는 항목에는 쉽게 보기를 둘 수 없다");
+  }
+
 
   for (const point of quoted) {
     if (!haystack.includes(squash(point.quote))) {

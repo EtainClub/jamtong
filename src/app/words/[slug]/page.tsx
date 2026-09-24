@@ -26,7 +26,7 @@ export async function generateMetadata({
   if (!statement) return {};
 
   /* 날짜와 채널만 적으면 검색 결과에 무슨 말인지가 없다. 요지를 앞에 둔다. */
-  const summary = statement.easy?.intro ?? statement.body.slice(0, 120).replace(/\s+/g, " ");
+  const summary = statement.easy?.intro ?? statement.body?.slice(0, 120).replace(/\s+/g, " ") ?? statement.overview ?? statement.title;
 
   return {
     title: `${statement.title} · 언행`,
@@ -73,7 +73,7 @@ export default async function StatementPage({
         data={articleLd({
           path: `/words/${statement.slug}`,
           headline: statement.title,
-          description: statement.easy?.intro ?? statement.body.slice(0, 120),
+          description: statement.easy?.intro ?? statement.body?.slice(0, 120) ?? statement.overview ?? statement.title,
           /* 그 말이 나온 날. 이 페이지가 만들어진 날이 아니라 원문의 날짜다. */
           datePublished: statement.postedAt,
           citation: statement.url,

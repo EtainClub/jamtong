@@ -16,6 +16,7 @@ import { wish } from "./wish";
 import { sportsReform } from "./sports-reform";
 import { sangdaewonMarket } from "./sangdaewon-market";
 import { frontier } from "./frontier";
+import { campaignSpeech2017 } from "./2017-campaign-speech";
 import { validateStatement, type Statement } from "./schema";
 
 /**
@@ -41,6 +42,7 @@ export const STATEMENTS: Statement[] = [
   bundangHouse,
   wish,
   sportsReform,
+  campaignSpeech2017,
   /* 2022년. 현장에서 한 말과 책에 실린 글이라 목록 맨 아래다. */
   sangdaewonMarket,
   frontier,

@@ -52,11 +52,8 @@ function WordsPanel() {
   return (
     <>
       <p className="mt-6 text-[13px] leading-relaxed text-smoke">
-        본인이 직접, 공개적으로 한 말과 행동을 원문 그대로 모읍니다. 긴 글에는
-        쉬운 말로 옮긴 것을 함께 둡니다.
-      </p>
-      <p className="mt-2 text-[12px] leading-relaxed text-ash">
-        여기 실린 글은 고치지 않습니다. 띄어쓰기와 줄바꿈까지 올라온 그대로입니다.
+        본인이 직접, 공개적으로 한 말과 행동을 모읍니다. 원문을 확인한 항목은 원문을 싣고,
+        전문이 없는 연설은 영상 자료와 제공된 개요를 표시합니다.
       </p>
 
       <ul className="mt-8 space-y-3">
@@ -77,12 +74,10 @@ function WordsPanel() {
                 {statement.title}
               </h2>
 
-              {/*
-                * 목록에는 원문의 앞머리를 보인다. 우리가 쓴 요약문을 앞세우면
-                * 목록을 훑는 사람은 우리 문장만 읽고 지나간다.
-                */}
               <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-smoke">
-                {statement.body.split("\n").filter(Boolean).slice(1).join(" ")}
+                {statement.body
+                  ? statement.body.split("\n").filter(Boolean).slice(1).join(" ")
+                  : statement.overview}
               </p>
 
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] text-ash">
@@ -91,6 +86,12 @@ function WordsPanel() {
                   <>
                     <span aria-hidden="true">·</span>
                     <span>쉽게 보기 있음</span>
+                  </>
+                )}
+                {statement.media.length > 0 && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span>{statement.body ? "영상 자료 있음" : "영상 개요 · 영상 자료"}</span>
                   </>
                 )}
               </div>

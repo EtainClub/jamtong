@@ -120,13 +120,14 @@ function build(): SearchEntry[] {
       id: `words:${statement.slug}`,
       kind: "words",
       title: statement.title,
-      detail: statement.easy?.intro ?? statement.body.slice(0, 80),
+      detail: statement.easy?.intro ?? statement.body?.slice(0, 80) ?? statement.overview ?? "",
       context: `${statement.channel} · ${statement.displayDate}`,
       href: `/words/${statement.slug}`,
       haystack: normalize(
         [
           statement.title,
-          statement.body,
+          statement.body ?? "",
+          statement.overview ?? "",
           statement.topics.join(" "),
           statement.glossary.map((g) => `${g.term} ${g.explain}`).join(" "),
           statement.context ?? "",
