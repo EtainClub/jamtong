@@ -14,6 +14,13 @@ import { findScene, type SceneKind } from "@/content/schema";
 import { STATEMENTS } from "@/content/words";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
+import {
+  AbilityArt,
+  DemoArt,
+  LibraryBand,
+  type AbilityArtKind,
+  type DemoArtKind,
+} from "@/features/guide/GuideArt";
 import { GuideExplainer } from "@/features/guide/GuideExplainer";
 import { buildGuideChapters, type AnchorSample } from "@/features/guide/storyboard";
 import { contentPages } from "@/lib/wiki/load";
@@ -49,6 +56,8 @@ function demoFor(kind: SceneKind) {
 }
 
 interface Demo {
+  /** 무엇을 만지게 되는지 그린 작은 그림. */
+  art: DemoArtKind;
   verb: string;
   title: string;
   body: string;
@@ -107,6 +116,7 @@ export default function GuidePage() {
 
   const demos: Demo[] = [
     map && {
+      art: "map",
       verb: "끌어 봅니다",
       title: map.title,
       body: "두 항로를 같은 지도 위에 겹쳐 둡니다. 어느 쪽이 얼마나 짧은지 글로 읽는 대신 손으로 돌려 봅니다.",
@@ -114,6 +124,7 @@ export default function GuidePage() {
       cta: "지도 열기",
     },
     flow && {
+      art: "flow",
       verb: "따라가 봅니다",
       title: flow.title,
       body: "돈이 어디서 나와 어디로 갔는지 한 화면에 흐르게 둡니다. 갈래마다 근거가 붙어 있습니다.",
@@ -121,6 +132,7 @@ export default function GuidePage() {
       cta: "흐름 보기",
     },
     track && {
+      art: "evidence",
       verb: "눌러 봅니다",
       title: track.title,
       body: "숫자 옆의 작은 버튼을 누르면 그 숫자가 어느 자료에서 나왔는지 그 자리에서 열립니다.",
@@ -218,19 +230,27 @@ export default function GuidePage() {
           눌러서 확인할 수 있게 만들었습니다.
         </p>
 
-        <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-stone bg-stone">
-          {[
-            ["업적", `${published.length}편`],
-            ["언행", `${STATEMENTS.length}편`],
-            ["근거", `${claimCount}건`],
-            ["자료", `${sourceCount}건`],
-          ].map(([label, value]) => (
-            <div key={label} className="bg-taupe px-4 py-3">
-              <dt className="text-[11px] text-ash">{label}</dt>
-              <dd className="tabular mt-0.5 text-[17px] font-bold text-ink">{value}</dd>
-            </div>
-          ))}
-        </dl>
+        {/*
+          * 지금 실린 것을 낱개로 깐다.
+          *
+          * 표에 「22편·18편·46쪽」이라고 적으면 셋 다 그냥 두 자리 수다. 그만큼의
+          * 조각이 실제로 깔리면 22와 46의 차이가 글자 크기가 아니라 넓이로 읽힌다.
+          * 근거·자료는 백 단위라 조각으로 깔 수 없어 아래 한 줄로 적는다.
+          */}
+        <div className="mt-5">
+          <LibraryBand
+            groups={[
+              { label: "업적", count: published.length, tone: "navy" },
+              { label: "언행", count: STATEMENTS.length, tone: "graphite" },
+              { label: "위키", count: wikiPages.length, tone: "muted" },
+            ]}
+          />
+          <p className="mt-2 text-[12px] leading-relaxed text-ash">
+            그 아래에 근거 <span className="tabular font-semibold text-smoke">{claimCount}</span>건과
+            자료 <span className="tabular font-semibold text-smoke">{sourceCount}</span>건이 붙어
+            있습니다.
+          </p>
+        </div>
 
         {/*
           * 그림이 먼저 온다.
@@ -270,17 +290,25 @@ export default function GuidePage() {
                 <li key={demo.href}>
                   <Link
                     href={demo.href}
-                    className="block rounded-card border border-stone bg-taupe px-4 py-3.5 transition-colors hover:border-graphite"
+                    className="flex gap-3.5 rounded-card border border-stone bg-taupe px-4 py-3.5 transition-colors hover:border-graphite"
                   >
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-[15px] font-semibold text-ink">{demo.title}</span>
-                      <span className="text-[11px] font-medium text-navy">{demo.verb}</span>
-                      <span aria-hidden="true" className="ml-auto text-[13px] text-ash">
-                        →
+                    {/* 무엇을 만지게 되는지를 먼저 보인다. 셋이 글만으로는 다 같아 보였다. */}
+                    <DemoArt kind={demo.art} />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-baseline gap-2">
+                        <span className="text-[15px] font-semibold text-ink">{demo.title}</span>
+                        <span className="text-[11px] font-medium text-navy">{demo.verb}</span>
+                        <span aria-hidden="true" className="ml-auto text-[13px] text-ash">
+                          →
+                        </span>
                       </span>
-                    </div>
-                    <p className="mt-1.5 text-[13px] leading-relaxed text-smoke">{demo.body}</p>
-                    <p className="mt-2 text-[11px] font-semibold text-graphite">{demo.cta}</p>
+                      <span className="mt-1.5 block text-[13px] leading-relaxed text-smoke">
+                        {demo.body}
+                      </span>
+                      <span className="mt-2 block text-[11px] font-semibold text-graphite">
+                        {demo.cta}
+                      </span>
+                    </span>
                   </Link>
                 </li>
               ))}
@@ -365,32 +393,49 @@ export default function GuidePage() {
             화면에서 할 수 있는 것
           </h2>
 
+          {/*
+            * 다섯 줄에 화면 축소판을 붙인다.
+            *
+            * 이름만으로는 「근거 열기」와 「AI 안내」가 무엇이 다른지 읽기 전에는
+            * 모른다. 그림은 상상한 아이콘이 아니라 그 화면이 실제로 생긴 모양이라,
+            * 나중에 만났을 때 알아보게 된다.
+            */}
           <dl className="mt-4 space-y-4">
-            {[
+            {(
               [
-                "쉽게 보기 ↔ 원문 보기",
-                "업적 화면 위쪽의 전환 버튼. 한쪽은 그림과 짧은 말로, 다른 쪽은 근거와 수치를 그대로 둡니다. 같은 내용을 두 속도로 읽습니다.",
-              ],
-              [
-                "근거 열기",
-                "숫자나 단정문 옆의 작은 버튼. 누르면 아래에서 서랍이 올라오고 원자료 링크가 그대로 있습니다. 근거가 없는 것은 애초에 화면에 그려지지 않습니다.",
-              ],
-              [
-                "AI 안내",
-                "업적 화면 아래에 떠 있는 버튼. 물으면 긴 글로 답하는 대신 화면이 그 장면으로 움직입니다. 물어본 이력은 MY에 쌓입니다.",
-              ],
-              [
-                "검색",
-                "홈 맨 위. 업적 제목뿐 아니라 근거 문장, 연표 항목, 언행 원문, 책의 장까지 함께 찾습니다.",
-              ],
-              [
-                "공유",
-                "보고 있던 상태 그대로 링크가 만들어집니다. 받은 사람이 같은 항로, 같은 시점을 봅니다.",
-              ],
-            ].map(([label, body]) => (
-              <div key={label}>
-                <dt className="text-[14px] font-bold text-ink">{label}</dt>
-                <dd className="mt-1 text-[13px] leading-relaxed text-smoke">{body}</dd>
+                [
+                  "switch",
+                  "쉽게 보기 ↔ 원문 보기",
+                  "업적 화면 위쪽의 전환 버튼. 한쪽은 그림과 짧은 말로, 다른 쪽은 근거와 수치를 그대로 둡니다. 같은 내용을 두 속도로 읽습니다.",
+                ],
+                [
+                  "drawer",
+                  "근거 열기",
+                  "숫자나 단정문 옆의 작은 버튼. 누르면 아래에서 서랍이 올라오고 원자료 링크가 그대로 있습니다. 근거가 없는 것은 애초에 화면에 그려지지 않습니다.",
+                ],
+                [
+                  "ask",
+                  "AI 안내",
+                  "업적 화면 아래에 떠 있는 버튼. 물으면 긴 글로 답하는 대신 화면이 그 장면으로 움직입니다. 물어본 이력은 MY에 쌓입니다.",
+                ],
+                [
+                  "search",
+                  "검색",
+                  "홈 맨 위. 업적 제목뿐 아니라 근거 문장, 연표 항목, 언행 원문, 책의 장까지 함께 찾습니다.",
+                ],
+                [
+                  "share",
+                  "공유",
+                  "보고 있던 상태 그대로 링크가 만들어집니다. 받은 사람이 같은 항로, 같은 시점을 봅니다.",
+                ],
+              ] as [AbilityArtKind, string, string][]
+            ).map(([art, label, body]) => (
+              <div key={label} className="flex gap-3.5">
+                <AbilityArt kind={art} />
+                <div className="min-w-0">
+                  <dt className="text-[14px] font-bold text-ink">{label}</dt>
+                  <dd className="mt-1 text-[13px] leading-relaxed text-smoke">{body}</dd>
+                </div>
               </div>
             ))}
           </dl>

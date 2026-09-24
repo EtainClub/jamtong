@@ -192,22 +192,32 @@ function AnchorChain({ v, step }: { v: Extract<GuideVisual, { kind: "anchor" }>;
        * 것이 보인다.
        */}
       <Layer on={orphanOn}>
-        <rect
-          x={246}
-          y={10}
-          width={200}
-          height={64}
-          rx={14}
-          fill="none"
-          stroke="var(--ash)"
-          strokeWidth={1.4}
-          strokeDasharray="5 5"
-        />
-        {orphanLines.map((line, i) => (
-          <text key={i} x={264} y={38 + i * 15} fontSize={11} {...SUB} fill="var(--ash)">
-            {line}
-          </text>
-        ))}
+        {/*
+          * 닿지 못한 쪽은 한 번 흔들린다. 점선 상자가 조용히 서 있기만 하면
+          * "이것도 있다"로 읽히는데, 여기서 말하려는 것은 "이것은 실패했다"다.
+          * key가 바뀔 때마다 처음부터 다시 돈다.
+          */}
+        <g
+          key={`orphan-${step}`}
+          style={{ animation: "guide-shake 520ms var(--ease-out-expo) 360ms 1" }}
+        >
+          <rect
+            x={246}
+            y={10}
+            width={200}
+            height={64}
+            rx={14}
+            fill="none"
+            stroke="var(--ash)"
+            strokeWidth={1.4}
+            strokeDasharray="5 5"
+          />
+          {orphanLines.map((line, i) => (
+            <text key={i} x={264} y={38 + i * 15} fontSize={11} {...SUB} fill="var(--ash)">
+              {line}
+            </text>
+          ))}
+        </g>
       </Layer>
 
       <Link x={112} y1={74} y2={104} on={claimOn} />
@@ -253,6 +263,27 @@ function AnchorChain({ v, step }: { v: Extract<GuideVisual, { kind: "anchor" }>;
         strokeDasharray={sourceOn ? undefined : "5 5"}
         style={{ transition: "fill 380ms, stroke 380ms" }}
       />
+      {/*
+        * 닿는 순간 테두리가 한 번 번지고 사라진다.
+        *
+        * 선이 다 그려진 뒤에도 아무 일이 없으면 "내려왔다"가 아니라 "그려졌다"로
+        * 끝난다. key가 바뀔 때마다 처음부터 다시 돌아, 단계를 오갈 때도 도착이
+        * 매번 보인다.
+        */}
+      {sourceOn && (
+        <rect
+          key={`land-${step}`}
+          x={14}
+          y={196}
+          width={432}
+          height={60}
+          rx={12}
+          fill="none"
+          stroke="var(--navy)"
+          strokeWidth={3}
+          style={{ animation: "guide-land 760ms var(--ease-out-expo) 420ms 1 both" }}
+        />
+      )}
       <Layer on={sourceOn}>
         <text x={28} y={218} fontSize={11} {...LABEL} fill="var(--navy)">
           {wrap(v.sourcePublisher, 24, 1)[0]}
@@ -527,8 +558,15 @@ function Slots({ v, step }: { v: Extract<GuideVisual, { kind: "slots" }>; step: 
                 style={{ transition: "fill 360ms, stroke 360ms" }}
               />
 
+              {/*
+                * 보기를 바꾸면 위에서 아래로 차례로 갈아 끼워진다.
+                *
+                * 일곱 칸이 한꺼번에 깜빡이면 무엇이 바뀌었는지 보이지 않고
+                * 화면이 한 번 튄 것처럼 읽힌다. 줄마다 조금씩 늦추면 페이지가
+                * 다시 조판되는 것으로 보인다.
+                */}
               {/* 쉽게 보기 — 그림 한 점과 짧은 말 */}
-              <Layer on={on && view === "easy"}>
+              <Layer on={on && view === "easy"} delay={i * 45}>
                 <circle cx={36} cy={y + SLOT_H / 2} r={7} fill="var(--navy)" opacity={0.85} />
                 <rect
                   x={50}
@@ -542,7 +580,7 @@ function Slots({ v, step }: { v: Extract<GuideVisual, { kind: "slots" }>; step: 
               </Layer>
 
               {/* 원문 보기 — 줄글과 수치 */}
-              <Layer on={on && view === "full"}>
+              <Layer on={on && view === "full"} delay={i * 45}>
                 {[122, 100, 78].map((w, k) => (
                   <rect
                     key={w}
