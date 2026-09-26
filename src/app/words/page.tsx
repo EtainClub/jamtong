@@ -106,21 +106,16 @@ function WordsPanel() {
 /**
  * 지지자 응원.
  *
- * 안내 문구를 영상 위에 둔다. 아래에 두면 영상을 다 본 뒤에야 "우리가 확인한
- * 것이 아니다"를 읽게 되는데, 그때는 이미 읽은 사람 머릿속에서 이 위키가
- * 보증한 내용이 되어 있다.
+ * 영상에 붙는 "우리가 확인한 것이 아니다" 안내는 영상 칸 맨 위로 옮겼다
+ * (CheerBoard의 VideoNotice). 한 줄과 영상을 두 칸으로 가르면서, 영상에만
+ * 해당하는 말이 한 줄 칸 위에 서 있을 이유가 없어졌다.
  */
 function CheerPanel() {
   return (
     <>
       <p className="mt-6 text-[13px] leading-relaxed text-smoke">
-        지지자들이 직접 만들어 올린 영상입니다. 만든 사람과 원본 채널을 함께
-        적고, 영상은 유튜브에 있는 것을 그대로 틉니다.
-      </p>
-      <p className="mt-3 rounded-card border border-stone bg-taupe px-4 py-3 text-[12px] leading-relaxed text-ash">
-        우리가 만든 것도, 우리가 사실 확인을 한 것도 아닙니다. 영상 속 주장은
-        업적에 붙는 근거와 같은 검증을 거치지 않았습니다. 확인된 사실은 업적에,
-        본인이 한 말은 왼쪽 탭에 있습니다.
+        지지자들이 남긴 응원입니다. 누구나 바로 쓰는 한 줄 응원과, 직접 만들어
+        올린 응원 영상이 있습니다.
       </p>
 
       <CheerBoard seed={CHEERS} />
