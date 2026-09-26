@@ -69,6 +69,21 @@ const raw: z.input<typeof siteLinkSchema>[] = [
     kind: "official",
   },
   {
+    id: "facebook",
+    title: "이재명 페이스북",
+    url: "https://www.facebook.com/jaemyunglee",
+    description: "본인 페이스북 페이지입니다. 페이지 소개는 '대한민국 제21대 대통령'입니다.",
+    kind: "official",
+  },
+  {
+    id: "im-jamtong",
+    title: "임통",
+    url: "https://im.jamtong.kr",
+    description:
+      "이재명 대통령과 관련된 정치인과 공인이 한 말을 원자료와 함께 모아 두는 곳입니다. 커뮤니티가 함께 키워 갑니다.",
+    kind: "community",
+  },
+  {
     id: "bluecheernote",
     title: "이잼 응원 공간",
     url: "https://bluecheernote.com/",
