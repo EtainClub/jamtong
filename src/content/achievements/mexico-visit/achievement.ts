@@ -39,6 +39,18 @@ const raw: AchievementInput = {
     "맺었다. 다만 협정은 서명과 국회 비준동의가 남았고, 17건은 대부분 양해각서다.",
   type: "policy",
   publishStatus: "published",
+  coverage: [
+    {
+      title: "이재명 대통령 유엔총회 참석·멕시코 국빈방문 일정 발표",
+      date: "2026-09-21",
+      url: "https://news.jamtong.kr/e/2026-09-21-cb89af/",
+    },
+    {
+      title: "이재명 대통령, 미국·멕시코 순방 마치고 귀국길",
+      date: "2026-09-27",
+      url: "https://news.jamtong.kr/e/2026-09-27-0635e3/",
+    },
+  ],
   sourceNote:
     "정상회담 결과는 공동언론발표를 전한 보도로 확인했습니다. 17건의 문건 원문과 " +
     "공동행동계획 원문은 아직 대조하지 못했습니다. 투자보장협정은 이 업적 기준일인 " +

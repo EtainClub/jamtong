@@ -2,7 +2,7 @@
 title: 경기도 재난기본소득
 kind: source
 source: gyeonggi-basic-income
-updated: 2026-09-20
+updated: 2026-09-27
 ---
 
 # 경기도 재난기본소득
@@ -22,8 +22,8 @@ updated: 2026-09-20
   소득상위 12%, 253만 7천 명에게 1인당 25만 원.
   ^[gyeonggi-basic-income#claim-third]
 
-지지자가 정리한 책은 3차를 「모든 경기도민에게」로 적었지만 **대상은
-소득상위 12%였다.** ^[source:src-book-54] ^[gyeonggi-basic-income#claim-third]
+3차를 「모든 경기도민에게」로 알고 있는 경우가 있지만 **대상은 소득상위
+12%였다.** ^[gyeonggi-basic-income#claim-third]
 
 ## 돈이 어디서 나왔나
 

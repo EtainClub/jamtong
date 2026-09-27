@@ -405,7 +405,7 @@ const raw: AchievementInput = {
       text:
         "경기도는 2018년 10월 경기도의료원 안성병원에 전국에서 처음으로 수술실 CCTV를 시범 설치했다.",
       assertionType: "FACT",
-      sourceIds: ["src-seoul-or-2020", "src-seoul-law-2021", "src-book-9"],
+      sourceIds: ["src-gg-or-2021", "src-seoul-or-2020", "src-seoul-law-2021"],
       verified: true,
     },
     {
@@ -413,7 +413,7 @@ const raw: AchievementInput = {
       text:
         "경기도는 2019년 5월 수원·의정부·파주·이천·포천 등 경기도의료원 산하 여섯 개 병원의 수술실로 CCTV를 전면 확대했다.",
       assertionType: "FACT",
-      sourceIds: ["src-seoul-private-2020", "src-seoul-or-2020"],
+      sourceIds: ["src-gg-or-2021", "src-seoul-private-2020", "src-seoul-or-2020"],
       verified: true,
     },
     {
@@ -443,6 +443,17 @@ const raw: AchievementInput = {
   ],
 
   sources: [
+    {
+      id: "src-gg-or-2021",
+      title: "‘수술실 CCTV 설치법’ 국회 통과…경기도의료원 6곳 수술실 CCTV 운영 후기",
+      url: "https://gnews.gg.go.kr/news/news_detail.do?number=202109081117513899C048&s_code=C048",
+      publisher: "경기도뉴스포털 (경기도)",
+      publishedAt: "2021-09-08",
+      type: "official",
+      license: "public",
+      quote:
+        "경기도는 지난 2018년 10월 전국 최초로 경기도의료원 안성병원에서 수술실 CCTV 운영을 시작했다. 이를 토대로 지난 2019년 3월에는 보건복지부에 의료법 개정안을 제출했고, 5월에는 수술실 CCTV 설치 · 운영 대상을 경기도의료원 6개 병원 전체로 확대했다.",
+    },
     {
       id: "src-seoul-or-2020",
       title: "경기도 수술실 CCTV, 제도 정착단계..동의율 67%",
@@ -490,17 +501,6 @@ const raw: AchievementInput = {
       publishedAt: "2023-09-11",
       type: "press",
       license: "link-only",
-    },
-    {
-      id: "src-book-9",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 9",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "9. 국공립 병원 수술실 CCTV설치 — 의사와 환자, 서로에게 벌어질 수 있는 억울한 일을 " +
-        "풀어 줄 방법이 아닐까. 나는 설치반대하는 이유의 타당성을 찾지 못했어.",
     },
   ],
 };

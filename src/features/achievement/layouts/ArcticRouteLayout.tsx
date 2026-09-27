@@ -1,4 +1,5 @@
 import { findScene, type Achievement } from "@/content/schema";
+import { Counterpoints } from "@/features/achievement/Counterpoints";
 import { KeyNumbers } from "@/features/achievement/KeyNumbers";
 import { SceneRenderer } from "@/features/achievement/SceneRenderer";
 import { SceneWithAside, Section } from "@/features/achievement/Section";
@@ -85,6 +86,16 @@ export function ArcticRouteLayout({ achievement }: { achievement: Achievement })
             claims={achievement.claims}
             timeline={achievement.timeline}
           />
+        </Section>
+      )}
+
+      {achievement.counterpoints.length > 0 && (
+        <Section
+          scene="counterpoint"
+          heading="이런 반론이 있습니다"
+          lede="제기되는 쟁점을 그대로 싣고, 각각에 근거로 답합니다."
+        >
+          <Counterpoints counterpoints={achievement.counterpoints} claims={achievement.claims} />
         </Section>
       )}
 

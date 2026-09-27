@@ -2,7 +2,7 @@
 title: 성남 판교대장 도시개발사업
 kind: source
 source: daejangdong
-updated: 2026-09-20
+updated: 2026-09-27
 ---
 
 # 성남 판교대장 도시개발사업
@@ -82,14 +82,27 @@ INTERPRETATION으로 표시돼 있다. ^[daejangdong#claim-fixed-profit]
 있어야 하는데, **이 위키는 그 비교군을 갖고 있지 않다.**
 ^[daejangdong#claim-comparison-context]
 
-## 이 페이지가 다루지 않는 것
+## 재판 — 같은 사업을 반대쪽에서 본 판단
 
-이 사업을 둘러싼 수사·기소·재판과 각종 의혹은 **raw source에 없다.** 앵커를
-달 수 없으므로 위키도 쓰지 않는다. ^[daejangdong#claim-overview]
+2025년 10월 31일 1심 법원은 민간업자와 전 공사 간부 5명에게 업무상 배임을
+인정해 징역 4~8년을 선고했다. 특경법상 배임은 인정하지 않았다.
+^[daejangdong#claim-trial-first] 재판부는 확정이익 구조 때문에 **공공에
+돌아갔어야 할 이익이 민간업자들에게 배분됐다**고 봤다.
+^[daejangdong#claim-trial-first]
 
-그것은 「사실이 아니다」라는 뜻이 아니라 **「이 위키가 근거를 갖고 있지
-않다」**는 뜻이다. 위키에 없다는 것을 없었다는 뜻으로 읽으면 안 된다.
-^[daejangdong#claim-comparison-context]
+이 판단은 위의 「환수 5,503억」과 같은 구조를 반대쪽에서 본 것이다.
+성남시의 계산은 CLAIM이고, ^[daejangdong#claim-recovery-total] 법원의
+판단은 항소심이 진행 중이라 확정되지 않았다. ^[daejangdong#claim-trial-appeal]
+**둘 중 하나만 옮겨 적으면 틀린다.**
+
+검찰은 항소하지 않았다 — 수사팀은 항소 의견이었지만 대검이 불허했다.
+항소심은 피고인들의 항소로 2026년 1월 시작했다. ^[daejangdong#claim-trial-appeal]
+이재명 대통령 본인의 재판은 2025년 6월 헌법 84조에 따라 기일이
+추후지정됐고, 법원의 판단은 나오지 않았다. ^[daejangdong#claim-trial-president]
+
+여기서 더 나아가지 않는다. 다른 의혹들은 raw에 없고, 없다는 것은
+「사실이 아니다」가 아니라 「이 위키가 근거를 갖고 있지 않다」는 뜻이다.
+^[daejangdong#claim-trial-president]
 
 ## 관련
 

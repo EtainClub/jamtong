@@ -19,17 +19,22 @@ const raw: AchievementInput = {
   id: "arctic-route",
   slug: "arctic-route",
   title: "북극항로",
-  subtitle: "새로운 길이 대한민국의 미래를 넓힙니다",
+  subtitle: "수에즈보다 36% 짧은 뱃길. 다만 얼음 때문에 1년 중 몇 달만 열린다",
   kicker: "주요 정책",
   categories: ["diplomacy", "region"],
   summary:
     "부산에서 유럽으로 가는 뱃길은 지금까지 수에즈 운하나 희망봉을 지나 남쪽으로 크게 돌아갔다. " +
     "북극을 가로지르면 로테르담까지 거리는 20,400km에서 13,000km로 줄어든다. " +
-    "정부는 2026년 하반기에 부산에서 로테르담까지 컨테이너선 시범운항을 추진한다. " +
+    "2026년 8월 22일 국내 컨테이너선이 부산을 떠나 22일 만인 9월 13일 로테르담에 닿았다. " +
+    "다만 결빙 때문에 연중 4~5개월만 다닐 수 있다는 한계가 지적되고, 러시아 제재가 풀리는지에 따라 쓸 수 있는 범위가 달라진다. " +
     "배를 직접 움직여 두 항로가 어떻게 다른지 확인해 보라.",
   type: "achievement",
   publishStatus: "published",
   featured: true,
+  sourceNote:
+    "거리와 일수는 국회도서관이 인용한 한국해양수산개발원의 7~10월 기준 분석값입니다. " +
+    "지원 조건과 계획은 해양수산부 2026년도 업무계획에서 왔고, 계획이 실제로 이행됐는지는 " +
+    "시범운항 한 건 말고는 대조하지 못했습니다. 시범운항의 경과와 한계는 보도에 기댑니다.",
 
   scenes: [
     {
@@ -55,7 +60,7 @@ const raw: AchievementInput = {
               lon: 129.04,
               lat: 35.1,
               cumulativeKm: 0,
-              note: "출발. 2026년 하반기 시범운항이 예정된 기점이다.",
+              note: "출발. 2026년 8월 22일 첫 컨테이너선 시범운항이 여기서 출항했다.",
             },
             {
               id: "laperouse",
@@ -330,12 +335,12 @@ const raw: AchievementInput = {
     },
     {
       id: "ev-trial",
-      date: "2026-07",
-      displayDate: "2026 하반기",
-      datePrecision: "month",
+      date: "2026-09-13",
+      displayDate: "2026년 8월 22일 ~ 9월 13일",
+      datePrecision: "day",
       title: "부산 → 로테르담 컨테이너선 시범운항",
       summary:
-        "국내 민간 선사가 컨테이너선으로 부산에서 로테르담까지 북극항로 시범운항을 추진한다. 극지 운항 경험과 정보를 축적하는 것이 목적이다.",
+        "국내 컨테이너선 팬스타 아크로호(2,758TEU급)가 8월 22일 부산신항을 떠나 북동항로를 거쳐 9월 13일 로테르담에 입항했다. 출항 22일 만이다.",
       claimIds: ["claim-trial-voyage", "claim-nsr-distance"],
     },
     {
@@ -403,17 +408,17 @@ const raw: AchievementInput = {
       },
       {
         id: "e-trial",
-        title: "2026년에 한번 가봐요",
-        say: "우리나라 회사 배가 짐을 싣고 부산에서 로테르담까지 시험 삼아 가볼 예정이에요.",
+        title: "2026년에 한번 가봤어요",
+        say: "우리나라 회사 배가 짐을 싣고 부산에서 로테르담까지 시험 삼아 가봤어요. 22일 걸렸어요.",
         art: "trial-voyage",
-        fact: { value: "하반기 시범운항", tone: "ice" },
+        fact: { value: "22일 만에 도착", tone: "ice" },
         claimIds: ["claim-trial-voyage"],
       },
     ],
     caveat: {
       text:
-        "아직 정해지지 않은 것도 있어요. 북극 바다의 일부는 러시아를 지나가야 해서, 러시아에 대한 제재가 어떻게 되느냐에 따라 이 길을 쓸 수 있을지가 달라져요.",
-      claimIds: ["claim-russia"],
+        "아직 정해지지 않은 것도 있어요. 얼음 때문에 1년에 4~5개월만 다닐 수 있고, 북극 바다의 일부는 러시아를 지나가야 해서 러시아에 대한 제재가 어떻게 되느냐에 따라 이 길을 쓸 수 있을지가 달라져요.",
+      claimIds: ["claim-russia", "claim-limits"],
     },
   },
 
@@ -519,9 +524,9 @@ const raw: AchievementInput = {
         id: "r-trial",
         fromId: "shipper",
         toId: "nsr",
-        label: "컨테이너선으로 북극항로 시범운항을 추진한다.",
-        startDate: "2026-07",
-        startPrecision: "month",
+        label: "컨테이너선으로 북극항로 시범운항을 했다. 출항 22일 만에 로테르담에 입항했다.",
+        startDate: "2026-08-22",
+        startPrecision: "day",
         assertionType: "FACT",
         claimIds: ["claim-trial-voyage"],
       },
@@ -530,8 +535,8 @@ const raw: AchievementInput = {
         fromId: "busan",
         toId: "nsr",
         label: "시범운항의 기점.",
-        startDate: "2026-07",
-        startPrecision: "month",
+        startDate: "2026-08-22",
+        startPrecision: "day",
         assertionType: "FACT",
         claimIds: ["claim-trial-voyage"],
       },
@@ -539,9 +544,9 @@ const raw: AchievementInput = {
         id: "r-dest",
         fromId: "nsr",
         toId: "rotterdam",
-        label: "시범운항의 종점. 아시아와 유럽을 잇는 최단거리 항로다.",
-        startDate: "2026-07",
-        startPrecision: "month",
+        label: "시범운항의 도착지. 해양수산부는 북극항로를 아시아와 유럽을 잇는 최단거리 항로로 본다.",
+        startDate: "2026-08-22",
+        startPrecision: "day",
         assertionType: "FACT",
         claimIds: ["claim-trial-voyage", "claim-shortest-route"],
       },
@@ -568,21 +573,46 @@ const raw: AchievementInput = {
     ],
   },
 
+  counterpoints: [
+    {
+      id: "ar-cp-season",
+      question: "1년 내내 쓸 수 있는 길인가?",
+      response:
+        "아니다. 위의 거리·일수는 7~10월 기준 분석값이다. 결빙 때문에 연중 4~5개월만 운항할 수 있고 보험료가 높다는 한계가 지적된다. 그래서 이 항로는 수에즈 항로를 대신하는 길이 아니라, 열리는 기간에 함께 쓰는 길에 가깝다.",
+      claimIds: ["claim-route-comparison", "claim-limits"],
+    },
+    {
+      id: "ar-cp-russia",
+      question: "러시아 바다를 지나는데, 제재 문제는 없나?",
+      response:
+        "이번 시범운항은 러시아 연안을 따라가는 북동항로로 갔다. 해양수산부 계획도 제재에 따라 갈린다 — 제재가 풀리면 북동항로 수송을 늘리고, 이어지면 북서항로 등 대안을 검토하겠다고 밝혔다. 제재가 어떻게 될지는 이 위키가 말할 수 없고, 그만큼 이 항로의 쓰임새도 아직 정해지지 않았다.",
+      claimIds: ["claim-trial-voyage", "claim-russia"],
+    },
+    {
+      id: "ar-cp-once",
+      question: "한 번 가 봤다고 상업 항로가 된 것인가?",
+      response:
+        "아니다. 배 한 척이 한 번 로테르담까지 갔다. 이것으로 확인된 것은 컨테이너선이 이 길을 22일 만에 지날 수 있다는 것까지다. 정기 항로가 되려면 운항 가능 기간과 보험료 문제가 남아 있고, 해양수산부는 2030년까지 쇄빙 컨테이너선 건조기술과 극지 해기사를 준비하겠다는 계획을 밝힌 단계다.",
+      claimIds: ["claim-trial-voyage", "claim-limits", "claim-2030-tech"],
+    },
+  ],
+
   claims: [
     {
       id: "claim-shortest-route",
       text:
-        "북극항로는 아시아와 유럽을 연결하는 최단거리 항로로서, 물류비용을 절감하고 조선·금융 등 전후방 산업이 동반 성장할 수 있는 기회로 여겨진다.",
-      assertionType: "FACT",
+        "해양수산부는 북극항로를 아시아와 유럽을 연결하는 최단거리 항로로서, 물류비용을 절감하고 조선·금융 등 전후방 산업이 동반 성장할 수 있는 기회로 본다.",
+      assertionType: "CLAIM",
+      assertedBy: "해양수산부",
       sourceIds: ["src-mof-2026"],
       verified: true,
     },
     {
       id: "claim-trial-voyage",
       text:
-        "2026년 하반기에 국내 민간 선사가 컨테이너선을 이용해 부산에서 로테르담까지 북극항로 시범운항을 추진한다.",
+        "해양수산부는 2026년도 업무계획에서 하반기에 국내 민간 선사의 컨테이너선으로 부산~로테르담 북극항로 시범운항을 추진한다고 밝혔다. 국내 컨테이너선 팬스타 아크로호(2,758TEU급)는 2026년 8월 22일 부산신항을 출항해 북동항로를 거쳐 9월 13일 로테르담에 입항했다. 출항 22일 만이다.",
       assertionType: "FACT",
-      sourceIds: ["src-mof-2026"],
+      sourceIds: ["src-mof-2026", "src-seoul-arctic-depart", "src-fn-arctic-arrive"],
       verified: true,
     },
     {
@@ -603,21 +633,21 @@ const raw: AchievementInput = {
     {
       id: "claim-hq-relocation",
       text:
-        "새 정부 출범 후 해양수산부는 부산 이전을 완료하고 북극항로추진본부를 새롭게 출범시켜 해양수도권 조성 기반을 마련하였다.",
+        "새 정부 출범 후 해양수산부는 부산 이전을 완료하고 북극항로추진본부를 새로 출범시켰다.",
       assertionType: "FACT",
       sourceIds: ["src-mof-2026"],
       verified: true,
     },
     {
       id: "claim-maritime-capital",
-      text: "2026년 상반기 중 '해양수도권 육성 전략(안)'을 제시할 예정이다.",
+      text: "해양수산부는 2026년도 업무계획에서 2026년 상반기 중 '해양수도권 육성 전략(안)'을 제시하겠다고 밝혔다. 이 업적 기준일까지 발표 여부는 대조하지 못했다.",
       assertionType: "FACT",
       sourceIds: ["src-mof-2026"],
       verified: true,
     },
     {
       id: "claim-2030-tech",
-      text: "2030년까지 쇄빙 컨테이너선 건조기술 등을 개발하고 극지 해기사를 본격적으로 양성한다.",
+      text: "해양수산부는 2030년까지 쇄빙 컨테이너선 건조기술 등을 개발하고 극지 해기사를 본격적으로 양성하겠다는 계획을 밝혔다.",
       assertionType: "FACT",
       sourceIds: ["src-mof-2026"],
       verified: true,
@@ -625,7 +655,7 @@ const raw: AchievementInput = {
     {
       id: "claim-russia",
       text:
-        "러시아 제재가 해제되는 경우 북동항로를 통한 컨테이너·LNG 수송 확대를 추진하고, 제재가 지속될 경우 북서항로 시범운항 등 대안을 검토한다.",
+        "해양수산부는 러시아 제재가 해제되는 경우 북동항로를 통한 컨테이너·LNG 수송 확대를 추진하고, 제재가 지속될 경우 북서항로 시범운항 등 대안을 검토하겠다고 밝혔다.",
       assertionType: "FACT",
       sourceIds: ["src-mof-2026"],
       verified: true,
@@ -661,9 +691,46 @@ const raw: AchievementInput = {
       sourceIds: ["src-nanet-2025"],
       verified: true,
     },
+    {
+      id: "claim-limits",
+      text:
+        "북극항로는 상업 항로로 자리 잡기에 동절기 제약(연중 4~5개월만 운항 가능)과 높은 보험료 등 한계가 있다고 지적된다.",
+      assertionType: "CLAIM",
+      assertedBy: "파이낸셜뉴스 보도",
+      sourceIds: ["src-fn-arctic-arrive"],
+      verified: true,
+    },
   ],
 
-  sources: [MOF_2026, NANET_2025],
+  sources: [
+    MOF_2026,
+    NANET_2025,
+    {
+      id: "src-seoul-arctic-depart",
+      title: "북극항로 시대 연다… 국내 컨테이너선 22일 첫 시범운항",
+      url: "https://www.seoul.co.kr/news/economy/2026/08/21/20260821029003",
+      publisher: "서울신문",
+      publishedAt: "2026-08-21",
+      type: "press",
+      license: "quotable",
+      quote:
+        "해양수산부는 20일 “팬스타 아크로호가 22일 부산신항 3부두에서 출항하고 북동항로를 " +
+        "통해 유럽으로 운항한다”고 밝혔다. 팬스타 아크로호는 2758TEU급 컨테이너선이다.",
+    },
+    {
+      id: "src-fn-arctic-arrive",
+      title: "'아시아~유럽 최단거리' 북극항로 상업화 '청신호'… 팬스타 아크로호 로테르담 무사 입항",
+      url: "https://www.fnnews.com/news/202609132233042683",
+      publisher: "파이낸셜뉴스",
+      publishedAt: "2026-09-13",
+      type: "press",
+      license: "quotable",
+      quote:
+        "13일 해양수산부에 따르면 팬스타 아크로호(2758TEU급)는 한국시간으로 이날 오후 6시 25분께 " +
+        "네덜란드 로테르담항에 입항했다. 지난달 22일 부산신항을 출항한 지 22일 만이다. (…) " +
+        "동절기(연중 4~5개월만 운항 가능) 제약과 높은 보험료 등 한계도 존재한다.",
+    },
+  ],
 };
 
 export const arcticRoute = achievementSchema.parse(raw);

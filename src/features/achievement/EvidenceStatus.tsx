@@ -3,8 +3,9 @@ import type { Achievement } from "@/content/schema";
 /**
  * 근거의 상태를 숨기지 않는다.
  *
- * 초안이면 배너로 크게, 공개된 뒤에는 조용한 한 줄로 남는다.
- * 공개했다고 자료의 한계가 사라지는 것이 아니므로 문장은 그대로 간다.
+ * 초안이면 배너로 크게 알린다. 공개된 뒤의 한계 문장은 QuickCheck가
+ * 첫 화면 바로 아래에 근거·비판과 함께 싣는다 — 공개했다고 한계가 사라지는
+ * 것이 아니므로 문장은 그대로 간다.
  * 스스로 밝히면 방어가 되고, 지우면 공격거리가 된다.
  */
 export function EvidenceStatus({ achievement }: { achievement: Achievement }) {
@@ -12,20 +13,8 @@ export function EvidenceStatus({ achievement }: { achievement: Achievement }) {
   const pending = achievement.claims.filter((c) => !c.verified);
   const needed = achievement.sources.filter((s) => s.publisher === "미정");
 
-  if (!isDraft) {
-    if (!achievement.sourceNote) return null;
-    return (
-      <aside
-        role="note"
-        aria-label="근거의 한계"
-        className="mx-auto mt-8 max-w-5xl px-5"
-      >
-        <p className="border-l-2 border-stone pl-4 text-[13px] leading-relaxed text-ash">
-          {achievement.sourceNote}
-        </p>
-      </aside>
-    );
-  }
+  // 공개된 뒤의 한계 문장은 따져 보기(QuickCheck)가 근거·비판과 함께 싣는다.
+  if (!isDraft) return null;
 
   return (
     <aside role="note" className="mx-auto mt-10 max-w-5xl px-5" aria-label="검증 상태">

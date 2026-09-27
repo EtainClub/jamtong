@@ -2,7 +2,7 @@
 title: 경기도 신천지 대응
 kind: source
 source: gyeonggi-shincheonji
-updated: 2026-09-20
+updated: 2026-09-27
 ---
 
 # 경기도 신천지 대응
@@ -40,13 +40,15 @@ updated: 2026-09-20
 
 ## 확산이 얼마나 줄었는지는 모른다
 
+경기도가 2월 28일 밝힌 전수조사 결과는 도내 신도 3만 3,809명 가운데 유증상자
+740명이다. ^[gyeonggi-shincheonji#claim-symptom] 이것은 누가 증상이 있었는지를
+찾아낸 수이지, 확산을 얼마나 막았는지를 보여 주는 수가 아니다.
+^[gyeonggi-shincheonji#claim-symptom]
+
 전수조사에서 몇 명이 확진됐는지, 그 조치로 확산이 얼마나 줄었는지를 보여주는
 자료를 확인하지 못했다. 그래서 이 페이지는 **무엇을 얼마나 빨리 했는지까지만
 적는다.** 확인하지 못한 것을 성과로 적지 않는다.
 ^[gyeonggi-shincheonji#claim-survey]
-
-지지자가 정리한 책은 이 일을 「아무도 못 건드렸던 신천지」로 적는데, 그것은
-그 책의 평가이고 위키가 물려받지 않는다. ^[source:src-book-7]
 
 ## 속도가 방법이었던 사례
 

@@ -391,7 +391,7 @@ const raw: AchievementInput = {
       text:
         "경기도는 2020년 3월 24일 소득 조건 없이 전 도민 1,326만 5,377명에게 1인당 10만 원을 지역화폐로 지급하겠다고 발표했다. 총 소요 예산은 1조 3,642억 원이며 지급일로부터 3개월이 지나면 소멸한다.",
       assertionType: "FACT",
-      sourceIds: ["src-seoul-2020", "src-book-51"],
+      sourceIds: ["src-seoul-2020"],
       verified: true,
     },
     {
@@ -407,7 +407,7 @@ const raw: AchievementInput = {
       text:
         "제3차 경기도 재난기본소득은 2021년 6월 30일 기준 도내 거주 내국인 252만 1천 명과 외국인 1만 6천 명 등 253만 7천 명에게 1인당 25만 원을 지급했다. 대상은 정부의 상생 국민지원금 지급대상에서 제외된 소득상위 12%다. 백화점·대형마트·기업형 슈퍼마켓·프랜차이즈 직영점·유흥업소 등에서는 사용이 제한됐다.",
       assertionType: "FACT",
-      sourceIds: ["src-gg-3rd", "src-book-54"],
+      sourceIds: ["src-gg-3rd"],
       verified: true,
     },
     {
@@ -478,28 +478,6 @@ const raw: AchievementInput = {
       quote:
         "경기도시장상권진흥원이 4월 22~24일 도내 자영업자 488명을 대상으로 온라인 설문한 결과, " +
         "73%가 매출 증대에 도움이 될 것이라고 답했다.",
-    },
-    {
-      id: "src-book-51",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 51",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "51. 지역화폐 활성화 — 성남시장 때부터 청년배당을 지역화폐로 활용했어. " +
-        "그 뒤로 경기도지사 때는 지역화폐를 더 확대해서 공공 산후조리비까지 지원했지.",
-    },
-    {
-      id: "src-book-54",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 54",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "54. 모든 경기 도민에 제3차 재난기본소득 지급 — 지방자치의 효용성을 최대한 " +
-        "보여주는 정책! (다만 3차의 대상은 전 도민이 아니라 소득상위 12%였다.)",
     },
   ],
 };

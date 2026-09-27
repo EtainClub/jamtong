@@ -26,6 +26,7 @@ const raw: AchievementInput = {
   slug: "stock-market",
   title: "주식시장 개선",
   subtitle: "코리아 디스카운트를 줄이려는 제도 개편",
+  lifeQuestion: "주식시장 제도는 무엇이 바뀌었고, 지수는 어떻게 움직였나?",
   kicker: "주요 정책",
   categories: ["economy", "institution"],
   summary:
@@ -35,6 +36,10 @@ const raw: AchievementInput = {
     "지수는 크게 올랐다가 2026년 7월 이후 되밀렸다. 오른 구간과 내린 구간을 함께 본다.",
   type: "event",
   publishStatus: "published",
+  sourceNote:
+    "지수와 시가총액은 한국거래소 통계, 법 개정은 법령 원문, 제도 개편은 금융위원회 발표로 " +
+    "확인했습니다. 다만 지수가 오르고 내린 원인을 이 제도 개편으로 돌릴 수 있는 자료는 " +
+    "이 위키에 없습니다. 오른 구간과 내린 구간을 함께 싣는 것은 그 때문입니다.",
   featured: true,
 
   scenes: [

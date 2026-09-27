@@ -2,7 +2,7 @@
 title: 경기도 극저신용대출
 kind: source
 source: gyeonggi-microloan
-updated: 2026-09-20
+updated: 2026-09-27
 ---
 
 # 경기도 극저신용대출
@@ -31,8 +31,7 @@ updated: 2026-09-20
 ## 단속과 한 쌍이다
 
 사채업자를 단속하면 돈이 급한 사람은 갈 곳이 사라진다. 이 대출은 그 빈자리를
-메우려고 만든 것이다. ^[gyeonggi-microloan#claim-loan] 지지자가 정리한 책도
-같은 취지로 단속과 이 대출을 나란히 적는다. ^[source:src-book-2]
+메우려고 만든 것이다. ^[gyeonggi-microloan#claim-loan]
 
 **다만 이 대출이 실제로 불법 사채 이용을 얼마나 줄였는지를 보여주는 자료는
 확인하지 못했다.** ^[gyeonggi-microloan#claim-scale]

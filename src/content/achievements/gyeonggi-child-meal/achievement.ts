@@ -423,7 +423,7 @@ const raw: AchievementInput = {
       text:
         "경기도는 2018년 8월 결식아동 한 끼 급식단가를 4,500원에서 6,000원으로 33% 인상한다고 발표하고 그해 10월부터 시행했다. 당시 6,000원은 광역지자체 가운데 가장 높은 수준이었다.",
       assertionType: "FACT",
-      sourceIds: ["src-seoul-2018", "src-edaily-6000", "src-book-30"],
+      sourceIds: ["src-seoul-2018", "src-edaily-6000"],
       verified: true,
     },
     {
@@ -431,7 +431,7 @@ const raw: AchievementInput = {
       text:
         "경기도는 2020년 8월 31일부터 국내 처음으로 경기도 내 모든 일반음식점에서 아동급식카드(G드림카드)를 쓸 수 있게 했다. 개선 전 가맹점은 1만 1,500곳으로 그중 편의점이 8,900곳, 일반음식점이 2,600곳이었고, BC카드 가맹 일반음식점과 연계하면서 사용처가 18만여 곳으로 늘었다. 지원 대상은 만 18세 미만 결식 우려 아동 약 6만 5천 명이다.",
       assertionType: "FACT",
-      sourceIds: ["src-safetimes-2020", "src-herald-2020", "src-book-12"],
+      sourceIds: ["src-safetimes-2020", "src-herald-2020"],
       verified: true,
     },
     {
@@ -447,7 +447,7 @@ const raw: AchievementInput = {
       text:
         "경기도는 2021년 5월 1일부터 결식아동 급식단가를 한 끼 6,000원에서 7,000원으로 인상하고, 아동급식카드의 1회 사용 한도를 1만 2,000원에서 1만 4,000원으로 올렸다.",
       assertionType: "FACT",
-      sourceIds: ["src-seoul-7000"],
+      sourceIds: ["src-gg-meal-7000", "src-seoul-7000"],
       verified: true,
     },
     {
@@ -461,6 +461,17 @@ const raw: AchievementInput = {
   ],
 
   sources: [
+    {
+      id: "src-gg-meal-7000",
+      title: "경기도, 5월부터 결식아동 급식단가 6천원→7천원 인상",
+      url: "https://gnews.gg.go.kr/news/news_detail.do?s_code=daily&number=202104301022032266C048",
+      publisher: "경기도뉴스포털 (경기도)",
+      publishedAt: "2021-04-30",
+      type: "official",
+      license: "public",
+      quote:
+        "도는 5월 1일부터 결식아동 급식단가를 한 끼 6,000원에서 7,000원으로 인상한다고 30일 밝혔다. 이와 함께 도는 아동급식카드 사용 1회 한도도 1만2,000원에서 1만4,000원으로 높였다.",
+    },
     {
       id: "src-seoul-2018",
       title: "경기도, 결식아동 급식단가 4500→6000원 인상",
@@ -530,29 +541,6 @@ const raw: AchievementInput = {
       type: "press",
       license: "quotable",
       quote: "8월 10일부터 결식아동 급식단가를 1식 7,000원에서 8,000원으로 인상한다.",
-    },
-    {
-      id: "src-book-12",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 12",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "12. 경기도 결식아동 급식지원, 아동 급식카드 — 처음 급식카드의 가맹점이 대부분 " +
-        "편의점이었다. 게다가 제3자가 급식카드라는 걸 알게 되면 아이들이 주눅 들 수 있다. " +
-        "경기도 내 모든 일반 음식점에서 사용 가능. 체크카드와 동일한 디자인으로 교체.",
-    },
-    {
-      id: "src-book-30",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 30",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "30. 경기도 결식 아동 급식비 전국 최고 수준으로 인상 — 기존에 4,500원이던 " +
-        "급식비를 6,000원으로 33% 인상했다. (광역지자체 최고 수준)",
     },
   ],
 };

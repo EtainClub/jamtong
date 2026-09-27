@@ -2,7 +2,7 @@
 title: 경기도 위안부 피해자 지원
 kind: source
 source: gyeonggi-comfort-women
-updated: 2026-09-20
+updated: 2026-09-27
 ---
 
 # 경기도 위안부 피해자 지원
@@ -34,15 +34,16 @@ updated: 2026-09-20
 말고 달라진 부분이다. ^[gyeonggi-comfort-women#claim-raise] 받는 사람이
 자신을 증명하지 않아도 되게 만드는 설계는 [[concept/stigma]]가 모은다.
 
-## 베를린 서한 — 근거가 약한 자리
+## 베를린 서한
 
-베를린 미테구가 소녀상 철거를 명령하자 2020년 베를린 시장에게 철회를
-요청하는 서한을 보냈다. ^[gyeonggi-comfort-women#claim-berlin]
+베를린 미테구가 현지 시민단체에 소녀상 철거를 요구하는 공문을 보내자, 2020년
+10월 14일 베를린시장과 미테구청장에게 철회를 요청하는 서한을 보냈다.
+^[gyeonggi-comfort-women#claim-berlin] 근거는 서한 전문을 실은 당시 보도다.
+^[source:src-sedaily-cw-berlin]
 
-**이 claim의 근거는 지지자가 정리한 책 하나뿐이다.**
-^[source:src-book-61] 서한을 보냈다는 사실까지만 적고, 그 편지가 어떤
-영향을 미쳤는지는 적지 않는다 — 철거 명령이 이후 보류된 것과 이 서한을
-잇는 근거를 위키는 갖고 있지 않다. ^[gyeonggi-comfort-women#claim-berlin]
+서한을 보냈다는 사실까지만 적고, 그 편지가 어떤 영향을 미쳤는지는 적지
+않는다 — 철거 명령이 이후 보류된 것과 이 서한을 잇는 근거를 위키는
+갖고 있지 않다. ^[gyeonggi-comfort-women#claim-berlin]
 
 ## 관련
 

@@ -235,7 +235,7 @@ const raw: AchievementInput = {
       datePrecision: "month",
       title: "베를린 시장에게 서한",
       summary:
-        "베를린 미테구가 소녀상 철거를 명령하자 철회를 요청하는 서한을 보냈다.",
+        "베를린 미테구가 소녀상 철거를 요구하자 베를린시장과 미테구청장에게 철회를 요청하는 서한을 보냈다.",
       claimIds: ["claim-berlin"],
     },
   ],
@@ -350,20 +350,32 @@ const raw: AchievementInput = {
       text:
         "경기도는 2018년 10월 23일 도내 거주 일본군 위안부 피해자에 대한 월 지원금을 203만 원에서 293만 원으로 90만 원 올려 2019년부터 적용한다고 밝혔다. 정부 지원금 133만 원이 포함된 금액이다. 진료비를 '건강관리비'로 바꿔 신청 여부와 상관없이 매월 정액 지급하고, 월 60만 원의 위로금을 새로 뒀다. 당시 도내에는 광주 나눔의 집 8명, 군포시 1명, 의정부시 1명 등 모두 10명이 거주하고 있었다.",
       assertionType: "FACT",
-      sourceIds: ["src-seoul-cw-2018", "src-hankook-cw-2018", "src-book-6"],
+      sourceIds: ["src-seoul-cw-2018", "src-hankook-cw-2018"],
       verified: true,
     },
     {
       id: "claim-berlin",
       text:
-        "베를린 미테구가 현지에 설치된 소녀상의 철거를 명령하자, 이재명 경기도지사는 2020년 베를린 시장에게 철거 명령 철회를 요청하는 서한을 보냈다.",
+        "베를린 미테구가 현지 시민단체에 소녀상 철거를 요구하는 공문을 보내자, 이재명 경기도지사는 2020년 10월 14일 베를린시장과 미테구청장에게 철거 방침 철회를 요청하는 서한을 보냈다.",
       assertionType: "FACT",
-      sourceIds: ["src-book-61"],
+      sourceIds: ["src-sedaily-cw-berlin"],
       verified: true,
     },
   ],
 
   sources: [
+    {
+      id: "src-sedaily-cw-berlin",
+      title: "[전문]이재명, 베를린 시장에게 '평화의 소녀상 철거' 철회 요청 서한",
+      url: "https://www.sedaily.com/NewsVIew/1Z94O0JBX1",
+      publisher: "서울경제",
+      publishedAt: "2020-10-14",
+      type: "press",
+      license: "quotable",
+      quote:
+        "이재명 경기도지사가 14일 독일 베를린시장과 미테구청장에게 ‘평화의 소녀상’ " +
+        "철거 방침 철회를 요청하는 서한을 보냈다.",
+    },
     {
       id: "src-seoul-cw-2018",
       title: "경기도, 위안부 피해자 월 지원금 203만원→293만원",
@@ -388,29 +400,6 @@ const raw: AchievementInput = {
       quote:
         "도내에는 광주 나눔의 집에 8명, 군포시와 의정부시에 각 1명씩 모두 10명이 " +
         "거주하고 있다. 경기도는 2015년 10월 관련 조례를 제정했다.",
-    },
-    {
-      id: "src-book-6",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 6",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "6. 일본 성노예 피해자 매월 최고 293만 원 지원 — 이래야 되는 거지. 이게 맞지. " +
-        "우리의 역사를 절대 잊으면 안 돼.",
-    },
-    {
-      id: "src-book-61",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 61",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "61. 베를린 시장에게 '소녀상 철거' 철회 요청 서한 — 독일 베를린에서 " +
-        "일본군 성노예 피해자를 기리는 소녀상의 설치를 2020년 7월에 허가했어. " +
-        "그런데 일본 측의 반발이 거세지자 베를린시는 철거하라는 공문을 보냈어.",
     },
   ],
 };

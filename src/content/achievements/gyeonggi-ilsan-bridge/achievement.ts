@@ -31,7 +31,7 @@ const raw: AchievementInput = {
     "일이다. 경기도는 2021년 10월 27일 정오 사업시행자 지정을 취소하는 공익처분을 " +
     "내리고 무료 통행을 시작했다. 운영사가 법원에 집행정지를 신청해 받아들여지면서 " +
     "11월 18일 0시부터 통행료 징수가 다시 시작됐다. 2024년 10월 대법원은 경기도의 " +
-    "패소를 확정했다.",
+    "패소를 확정했다. 그 뒤 경기도는 2026년 1월부터 통행료의 절반을 도비로 지원하고 있다.",
   type: "policy",
   publishStatus: "published",
   sourceNote:
@@ -75,7 +75,7 @@ const raw: AchievementInput = {
             title: "법원이 운영사 손을 들었다",
             amount: 19,
             caption:
-              "일산대교㈜가 낸 집행정지 신청을 법원이 받아들였습니다. 무료 통행의 근거가 멈춰 섰습니다.",
+              "일산대교㈜가 낸 두 번째 집행정지 신청도 법원이 받아들였습니다(첫 번째는 11월 3일). 무료 통행의 근거가 멈춰 섰습니다.",
             art: "br-court",
             claimId: "claim-stay",
           },
@@ -139,7 +139,7 @@ const raw: AchievementInput = {
       {
         id: "e-ib-court",
         title: "운영하던 회사가 법원에 갔어요",
-        say: "다리를 운영하던 회사가 그건 안 된다며 법원에 갔어요. 법원은 회사 말을 들어줬어요.",
+        say: "다리를 운영하던 회사가 그건 안 된다며 법원에 갔어요. 법원은 두 번 모두 회사 말을 들어줬어요.",
         art: "br-court",
         fact: { value: "11월 15일", tone: "warm" },
         claimIds: ["claim-stay"],
@@ -203,7 +203,7 @@ const raw: AchievementInput = {
       displayDate: "2021년 11월 15일",
       datePrecision: "day",
       title: "법원, 집행정지 신청 인용",
-      summary: "일산대교㈜가 낸 집행정지 신청을 법원이 받아들였다.",
+      summary: "11월 3일에 이어, 일산대교㈜가 낸 2차 집행정지 신청도 법원이 받아들였다.",
       claimIds: ["claim-stay"],
     },
     {
@@ -224,6 +224,16 @@ const raw: AchievementInput = {
       summary:
         "대법원이 사업시행자 지정 취소처분 취소 소송에서 원심의 원고 승소 판결을 확정했다.",
       claimIds: ["claim-final"],
+    },
+    {
+      id: "ib-half",
+      date: "2026-01-01",
+      displayDate: "2026년 1월 1일",
+      datePrecision: "day",
+      title: "그 뒤 — 경기도가 통행료 절반 지원",
+      summary:
+        "패소 이후 경기도는 도비 200억 원을 들여 모든 차량 통행료의 50%를 지원하기 시작했다(1,200원 → 600원). 전면 무료화 협의는 계속한다고 밝혔다. 이재명 도정이 끝난 뒤의 일이다.",
+      claimIds: ["claim-half"],
     },
   ],
 
@@ -324,27 +334,35 @@ const raw: AchievementInput = {
 
   claims: [
     {
+      id: "claim-half",
+      text:
+        "경기도는 2026년 1월 1일부터 일산대교 요금소를 통과하는 모든 차량 통행료의 50%를 지원한다. 통행료는 1,200원에서 600원으로 내려가며, 경기도는 도 자체예산 200억 원을 투입하고 전면 무료화를 위한 협의를 지속한다고 밝혔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-gg-ib-half-1231", "src-gg-ib-half-0105"],
+      verified: true,
+    },
+    {
       id: "claim-free",
       text:
         "경기도는 2021년 10월 27일 일산대교의 사업시행자 지정을 취소하는 공익처분을 내리고 같은 날 정오부터 통행료를 받지 않는 무료 통행을 시작했다. 일산대교는 한강 다리 가운데 유일하게 통행료를 받던 곳이다.",
       assertionType: "FACT",
-      sourceIds: ["src-seoul-ib-2021", "src-book-67"],
+      sourceIds: ["src-seoul-ib-2021"],
       verified: true,
     },
     {
       id: "claim-stay",
       text:
-        "일산대교㈜는 공익처분에 불복해 법원에 집행정지를 신청했고, 법원은 2021년 11월 15일 이를 받아들였다.",
+        "일산대교㈜는 공익처분에 불복해 수원지방법원에 집행정지를 신청했고, 법원은 2021년 11월 3일 이를 받아들였다. 경기도가 공익처분을 다시 내려 무료 통행을 이어가자 일산대교㈜는 2차 집행정지를 신청했고, 법원은 11월 15일 이것도 받아들였다.",
       assertionType: "FACT",
-      sourceIds: ["src-namu-ib"],
+      sourceIds: ["src-seoul-ib-stay"],
       verified: true,
     },
     {
       id: "claim-back",
       text:
-        "집행정지 결정에 따라 시스템 점검을 거쳐 2021년 11월 18일 0시부터 일산대교 통행료 징수가 재개됐다. 통행료를 받지 않은 기간은 22일이다.",
+        "2차 집행정지 결정에 따라 2021년 11월 18일 0시부터 일산대교 통행료 징수가 재개됐다. 10월 27일 무료 통행을 시작한 지 22일 만이다.",
       assertionType: "FACT",
-      sourceIds: ["src-namu-ib"],
+      sourceIds: ["src-seoul-ib-stay", "src-edaily-ib-back"],
       verified: true,
     },
     {
@@ -359,6 +377,27 @@ const raw: AchievementInput = {
 
   sources: [
     {
+      id: "src-gg-ib-half-1231",
+      title: "1월 1일부터 경기도는 일산대교 통행료 반값 시대!",
+      url: "https://gnews.gg.go.kr/news/news_detail.do?number=202512311126546593C048&s_code=C401",
+      publisher: "경기도뉴스포털 (경기도)",
+      publishedAt: "2025-12-31",
+      type: "official",
+      license: "public",
+      quote:
+        "경기도는 2026년 1월 1일부터 일산대교 요금소를 통과하는 모든 차량 통행료의 50%를 지원한다. / 일산대교 통행료 내년부터 1,200원→600원 인하…요금소 통과 모든 차량 대상",
+    },
+    {
+      id: "src-gg-ib-half-0105",
+      title: "일산대교 통행료 절반, 경기도가 냅니다",
+      url: "https://gnews.gg.go.kr/news/news_detail.do?number=202601050749009598C048&s_code=C048",
+      publisher: "경기도뉴스포털 (경기도)",
+      publishedAt: "2026-01-05",
+      type: "official",
+      license: "public",
+      quote: "도가 선제적으로 도 자체예산 200억 원을 투입하며 (…) 도는 전면 무료화를 위해 협의를 지속한다는 방침입니다.",
+    },
+    {
       id: "src-seoul-ib-2021",
       title: "일산대교측, 무료화 불복 법적조치… 경기도·3개市 긴급 대책",
       url: "https://go.seoul.co.kr/news/newsView.php?id=20211027011012",
@@ -371,12 +410,29 @@ const raw: AchievementInput = {
         "27일 12시부터 무료통행을 실시한다고 밝혔다.",
     },
     {
-      id: "src-namu-ib",
-      title: "일산대교 무료화 추진 논란",
-      url: "https://namu.wiki/w/%EC%9D%BC%EC%82%B0%EB%8C%80%EA%B5%90%20%EB%AC%B4%EB%A3%8C%ED%99%94%20%EC%B6%94%EC%A7%84%20%EB%85%BC%EB%9E%80",
-      publisher: "나무위키",
+      id: "src-seoul-ib-stay",
+      title: "일산대교 통행료 18일 자정 부터 징수 재개 … 2차 가처분도 국민연금 ‘승’(종합)",
+      url: "https://www.seoul.co.kr/news/society/2021/11/15/20211115500222",
+      publisher: "서울신문",
+      publishedAt: "2021-11-15",
       type: "press",
-      license: "link-only",
+      license: "quotable",
+      quote:
+        "수원지방법원 제2행정부는 15일 일산대교㈜가 신청한 ‘일산대교 통행료 무료화 " +
+        "집행정지 가처분 신청’에 대한 심문을 종결하고 (…) 신청을 인용했다. " +
+        "법원은 지난 3일 일산대교㈜ 측 손을 들어줬다.",
+    },
+    {
+      id: "src-edaily-ib-back",
+      title: "일산대교, 22일 만에 다시 유료화…시민들 '혼란만'",
+      url: "https://edaily.co.kr/News/Read?mediaCodeNo=257&newsId=01538326629247032",
+      publisher: "이데일리",
+      publishedAt: "2021-11-18",
+      type: "press",
+      license: "quotable",
+      quote:
+        "일산대교가 오늘(18일) 오전 0시를 기해 통행료 징수를 재개했다. 이는 경기도의 " +
+        "공익처분으로 지난달 27일 무료 통행이 이뤄진 지 22일 만이다.",
     },
     {
       id: "src-hankyung-ib-2024",
@@ -401,19 +457,6 @@ const raw: AchievementInput = {
       quote:
         "1심 재판부는 2017년에서 2020년 당기순이익이 발생해 일산대교가 자체 사업하기 " +
         "어려운 상태라고 보기 어렵다고 판시했다.",
-    },
-    {
-      id: "src-book-67",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 67",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "67. 일산대교 통행료 무료화 — 경기도지사로서 마지막으로 집행한 정책. " +
-        "하지만 무료화가 되고 28일 만에 다시 유료화로 바뀌었어. " +
-        "비록 실패했다 하더라도 정책의 방향성은 옳았다고 말하고 싶어. " +
-        "(실제 무료 기간은 22일이다.)",
     },
   ],
 };

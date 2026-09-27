@@ -287,6 +287,15 @@ const raw: AchievementInput = {
       claimIds: ["claim-survey"],
     },
     {
+      id: "sc-symptom",
+      date: "2020-02-28",
+      displayDate: "2020년 2월 28일",
+      datePrecision: "day",
+      title: "전수조사 결과 공개 — 유증상자 740명",
+      summary: "경기도는 도내 신도 3만 3,809명을 전수조사한 결과 코로나19 유증상자가 740명이라고 밝혔다.",
+      claimIds: ["claim-symptom"],
+    },
+    {
       id: "sc-lee",
       date: "2020-03-02",
       displayDate: "2020년 3월 2일",
@@ -407,11 +416,19 @@ const raw: AchievementInput = {
 
   claims: [
     {
+      id: "claim-symptom",
+      text:
+        "경기도는 2020년 2월 28일 긴급 기자회견에서 도내 신천지 신도 3만 3,809명을 긴급 전수조사한 결과 코로나19 유증상자가 740명으로 확인됐다고 밝혔다. 경기도는 2월 25일 강제 역학조사로 도내 신도 명단 3만 3,582명과 2월 16일 과천 예배 참석자 9,930명, 대구 집회 참석 도민 22명의 명단을 확보했다고 밝혔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-gg-sc-0228"],
+      verified: true,
+    },
+    {
       id: "claim-order",
       text:
         "이재명 경기도지사는 2020년 2월 20일 도내 모든 신천지 예배당을 즉시 폐쇄하고 일체의 집회·봉사활동을 중단하도록 지시했으며, 신도 전수조사를 실시하겠다고 밝혔다.",
       assertionType: "FACT",
-      sourceIds: ["src-hankook-0221", "src-book-7"],
+      sourceIds: ["src-hankook-0221"],
       verified: true,
     },
     {
@@ -441,6 +458,17 @@ const raw: AchievementInput = {
   ],
 
   sources: [
+    {
+      id: "src-gg-sc-0228",
+      title: "이재명 지사 “경기도 신천지 신도 명단 전수조사 결과 유증상자 740명”",
+      url: "https://gnews.gg.go.kr/news/news_detail.do?number=202002281546127197C048&s_code=C048",
+      publisher: "경기도뉴스포털 (경기도)",
+      publishedAt: "2020-02-28",
+      type: "official",
+      license: "public",
+      quote:
+        "경기도가 도내 신천지 신도 3만3,809명에 대해 긴급 전수조사를 실시한 결과 코로나19 유증상자가 740명으로 확인됐다. (…) 경기도는 지난 25일 신천지 과천 본부에 대한 강제 역학조사를 통해 도내 신천지 신도 명단 3만3,582명과 2월 16일 과천 예배 참석자 9,930명 및 대구 집회에 참석한 도민 22명의 명단을 확보했다.",
+    },
     {
       id: "src-hankook-0221",
       title: "이재명 경기지사 “신천지 전수조사 실시…예배당 즉시 폐쇄하라”",
@@ -490,16 +518,6 @@ const raw: AchievementInput = {
       license: "quotable",
       quote:
         "2020년 3월 2일 오후 7시 40분께 과천시보건소에서 이만희 총회장의 검체가 채취됐다.",
-    },
-    {
-      id: "src-book-7",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 7",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "7. 신천지 코로나 전수조사 지시 — 아무도 못 건드렸던 신천지. 이장님이 코 쑤셨잖아.",
     },
   ],
 };

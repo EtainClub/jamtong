@@ -40,6 +40,13 @@ const raw: AchievementInput = {
     "아직 남은 일이 있다.",
   type: "policy",
   publishStatus: "published",
+  coverage: [
+    {
+      title: "이재명 대통령 브라질 국빈방문",
+      date: "2026-07-27",
+      url: "https://news.jamtong.kr/e/2026-07-27-fbb36b/",
+    },
+  ],
   sourceNote:
     "순방 성과와 합의 건수는 보도로 확인했습니다. 각 합의의 원문과 이행 " +
     "일정은 아직 대조하지 못했습니다. 74건 가운데 몇 건이 본계약으로 " +

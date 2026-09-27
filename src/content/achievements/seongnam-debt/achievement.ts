@@ -385,7 +385,7 @@ const raw: AchievementInput = {
       text:
         "성남시는 2010년 7월 민선 5기 출범과 동시에 비공식 부채를 갚기 어렵다며 모라토리엄을 선언했다. 당시 밝힌 규모는 공원로 확장 등에 쓰인 판교특별회계 전입금 5,400억 원과 예산 미편성 의무금 1,885억 원 등 7,285억 원이다.",
       assertionType: "FACT",
-      sourceIds: ["src-press-2014", "src-book"],
+      sourceIds: ["src-press-2014"],
       verified: true,
     },
     {
@@ -415,17 +415,6 @@ const raw: AchievementInput = {
   ],
 
   sources: [
-    {
-      id: "src-book",
-      title: "『밍밍 잼칠라 이장님』 — 1학기 이장님 업적(성남시장) 21",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "21. 취임 3년 만에 성남시 부채 5,400억 청산 — 행정 능력을 인정 할 수밖에 없어. " +
-        "(이 책의 수치는 기간과 금액이 실제와 다르다. 3년 6개월에 7,285억이고 5,400억은 그 일부다.)",
-    },
     {
       id: "src-press-2014",
       title: "성남시 \"채무 7285억 상환… 3년6개월 만에 모라토리엄 졸업\"",

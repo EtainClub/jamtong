@@ -406,7 +406,7 @@ const raw: AchievementInput = {
       text:
         "경기도는 2019년 6월부터 청정계곡 도민환원 사업을 추진했고, 그해 9월부터 시·군과 협력해 하천·계곡 일원의 불법점유 시설물에 대한 조치에 들어갔다.",
       assertionType: "FACT",
-      sourceIds: ["src-gg-2019", "src-book"],
+      sourceIds: ["src-gg-2019"],
       verified: true,
     },
     {
@@ -471,18 +471,6 @@ const raw: AchievementInput = {
       quote:
         "2019년 6월부터 25개 시군 234곳의 계곡·하천에서 불법시설 1,601개를 적발해 " +
         "1,576개(98.7%)를 철거했다. 남은 25개 중 18개는 실주거시설, 7개는 소송이 진행 중이다.",
-    },
-    {
-      id: "src-book",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 8",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "8. 계곡 정비 — 다들 불가능하다고 했지. 괜히 건들지 말라고도 했고. " +
-        "하지만 꾸준한 토론과 설득으로 결국엔 해냈네. (이 책에는 수치가 없어 " +
-        "경기도 자료로 채웠다.)",
     },
   ],
 };

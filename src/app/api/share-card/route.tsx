@@ -179,7 +179,7 @@ export async function GET(request: Request) {
           <div style={{ display: "flex", fontSize: 24, fontWeight: 300, color: C.graphite }}>
             {claim
               ? `자료 ${claim.sourceIds.length}건`
-              : `근거 ${achievement.claims.length}건 · 자료 ${achievement.sources.length}건`}
+              : `근거 ${achievement.claims.length}건 · 자료 ${achievement.sources.length}건${achievement.counterpoints.length > 0 ? ` · 반론 ${achievement.counterpoints.length}개` : ""}`}
           </div>
         </div>
       </div>

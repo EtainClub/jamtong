@@ -304,7 +304,7 @@ const raw: AchievementInput = {
       text:
         "경기도는 2020년부터 제도권 금융을 이용하기 어려운 도민을 대상으로 담보와 보증 없이 연 1% 금리로 최대 300만 원까지 빌려주는 극저신용대출을 시행했다. 대상은 만 19세 이상 도민 가운데 NICE 신용점수 724점 이하 또는 KCB 670점 이하이며 상환 기간은 5년이다.",
       assertionType: "FACT",
-      sourceIds: ["src-hankook-loan-2021", "src-khan-loan-2026", "src-book-2"],
+      sourceIds: ["src-gg-loan-2020", "src-hankook-loan-2021", "src-khan-loan-2026"],
       verified: true,
     },
     {
@@ -326,6 +326,17 @@ const raw: AchievementInput = {
   ],
 
   sources: [
+    {
+      id: "src-gg-loan-2020",
+      title: "‘고금리 이용자’ ‘2030청년층’에 300만원까지 대출…연 1% 이자",
+      url: "https://gnews.gg.go.kr/news/news_detail.do?number=202010051049577862C048&s_code=C048",
+      publisher: "경기도뉴스포털 (경기도)",
+      publishedAt: "2020-10-05",
+      type: "official",
+      license: "public",
+      quote:
+        "‘경기 극저신용대출’은 신용등급 7등급 이하 경기도민에게 연 1% 이자율에 5년 만기로 심사를 거쳐 최대 300만 원까지 대출을 지원하는 사업이다.",
+    },
     {
       id: "src-hankook-loan-2021",
       title: "경기도 극저신용대출 26일부터 접수…연 1%에 최대 300만원",
@@ -349,19 +360,6 @@ const raw: AchievementInput = {
       quote:
         "지금까지 약 11만 명이 지원을 받았다. 만기 도래분 기준 완납 24.3%, " +
         "전환대출·분할약정 등을 통한 성실 상환 41.2%로 집계됐다.",
-    },
-    {
-      id: "src-book-2",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 2·15",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "2. 극 저신용 대출 — 이 정책을 반대하는 사람들이 참 많았지만 밍밍이는 도민을 " +
-        "믿는다고 했어. / 15. 고금리 사채업자 퇴출 — “돈 30만 원이 없어서 죽는 사람이 " +
-        "있는데 거기서도 못 빌리면 죽으라는 것이냐!” 그렇게 절박하신 분들을 위해 " +
-        "극 저신용대출을 만들고 기본소득을 주장하는 거잖아.",
     },
   ],
 };

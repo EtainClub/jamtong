@@ -419,7 +419,7 @@ const raw: AchievementInput = {
       text:
         "경기도는 2018년 9월 1일부터 경기도와 직속기관·사업소·경기도시공사가 시행하는 계약금액 10억 원 이상 공공건설공사의 설계내역서·계약(변경)내역서·하도급내역서 등 원가 자료를 홈페이지에 공개했다. 이재명 지사는 성남시장이던 2016년 4월 전국에서 처음으로 시 발주 공사의 세부내역과 공사원가를 공개한 바 있다. 건설업계는 영업기밀이라며 반발했다.",
       assertionType: "FACT",
-      sourceIds: ["src-ohmy-2018", "src-edaily-cost-2018", "src-book-17"],
+      sourceIds: ["src-ohmy-2018", "src-edaily-cost-2018"],
       verified: true,
     },
     {
@@ -436,7 +436,7 @@ const raw: AchievementInput = {
       text:
         "경기도는 2019년 10월 전국에서 처음으로 공공건설공사 입찰 단계의 페이퍼컴퍼니 사전단속 제도를 시행했다. 자본금·사무실·기술인력 등 건설업 등록 기준 충족 여부를 서류 검토와 현장 점검으로 확인한다.",
       assertionType: "FACT",
-      sourceIds: ["src-hankook-paper-2019", "src-edaily-paper-2022", "src-book-28"],
+      sourceIds: ["src-hankook-paper-2019", "src-edaily-paper-2022"],
       verified: true,
     },
     {
@@ -503,28 +503,6 @@ const raw: AchievementInput = {
         "2022년 303건 중 112건이다. 공공입찰 경쟁률은 2019년 544대 1에서 " +
         "2022년 9월 349대 1로 35.8% 줄었다. 사전단속을 통해 서류로만 등록기준을 갖춘 " +
         "불공정거래업체를 근절하고 건실한 건설사의 수주 기회가 늘어난 것으로 분석한다",
-    },
-    {
-      id: "src-book-17",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 17",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "17. 공공발주 건설공사 원가내역 공개 — 이거 진짜 중요해. 이렇게 되면 민간공사에서 " +
-        "원가를 높게 책정해 버릴 수가 없겠지. 원가를 비교할 수 있게 되니까.",
-    },
-    {
-      id: "src-book-28",
-      title: "『밍밍 잼칠라 이장님』 — 2학기 이장님 업적(경기도지사) 28",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "28. 페이퍼 컴퍼니 단속 — 공사수주를 노리는 페이퍼 컴퍼니를 단속함으로써 " +
-        "입찰 단계에서 행정처분 받고 수주에서 제외되도록 했다.",
     },
   ],
 };

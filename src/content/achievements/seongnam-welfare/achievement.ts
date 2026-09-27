@@ -4,8 +4,9 @@ import { achievementSchema, type AchievementInput } from "@/content/schema";
  * 성남시 3대 무상복지 — 무상교복 · 공공산후조리 · 청년배당.
  *
  * 출처
- *  - `src-book`: 『밍밍 잼칠라 이장님』(맘껏 지음, 와우라이프). 어떤 정책이
- *    있었는지를 알려 준다. 다만 이 책은 날짜와 금액을 담지 않으므로,
+ *  - 『밍밍 잼칠라 이장님』(맘껏 지음, 와우라이프)에서 어떤 정책이 있었는지를
+ *    처음 알았다. 다만 지지자가 쓴 책이라 근거로는 달지 않는다 — 링크를 받은
+ *    사람이 근거를 열었을 때 이 책이 나오면 나머지 근거까지 의심받는다.
  *    수치와 시점은 성남시 시정소식지와 당시 보도로 확정했다.
  *  - `src-snvision-*`: 성남시 시정소식지 『비전성남』. 시가 직접 낸 자료다.
  *  - `src-press-*`: 제소와 취하는 시가 낸 자료가 아니므로 보도로 받쳤다.
@@ -443,7 +444,7 @@ const raw: AchievementInput = {
       text:
         "성남시는 무상교복·공공산후조리·청년배당 세 가지를 묶어 '3대 무상복지'로 시행했다.",
       assertionType: "FACT",
-      sourceIds: ["src-book", "src-press-start"],
+      sourceIds: ["src-press-start"],
       verified: true,
     },
     {
@@ -451,7 +452,7 @@ const raw: AchievementInput = {
       text:
         "성남시는 2011년 전국에서 처음으로 기초생활수급자 자녀에게 무상 교복을 지급했다.",
       assertionType: "FACT",
-      sourceIds: ["src-snvision-uniform-2011", "src-book"],
+      sourceIds: ["src-snvision-uniform-2011"],
       verified: true,
     },
     {
@@ -467,7 +468,7 @@ const raw: AchievementInput = {
       text:
         "청년배당은 3년 이상 성남에 거주한 만 24세 청년에게 분기별 25만 원씩 연 100만 원을 성남사랑상품권으로 지급하는 제도다. 소득이나 재산, 취업 여부를 따지지 않는다.",
       assertionType: "FACT",
-      sourceIds: ["src-snvision-youth", "src-book"],
+      sourceIds: ["src-snvision-youth"],
       verified: true,
     },
     {
@@ -513,18 +514,6 @@ const raw: AchievementInput = {
   ],
 
   sources: [
-    {
-      id: "src-book",
-      title: "『밍밍 잼칠라 이장님』 — 1학기 이장님 업적(성남시장) 1·2·11",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "1. 무상 교복 / 2. 무상 산후조리 / 11. 청년 기본 소득 — " +
-        "이장님업적을 하루에 한 개씩 몇 달에 걸쳐 정리해왔습니다. 오류를 범하지 않기 위해 " +
-        "다양한 기사와 공보를 확인하였고 (…) 실수가 있을 수 있고 개인적인 해석임을 이해 부탁드립니다.",
-    },
     {
       id: "src-snvision-uniform-2011",
       title: "전국 최초 무상 교복 지원",

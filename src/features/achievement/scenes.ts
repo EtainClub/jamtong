@@ -22,6 +22,7 @@ export const SCENES_BY_ACHIEVEMENT: Record<string, SceneNavItem[]> = {
     { id: "compare", label: "비교" },
     { id: "timeline", label: "경과" },
     { id: "relations", label: "관계도" },
+    { id: "counterpoint", label: "쟁점" },
     { id: "shorts", label: "쇼츠" },
     { id: "share", label: "공유" },
   ],

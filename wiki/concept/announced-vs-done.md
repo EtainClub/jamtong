@@ -1,7 +1,7 @@
 ---
 title: 발표된 것과 일어난 것
 kind: concept
-updated: 2026-09-20
+updated: 2026-09-27
 ---
 
 # 발표된 것과 일어난 것
@@ -34,9 +34,9 @@ updated: 2026-09-20
 
 ## 계획이다
 
-- **북극항로** — 부산~로테르담 시범운항이 2026년 하반기 예정이고, 쇄빙
-  컨테이너선 건조기술은 2030년 목표다. ^[arctic-route#claim-trial-voyage]
-  ^[arctic-route#claim-2030-tech] 게다가 **러시아 제재가 풀리지 않으면
+- **북극항로** — 부산~로테르담 시범운항은 2026년 9월 13일 한 번 이뤄졌지만,
+  ^[arctic-route#claim-trial-voyage] 쇄빙 컨테이너선 건조기술은 2030년
+  목표다. ^[arctic-route#claim-2030-tech] 게다가 **러시아 제재가 풀리지 않으면
   북동항로 자체가 대안으로 대체된다.** ^[arctic-route#claim-russia]
   [[source/arctic-route]]
 - **핵추진잠수함** — 착공 2031년 이후, 1번함 진수 2030년대 중반, 총사업비

@@ -324,8 +324,8 @@ const raw: AchievementInput = {
       id: "jr-cp-chill",
       question: "판사와 검사가 위축되지 않나?",
       response:
-        "그 지적이 가장 크게 제기됐다. 법왜곡죄의 구성요건이 추상적이어서 판단이 갈릴 수 있고, 고소·고발이 늘면 직무가 위축된다는 것이다. 실제로 시행 첫날 1호 고발 대상이 조희대 대법원장이었고, 대법원은 2026년 5월 법왜곡죄 고소·고발에 대응해 법관 변호사비를 최대 7,000만 원까지 지원하기로 했다. 다만 법은 '위법·부당하게 이익을 주거나 권익을 해할 목적'이라는 고의를 요건으로 둔다. 어느 쪽이 옳은지는 운용을 더 봐야 알 수 있고, 이 위키는 아직 그 통계를 갖고 있지 않다.",
-      claimIds: ["claim-distort", "claim-criticism"],
+        "그 지적이 가장 크게 제기됐다. 법왜곡죄의 구성요건이 추상적이어서 판단이 갈릴 수 있고, 고소·고발이 늘면 직무가 위축된다는 것이다. 실제로 시행 첫날 1호 고발 대상이 조희대 대법원장이었고, 대법원은 2026년 5월 법왜곡죄 고소·고발에 대응해 법관 변호사비를 최대 7,000만 원까지 지원하기로 했다. 다만 법은 '위법·부당하게 이익을 주거나 권익을 해할 목적'이라는 고의를 요건으로 둔다. 시행 6개월 동안 경찰에 1,002건(1만 3,953명)이 접수됐고, 그중 757건(75.5%)은 불송치나 이송으로 처리됐다. 고발 대상에는 검사 961명, 법관 734명이 들어 있었다. 고발이 이만큼 들어왔다는 것은 위축 우려를 뒷받침하고, 대부분이 불송치됐다는 것은 고의 요건이 걸러내고 있다는 뜻으로 읽을 수도 있다. 어느 쪽으로 읽을지는 아직 이르다.",
+      claimIds: ["claim-distort", "claim-criticism", "claim-distort-6m"],
     },
     {
       id: "jr-cp-fourth",
@@ -345,11 +345,19 @@ const raw: AchievementInput = {
 
   claims: [
     {
+      id: "claim-distort-6m",
+      text:
+        "경찰청 국가수사본부에 따르면 법왜곡죄가 시행된 2026년 3월 12일부터 9월 12일까지 전국 경찰에 관련 사건 1,002건(1만 3,953명)이 접수됐다. 이 가운데 725건은 불송치 등으로, 32건은 다른 기관으로 이송돼 처리됐다(75.5%). 고발 대상에는 검사 961명, 법관 734명, 특별사법경찰관 158명 등이 포함됐고 경찰이 가장 많았다.",
+      assertionType: "FACT",
+      sourceIds: ["src-seoul-jr-6m"],
+      verified: true,
+    },
+    {
       id: "claim-pass",
       text:
-        "국회는 2026년 2월 법왜곡죄(형법)·재판소원(헌법재판소법)·대법관 증원(법원조직법) 개정안을 차례로 통과시켰고, 2월 28일 본회의에서 대법관 증원법을 의결하며 사법개혁 3법이 모두 국회를 지났다. 세 법은 2026년 3월 12일 공포됐다.",
+        "국회는 2026년 2월 법왜곡죄(형법)·재판소원(헌법재판소법)·대법관 증원(법원조직법) 개정안을 차례로 통과시켰고, 2월 28일 본회의에서 대법관 증원법을 의결하며 사법개혁 3법이 모두 국회를 지났다. 세 법은 2026년 3월 12일 공포됐다(형법 법률 제21450호, 법원조직법 제21451호, 헌법재판소법 제21452호).",
       assertionType: "FACT",
-      sourceIds: ["src-newspim-jr-2026", "src-nate-jr-2026"],
+      sourceIds: ["src-law-criminal", "src-law-constcourt", "src-law-courtorg", "src-newspim-jr-2026", "src-nate-jr-2026"],
       verified: true,
     },
     {
@@ -387,6 +395,46 @@ const raw: AchievementInput = {
   ],
 
   sources: [
+    {
+      id: "src-law-criminal",
+      title: "형법 [법률 제21450호, 2026. 3. 12., 일부개정]",
+      url: "https://www.law.go.kr/lsInfoP.do?lsiSeq=284025&viewCls=lsRvsDocInfo",
+      publisher: "법제처 국가법령정보센터",
+      publishedAt: "2026-03-12",
+      type: "legislative",
+      license: "public",
+    },
+    {
+      id: "src-law-constcourt",
+      title: "헌법재판소법 [시행 2026. 3. 12.] [법률 제21452호, 2026. 3. 12., 일부개정]",
+      url: "https://www.law.go.kr/lsInfoP.do?lsiSeq=284151&viewCls=lsRvsDocInfo",
+      publisher: "법제처 국가법령정보센터",
+      publishedAt: "2026-03-12",
+      type: "legislative",
+      license: "public",
+    },
+    {
+      id: "src-law-courtorg",
+      title: "법원조직법 [시행 2026. 3. 12.] [법률 제21451호, 2026. 3. 12., 일부개정]",
+      url: "https://www.law.go.kr/lsInfoP.do?lsiSeq=284023&viewCls=lsRvsDocInfo",
+      publisher: "법제처 국가법령정보센터",
+      publishedAt: "2026-03-12",
+      type: "legislative",
+      license: "public",
+    },
+    {
+      id: "src-seoul-jr-6m",
+      title: "법왜곡죄 시행 6개월 만에 1002건 접수…판검사·경찰 등 1만 3953명 고발",
+      url: "https://www.seoul.co.kr/news/society/2026/09/18/20260918500083",
+      publisher: "서울신문",
+      publishedAt: "2026-09-18",
+      type: "press",
+      license: "quotable",
+      quote:
+        "18일 경찰청 국가수사본부에 따르면 법왜곡죄가 시행된 지난 3월 12일부터 이달 12일까지 전국 " +
+        "경찰에 관련 사건 1002건, 1만 3953명이 접수됐다. 이 중 725건(1만 1648명)은 불송치 등으로 " +
+        "처리됐고, 32건(68명)은 다른 기관으로 이송됐다.",
+    },
     {
       id: "src-newspim-jr-2026",
       title: "[사법 3법 시행] ① 법왜곡죄·재판소원·대법관 증원, 무엇이 달라지나",

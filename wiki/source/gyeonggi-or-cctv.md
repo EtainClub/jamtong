@@ -2,7 +2,7 @@
 title: 경기도 수술실 CCTV
 kind: source
 source: gyeonggi-or-cctv
-updated: 2026-09-20
+updated: 2026-09-27
 ---
 
 # 경기도 수술실 CCTV
@@ -34,9 +34,7 @@ updated: 2026-09-20
 의료계는 수술 집중을 방해하고 의료진의 사생활을 침해한다며 반대했고, 법이
 통과된 뒤 헌법소원을 냈다. ^[gyeonggi-or-cctv#claim-law] 위키는 어느 쪽이
 옳은지 판단하지 않고 경기도가 무엇을 했고 국회가 어떻게 결정했는지만 적는다.
-
-지지자가 정리한 책은 「설치 반대하는 이유의 타당성을 찾지 못했다」고 적는데,
-**그것은 그 책의 판단이고 위키가 물려받지 않는다.** ^[source:src-book-9]
+^[gyeonggi-or-cctv#claim-law]
 
 ## 분쟁이 줄었는지는 모른다
 

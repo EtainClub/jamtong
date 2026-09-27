@@ -10,6 +10,7 @@ import { AchievementHero } from "@/features/achievement/AchievementHero";
 import { Section } from "@/features/achievement/Section";
 import { ShortsSection } from "@/features/achievement/ShortsSection";
 import { EvidenceStatus } from "@/features/achievement/EvidenceStatus";
+import { QuickCheck } from "@/features/achievement/QuickCheck";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareButton } from "@/features/achievement/ShareButton";
 import { SceneNav } from "@/features/achievement/SceneNav";
@@ -729,6 +730,7 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
       <main id="main" className="flex-1 pb-8">
         <AchievementHero achievement={achievement} highlights={heroHighlights} />
         <EvidenceStatus achievement={achievement} />
+        <QuickCheck achievement={achievement} />
 
         {achievement.eli5 && (
           <div className="mx-auto max-w-5xl px-5 pb-8">

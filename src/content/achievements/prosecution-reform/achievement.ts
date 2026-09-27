@@ -503,9 +503,9 @@ const raw: AchievementInput = {
     {
       id: "claim-law",
       text:
-        "2026년 3월 국회 본회의는 중대범죄수사청법과 공소청법을 통과시켰다. 이에 따라 검찰청은 폐지되고 수사와 기소가 분리되며, 시행일은 2026년 10월 2일이다.",
+        "2026년 3월 국회 본회의는 중대범죄수사청법과 공소청법을 통과시켰다. 두 법은 2026년 3월 24일 공포됐다(공소청법 법률 제21490호, 중대범죄수사청 조직 및 운영에 관한 법률 제21491호). 이에 따라 검찰청은 폐지되고 수사와 기소가 분리되며, 시행일은 2026년 10월 2일이다.",
       assertionType: "FACT",
-      sourceIds: ["src-seoul-pr-2026", "src-khan-pr-2026"],
+      sourceIds: ["src-law-prosecution", "src-law-sic", "src-seoul-pr-2026", "src-khan-pr-2026"],
       verified: true,
     },
     {
@@ -527,6 +527,24 @@ const raw: AchievementInput = {
   ],
 
   sources: [
+    {
+      id: "src-law-prosecution",
+      title: "공소청법 [시행 2026. 10. 2.] [법률 제21490호, 2026. 3. 24., 제정]",
+      url: "https://www.law.go.kr/lsInfoP.do?lsiSeq=285045&viewCls=lsRvsDocInfo",
+      publisher: "법제처 국가법령정보센터",
+      publishedAt: "2026-03-24",
+      type: "legislative",
+      license: "public",
+    },
+    {
+      id: "src-law-sic",
+      title: "중대범죄수사청 조직 및 운영에 관한 법률 [시행 2026. 10. 2.] [법률 제21491호, 2026. 3. 24., 제정]",
+      url: "https://www.law.go.kr/lsInfoP.do?lsiSeq=285131&viewCls=lsRvsDocInfo",
+      publisher: "법제처 국가법령정보센터",
+      publishedAt: "2026-03-24",
+      type: "legislative",
+      license: "public",
+    },
     {
       id: "src-seoul-pr-2026",
       title: "검찰청 해체 ‘D-16’…중수청·공소청 어디까지 준비됐나",

@@ -39,13 +39,16 @@ const raw: AchievementInput = {
     "대장동 개발사업으로 알려진 이 사업의 공식 명칭은 성남 판교대장 도시개발사업이다. " +
     "성남시는 2014년 대장동과 제1공단을 하나의 결합 도시개발구역으로 묶었다. " +
     "대장동에서 나온 개발이익으로 도심의 옛 공단 부지를 공원으로 되돌리는 구조다. " +
-    "전체 917,068.8㎡ 가운데 공공용지는 53.5%다.",
+    "전체 917,068.8㎡ 가운데 공공용지는 53.5%다. " +
+    "같은 사업을 두고 2025년 1심 법원은 민간업자들이 공공에 돌아갔어야 할 이익을 가져갔다며 " +
+    "관련자 5명에게 업무상 배임을 인정했고, 항소심이 진행 중이다.",
   type: "event",
   publishStatus: "published",
   featured: true,
   sourceNote:
     "모든 주장에 근거가 붙었지만 자료의 무게가 고르지 않습니다. 면적과 절차는 " +
-    "공공기관이 낸 1차 자료인데, 금액은 공개된 공식 자료가 없어 보도에 기대고 있습니다.",
+    "공공기관이 낸 1차 자료인데, 금액은 공개된 공식 자료가 없어 보도에 기대고 있습니다. " +
+    "관련자 1심 유죄 판결과 검찰 항소 포기, 멈춰 있는 대통령 본인 재판은 반론에 적었습니다.",
 
   scenes: [
     {
@@ -469,8 +472,8 @@ const raw: AchievementInput = {
     ],
     caveat: {
       text:
-        "금액은 확정된 사실이 아니라 성남시의 계산이에요. 땅 넓이와 절차는 허가 서류로 확인되지만, 돈을 얼마나 돌려받았는지는 아직 공개된 공식 자료가 없어 보도에 기대고 있어요.",
-      claimIds: ["claim-recovery-total"],
+        "금액은 확정된 사실이 아니라 성남시의 계산이에요. 그리고 2025년 1심 법원은 이 사업에서 민간업자들이 공공에 갈 이익을 가져갔다고 보고 관련자 5명에게 유죄를 선고했어요. 2심은 아직 진행 중이에요.",
+      claimIds: ["claim-recovery-total", "claim-trial-first", "claim-trial-appeal"],
     },
   },
 
@@ -570,6 +573,13 @@ const raw: AchievementInput = {
 
   counterpoints: [
     {
+      id: "cp-trial",
+      question: "관련자들이 유죄 판결을 받지 않았나?",
+      response:
+        "받았다. 2025년 10월 31일 서울중앙지법은 김만배 씨와 유동규 전 성남도시개발공사 본부장 등 5명에게 업무상 배임으로 징역 4~8년을 선고하고 모두 법정구속했다. 재판부는 확정이익 구조 때문에 \"지역주민이나 공공에 돌아갔어야 할 막대한 택지개발 이익이 민간업자들에게 배분됐다\"고 판단했다. 이 판단은 이 페이지가 보여 주는 공공 환수와 같은 사업을 반대쪽에서 본 것이고, 둘 다 사실로 함께 읽어야 한다. 검찰은 항소하지 않았고 — 수사팀은 항소 의견이었지만 대검이 불허해 검찰 내부 반발이 일었다 — 피고인들의 항소로 2026년 1월 항소심이 시작됐다. 이 업적 기준일까지 2심 선고는 확인되지 않았다. 이재명 대통령 본인의 대장동 사건 재판은 2025년 6월 재판부가 헌법 84조(대통령 불소추특권)를 들어 기일을 추후지정해 멈춰 있고, 판단이 나온 적이 없다.",
+      claimIds: ["claim-trial-first", "claim-trial-appeal", "claim-trial-president"],
+    },
+    {
       id: "cp-what-public-got",
       question: "공공이 실제로 가져간 것이 있나?",
       response:
@@ -587,8 +597,8 @@ const raw: AchievementInput = {
       id: "cp-private-gain",
       question: "민간 사업자가 과도한 이익을 얻은 것 아닌가?",
       response:
-        "민간 배당 규모와 별개로, 공공이 환수한 몫 자체가 동시기 도시개발사업과 비교해 어떤 수준이었는지를 함께 놓고 봐야 한다. 비교군 없이 한쪽 숫자만 보면 구조를 판단할 수 없다.",
-      claimIds: ["claim-comparison-context"],
+        "1심 법원은 그렇게 판단했다 — 예상이익의 절반에 못 미치는 확정이익을 정해 나머지 이익을 민간업자들이 독식하게 했다는 것이다. 성남시는 반대로 공공이 약 5,503억 원을 환수했다고 본다. 두 판단은 같은 구조의 서로 다른 면을 가리키므로, 공공용지 비율과 현금·현물 환수 내역, 그리고 법원이 본 민간 몫을 함께 놓고 봐야 한다. 항소심이 진행 중이라 법적 판단은 아직 확정되지 않았다.",
+      claimIds: ["claim-trial-first", "claim-recovery-total", "claim-comparison-context"],
     },
     {
       id: "cp-why-not-public",
@@ -600,6 +610,30 @@ const raw: AchievementInput = {
   ],
 
   claims: [
+    {
+      id: "claim-trial-first",
+      text:
+        "2025년 10월 31일 서울중앙지법 형사합의22부는 김만배 씨와 유동규 전 성남도시개발공사 기획본부장, 남욱·정민용 변호사, 정영학 회계사 5명에게 특정경제범죄가중처벌법상 배임이 아닌 형법상 업무상 배임죄를 인정해 징역 4~8년을 선고하고 모두 법정구속했다. 재판부는 \"예상이익의 절반에 미치지 못하는 확정 이익을 정한 공모 과정을 그대로 체결해 (…) 지역주민이나 공공에 돌아갔어야 할 막대한 택지개발 이익이 민간업자들에게 배분됐다\"고 판단했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-hankook-trial-2025"],
+      verified: true,
+    },
+    {
+      id: "claim-trial-appeal",
+      text:
+        "검찰은 1심 판결에 항소하지 않았다. 서울중앙지검 수사·공판팀은 만장일치로 항소 의견을 냈지만 대검이 최종 불허했고, 수사·공판팀은 \"지휘부의 전례 없는 부당한 항소 금지 지시\"라며 공개 반발했다. 피고인들의 항소로 2026년 1월 23일 항소심이 시작됐고, 민간업자 측은 혐의를 전면 부인했다. 이 업적 기준일(2026년 9월 27일)까지 항소심 선고는 확인되지 않았다.",
+      assertionType: "FACT",
+      sourceIds: ["src-lawtimes-appeal-2025", "src-newspim-appeal-2026"],
+      verified: true,
+    },
+    {
+      id: "claim-trial-president",
+      text:
+        "서울중앙지법 형사합의33부는 2025년 6월 10일 이재명 대통령의 대장동·위례·백현동·성남FC 사건 재판 기일을 헌법 84조(대통령 불소추특권)에 따라 추후지정했다. 이 사건에 대한 법원의 판단은 나오지 않았다.",
+      assertionType: "FACT",
+      sourceIds: ["src-khan-president-2025"],
+      verified: true,
+    },
     {
       id: "claim-overview",
       text:
@@ -730,6 +764,55 @@ const raw: AchievementInput = {
   ],
 
   sources: [ISDC_DAEJANG, ISDC_PARK,
+    {
+      id: "src-hankook-trial-2025",
+      title: "법원 '대장동 일당' 배임죄 인정... \"공공에 갈 막대한 이익 업자들에\"",
+      url: "https://www.hankookilbo.com/News/Read/A2025103113590002194",
+      publisher: "한국일보",
+      publishedAt: "2025-10-31",
+      type: "press",
+      license: "quotable",
+      quote:
+        "재판부는 특경법상 배임이 아닌 형법상 업무상 배임죄를 인정하고 김씨와 유 전 본부장에게 " +
+        "각각 징역 8년을 선고했다. (…) 위험이 실제 현실화돼 지역주민이나 공공에 돌아갔어야 할 " +
+        "막대한 택지개발 이익이 민간업자들에게 배분됐다고 판단했다.",
+    },
+    {
+      id: "src-lawtimes-appeal-2025",
+      title: "\"윗선 부당 지시로 항소 좌절\"… 대장동 1심 항소 포기에 검찰 내부 논란",
+      url: "https://www.lawtimes.co.kr/news/212981",
+      publisher: "법률신문",
+      publishedAt: "2025-11-09",
+      type: "press",
+      license: "quotable",
+      quote:
+        "서울중앙지검 수사·공판팀이 \"대검과 중앙지검 지휘부의 전례 없는 부당한 항소 금지 지시로 " +
+        "인해 항소 시한을 넘겼다\"고 공개적으로 반발하면서, 검찰 지휘부와 수사팀 간 갈등이 표면화됐다.",
+    },
+    {
+      id: "src-newspim-appeal-2026",
+      title: "'대장동 사건' 항소심 시작…남욱·김만배 \"추징해제 신청 안 해\"",
+      url: "https://www.newspim.com/news/view/20260123000923",
+      publisher: "뉴스핌",
+      publishedAt: "2026-01-23",
+      type: "press",
+      license: "quotable",
+      quote:
+        "대장동 개발비리 의혹으로 1심에서 중형을 선고받은 유동규 전 성남도시개발공사 본부장과 " +
+        "화천대유자산관리 대주주 김만배 씨 등 민간업자 5인의 항소심 재판이 23일 시작했다.",
+    },
+    {
+      id: "src-khan-president-2025",
+      title: "이 대통령 ‘대장동 재판’도 무기한 연기…‘불소추특권’ 판단 잇따라",
+      url: "https://www.khan.co.kr/article/202506101447001",
+      publisher: "경향신문",
+      publishedAt: "2025-06-10",
+      type: "press",
+      license: "quotable",
+      quote:
+        "서울중앙지법 형사합의33부(재판장 이진관)는 이날 이 대통령의 대장동·위례·백현동·성남FC 등 " +
+        "배임 혐의 재판 날짜를 헌법 84조에 따라 ‘추정’(추후지정)하기로 했다.",
+    },
     {
       id: "src-lh-withdraw",
       title: "LH \"대장동 사업철회 기점은 이명박 발언\" — LH가 국회에 제출한 사업철회 경위 자료",

@@ -5,7 +5,7 @@ import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import { findScene, validateMilestones } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
-import { HomeFeed, type HeroSlide } from "@/features/home/HomeFeed";
+import { HomeFeed, type HeroSlide, type LifeCard } from "@/features/home/HomeFeed";
 
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { conceptCards } from "@/lib/wiki/load";
@@ -89,6 +89,20 @@ export default function Home() {
    * 세부 성과는 그 아래에 소속을 밝혀 따로 둔다.
    */
   const slides = achievementSlides;
+
+  /*
+   * 생활에서 들어오는 문. 숫자를 싣지 않는다 — 대표 숫자를 고르는 순간
+   * 그 업적의 가장 좋은 쪽만 앞에 서게 된다(주식은 고점이 대표 숫자다).
+   */
+  const lifeCards: LifeCard[] = byNewest
+    .filter((a) => a.lifeQuestion)
+    .map((a) => ({
+      id: a.id,
+      question: a.lifeQuestion!,
+      title: a.title,
+      subtitle: a.subtitle,
+      href: `/achievement/${a.slug}`,
+    }));
   const totalPublished = published.length;
 
   const topics = MILESTONES.filter((a) => a.status !== "planned");
@@ -111,6 +125,7 @@ export default function Home() {
 
         <HomeFeed
           slides={slides}
+          lifeCards={lifeCards}
           achievements={ACHIEVEMENT_CARDS}
           topics={topics}
           totalPublished={totalPublished}

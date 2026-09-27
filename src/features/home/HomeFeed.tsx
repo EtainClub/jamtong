@@ -14,7 +14,7 @@ import type { WikiConceptCard } from "@/lib/wiki/load";
 /**
  * 홈 피드.
  *
- * 순서에 의도가 있다: 히어로 → 업적 → 위키 → 세부 성과.
+ * 순서에 의도가 있다: 히어로 → 생활에서 달라진 것 → 업적 → 위키 → 세부 성과.
  * 단위는 업적이므로 업적이 먼저 오고, 한 부처 업무계획에서 뽑은 세부 성과는
  * 그 아래에 소속을 밝혀 둔다. 둘을 같은 층에 늘어놓으면 무엇이 단위인지
  * 보이지 않는다 — 예전 둘러보기가 그랬다.
@@ -38,6 +38,15 @@ export interface HeroSlide {
   note?: string;
 }
 
+/** 생활에서 들어오는 문 하나. 업적 이름보다 질문이 먼저 선다. */
+export interface LifeCard {
+  id: string;
+  question: string;
+  title: string;
+  subtitle: string;
+  href: string;
+}
+
 const TABS: { id: string; label: string; match: (a: Milestone) => boolean }[] = [
   { id: "all", label: "전체", match: () => true },
   { id: "done", label: "주요 업적", match: (a) => a.status === "done" },
@@ -59,6 +68,7 @@ const TABS: { id: string; label: string; match: (a: Milestone) => boolean }[] = 
 
 export function HomeFeed({
   slides,
+  lifeCards,
   achievements,
   topics,
   totalPublished,
@@ -66,6 +76,8 @@ export function HomeFeed({
   claims,
 }: {
   slides: HeroSlide[];
+  /** 생활에서 달라진 것. 비어 있으면 묶음을 내보내지 않는다. */
+  lifeCards: LifeCard[];
   achievements: AchievementCardData[];
   topics: Milestone[];
   /** 위키의 개념 페이지. 업적 하나로는 보이지 않는 이야기가 여기 모인다. */
@@ -154,6 +166,43 @@ export function HomeFeed({
         </span>
       </Link>
       <HeroCarousel slides={slides} total={totalPublished} />
+
+      {/*
+       * 생활에서 달라진 것. 정치에 관심 없는 사람은 업적 이름이 아니라 자기
+       * 생활에서 들어온다. 히어로 바로 아래, 업적 목록보다 먼저 둔다.
+       */}
+      {lifeCards.length > 0 && (
+        <section aria-labelledby="home-life" className="mt-9">
+          <h2 id="home-life" className="text-[17px] font-bold tracking-tight text-ink">
+            생활에서 달라진 것
+          </h2>
+          <p className="mt-1 text-[12px] leading-relaxed text-ash">
+            기름값, 기차표, 주식처럼 누구나 겪는 일부터 봅니다. 좋아진 것과 아닌 것을 함께 싣습니다.
+          </p>
+          <ul className="mt-4 space-y-2.5">
+            {lifeCards.map((card) => (
+              <li key={card.id}>
+                <Link
+                  href={card.href}
+                  className="flex items-center justify-between gap-3 rounded-card border border-stone bg-taupe px-4 py-3.5 transition-colors hover:border-graphite"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[15px] font-semibold leading-snug text-ink">
+                      {card.question}
+                    </span>
+                    <span className="mt-1 block text-[12px] leading-relaxed text-ash">
+                      {card.title} · {card.subtitle}
+                    </span>
+                  </span>
+                  <span aria-hidden="true" className="shrink-0 text-[13px] text-ash">
+                    →
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section aria-labelledby="home-achievements" className="mt-9">
         <div className="flex items-baseline justify-between gap-3">

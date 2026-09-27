@@ -27,6 +27,7 @@ const raw: AchievementInput = {
   slug: "rail-merger",
   title: "KTX·SRT 통합",
   subtitle: "같은 선로를 달리던 두 열차가 한 회사가 됐다",
+  lifeQuestion: "KTX·SRT가 합쳐지고 표값과 좌석은 어떻게 달라졌나?",
   kicker: "주요 정책",
   categories: ["region", "economy"],
   summary:
@@ -309,7 +310,7 @@ const raw: AchievementInput = {
       text:
         "국토교통부는 코레일과 에스알의 기관 통합에 필요한 법정·행정 절차를 2026년 8월 31일까지 모두 마치고, 9월 1일부터 KTX·SRT 통합 운행을 시작한다고 밝혔다. 기존 SRT 차량은 ‘KTX-산천’으로 명칭이 바뀌었다.",
       assertionType: "FACT",
-      sourceIds: ["src-koreadaily-rm", "src-khan-rm"],
+      sourceIds: ["src-korea-rm", "src-koreadaily-rm", "src-khan-rm"],
       verified: true,
     },
     {
@@ -317,15 +318,15 @@ const raw: AchievementInput = {
       text:
         "통합과 함께 고속철도 운임이 기존 SRT 수준으로 조정돼 구간에 따라 평균 10% 낮아졌다. 서울~부산은 5만 9,800원에서 5만 4,400원으로, 용산~광주송정은 4만 6,800원에서 4만 2,000원으로 내렸다. 수서역 출·도착 열차를 이용하면 결제액의 5%가 마일리지로 적립된다.",
       assertionType: "FACT",
-      sourceIds: ["src-khan-rm"],
+      sourceIds: ["src-korea-rm", "src-khan-rm"],
       verified: true,
     },
     {
       id: "claim-seats",
       text:
-        "통합으로 고속철도 좌석이 하루 평균 약 1만 6,000석(주간 11만 6,000석) 늘었고, 주중 운행은 379회에서 402회로, 주말 운행은 431회에서 457회로 늘었다. 수서역 기준 좌석은 약 30% 증가했다.",
+        "국토교통부는 통합 운행이 시작되는 9월 1일부터 주중 하루 약 1만 5,000석, 주말 최대 약 1만 7,000석이 추가 공급되고 수서축 좌석이 약 30% 확대된다고 밝혔다. 주중·주말을 평균하면 하루 약 1만 6,000석(주간 11만 6,000석)이다. 주중 운행은 379회에서 402회로, 주말 운행은 431회에서 457회로 늘었다.",
       assertionType: "FACT",
-      sourceIds: ["src-khan-rm", "src-koreadaily-rm"],
+      sourceIds: ["src-korea-rm", "src-khan-rm", "src-koreadaily-rm"],
       verified: true,
     },
     {
@@ -339,6 +340,20 @@ const raw: AchievementInput = {
   ],
 
   sources: [
+    {
+      id: "src-korea-rm",
+      title: "내달 1일부터 KTX·SRT 통합 운행…요금↓·좌석 수↑",
+      url: "https://www.korea.kr/news/policyNewsView.do?newsId=148970889",
+      publisher: "대한민국 정책브리핑 (국토교통부)",
+      publishedAt: "2026-08-31",
+      type: "official",
+      license: "public",
+      quote:
+        "국토교통부는 한국철도공사(코레일)와 에스알의 기관 통합을 완료하고 9월 1일부터 KTX와 SRT는 " +
+        "KTX로 통합해 본격적으로 운행을 시작한다고 31일 밝혔다. (…) 주중 하루 약 1만 5000석, 주말 " +
+        "최대 약 1만 7000석이 추가 공급되며 수서축 좌석이 약 30% 확대된다. KTX 운임을 기존 SRT " +
+        "수준으로 조정하여 평균 10% 인하하고",
+    },
     {
       id: "src-khan-rm",
       title: "9월부터 KTX·SRT 통합 운영…운임 평균 10% 인하",

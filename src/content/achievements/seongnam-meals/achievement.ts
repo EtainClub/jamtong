@@ -327,7 +327,7 @@ const raw: AchievementInput = {
       text:
         "성남시 무상급식 지원 사업은 2007년 초등학교 1학년을 대상으로 시작됐다.",
       assertionType: "FACT",
-      sourceIds: ["src-press-2018", "src-book"],
+      sourceIds: ["src-press-2018"],
       verified: true,
     },
     {
@@ -357,17 +357,6 @@ const raw: AchievementInput = {
   ],
 
   sources: [
-    {
-      id: "src-book",
-      title: "『밍밍 잼칠라 이장님』 — 1학기 이장님 업적(성남시장) 7",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote:
-        "7. 전국 최초 초중고 친환경 무상급식 실현 " +
-        "(이 책이 붙인 '전국 최초'는 확인하지 못했고, '초중고'가 채워진 것은 2018년 2학기다.)",
-    },
     {
       id: "src-press-2018",
       title: "성남시, 고등학교 무상급식 전면 시행하기로",

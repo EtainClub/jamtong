@@ -2,7 +2,7 @@
 title: 성남시 3대 무상복지
 kind: source
 source: seongnam-welfare
-updated: 2026-09-20
+updated: 2026-09-27
 ---
 
 # 성남시 3대 무상복지
@@ -66,11 +66,8 @@ updated: 2026-09-20
 
 ## 자료에 관한 메모
 
-이 업적의 근거에는 시정소식지 비전성남과 한국일보 보도,
-^[source:src-snvision-youth] ^[source:src-press-start] 그리고 지지자가 정리한
-책 한 권이 섞여 있다. **책 쪽은 본인이 「개인적인 해석임을 이해해 달라」고
-적은 자료다** — 위키는 같은 사실이 공보나 보도로도 확인될 때만 그것을
-근거로 쓴다. ^[source:src-book]
+이 업적의 근거는 시정소식지 비전성남과 한국일보 등 당시 보도다.
+^[source:src-snvision-youth] ^[source:src-press-start]
 
 ## 관련
 

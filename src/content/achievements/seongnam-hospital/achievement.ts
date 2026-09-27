@@ -398,7 +398,7 @@ const raw: AchievementInput = {
       text:
         "성남시의료원은 주민발의 조례로 설립된 전국 첫 공공병원이다.",
       assertionType: "FACT",
-      sourceIds: ["src-grandculture", "src-book"],
+      sourceIds: ["src-grandculture"],
       verified: true,
     },
     {
@@ -444,15 +444,6 @@ const raw: AchievementInput = {
   ],
 
   sources: [
-    {
-      id: "src-book",
-      title: "『밍밍 잼칠라 이장님』 — 1학기 이장님 업적(성남시장) 15",
-      url: "https://wowlife.co.kr",
-      publisher: "맘껏 지음 · 와우라이프",
-      type: "press",
-      license: "quotable",
-      quote: "15. 성남 의료원",
-    },
     {
       id: "src-grandculture",
       title: "성남시 의료원 — 디지털성남문화대전",

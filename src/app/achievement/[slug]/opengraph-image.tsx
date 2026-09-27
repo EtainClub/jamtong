@@ -181,6 +181,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           {/* 이 제품이 파는 것은 근거다. 카드에서도 그걸 먼저 보인다. */}
           <div style={{ display: "flex", fontSize: 24, fontWeight: 300, color: C.graphite }}>
             근거 {achievement.claims.length}건 · 자료 {achievement.sources.length}건
+            {achievement.counterpoints.length > 0 ? ` · 반론 ${achievement.counterpoints.length}개` : ""}
           </div>
         </div>
       </div>
