@@ -1,10 +1,12 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import type { ActionItem, BookPoint, BookShort } from "./schema";
+
 /**
  * 요약 파일을 읽어 온다.
  *
- * 요약은 이 폴더의 `text/NN.md`에 있다. 그 글을 TS 파일로 복사해 두면 같은
+ * 요약은 책마다 제 폴더의 `text/NN.md`에 있다(`books/<폴더>/text/`). 그 글을 TS 파일로 복사해 두면 같은
  * 글이 두 군데 살면서 조용히 갈라진다. 위키를 화면에 올릴 때와 같은 방식으로,
  * 빌드 때 한 번 읽어 정적 페이지로 굽는다.
  *
@@ -22,7 +24,10 @@ import { join } from "node:path";
  * 끝나지 않는 짧은 줄이 소제목이라는 규칙을 한 곳에만 두려는 것이다.
  */
 
-const DIR = join(process.cwd(), "src", "content", "books", "together", "text");
+/** 책 폴더의 요약 원문 자리. 책마다 폴더가 다르고 모양은 같다. */
+function textDir(book: string): string {
+  return join(process.cwd(), "src", "content", "books", book, "text");
+}
 
 export interface LoadedChapter {
   title: string;
@@ -40,8 +45,8 @@ function isHeading(line: string): boolean {
   return line.length < 40 && !/[다요]\.$/.test(line);
 }
 
-export function loadChapter(file: string, drop: number[] = []): LoadedChapter {
-  const lines = readFileSync(join(DIR, file), "utf8").split("\n");
+export function loadChapter(book: string, file: string, drop: number[] = []): LoadedChapter {
+  const lines = readFileSync(join(textDir(book), file), "utf8").split("\n");
   const title = (lines[0] ?? "").replace(/^소챕터 제목\s*/, "").trim();
 
   const paragraphs = lines
@@ -73,4 +78,24 @@ export function bodyOf(chapter: LoadedChapter, cutAt?: string): string {
 export function minutesOf(chapter: LoadedChapter): number {
   const chars = chapter.paragraphs.join("").length;
   return Math.max(2, Math.round(chars / 500));
+}
+
+/**
+ * 한 장에 대해 우리가 판단한 것 — 한 줄 소개, 쉽게 보기 토막, 할 수 있는 일.
+ * 본문은 여기 없고 file로 가리킨다. 책마다 chapters.ts가 이 모양으로 적는다.
+ */
+export interface ChapterMeta {
+  file: string;
+  slug: string;
+  summary: string;
+  lead: string;
+  points: BookPoint[];
+  actions: ActionItem[];
+  /** 이 장으로 만든 숏츠. 없으면 화면이 "준비 중" 자리를 보인다. */
+  shorts?: BookShort[];
+  /** 자료에 남은 생성 흔적. 뺀 문단의 자리와 이유를 적는다. */
+  drop?: number[];
+  /** 이 말이 나오는 자리에서 본문을 끊는다. 문단 안쪽에 붙은 흔적을 걷을 때. */
+  cutAt?: string;
+  truncated?: boolean;
 }

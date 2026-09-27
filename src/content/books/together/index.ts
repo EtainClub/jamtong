@@ -1,5 +1,5 @@
 import { bookSchema, type Book } from "../schema";
-import { bodyOf, loadChapter, minutesOf } from "./body";
+import { bodyOf, loadChapter, minutesOf } from "../body";
 import { CHAPTERS } from "./chapters";
 
 /**
@@ -15,7 +15,7 @@ import { CHAPTERS } from "./chapters";
  */
 
 const chapters = CHAPTERS.map((meta, index) => {
-  const loaded = loadChapter(meta.file, meta.drop);
+  const loaded = loadChapter("together", meta.file, meta.drop);
 
   return {
     id: `together-${meta.file.replace(".md", "")}`,

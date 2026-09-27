@@ -1,4 +1,4 @@
-import type { ActionItem, BookPoint, BookShort } from "../schema";
+import type { ChapterMeta } from "../body";
 
 /**
  * 『함께 가는 길은 외롭지 않습니다』 스물두 장.
@@ -11,22 +11,6 @@ import type { ActionItem, BookPoint, BookShort } from "../schema";
  *   책에 없는 주장을 행동으로 바꿔 놓으면, 그건 책 요약이 아니라 우리가 쓴
  *   선전문이 된다. 갈 곳(업적·위키)은 그 장이 실제로 다룬 일로만 잇는다.
  */
-
-export interface ChapterMeta {
-  file: string;
-  slug: string;
-  summary: string;
-  lead: string;
-  points: BookPoint[];
-  actions: ActionItem[];
-  /** 이 장으로 만든 숏츠. 없으면 화면이 "준비 중" 자리를 보인다. */
-  shorts?: BookShort[];
-  /** 자료에 남은 생성 흔적. 뺀 문단의 자리와 이유를 적는다. */
-  drop?: number[];
-  /** 이 말이 나오는 자리에서 본문을 끊는다. 문단 안쪽에 붙은 흔적을 걷을 때. */
-  cutAt?: string;
-  truncated?: boolean;
-}
 
 export const CHAPTERS: ChapterMeta[] = [
   {
