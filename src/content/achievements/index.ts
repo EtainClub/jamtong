@@ -21,6 +21,7 @@ import { railMerger } from "./rail-merger/achievement";
 import { nuclearSubmarine } from "./nuclear-submarine/achievement";
 import { resourceDiplomacy } from "./resource-diplomacy/achievement";
 import { oilSupply } from "./oil-supply/achievement";
+import { mexicoVisit } from "./mexico-visit/achievement";
 
 /**
  * 업적 레지스트리.
@@ -51,6 +52,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   nuclearSubmarine,
   resourceDiplomacy,
   oilSupply,
+  mexicoVisit,
 ];
 
 export function getAchievement(slug: string): Achievement | undefined {

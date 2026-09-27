@@ -2948,6 +2948,176 @@ function OilCap() {
     </svg>
   );
 }
+
+/* ── 멕시코 국빈방문 ── */
+
+/** 한국에서 멕시코까지 긴 비행. 이 길을 정식 손님으로 간 것이 16년 만이다. */
+function MxVisit() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="한국에서 멕시코로 가는 비행길. 16년 만의 국빈방문">
+      <path d="M62 150 C92 52, 228 52, 258 150" fill="none" stroke="var(--navy)"
+            strokeWidth={4} strokeDasharray="9 8" strokeLinecap="round" />
+      <circle cx={62} cy={150} r={12} fill="var(--navy)" />
+      <circle cx={258} cy={150} r={12} fill="var(--burgundy)" />
+      <g transform="translate(160 78) rotate(8)">
+        <path d="M-22 0 L20 -3 Q28 0 20 3 Z" fill="var(--ink)" />
+        <path d="M-2 -1 L-12 -18 H-5 L10 -1 Z" fill="var(--ink)" />
+        <path d="M-2 1 L-12 18 H-5 L10 1 Z" fill="var(--ink)" />
+        <path d="M-20 -1 L-26 -9 H-21 L-14 -1 Z" fill="var(--ink)" />
+      </g>
+      <text x={62} y={182} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">한국</text>
+      <text x={258} y={182} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">멕시코</text>
+      <text x={160} y={222} textAnchor="middle" fontSize={20} {...LABEL} fill="var(--navy)">16년 만</text>
+    </svg>
+  );
+}
+
+/** 오래 끌던 협정문에 마무리 표시. */
+function MxTreaty() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="7년 걸린 투자보장협정 개정 협상이 타결된 것을 나타낸 그림">
+      <rect x={98} y={30} width={124} height={150} rx={8} fill="var(--canvas)"
+            stroke="var(--graphite)" strokeWidth={2.5} />
+      {[0, 1, 2, 3, 4].map((i) => (
+        <rect key={i} x={116} y={54 + i * 16} width={i === 4 ? 52 : 88} height={6} rx={3}
+              fill="var(--stone)" />
+      ))}
+      <circle cx={214} cy={164} r={30} fill="var(--navy)" />
+      <path d="M199 164 l10 11 l20 -23" fill="none" stroke="var(--eggshell)" strokeWidth={5}
+            strokeLinecap="round" strokeLinejoin="round" />
+      <text x={160} y={222} textAnchor="middle" fontSize={19} {...LABEL} fill="var(--navy)">7년 만에 타결</text>
+    </svg>
+  );
+}
+
+/** 타결 뒤에 남은 세 칸. */
+function MxSteps() {
+  const steps = ["타결", "서명", "비준", "발효"];
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="타결은 끝났고 서명·비준·발효가 남은 네 칸">
+      {steps.map((label, i) => {
+        const x = 22 + i * 72;
+        const done = i === 0;
+        return (
+          <g key={label}>
+            <rect x={x} y={70} width={60} height={72} rx={8}
+                  fill={done ? "var(--navy)" : "var(--pending-tint)"}
+                  stroke={done ? "var(--navy)" : "var(--pending)"} strokeWidth={2.5}
+                  strokeDasharray={done ? undefined : "6 4"} />
+            {done && (
+              <path d={`M${x + 17} 106 l9 10 l17 -20`} fill="none" stroke="var(--eggshell)"
+                    strokeWidth={4.5} strokeLinecap="round" strokeLinejoin="round" />
+            )}
+            <text x={x + 30} y={170} textAnchor="middle" fontSize={14} {...LABEL}
+                  fill={done ? "var(--navy)" : "var(--pending)"}>{label}</text>
+          </g>
+        );
+      })}
+      <text x={160} y={216} textAnchor="middle" fontSize={13} fill="var(--ash)">
+        도장과 국회 동의가 아직 남았다
+      </text>
+    </svg>
+  );
+}
+
+/** 은행이 살 돈을 빌려준다. */
+function MxBank() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="은행이 한국 물건을 사려는 쪽에 돈을 빌려주는 그림">
+      <path d="M30 76 L90 44 L150 76 Z" fill="var(--navy)" />
+      {[0, 1, 2, 3].map((i) => (
+        <rect key={i} x={42 + i * 28} y={84} width={12} height={60} fill="var(--navy)" opacity={0.8} />
+      ))}
+      <rect x={30} y={146} width={120} height={10} fill="var(--navy)" />
+      <path d="M160 110 H230" stroke="var(--graphite)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M222 102 L234 110 L222 118" fill="none" stroke="var(--graphite)" strokeWidth={3}
+            strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={194} cy={88} r={13} fill="var(--burgundy)" />
+      <text x={194} y={93} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--eggshell)">$</text>
+      <rect x={244} y={82} width={52} height={52} rx={6} fill="var(--canvas)" stroke="var(--graphite)"
+            strokeWidth={2.5} />
+      <path d="M244 100 H296 M270 82 V100" stroke="var(--graphite)" strokeWidth={2.5} />
+      <text x={90} y={182} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">수출입은행</text>
+      <text x={270} y={160} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ink)">한국 물건</text>
+      <text x={160} y={222} textAnchor="middle" fontSize={20} {...LABEL} fill="var(--navy)">1억 달러</text>
+    </svg>
+  );
+}
+
+/** 말이 오가는 창구는 열렸고, 기름통 자리는 비어 있다. */
+function MxChannel() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="두 나라 사이에 이야기 창구가 열렸지만 기름통 자리는 비어 있는 그림">
+      <path d="M40 40 H136 V96 H78 L60 114 V96 H40 Z" fill="var(--navy)" />
+      <path d="M280 64 H184 V120 H242 L260 138 V120 H280 Z" fill="var(--navy)" opacity={0.7} />
+      {[0, 1, 2].map((i) => (
+        <circle key={i} cx={70 + i * 18} cy={68} r={4} fill="var(--eggshell)" />
+      ))}
+      {[0, 1, 2].map((i) => (
+        <circle key={i} cx={214 + i * 18} cy={92} r={4} fill="var(--eggshell)" />
+      ))}
+      <rect x={138} y={146} width={44} height={56} rx={8} fill="none" stroke="var(--pending)"
+            strokeWidth={2.5} strokeDasharray="6 5" />
+      <path d="M138 164 H182 M138 184 H182" stroke="var(--pending)" strokeWidth={2} strokeDasharray="6 5" />
+      <text x={160} y={226} textAnchor="middle" fontSize={13} fill="var(--ash)">
+        기름이 오기로 한 건 아직 없다
+      </text>
+    </svg>
+  );
+}
+
+/** 17건 가운데 14건이 같은 종류이고, 계약 칸은 비어 있다. */
+function MxDocs() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="문서 17건 가운데 14건이 양해각서이고 계약 칸은 비어 있는 그림">
+      {Array.from({ length: 17 }, (_, i) => {
+        const x = 30 + (i % 5) * 34;
+        const y = 40 + Math.floor(i / 5) * 38;
+        const mou = i < 14;
+        return (
+          <rect key={i} x={x} y={y} width={26} height={32} rx={3}
+                fill={mou ? "var(--navy)" : "var(--graphite)"} opacity={mou ? 0.9 : 0.55} />
+        );
+      })}
+      <rect x={222} y={60} width={70} height={90} rx={8} fill="var(--burgundy-tint)"
+            stroke="var(--burgundy)" strokeWidth={2.5} strokeDasharray="6 5" />
+      <text x={257} y={114} textAnchor="middle" fontSize={26} {...LABEL} fill="var(--burgundy)">0</text>
+      <text x={257} y={172} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--burgundy)">계약</text>
+      <text x={110} y={218} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--navy)">
+        17건 · 양해각서 14
+      </text>
+    </svg>
+  );
+}
+
+/** 전투기는 점선 — 만들자는 말은 부탁이고, 합의는 검토까지다. */
+function MxJet() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="점선으로 그린 전투기와, 부탁이라고 적힌 말풍선과 검토라고 적힌 문서">
+      <path d="M60 110 L230 104 Q262 110 230 116 Z M150 108 L118 60 H134 L186 108 Z M150 112 L118 160 H134 L186 112 Z M72 110 L58 84 H70 L94 110 Z"
+            fill="none" stroke="var(--pending)" strokeWidth={2.5} strokeDasharray="7 5"
+            strokeLinejoin="round" />
+      <path d="M22 24 H112 V62 H50 L36 76 V62 H22 Z" fill="var(--pending-tint)"
+            stroke="var(--pending)" strokeWidth={2} />
+      <text x={67} y={49} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--pending)">부탁</text>
+      <rect x={222} y={146} width={70} height={62} rx={6} fill="var(--canvas)" stroke="var(--navy)"
+            strokeWidth={2.5} />
+      <path d="M236 176 l8 9 l16 -18" fill="none" stroke="var(--navy)" strokeWidth={4}
+            strokeLinecap="round" strokeLinejoin="round" />
+      <text x={257} y={228} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--navy)">검토 합의</text>
+      <text x={100} y={214} textAnchor="middle" fontSize={13} fill="var(--ash)">
+        현지 생산은 아직 부탁
+      </text>
+    </svg>
+  );
+}
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
@@ -3091,4 +3261,11 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "oil-freight": OilFreight,
   "oil-swap": OilSwap,
   "oil-cap": OilCap,
+  "mx-visit": MxVisit,
+  "mx-treaty": MxTreaty,
+  "mx-steps": MxSteps,
+  "mx-bank": MxBank,
+  "mx-channel": MxChannel,
+  "mx-docs": MxDocs,
+  "mx-jet": MxJet,
 };

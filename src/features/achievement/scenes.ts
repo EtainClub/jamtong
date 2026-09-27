@@ -153,6 +153,14 @@ export const SCENES_BY_ACHIEVEMENT: Record<string, SceneNavItem[]> = {
     { id: "shorts", label: "쇼츠" },
     { id: "share", label: "공유" },
   ],
+  "mexico-visit": [
+    { id: "motion", label: "모션" },
+    { id: "timeline", label: "경과" },
+    { id: "relations", label: "관계도" },
+    { id: "counterpoint", label: "쟁점" },
+    { id: "shorts", label: "쇼츠" },
+    { id: "share", label: "공유" },
+  ],
   "rail-merger": [
     { id: "motion", label: "모션" },
     { id: "timeline", label: "경과" },

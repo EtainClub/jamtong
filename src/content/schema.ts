@@ -907,6 +907,13 @@ export const Eli5Art = z.enum([
   "oil-freight",
   "oil-swap",
   "oil-cap",
+  "mx-visit",
+  "mx-treaty",
+  "mx-steps",
+  "mx-bank",
+  "mx-channel",
+  "mx-docs",
+  "mx-jet",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 
@@ -1308,6 +1315,77 @@ export const explainerVisualSchema = z.discriminatedUnion("kind", [
       .object({ label: z.string(), value: z.number().int().positive(), note: z.string().optional() })
       .optional(),
   }),
+
+  /**
+   * 관문을 하나씩 지난다. 어디까지 지났고 무엇이 남았는지.
+   *
+   * '타결'과 '발효' 사이에 관문이 몇 개 있는지를 보이는 것이 이 그림의 일이다.
+   * 지난 관문과 남은 관문이 한 줄에 같이 있어야, 지난 것만 보고 끝난 일로
+   * 읽지 않는다.
+   */
+  z.object({
+    kind: z.literal("stage-gates"),
+    stages: z
+      .array(
+        z.object({
+          id: z.string(),
+          label: z.string(),
+          /** 관문 아래 작게. "7년간", "9월 24일". */
+          note: z.string().optional(),
+          status: z.enum(["done", "pending"]),
+        }),
+      )
+      .min(3),
+    /** 지난 것과 남은 것 사이에 긋는 선의 이름. */
+    asOfLabel: z.string(),
+    pendingLabel: z.string(),
+  }),
+
+  /**
+   * 한 묶음으로 불린 문서를 성격별로 나눈다.
+   *
+   * 'N건'은 성격이 다른 문서를 한데 센 수다. 나눠 놓으면 어느 칸이 두껍고
+   * 어느 칸이 비었는지가 보인다. 빈 칸(emptyBin)은 사람들이 그 수에서 기대하는
+   * 것 — 대개 계약이다 — 을 적는 자리다.
+   */
+  z.object({
+    kind: z.literal("doc-sort"),
+    totalLabel: z.string(),
+    types: z.array(z.object({ id: z.string(), label: z.string() })).min(2),
+    items: z.array(z.object({ id: z.string(), label: z.string(), typeId: z.string() })).min(3),
+    emptyBin: z.object({ label: z.string(), note: z.string() }),
+  }),
+
+  /**
+   * 두 쪽 사이에 창구가 열린다. 그 창구로 무엇이 오기로 했는지는 따로 본다.
+   *
+   * 창구가 생긴 것과 물량이 오기로 한 것은 다른 일이다. 물량 칸을 비운 채로
+   * 그려 두 일을 한 그림 안에서 떼어 놓는다.
+   */
+  z.object({
+    kind: z.literal("channel-open"),
+    left: z.string(),
+    right: z.string(),
+    channelLabel: z.string(),
+    cargoLabel: z.string(),
+    emptyLabel: z.string(),
+  }),
+
+  /**
+   * 한 이름으로 묶여 전해진 것을, 문서로 맺은 것과 요청한 것으로 가른다.
+   *
+   * 요청은 합의가 아니다. 둘을 같은 칸에 두면 요청이 성과로 읽힌다.
+   */
+  z.object({
+    kind: z.literal("ask-vs-signed"),
+    poolLabel: z.string(),
+    signedLabel: z.string(),
+    askedLabel: z.string(),
+    items: z
+      .array(z.object({ id: z.string(), label: z.string(), side: z.enum(["signed", "asked"]) }))
+      .min(2)
+      .max(6),
+  }),
 ]);
 export type ExplainerVisual = z.infer<typeof explainerVisualSchema>;
 export type ExplainerVisualKind = ExplainerVisual["kind"];
@@ -1413,6 +1491,32 @@ const checkSeats: VisualCheck<"seats"> = (visual, at) =>
     ? [`${at} → 찬 자리(${visual.filled.value})가 정원(${visual.capacity.value})보다 많다`]
     : [];
 
+const checkStageGates: VisualCheck<"stage-gates"> = (visual, at) => {
+  const errors: string[] = [];
+  /* 지난 관문 뒤에 남은 관문이 온다. 순서가 섞이면 '어디까지 왔나'를 그릴 수 없다. */
+  const firstPending = visual.stages.findIndex((s) => s.status === "pending");
+  if (firstPending === -1) errors.push(`${at} → 남은 관문이 없다. 끝난 일이면 이 그림이 아니다`);
+  if (firstPending === 0) errors.push(`${at} → 지난 관문이 없다`);
+  if (firstPending > 0 && visual.stages.slice(firstPending).some((s) => s.status === "done")) {
+    errors.push(`${at} → 남은 관문 뒤에 지난 관문이 있다`);
+  }
+  return errors;
+};
+
+const checkDocSort: VisualCheck<"doc-sort"> = (visual, at) => {
+  const typeIds = new Set(visual.types.map((t) => t.id));
+  return visual.items
+    .filter((item) => !typeIds.has(item.typeId))
+    .map((item) => `${at} → 문서 "${item.id}"가 없는 성격 "${item.typeId}"로 분류됐다`);
+};
+
+const checkAskVsSigned: VisualCheck<"ask-vs-signed"> = (visual, at) => {
+  const errors: string[] = [];
+  if (!visual.items.some((i) => i.side === "signed")) errors.push(`${at} → 맺은 것이 없다`);
+  if (!visual.items.some((i) => i.side === "asked")) errors.push(`${at} → 요청한 것이 없다`);
+  return errors;
+};
+
 function checkVisual(visual: ExplainerVisual, at: string): string[] {
   switch (visual.kind) {
     case "origin-shift":
@@ -1427,10 +1531,17 @@ function checkVisual(visual: ExplainerVisual, at: string): string[] {
       return checkTimelineGate(visual, at);
     case "seats":
       return checkSeats(visual, at);
+    case "stage-gates":
+      return checkStageGates(visual, at);
+    case "doc-sort":
+      return checkDocSort(visual, at);
+    case "ask-vs-signed":
+      return checkAskVsSigned(visual, at);
     /* 한 레코드 안에서 어긋날 수 있는 것이 없는 종류들. */
     case "freight-gap":
     case "reserve-loop":
     case "split-powers":
+    case "channel-open":
       return [];
   }
 }

@@ -337,6 +337,33 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       "최고가격제가 뭔가요?",
     ],
   },
+  "mexico-visit": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "16년 만의 국빈방문",
+          timelineLede:
+            "시점을 옮기면 그때까지 무엇이 정해졌는지가 나타납니다. 투자보장협정은 서명과 비준이 남았습니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "타결된 협정과 맺은 문건 수를 나눠 적었습니다.",
+          relationsHeading: "누가 무엇을 맺었나",
+          relationsLede:
+            "타결·신설처럼 정해진 것과 검토·요청 단계인 것은 무게가 다릅니다. 나눠 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "claim-bit", label: "투자보장협정 타결" },
+      { claimId: "claim-docs", label: "17건 문건" },
+    ],
+    askSuggestions: [
+      "투자보장협정은 언제 효력이 생기나요?",
+      "원유를 들여오기로 한 건가요?",
+      "방산 협력은 어디까지 합의됐나요?",
+    ],
+  },
   "rail-merger": {
     Layout: (props) => (
       <NarrativeLayout

@@ -1400,6 +1400,535 @@ function Seats({ v, step }: { v: Extract<Visual, { kind: "seats" }>; step: numbe
   );
 }
 
+/* ══════════════════════════════════════════════════════════════
+ * 10. 관문
+ *
+ * 문서 한 장이 관문을 하나씩 지난다. 지난 관문은 채워지고, 남은 관문은
+ * 끝까지 점선으로 남는다. 지난 것만 보면 끝난 일처럼 보이므로, 남은
+ * 관문을 처음부터 한 줄에 같이 그린다.
+ * ══════════════════════════════════════════════════════════════ */
+
+const GATE = { x0: 52, x1: 428, y: 96, w: 40, h: 56 };
+
+function StageGates({ v, step }: { v: Extract<Visual, { kind: "stage-gates" }>; step: number }) {
+  const n = v.stages.length;
+  const xs = v.stages.map((_, i) => GATE.x0 + (i * (GATE.x1 - GATE.x0)) / (n - 1));
+  const doneCount = v.stages.filter((s) => s.status === "done").length;
+  /* 단계는 지난 관문을 하나씩 밟고, 마지막 단계가 남은 관문을 밝힌다. */
+  const pos = Math.min(step, doneCount - 1);
+  const showPending = step >= doneCount;
+  const cut = (xs[doneCount - 1] + xs[doneCount]) / 2;
+  const span = xs[n - 1] - xs[0];
+  const pending = v.stages.filter((s) => s.status === "pending");
+
+  return (
+    <div>
+      <svg viewBox="0 0 480 196" className={svgClass} aria-hidden="true" focusable="false">
+        {/* 전체 길과 지난 길 */}
+        <line
+          x1={xs[0]}
+          y1={GATE.y}
+          x2={xs[n - 1]}
+          y2={GATE.y}
+          stroke="var(--stone)"
+          strokeWidth={3}
+          strokeDasharray="6 6"
+        />
+        <rect
+          x={xs[0]}
+          y={GATE.y - 2.5}
+          width={span}
+          height={5}
+          rx={2.5}
+          fill="var(--navy)"
+          style={{
+            transform: `scaleX(${(xs[pos] - xs[0]) / span})`,
+            transformBox: "fill-box",
+            transformOrigin: "left center",
+            transition: "transform 620ms var(--ease-out-expo)",
+          }}
+        />
+
+        {v.stages.map((s, i) => {
+          const passed = s.status === "done" && i <= pos;
+          const lit = s.status === "pending" && showPending;
+          return (
+            <g key={s.id}>
+              <rect
+                x={xs[i] - GATE.w / 2}
+                y={GATE.y - GATE.h / 2}
+                width={GATE.w}
+                height={GATE.h}
+                rx={6}
+                fill={passed ? "var(--navy)" : lit ? "var(--pending-tint)" : "var(--canvas)"}
+                stroke={passed ? "var(--navy)" : lit ? "var(--pending)" : "var(--stone)"}
+                strokeWidth={2}
+                strokeDasharray={lit ? "4 3" : undefined}
+                style={{ transition: "fill 400ms linear, stroke 400ms linear" }}
+              />
+              <Layer on={passed}>
+                <path
+                  d={`M${xs[i] - 9} ${GATE.y} l6 7 l12 -14`}
+                  fill="none"
+                  stroke="var(--eggshell)"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Layer>
+              <text
+                x={xs[i]}
+                y={GATE.y + GATE.h / 2 + 20}
+                textAnchor="middle"
+                fontSize={12}
+                {...LABEL}
+                fill={passed ? "var(--navy)" : lit ? "var(--pending)" : "var(--smoke)"}
+              >
+                {s.label}
+              </text>
+              {s.note && (
+                <text
+                  x={xs[i]}
+                  y={GATE.y + GATE.h / 2 + 37}
+                  textAnchor="middle"
+                  fontSize={10.5}
+                  {...SUB}
+                  fill="var(--ash)"
+                >
+                  {s.note}
+                </text>
+              )}
+            </g>
+          );
+        })}
+
+        {/* 문서 한 장. 지난 관문 위에 선다. */}
+        <g
+          transform={`translate(${xs[pos]} ${GATE.y - GATE.h / 2 - 22})`}
+          style={{ transition: "transform 620ms var(--ease-out-expo)" }}
+        >
+          <rect x={-9} y={-12} width={18} height={23} rx={2.5} fill="var(--ink)" />
+          <rect x={-5} y={-6} width={10} height={1.6} fill="var(--eggshell)" opacity={0.7} />
+          <rect x={-5} y={-1} width={10} height={1.6} fill="var(--eggshell)" opacity={0.7} />
+          <rect x={-5} y={4} width={6} height={1.6} fill="var(--eggshell)" opacity={0.7} />
+        </g>
+
+        {/* 지난 것과 남은 것 사이 */}
+        <Layer on={showPending}>
+          <line
+            x1={cut}
+            y1={20}
+            x2={cut}
+            y2={GATE.y + GATE.h / 2 + 4}
+            stroke="var(--ink)"
+            strokeWidth={1.5}
+            strokeDasharray="3 4"
+          />
+          <text x={cut} y={14} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--ink)">
+            {v.asOfLabel}
+          </text>
+        </Layer>
+      </svg>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {v.stages
+          .filter((s) => s.status === "done")
+          .map((s, i) => (
+            <Chip key={s.id} tone={i <= pos ? "navy" : "neutral"}>
+              {s.label}
+            </Chip>
+          ))}
+        <Chip tone={showPending ? "pending" : "neutral"}>
+          {v.pendingLabel} {pending.length}
+        </Chip>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 11. 나눠 놓은 묶음
+ *
+ * 한 더미로 불린 문서들이 성격별 칸으로 옮겨 앉는다. 마지막에 빈 칸이 하나
+ * 더 생긴다 — 그 수에서 사람들이 기대하는 것의 자리다. 칸 이름은 그림 밖
+ * 단추에 있고, 단추를 누르면 그 칸의 문서만 남는다.
+ * ══════════════════════════════════════════════════════════════ */
+
+const DOC = { w: 24, h: 18, pitchX: 30, pitchY: 24, top: 46, rows: 7, gap: 12, heapCols: 6 };
+const binWidth = (cols: number) => cols * DOC.pitchX + 8;
+
+function DocSort({ v, step }: { v: Extract<Visual, { kind: "doc-sort" }>; step: number }) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const sorted = step >= 1;
+
+  const bins = v.types.map((t) => {
+    const items = v.items.filter((item) => item.typeId === t.id);
+    return { ...t, items, cols: Math.max(1, Math.ceil(items.length / DOC.rows)) };
+  });
+  const total =
+    bins.reduce((sum, b) => sum + binWidth(b.cols), 0) + binWidth(1) + DOC.gap * bins.length;
+  const binX: number[] = [];
+  let cursor = (480 - total) / 2;
+  for (const b of bins) {
+    binX.push(cursor);
+    cursor += binWidth(b.cols) + DOC.gap;
+  }
+  const emptyX = cursor;
+
+  const heapX0 = 240 - (DOC.heapCols * DOC.pitchX) / 2 + (DOC.pitchX - DOC.w) / 2;
+  const heapRows = Math.ceil(v.items.length / DOC.heapCols);
+  const binRows = Math.min(DOC.rows, Math.max(...bins.map((b) => b.items.length)));
+  const height = DOC.top + Math.max(heapRows, binRows) * DOC.pitchY + 12;
+
+  const place = (id: string) => {
+    const heapIndex = v.items.findIndex((item) => item.id === id);
+    if (!sorted) {
+      return {
+        x: heapX0 + (heapIndex % DOC.heapCols) * DOC.pitchX,
+        y: DOC.top + Math.floor(heapIndex / DOC.heapCols) * DOC.pitchY,
+      };
+    }
+    const b = bins.findIndex((bin) => bin.items.some((item) => item.id === id));
+    const k = bins[b].items.findIndex((item) => item.id === id);
+    return {
+      x: binX[b] + 4 + Math.floor(k / DOC.rows) * DOC.pitchX + (DOC.pitchX - DOC.w) / 2,
+      y: DOC.top + (k % DOC.rows) * DOC.pitchY,
+    };
+  };
+
+  const pickedBin = bins.find((b) => b.id === picked);
+
+  return (
+    <div>
+      <svg viewBox={`0 0 480 ${height}`} className={svgClass} aria-hidden="true" focusable="false">
+        {/* 한 더미일 때의 수 */}
+        <Layer on={!sorted}>
+          <text x={240} y={30} textAnchor="middle" fontSize={18} {...LABEL} fill="var(--navy)">
+            {v.items.length}
+          </text>
+        </Layer>
+
+        {/* 성격별 칸 */}
+        <Layer on={sorted}>
+          {bins.map((b, i) => (
+            <g key={b.id}>
+              <rect
+                x={binX[i]}
+                y={DOC.top - 5}
+                width={binWidth(b.cols)}
+                height={Math.min(DOC.rows, b.items.length) * DOC.pitchY + 4}
+                rx={6}
+                fill="none"
+                stroke={picked === b.id ? "var(--navy)" : "var(--stone)"}
+                strokeWidth={1.5}
+              />
+              <text
+                x={binX[i] + binWidth(b.cols) / 2}
+                y={30}
+                textAnchor="middle"
+                fontSize={15}
+                {...LABEL}
+                fill="var(--navy)"
+              >
+                {b.items.length}
+              </text>
+            </g>
+          ))}
+        </Layer>
+
+        {/* 빈 칸 */}
+        <Layer on={step >= 2}>
+          <rect
+            x={emptyX}
+            y={DOC.top - 5}
+            width={binWidth(1)}
+            height={DOC.pitchY + 4}
+            rx={6}
+            fill="var(--burgundy-tint)"
+            stroke="var(--burgundy)"
+            strokeWidth={1.5}
+            strokeDasharray="4 3"
+          />
+          <text
+            x={emptyX + binWidth(1) / 2}
+            y={30}
+            textAnchor="middle"
+            fontSize={15}
+            {...LABEL}
+            fill="var(--burgundy)"
+          >
+            0
+          </text>
+        </Layer>
+
+        {v.items.map((item) => {
+          const { x, y } = place(item.id);
+          const dim = sorted && picked !== null && item.typeId !== picked;
+          return (
+            <g
+              key={item.id}
+              transform={`translate(${x} ${y})`}
+              style={{ transition: "transform 620ms var(--ease-out-expo)" }}
+            >
+              <g style={{ opacity: dim ? 0.18 : 1, transition: "opacity 300ms linear" }}>
+                <path
+                  d={`M0 2.5 Q0 0 2.5 0 H${DOC.w - 6} L${DOC.w} 6 V${DOC.h - 2.5} Q${DOC.w} ${DOC.h} ${DOC.w - 2.5} ${DOC.h} H2.5 Q0 ${DOC.h} 0 ${DOC.h - 2.5} Z`}
+                  fill="var(--navy)"
+                />
+                <rect x={4} y={7} width={DOC.w - 10} height={1.4} fill="var(--eggshell)" opacity={0.6} />
+                <rect x={4} y={11.5} width={DOC.w - 14} height={1.4} fill="var(--eggshell)" opacity={0.6} />
+              </g>
+            </g>
+          );
+        })}
+      </svg>
+
+      <p className="mt-3 text-[12px] font-semibold text-smoke">
+        {sorted ? "성격을 눌러 그 칸에 무엇이 들었는지 보세요" : v.totalLabel}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {bins.map((b) => {
+          const on = picked === b.id;
+          return (
+            <button
+              key={b.id}
+              type="button"
+              aria-pressed={on}
+              disabled={!sorted}
+              onClick={() => setPicked(on ? null : b.id)}
+              className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50 ${
+                on
+                  ? "border-navy bg-navy text-eggshell"
+                  : "border-stone text-smoke hover:border-graphite hover:text-navy"
+              }`}
+            >
+              {b.label} {b.items.length}
+            </button>
+          );
+        })}
+        {step >= 2 && <Chip tone="burgundy">{v.emptyBin.label} 0</Chip>}
+      </div>
+
+      {sorted && pickedBin && (
+        <p className="mt-3 text-[12px] leading-relaxed text-graphite">
+          <strong className="font-bold text-navy">{pickedBin.label}</strong> ·{" "}
+          {pickedBin.items.map((item) => item.label).join(" · ")}
+        </p>
+      )}
+      {step >= 2 && (
+        <p className="mt-2 text-[12px] leading-relaxed text-ash">{v.emptyBin.note}</p>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 12. 열린 창구, 빈 짐칸
+ *
+ * 두 쪽 사이에 말이 오가는 통로가 생긴다. 그 아래에 물량이 지나갈 칸을
+ * 그리되, 비워 둔다. 통로와 짐칸이 한 그림에 있어야 둘이 다른 일인 것이 보인다.
+ * ══════════════════════════════════════════════════════════════ */
+
+const SIDE = { w: 112, h: 76, y: 52, left: 24, right: 344 };
+const PIPE = { x0: SIDE.left + SIDE.w, x1: SIDE.right, top: 80, bottom: 100 };
+const CARGO = { y: 152, h: 40 };
+
+function ChannelOpen({ v, step }: { v: Extract<Visual, { kind: "channel-open" }>; step: number }) {
+  const mid = (PIPE.top + PIPE.bottom) / 2;
+  return (
+    <div>
+      <svg viewBox="0 0 480 210" className={svgClass} aria-hidden="true" focusable="false">
+        {[
+          { x: SIDE.left, label: v.left },
+          { x: SIDE.right, label: v.right },
+        ].map((side) => (
+          <g key={side.label}>
+            <text
+              x={side.x + SIDE.w / 2}
+              y={SIDE.y - 12}
+              textAnchor="middle"
+              fontSize={13}
+              {...LABEL}
+              fill="var(--ink)"
+            >
+              {side.label}
+            </text>
+            <rect
+              x={side.x}
+              y={SIDE.y}
+              width={SIDE.w}
+              height={SIDE.h}
+              rx={10}
+              fill="var(--canvas)"
+              stroke="var(--ink)"
+              strokeWidth={2}
+            />
+            <rect x={side.x + 20} y={SIDE.y + 22} width={SIDE.w - 40} height={4} rx={2} fill="var(--stone)" />
+            <rect x={side.x + 20} y={SIDE.y + 34} width={SIDE.w - 40} height={4} rx={2} fill="var(--stone)" />
+            <rect x={side.x + 20} y={SIDE.y + 46} width={SIDE.w - 64} height={4} rx={2} fill="var(--stone)" />
+          </g>
+        ))}
+
+        {/* 말이 오가는 통로 */}
+        <Layer on={step >= 1}>
+          <line x1={PIPE.x0} y1={PIPE.top} x2={PIPE.x1} y2={PIPE.top} stroke="var(--navy)" strokeWidth={2.5} />
+          <line
+            x1={PIPE.x0}
+            y1={PIPE.bottom}
+            x2={PIPE.x1}
+            y2={PIPE.bottom}
+            stroke="var(--navy)"
+            strokeWidth={2.5}
+          />
+          {[0.25, 0.5, 0.75].map((t, i) => (
+            <g key={t} transform={`translate(${PIPE.x0 + (PIPE.x1 - PIPE.x0) * t} ${mid})`}>
+              <path
+                d={i % 2 === 0 ? "M-8 -5 H8 V3 H-2 L-6 7 V3 H-8 Z" : "M8 -5 H-8 V3 H2 L6 7 V3 H8 Z"}
+                fill="var(--navy)"
+              />
+            </g>
+          ))}
+        </Layer>
+
+        {/* 물량이 지나갈 칸. 비어 있다. */}
+        <Layer on={step >= 2}>
+          <path
+            d={`M${SIDE.left + SIDE.w / 2} ${SIDE.y + SIDE.h} V${CARGO.y + CARGO.h / 2} H${PIPE.x0}`}
+            fill="none"
+            stroke="var(--pending)"
+            strokeWidth={1.5}
+            strokeDasharray="4 4"
+          />
+          <path
+            d={`M${SIDE.right + SIDE.w / 2} ${SIDE.y + SIDE.h} V${CARGO.y + CARGO.h / 2} H${PIPE.x1}`}
+            fill="none"
+            stroke="var(--pending)"
+            strokeWidth={1.5}
+            strokeDasharray="4 4"
+          />
+          <rect
+            x={PIPE.x0}
+            y={CARGO.y}
+            width={PIPE.x1 - PIPE.x0}
+            height={CARGO.h}
+            rx={8}
+            fill="var(--pending-tint)"
+            stroke="var(--pending)"
+            strokeWidth={1.5}
+            strokeDasharray="5 4"
+          />
+          {[0.25, 0.5, 0.75].map((t) => (
+            <rect
+              key={t}
+              x={PIPE.x0 + (PIPE.x1 - PIPE.x0) * t - 11}
+              y={CARGO.y + 7}
+              width={22}
+              height={CARGO.h - 14}
+              rx={5}
+              fill="none"
+              stroke="var(--pending)"
+              strokeWidth={1.4}
+              strokeDasharray="3 3"
+            />
+          ))}
+        </Layer>
+      </svg>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        <Chip tone={step >= 1 ? "navy" : "neutral"}>{v.channelLabel}</Chip>
+        {step >= 2 && (
+          <Chip tone="pending">
+            {v.cargoLabel} · {v.emptyLabel}
+          </Chip>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 13. 맺은 것과 요청한 것
+ *
+ * 한 이름 아래 모여 있던 항목들이 두 칸으로 갈라진다. 맺은 칸은 실선,
+ * 요청한 칸은 점선이다. 항목이 길어서 svg 대신 글자 카드를 옮긴다 — 카드의
+ * 말이 곧 내용이라 그림 안에 가두면 잘리거나 겹친다.
+ * ══════════════════════════════════════════════════════════════ */
+
+const CARD_PITCH = 54;
+const CARD_TOP = 36;
+
+function AskVsSigned({ v, step }: { v: Extract<Visual, { kind: "ask-vs-signed" }>; step: number }) {
+  const signed = v.items.filter((i) => i.side === "signed");
+  const asked = v.items.filter((i) => i.side === "asked");
+  const height = CARD_TOP + v.items.length * CARD_PITCH + 6;
+
+  const place = (item: (typeof v.items)[number], index: number) => {
+    if (step === 0) return { left: "26%", top: CARD_TOP + index * CARD_PITCH };
+    const column = item.side === "signed" ? signed : asked;
+    return {
+      left: item.side === "signed" ? "3%" : "53%",
+      top: CARD_TOP + column.indexOf(item) * CARD_PITCH,
+    };
+  };
+
+  return (
+    <div>
+      <div
+        className="relative overflow-hidden rounded-card border border-stone bg-taupe/50"
+        style={{ height, transition: "height 500ms var(--ease-out-expo)" }}
+      >
+        <p
+          className="absolute left-0 right-0 top-2.5 text-center text-[12px] font-extrabold text-ink"
+          style={{ opacity: step === 0 ? 1 : 0, transition: "opacity 300ms linear" }}
+        >
+          {v.poolLabel}
+        </p>
+        <p
+          className="absolute left-[3%] top-2.5 text-[12px] font-extrabold text-navy"
+          style={{ opacity: step >= 1 ? 1 : 0, transition: "opacity 300ms linear" }}
+        >
+          {v.signedLabel}
+        </p>
+        <p
+          className="absolute left-[53%] top-2.5 text-[12px] font-extrabold text-pending"
+          style={{ opacity: step >= 2 ? 1 : 0, transition: "opacity 300ms linear" }}
+        >
+          {v.askedLabel}
+        </p>
+
+        {v.items.map((item, i) => {
+          const { left, top } = place(item, i);
+          const isAsked = item.side === "asked";
+          const waiting = isAsked && step === 1;
+          const lit = isAsked && step >= 2;
+          return (
+            <div
+              key={item.id}
+              className={`absolute flex w-[44%] items-center rounded-card border px-3 text-[12px] font-semibold leading-snug ${
+                lit
+                  ? "border-dashed border-pending bg-pending-tint text-pending"
+                  : isAsked || step === 0
+                    ? "border-stone bg-canvas text-graphite"
+                    : "border-navy bg-navy-tint text-navy"
+              }`}
+              style={{
+                left,
+                top,
+                height: CARD_PITCH - 10,
+                opacity: waiting ? 0.4 : 1,
+                transition:
+                  "left 620ms var(--ease-out-expo), top 620ms var(--ease-out-expo), opacity 300ms linear",
+              }}
+            >
+              <span className="line-clamp-2">{item.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /** 종류 → 그림. 새 종류를 만들면 스키마에 한 갈래, 여기에 한 줄이다. */
 export function ExplainerVisualView({ visual, step }: { visual: Visual; step: number }) {
   switch (visual.kind) {
@@ -1421,5 +1950,13 @@ export function ExplainerVisualView({ visual, step }: { visual: Visual; step: nu
       return <TimelineGate v={visual} step={step} />;
     case "seats":
       return <Seats v={visual} step={step} />;
+    case "stage-gates":
+      return <StageGates v={visual} step={step} />;
+    case "doc-sort":
+      return <DocSort v={visual} step={step} />;
+    case "channel-open":
+      return <ChannelOpen v={visual} step={step} />;
+    case "ask-vs-signed":
+      return <AskVsSigned v={visual} step={step} />;
   }
 }
