@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { CITIZEN_BOOK } from "./2025_citizen";
 import { HOPE_BOOK } from "./hope_2010";
 import { SAMPLE_BOOK } from "./sample";
 import { TOGETHER_BOOK } from "./together";
@@ -9,7 +10,7 @@ import { bookSchema, type Book } from "./schema";
  * 자서전 목록.
  *
  * ★ 여기 raw에 있는 책은 서지 정보만 있다. 챕터는 비어 있다.
- *   장을 채운 책(HOPE_BOOK, TOGETHER_BOOK)은 제 폴더에서 온다.
+ *   장을 채운 책(HOPE_BOOK, TOGETHER_BOOK, CITIZEN_BOOK)은 제 폴더에서 온다.
  *   책 내용을 추측해서 채우지 않는다. 이 저장소가 막으려는 오염이 바로
  *   그것이고, 자서전은 실존 인물이 쓴 저작물이라 더 그렇다. 챕터는 실제 책을
  *   펴 놓고 한 장씩 넣는다.
@@ -58,16 +59,6 @@ const raw: z.input<typeof bookSchema>[] = [
     source: WIKIPEDIA,
     chapters: [],
   },
-  {
-    id: "book-people",
-    slug: "people-do-it",
-    title: "결국 국민이 합니다",
-    publisher: "오마이북",
-    year: 2025,
-    tone: "slate",
-    source: WIKIPEDIA,
-    chapters: [],
-  },
 ];
 
 /*
@@ -80,6 +71,7 @@ export const BOOKS: Book[] = [
   ...raw.map((book) => bookSchema.parse(book)),
   HOPE_BOOK,
   TOGETHER_BOOK,
+  CITIZEN_BOOK,
   SAMPLE_BOOK,
 ];
 
