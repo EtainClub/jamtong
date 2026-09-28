@@ -39,6 +39,7 @@ const raw: AchievementInput = {
     "맺었다. 다만 협정은 서명과 국회 비준동의가 남았고, 17건은 대부분 양해각서다.",
   type: "policy",
   publishStatus: "published",
+  featured: true,
   coverage: [
     {
       title: "이재명 대통령 유엔총회 참석·멕시코 국빈방문 일정 발표",
