@@ -23,6 +23,7 @@ const HERO_IMAGES: Partial<Record<string, string>> = {
   "arctic-route": "/images/heroes/arctic-route.jpg",
   daejangdong: "/images/heroes/daejangdong.jpg",
   "gyeonggi-valley": "/images/heroes/gyeonggi-valley.jpg",
+  "mexico-visit": "/images/heroes/mexico-visit.jpg",
   "nuclear-submarine": "/images/heroes/nuclear-submarine-plan.jpg",
   "oil-supply": "/images/heroes/oil-supply.jpg",
   "prosecution-reform": "/images/heroes/prosecution-reform.jpg",
