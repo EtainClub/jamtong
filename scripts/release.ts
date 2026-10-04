@@ -18,6 +18,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { checkCommittedTree } from "./release-check.mjs";
 
 type Bump = "major" | "minor" | "patch";
 
@@ -107,8 +108,8 @@ function main() {
   const dry = args.includes("--dry");
   const forced = args.find((a) => ["major", "minor", "patch"].includes(a)) as Bump | undefined;
 
-  if (git("status", "--porcelain") && !dry) {
-    console.error("커밋하지 않은 변경이 있다. 먼저 정리할 것.");
+  if (git("status", "--porcelain", "--untracked-files=no") && !dry) {
+    console.error("추적 파일에 커밋하지 않은 변경이 있다. 먼저 커밋할 것. 미추적 파일은 릴리스에서 제외된다.");
     process.exit(1);
   }
 
@@ -120,9 +121,9 @@ function main() {
    * 있어서 여기에 문을 둔다. --dry 는 아무것도 쓰지 않으므로 건너뛴다.
    */
   if (!dry) {
-    console.log("pnpm check …");
+    console.log("커밋된 소스에서 pnpm check … (미추적 파일 제외)");
     try {
-      execFileSync("pnpm", ["check"], { stdio: ["ignore", "inherit", "inherit"] });
+      checkCommittedTree();
     } catch {
       console.error("\ncheck를 통과하지 못했다. 고치고 다시 할 것.");
       process.exit(1);

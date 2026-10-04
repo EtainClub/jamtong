@@ -56,6 +56,10 @@ App Hosting은 GitHub 저장소를 물고 있다가 지정한 브랜치에 푸�
 main에 푸시  →  App Hosting이 pnpm install && pnpm build  →  롤아웃
 ```
 
+`pnpm release`는 미추적 파일을 제외하고 HEAD의 소스만 임시 worktree에서
+검사한다. 로컬의 미완성 작업을 stash할 필요가 없다. 이미 추적 중인 파일의
+미커밋 변경은 여전히 먼저 커밋해야 한다. 배포에는 푸시한 커밋만 포함된다.
+
 그래서 **빌드가 깨지면 배포가 안 된다**가 곧 배포 전 검증이다. 푸시 전에
 로컬에서 한 번 돌린다.
 
