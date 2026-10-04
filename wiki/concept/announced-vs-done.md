@@ -25,6 +25,10 @@ updated: 2026-09-27
 
 ## 정해졌지만 아직 오지 않았다
 
+- **청년미래적금** — 첫 신청은 2026년 6월 22일 시작됐다. ^[youth-future-savings#ys-launch-fact]
+  2차 신청은 10월 7~16일, 계좌 개설은 11월 16~27일 예정으로, 10월 3일 현재 시작 전이다.
+  ^[youth-future-savings#ys-second] [[source/youth-future-savings]]
+
 - **검찰개혁** — 법은 2026년 3월 통과됐고 시행일은 2026-10-02다. 이 글을
   쓰는 날 검찰청은 그대로 있다. ^[prosecution-reform#claim-law]
 - **대법관 증원** — 2028년 3월 시작해 3년에 걸쳐 14명 → 26명.

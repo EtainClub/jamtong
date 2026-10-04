@@ -20,6 +20,7 @@ import { JsonLd, webSiteLd } from "@/lib/seo/jsonld";
  */
 
 const HERO_IMAGES: Partial<Record<string, string>> = {
+  "youth-future-savings": "/images/heroes/youth-future-savings.jpg",
   "arctic-route": "/images/heroes/arctic-route.jpg",
   daejangdong: "/images/heroes/daejangdong.jpg",
   "gyeonggi-valley": "/images/heroes/gyeonggi-valley.jpg",
@@ -47,12 +48,12 @@ export default function Home() {
    * 넘기게 할 수 없고, 화면이 임의로 고르면 "왜 이것들인가"에 답할 수 없다.
    * 하나도 표시되지 않은 경우에만 앞에서 다섯을 세운다 — 첫 화면이 비면 안 된다.
    *
-   * 북극항로를 첫 장에 두고, 나머지는 최근 순으로 보여준다.
+   * 청년미래적금을 메인 업적으로 첫 장에 두고, 나머지는 최근 순으로 보여준다.
    */
   const byNewest = published.slice().sort(byRecency);
   const featured = byNewest.filter((a) => a.featured);
   const stories = (featured.length > 0 ? featured : byNewest.slice(0, 5)).sort(
-    (a, b) => Number(b.slug === "arctic-route") - Number(a.slug === "arctic-route") || byRecency(a, b),
+    (a, b) => Number(b.slug === "youth-future-savings") - Number(a.slug === "youth-future-savings") || byRecency(a, b),
   );
 
   const errors = validateMilestones({

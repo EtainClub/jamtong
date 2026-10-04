@@ -22,6 +22,7 @@ import { nuclearSubmarine } from "./nuclear-submarine/achievement";
 import { resourceDiplomacy } from "./resource-diplomacy/achievement";
 import { oilSupply } from "./oil-supply/achievement";
 import { mexicoVisit } from "./mexico-visit/achievement";
+import { youthFutureSavings } from "./youth-future-savings/achievement";
 
 /**
  * 업적 레지스트리.
@@ -30,6 +31,7 @@ import { mexicoVisit } from "./mexico-visit/achievement";
  * 검색·피드·정적 경로가 전부 이걸 본다.
  */
 export const ACHIEVEMENTS: Achievement[] = [
+  youthFutureSavings,
   arcticRoute,
   daejangdong,
   stockMarket,

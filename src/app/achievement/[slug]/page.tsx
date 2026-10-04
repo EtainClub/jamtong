@@ -46,6 +46,27 @@ type LayoutConfig = {
 };
 
 const LAYOUTS: Record<string, LayoutConfig> = {
+  "youth-future-savings": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "출시와 다음 모집",
+          timelineLede: "첫 모집이 시작된 시점과 2차 예정 일정을 함께 봅니다.",
+          numbersHeading: "지원 조건과 신청 규모",
+          numbersLede: "금융위 신청자 발표와 상품 조건을 구분해 적었습니다.",
+          relationsHeading: "누가 저축하고 누가 보태나",
+          relationsLede: "청년의 납입, 정부의 지원, 금융기관의 적금 운용을 나눠 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "ys-launch-fact", label: "첫 모집 시작" },
+      { claimId: "ys-product", label: "정부 기여금·비과세" },
+    ],
+    askSuggestions: ["누가 가입할 수 있나요?", "정부가 얼마나 보태나요?", "19.4%는 은행 금리인가요?"],
+  },
   "arctic-route": {
     Layout: ArcticRouteLayout,
     heroHighlights: [

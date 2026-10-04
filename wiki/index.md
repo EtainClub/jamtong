@@ -30,6 +30,8 @@ raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온�
 
 ### 국정 — 제도
 
+- [[source/youth-future-savings]] — 청년미래적금. 첫 모집 시작과 2차 예정 일정, 신청자 수·금리 효과의 구분.
+
 - [[source/prosecution-reform]] — 검찰개혁. 수사·기소 분리, 2026-10-02 시행 예정.
 - [[source/judicial-reform]] — 사법개혁 3법. 법왜곡죄·재판소원·대법관 증원.
 - [[source/stock-market]] — 주식시장 개선. 상법 두 건은 시행, 지수는 되밀렸다.

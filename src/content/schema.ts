@@ -940,6 +940,8 @@ export const Eli5Art = z.enum([
   "mx-channel",
   "mx-docs",
   "mx-jet",
+  "ys-match",
+  "ys-apply",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 

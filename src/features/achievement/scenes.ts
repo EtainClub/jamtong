@@ -16,6 +16,13 @@ export interface SceneNavItem {
  *   404로 죽는다(`/api/ask`). `pnpm agent:check`가 이걸 잡는다.
  */
 export const SCENES_BY_ACHIEVEMENT: Record<string, SceneNavItem[]> = {
+  "youth-future-savings": [
+    { id: "motion", label: "모집 절차" },
+    { id: "timeline", label: "경과" },
+    { id: "relations", label: "관계도" },
+    { id: "counterpoint", label: "쟁점" },
+    { id: "share", label: "공유" },
+  ],
   "arctic-route": [
     { id: "hero", label: "개요" },
     { id: "route", label: "항로" },

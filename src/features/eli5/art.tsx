@@ -1,4 +1,5 @@
 import type { Eli5Art } from "@/content/schema";
+import { SavingsApply, SavingsMatch } from "./YouthSavingsArt";
 
 /**
  * 쉬운 설명 삽화.
@@ -3119,6 +3120,8 @@ function MxJet() {
   );
 }
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
+  "ys-match": SavingsMatch,
+  "ys-apply": SavingsApply,
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
   "compare-bars": CompareBars,
