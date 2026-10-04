@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { ACHIEVEMENT_CARDS, byRecency, getPublishedAchievements } from "@/content/achievements";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
@@ -134,6 +135,10 @@ export default function Home() {
           wikiConcepts={conceptCards()}
           claims={ALL_CLAIMS}
         />
+        <Link href="/music-video" className="mt-6 flex items-center justify-between gap-4 rounded-card border border-stone p-5">
+          <span><span className="block text-xs text-smoke">잼통 오리지널 · 30초 뮤직비디오</span><span className="mt-1 block font-bold">잼통, 더 널리</span></span>
+          <span className="text-sm" aria-hidden="true">재생 ↗</span>
+        </Link>
       </main>
 
       <BottomNav />
