@@ -258,6 +258,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "지방자치 — 꼬리를 잡아 몸통을 흔들다",
     summary: "2010년 성남시장 취임 뒤의 모라토리엄 선언과 빚 갚기, 중앙정부와의 갈등, 그리고 작은 꼬리가 몸통을 흔든다는 지방자치론.",
     lead: "성남시장 시절의 경험으로 지방자치가 왜 중요한지 말하는 장이에요.",
+    shorts: [
+      {
+        id: "r5-s1",
+        title: "파산한 도시를 살려냈더니 정부가 예산을 빼앗은 이유",
+        youtubeId: "5KQDwb4-uj4",
+        summary: "5장을 한 편으로 — 성남 모라토리엄과 중앙정부와의 갈등. '빼앗았다'는 저자의 시각입니다.",
+      },
+    ],
     points: [
       {
         id: "r5-p1",
@@ -310,6 +318,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "공정경제 — 함께 잘사는 나라를 위한 재벌 개혁",
     summary: "경제의 목적은 모두가 함께 잘사는 것이라는 데서 출발해, 재벌 해체를 '지배구조 바로잡기'로 정의하고 노동이사제 등을 제안한 장.",
     lead: "대기업 문제를 저자가 어떻게 보는지, 2017년에 무엇을 바꾸자고 했는지예요. 구상이지 결과가 아니에요.",
+    shorts: [
+      {
+        id: "r6-s1",
+        title: "낙수효과의 배신과 경제를 살리는 선순환 구조",
+        youtubeId: "1IzbbW_lKHg",
+        summary: "6장을 한 편으로 — 재벌 지배구조와 공정경제에 대한 저자의 2017년 구상. 구상이지 결과가 아닙니다.",
+      },
+    ],
     points: [
       {
         id: "r6-p1",
@@ -356,6 +372,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "노동소득 — 일한 만큼 돌려받는 사회",
     summary: "비정규직 차별, 쌓여 가는 대기업 유보금, 지켜지지 않는 주 52시간. 일한 만큼 돌려받는 구조를 위한 제안들.",
     lead: "일하는 사람이 정당한 몫을 받아야 경제가 돈다는 장이에요.",
+    shorts: [
+      {
+        id: "r7-s1",
+        title: "어떻게 '동일 노동 동일 임금'이 비정규직을 없앨까",
+        youtubeId: "6hhKSmMmsOw",
+        summary: "7장을 한 편으로 — 비정규직 차별과 일한 만큼 돌려받는 구조. 숫자는 책이 쓰인 때의 것입니다.",
+      },
+    ],
     points: [
       {
         id: "r7-p1",
@@ -409,6 +433,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "농업 정책 — 농업을 전략산업으로 보호 육성하자",
     summary: "자유무역의 비용을 떠안은 농어업을 식량 안보의 전략산업으로 보자는 장. 식량 자급, GMO 표시, 농민 기본소득 구상.",
     lead: "농업을 왜 나라가 지켜야 하는지에 대한 저자의 생각이에요. 농민 기본소득은 2017년의 구상이에요.",
+    shorts: [
+      {
+        id: "r8-s1",
+        title: "식량 안보 — 수출 경제의 치명적 약점",
+        youtubeId: "Vwa1UBxde08",
+        summary: "8장을 한 편으로 — 농업을 식량 안보의 전략산업으로 보자는 저자의 주장.",
+      },
+    ],
     points: [
       {
         id: "r8-p1",
@@ -454,6 +486,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "에너지 정책 — 우리도 원전 제로 시대로",
     summary: "후쿠시마 사고와 경주 지진을 근거로 원전 단계적 폐쇄와 재생에너지 전환을 주장하고, 가정용 누진제를 비판한 장.",
     lead: "원자력발전에 대한 저자의 2017년 입장이에요. 의견이 크게 갈리는 주제라 저자의 주장으로 읽어 주세요.",
+    shorts: [
+      {
+        id: "r9-s1",
+        title: "원전이 세상에서 가장 비싼 에너지인 이유",
+        youtubeId: "i-LHkvmvJ1w",
+        summary: "9장을 한 편으로 — 원전에 대한 저자의 2017년 주장입니다. 의견이 크게 갈리는 주제입니다.",
+      },
+    ],
     points: [
       {
         id: "r9-p1",
@@ -500,6 +540,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "기본소득 — 보편복지는 시대의 요구다",
     summary: "불평등을 줄이는 길로 보편복지와 기본소득을 내세우고, 성남 청년배당을 그 첫 실험으로 든 장.",
     lead: "기본소득이 무엇이고, 저자가 왜 필요하다고 보는지에 대한 이야기예요.",
+    shorts: [
+      {
+        id: "r10-s1",
+        title: "기본소득이 멈춘 경제를 살리는 원리",
+        youtubeId: "fkHYVBFL-rg",
+        summary: "10장을 한 편으로 — 보편복지와 기본소득에 대한 저자의 생각, 그리고 성남 청년배당.",
+      },
+    ],
     points: [
       {
         id: "r10-p1",
@@ -546,6 +594,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "공공의료 — 국민의 생명 수호는 국가의 의무",
     summary: "공공의료가 병원 수의 5.5%, 병상 수의 9.8%에 그친다는 진단과, 수배 중 교회 지하에서 정치를 결심한 성남시립의료원 이야기.",
     lead: "공공병원이 왜 필요한지, 그리고 저자가 정치를 시작한 계기에 대한 장이에요.",
+    shorts: [
+      {
+        id: "r11-s1",
+        title: "우리가 비싼 민간보험에 얽매이는 진짜 이유",
+        youtubeId: "4nCA_XQ6b2c",
+        summary: "11장을 한 편으로 — 부족한 공공의료와 성남시립의료원을 향한 결심.",
+      },
+    ],
     points: [
       {
         id: "r11-p1",
@@ -592,6 +648,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "성남 복지 전국화 — 성남의 복지는 대한민국에 적용 가능한가",
     summary: "성남 3대 무상복지를 전국으로 넓히는 데 드는 돈을 계산하고, 해마다 50조 원의 복지 재원을 마련하자는 구상을 내놓은 장.",
     lead: "성남에서 한 복지를 나라 전체로 하면 얼마가 드는지 저자가 계산해 본 장이에요. 숫자는 2017년 저자의 추산이에요.",
+    shorts: [
+      {
+        id: "r12-s1",
+        title: "복지 지원금을 굳이 지역화폐로 주는 이유",
+        youtubeId: "NdV1IYabrsE",
+        summary: "12장을 한 편으로 — 성남 복지를 전국으로 넓히는 저자의 2017년 구상. 숫자는 저자의 추산입니다.",
+      },
+    ],
     points: [
       {
         id: "r12-p1",
@@ -638,6 +702,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "평화통일 — 통일은 밥이다",
     summary: "평화가 국민의 생명과 안전의 전제이고, 통일은 국방비와 '코리아 디스카운트'를 줄이는 경제 문제라는 장.",
     lead: "저자가 평화와 통일을 왜 '밥'이라고 부르는지에 대한 이야기예요.",
+    shorts: [
+      {
+        id: "r13-s1",
+        title: "코리아 디스카운트 — 평화가 돈이 되는 원리",
+        youtubeId: "wJIXMuENMH4",
+        summary: "13장을 한 편으로 — 평화와 통일을 경제 문제로 보는 저자의 시각.",
+      },
+    ],
     points: [
       {
         id: "r13-p1",
@@ -683,6 +755,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "선택적 모병제 — 복무기간 10개월로도 평화는 가능하다",
     summary: "병력을 50만으로 줄이고 전문 전투병 10만을 모병해 의무 복무를 10개월로 줄이자는 2017년 국방 구상.",
     lead: "군대를 작지만 강하게 만들자는 저자의 2017년 구상이에요. 약속이지 결과가 아니에요.",
+    shorts: [
+      {
+        id: "r14-s1",
+        title: "복무 기간 10개월로 국방력을 키우는 법",
+        youtubeId: "XEEwusMjKbM",
+        summary: "14장을 한 편으로 — 선택적 모병제에 대한 저자의 2017년 구상. 약속이지 결과가 아닙니다.",
+      },
+    ],
     points: [
       {
         id: "r14-p1",
@@ -738,6 +818,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     drop: [0],
     summary: "동맹도 국익의 기준으로 보자는 자주적 균형외교론. 방위비 분담, 전시작전통제권, 사드, 한일 군사정보보호협정과 위안부 합의를 다룬다.",
     lead: "외교에 대한 저자의 2017년 입장이에요. 사드나 한일 관계 같은 대목은 의견이 갈리는 주제라 저자의 주장으로 읽어 주세요.",
+    shorts: [
+      {
+        id: "r15-s1",
+        title: "한국 외교가 미국과 강대국에 당당해져야 하는 진짜 이유",
+        youtubeId: "5UBrVNpy2dU",
+        summary: "15장을 한 편으로 — 자주적 균형외교에 대한 저자의 2017년 입장입니다. 의견이 갈리는 주제입니다.",
+      },
+    ],
     points: [
       {
         id: "r15-p1",
