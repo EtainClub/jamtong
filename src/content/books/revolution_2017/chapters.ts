@@ -872,6 +872,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "종북몰이 — 수구 세력의 조작에는 정면 돌파가 약",
     summary: "비판을 '종북'으로 몰아 막는 행태를 비판하고, 물러서지 말고 정면으로 맞서야 한다는 장. 성남시장 시절 겪은 일을 근거로 든다.",
     lead: "다른 생각에 '종북' 딱지를 붙이는 일에 대한 저자의 생각이에요. 상대 세력에 대한 평가는 저자의 시각이에요.",
+    shorts: [
+      {
+        id: "r16-s1",
+        title: "억지 프레임을 박살 내는 정면 돌파의 힘",
+        youtubeId: "KjECdN4z3Zg",
+        summary: "16장을 한 편으로 — 종북몰이에 정면으로 맞서자는 저자의 주장. 상대 세력에 대한 평가는 저자의 시각입니다.",
+      },
+    ],
     points: [
       {
         id: "r16-p1",
@@ -916,6 +924,14 @@ export const CHAPTERS: RevolutionChapterMeta[] = [
     title: "이재명이 꿈꾸는 나라",
     summary: "소년공에서 성남시장까지의 길을 돌아보고, 촛불 뒤에 세울 나라의 모습을 그리는 맺음 장.",
     lead: "책을 마무리하며 저자가 바라는 나라의 모습을 말하는 장이에요.",
+    shorts: [
+      {
+        id: "r17-s1",
+        title: "소년 노동자는 어떻게 기득권과 맞서게 되었나",
+        youtubeId: "1AxYWm4BrsU",
+        summary: "17장을 한 편으로 — 소년공에서 성남시장까지, 그리고 저자가 바라는 나라.",
+      },
+    ],
     points: [
       {
         id: "r17-p1",
