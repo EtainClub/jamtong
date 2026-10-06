@@ -1765,6 +1765,92 @@ function TwoCapitals() {
     </svg>
   );
 }
+
+/** 수사는 행안부 중수청으로, 기소는 법무부 공소청으로. */
+function TwoAgencies() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="한 곳에 있던 수사와 기소가 행정안전부 중수청과 법무부 공소청으로 나뉜 모습">
+      <rect x={110} y={26} width={100} height={36} rx={8} fill="var(--stone)" />
+      <text x={160} y={49} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ash)">
+        수사+기소
+      </text>
+      <path d="M140 66 L90 100 M180 66 L230 100" stroke="var(--navy)" strokeWidth={3}
+            strokeLinecap="round" />
+      <rect x={30} y={104} width={120} height={64} rx={10} fill="var(--navy)" />
+      <text x={90} y={130} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--eggshell)">
+        중수청
+      </text>
+      <text x={90} y={150} textAnchor="middle" fontSize={11} fill="var(--eggshell)">
+        수사 · 행안부
+      </text>
+      <rect x={170} y={104} width={120} height={64} rx={10} fill="var(--burgundy)" />
+      <text x={230} y={130} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--eggshell)">
+        공소청
+      </text>
+      <text x={230} y={150} textAnchor="middle" fontSize={11} fill="var(--eggshell)">
+        기소 · 법무부
+      </text>
+      <text x={160} y={210} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        기능도, 부처도 나눴대요
+      </text>
+    </svg>
+  );
+}
+
+/** 공과 사를 가른다. */
+function PublicPrivate() {
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="공적인 일과 사적인 마음 사이에 선을 그어 가른 모습">
+      <rect x={36} y={70} width={104} height={76} rx={10} fill="var(--navy)" />
+      <text x={88} y={104} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--eggshell)">
+        공
+      </text>
+      <text x={88} y={126} textAnchor="middle" fontSize={11} fill="var(--eggshell)">
+        인사 · 수사 · 공소
+      </text>
+      <path d="M160 50 V166" stroke="var(--ink)" strokeWidth={3} strokeLinecap="round" />
+      <g opacity={0.55}>
+        <rect x={180} y={70} width={104} height={76} rx={10}
+              fill="none" stroke="var(--burgundy)" strokeWidth={3} strokeDasharray="7 6" />
+        <text x={232} y={113} textAnchor="middle" fontSize={15} {...LABEL} fill="var(--burgundy)">
+          사심
+        </text>
+      </g>
+      <text x={160} y={210} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        사심으로 좌지우지하면 안 된대요
+      </text>
+    </svg>
+  );
+}
+
+/** 국민추천에서 넷으로, 넷 가운데 한 명을 장관이 제청한다. */
+function RecommendFour() {
+  const steps = [
+    { x: 46, label: "국민추천", tone: "var(--graphite)" },
+    { x: 122, label: "위원회 4명", tone: "var(--graphite)" },
+    { x: 198, label: "장관 제청", tone: "var(--navy)" },
+    { x: 274, label: "대통령", tone: "var(--navy)" },
+  ];
+  return (
+    <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
+         aria-label="국민추천을 받은 사람 가운데 독립 위원회가 4명을 추리고, 장관이 그중 한 명을 대통령에게 제청하는 순서">
+      <path d="M46 112 H274" stroke="var(--stone)" strokeWidth={4} strokeLinecap="round" />
+      {steps.map((s) => (
+        <g key={s.label}>
+          <circle cx={s.x} cy={112} r={22} fill={s.tone} />
+          <text x={s.x} y={160} textAnchor="middle" fontSize={11} {...LABEL} fill="var(--ink)">
+            {s.label}
+          </text>
+        </g>
+      ))}
+      <text x={160} y={210} textAnchor="middle" fontSize={14} {...LABEL} fill="var(--ink)">
+        마음대로 정하는 게 아니래요
+      </text>
+    </svg>
+  );
+}
 export const WORD_ART: Record<WordArt, () => React.ReactNode> = {
   "quote-pick": QuotePick,
   "part-whole": PartWhole,
@@ -1831,4 +1917,7 @@ export const WORD_ART: Record<WordArt, () => React.ReactNode> = {
   "for-everyone": ForEveryone,
   "no-second-term": NoSecondTerm,
   "two-capitals": TwoCapitals,
+  "two-agencies": TwoAgencies,
+  "public-private": PublicPrivate,
+  "recommend-four": RecommendFour,
 };

@@ -135,6 +135,11 @@ export const WordArt = z.enum([
   "no-entry-rung", // 사다리의 첫 칸이 없어졌다
   "far-from-field", // 권한은 가장 큰데 현장과는 가장 멀다
   "new-desk", // 전담할 자리를 따로 만들까
+  // 검찰개혁은 국민을 위해
+  "two-agencies", // 수사는 행안부 중수청, 기소는 법무부 공소청
+  "public-private", // 공과 사를 가른다
+  // 검사 출신이라고 다 버리자면
+  "recommend-four", // 국민추천에서 넷으로, 넷에서 제청으로
 ]);
 export type WordArt = z.infer<typeof WordArt>;
 

@@ -1,4 +1,6 @@
 import { presidentFriend } from "./president-friend";
+import { prosecutionReformForPeople } from "./prosecution-reform-for-people";
+import { exProsecutorNominee } from "./ex-prosecutor-nominee";
 import { chuseokPressConference } from "./chuseok-press-conference";
 import { youthDay } from "./youth-day";
 import { oilPrice } from "./oil-price";
@@ -26,6 +28,8 @@ import { validateStatement, type Statement } from "./schema";
  * 없다 — 말한 날은 이미 지난 날이다. 그냥 최근이 위다.
  */
 export const STATEMENTS: Statement[] = [
+  prosecutionReformForPeople,
+  exProsecutorNominee,
   presidentFriend,
   youthDay,
   chuseokPressConference,
