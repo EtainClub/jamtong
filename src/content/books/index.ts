@@ -55,9 +55,9 @@ const raw: z.input<typeof bookSchema>[] = [
 ];
 
 /*
- * 샘플을 뒤에 붙인다.
+ * 샘플을 뒤에 붙인다. 배포본에는 싣지 않는다.
  *
- * 서가에서 앞자리를 차지하면 안 되지만, 감춰 두면 화면을 확인할 수 없다.
+ * 화면을 확인하려고 만든 책이라 독자에게는 읽을 것이 아니다. 개발 중에는
  * 맨 끝에 두고 표지·책 페이지·장 페이지가 모두 샘플이라고 밝힌다.
  */
 export const BOOKS: Book[] = [
@@ -67,7 +67,7 @@ export const BOOKS: Book[] = [
   TOGETHER_BOOK,
   CITIZEN_BOOK,
   AUTOBIOGRAPHY_BOOK,
-  SAMPLE_BOOK,
+  ...(process.env.NODE_ENV === "production" ? [] : [SAMPLE_BOOK]),
 ];
 
 /**

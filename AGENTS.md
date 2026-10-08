@@ -16,7 +16,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## 세 층
 
 - **raw source** — `src/content/achievements/**`, `src/content/words/**`,
-  `src/content/milestones/**`, `src/content/sources.ts`.
+  `src/content/milestones/**`, `src/content/policies/**`, `src/content/sources.ts`.
   **읽기만 한다. 위키 작업 중에 절대 고치지 않는다.**
 - **wiki** — `wiki/**`. 에이전트가 소유한다.
 - **schema** — 이 절.
@@ -38,7 +38,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 법왜곡죄는 2026년 3월 12일 시행됐다. ^[judicial-reform#claim-distort]
 ```
 
-인정되는 형식은 다섯뿐이고, `pnpm wiki:lint`가 실재를 검사한다.
+인정되는 형식은 일곱뿐이고, `pnpm wiki:lint`가 실재를 검사한다.
 
 | 형식 | 가리키는 것 |
 |---|---|
@@ -46,7 +46,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 | `<업적slug>#<claimId>` | 그 업적의 claim |
 | `words:<slug>` | 언행 한 편 |
 | `words:<slug>#<pointId>` | 그 언행의 쉽게 보기 토막 |
-| `source:<sourceId>` | 1차 자료 |
+| `policy:<slug>` | 정부 정책 팩트 한 건 |
+| `policy:<slug>#<claimId>` | 그 정책의 claim |
+| `source:<sourceId>` | 1차 자료 (업적·정책의 출처 포함) |
 
 **앵커를 달 수 없는 문장은 쓰지 않는다.** 이것이 오염을 막는 방식이다 —
 규율이 아니라 문법이다.
@@ -69,6 +71,24 @@ updated: 2026-09-20
   링크 검사가 기계마다 다른 결과를 낸다. 제목은 frontmatter에 한글로 적는다.
 - 위키링크는 `wiki/` 기준 경로에서 확장자를 뗀 것 — `[[concept/reform]]`.
 - 언행 소스 페이지는 `source/words-<slug>.md`, 업적은 `source/<slug>.md`.
+
+## 정부 정책 팩트
+
+대통령의 업적·언행과 별개인 **이재명 정부 정책의 사실관계**는
+`src/content/policies/<slug>.ts`에 쓴다(스키마 `src/content/policies/schema.ts`).
+위키 페이지 `/wiki/policy/<slug>`는 이 데이터에서 자동으로 만들어지므로
+`wiki/`에 마크다운을 따로 쓰지 않는다. factbase(`/factbase.json`)에도
+claim마다 `policy:<slug>#<claimId>` 앵커로 나간다.
+
+새 정책을 더하는 순서:
+
+1. `src/content/policies/<slug>.ts`를 만든다. 모든 문장은 claim이고 출처가 있다.
+   부처 해명은 `CLAIM` + `assertedBy`, 문서로 확정된 것만 `FACT`.
+2. SNS에서 도는 주장은 `rumors`에 요약하고 대응하는 claim을 잇는다.
+   대응 claim이 없는 소문은 싣지 않는다.
+3. 확인하지 못한 것은 `gaps`에 적는다. 1차 자료와 대조한 claim만 `verified: true`.
+4. `src/content/policies/index.ts`의 `POLICIES`에 더한다.
+5. `pnpm validate && pnpm wiki:lint`.
 
 ## Ingest
 

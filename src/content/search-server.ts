@@ -1,6 +1,6 @@
 import { BOOKS_BY_YEAR } from "@/content/books";
 import { SEARCH_INDEX, normalize, type SearchEntry } from "@/content/search";
-import { allPages, pageSummary, type WikiPage } from "@/lib/wiki/load";
+import { contentPages, pageSummary, type WikiPage } from "@/lib/wiki/load";
 
 /**
  * 검색 인덱스 — 디스크에서 읽어 오는 몫.
@@ -23,6 +23,7 @@ const WIKI_KIND_LABEL: Record<string, string> = {
   entity: "인물·기관",
   event: "사건",
   synthesis: "종합",
+  policy: "정책",
   meta: "기록",
 };
 
@@ -46,20 +47,17 @@ function sourceHaystack(page: WikiPage): string {
 function wikiEntries(): SearchEntry[] {
   const out: SearchEntry[] = [];
 
-  for (const page of allPages()) {
-    /* log은 넣지 않는다. ingest 기록이라 온 페이지의 제목이 다 들어 있어 검색을 흐린다. */
-    if (page.name === "log") continue;
-
-    const isIndex = page.name === "index";
-    const full = !isIndex && page.kind !== "source";
+  /* 카탈로그·ingest 기록·점검 기록은 독자 화면에 없으므로 검색에도 넣지 않는다. */
+  for (const page of contentPages()) {
+    const full = page.kind !== "source";
 
     out.push({
       id: `wiki:${page.name}`,
       kind: "wiki",
-      title: isIndex ? "위키 카탈로그" : page.title,
+      title: page.title,
       detail: pageSummary(page, 90),
       context: `위키 · ${WIKI_KIND_LABEL[page.kind] ?? page.kind}`,
-      href: isIndex ? "/wiki" : `/wiki/${page.name}`,
+      href: `/wiki/${page.name}`,
       haystack: normalize(
         [page.title, page.name, full ? plain(page.body) : sourceHaystack(page)].join(" "),
       ),

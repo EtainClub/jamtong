@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
 import { WikiNotes } from "@/features/wiki/WikiNotes";
-import { allPages, contentPages, getPage, pageSummary } from "@/lib/wiki/load";
+import { contentPages, getPublicPage, pageSummary, publicTitles } from "@/lib/wiki/load";
 import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 import { renderWiki } from "@/lib/wiki/markdown";
 
@@ -15,6 +15,7 @@ const KIND_LABEL: Record<string, string> = {
   entity: "인물·기관",
   event: "사건",
   synthesis: "종합",
+  policy: "정책",
   meta: "기록",
 };
 
@@ -28,7 +29,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string[] }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const page = getPage(slug.join("/"));
+  const page = getPublicPage(slug.join("/"));
   if (!page) return {};
 
   const summary = pageSummary(page);
@@ -64,11 +65,10 @@ export default async function WikiPage({
   params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-  const page = getPage(slug.join("/"));
+  const page = getPublicPage(slug.join("/"));
   if (!page) notFound();
 
-  const titles = new Map(allPages().map((p) => [p.name, p.title]));
-  const { nodes, notes } = renderWiki(page.body, titles);
+  const { nodes, notes } = renderWiki(page.body, publicTitles());
 
   return (
     <>
@@ -107,7 +107,6 @@ export default async function WikiPage({
             {KIND_LABEL[page.kind] ?? page.kind}
           </span>
           {page.updated && <span>갱신 {page.updated}</span>}
-          <span className="font-mono text-[10px] tracking-tight">{page.name}</span>
         </div>
 
         {nodes}

@@ -28,7 +28,8 @@ interface Tab {
 
 const TABS: Tab[] = [
   { href: "/", label: "홈", ready: true, icon: <HomeIcon /> },
-  { href: "/timeline", label: "타임라인", ready: true, icon: <TimelineIcon /> },
+  /* 타임라인은 상단 메뉴로 옮겼다. 정부 정책 팩트가 위키에 쌓이면서 위키가 더 자주 쓰인다. */
+  { href: "/wiki", label: "위키", ready: true, icon: <WikiIcon /> },
   {
     href: "/explore",
     label: "업적",
@@ -119,13 +120,12 @@ function HomeIcon() {
   );
 }
 
-function TimelineIcon() {
+/** 펼친 책. 여러 장이 모인 참고서라는 뜻이다. */
+function WikiIcon() {
   return (
     <svg {...iconProps}>
-      <path d="M4 12h16" />
-      <circle cx="8" cy="12" r="2.2" />
-      <circle cx="16" cy="12" r="2.2" />
-      <path d="M8 7V5M16 19v-2" />
+      <path d="M12 6.5C10 5 7.5 4.5 4 4.5v13c3.5 0 6 .5 8 2 2-1.5 4.5-2 8-2v-13c-3.5 0-6 .5-8 2z" />
+      <path d="M12 6.5v13" />
     </svg>
   );
 }

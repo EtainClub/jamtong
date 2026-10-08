@@ -13,6 +13,7 @@ import { CHEERS } from "../src/content/cheers";
 import { validateCheers } from "../src/content/cheers/schema";
 import { BOOKS } from "../src/content/books";
 import { validateBook } from "../src/content/books/schema";
+import { POLICIES } from "../src/content/policies";
 
 let failed = false;
 
@@ -131,6 +132,33 @@ if (unsourced.length > 0) {
   console.warn(
     `  \u26a0 서지 정보를 1차 자료로 대조하지 않은 책 ${unsourced.length}권: ` +
       unsourced.map((b) => b.slug).join(", "),
+  );
+}
+
+/*
+ * 정부 정책 팩트. 스키마 검사는 POLICIES를 불러올 때 이미 했다.
+ * 여기서는 출처 id가 다른 곳과 겹치지 않는지 본다 — 위키 앵커 `source:<id>`는
+ * id 하나로 자료를 찾으므로, 겹치면 엉뚱한 자료로 링크된다.
+ */
+const otherSourceIds = new Set([
+  ...ALL_SOURCES.map((s) => s.id),
+  ...ACHIEVEMENTS.flatMap((a) => a.sources.map((s) => s.id)),
+]);
+const policySourceIds = new Set<string>();
+for (const policy of POLICIES) {
+  const clashes = policy.sources
+    .map((s) => s.id)
+    .filter((id) => otherSourceIds.has(id) || policySourceIds.has(id));
+  for (const s of policy.sources) policySourceIds.add(s.id);
+  if (clashes.length > 0) {
+    failed = true;
+    console.error(`\n✗ 정책 ${policy.slug} — 출처 id가 겹친다: ${clashes.join(", ")}`);
+    continue;
+  }
+  const unverified = policy.claims.filter((c) => !c.verified).length;
+  console.log(
+    `✓ 정책 ${policy.slug} — claim ${policy.claims.length} (미검증 ${unverified}), ` +
+      `도는 주장 ${policy.rumors.length}, 출처 ${policy.sources.length}`,
   );
 }
 

@@ -106,7 +106,12 @@ function inline(text: string, ctx: Ctx, keyBase: string): ReactNode[] {
     } else if (match[4]) {
       const target = match[4].slice(2, -2).trim();
       const title = ctx.titles.get(target);
-      inserted = title ?? target;
+      /* 제목 목록에 없는 페이지(감춘 페이지)는 링크 없이 글자로만 남긴다. */
+      if (title === undefined) {
+        pushText(target);
+        continue;
+      }
+      inserted = title;
       out.push(
         <Link key={k} href={`/wiki/${target}`} className="text-navy underline decoration-stone underline-offset-2 hover:decoration-navy">
           {title ?? target}

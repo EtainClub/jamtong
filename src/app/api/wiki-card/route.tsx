@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { C, OG_CONTENT_TYPE, OG_SIZE, dataUri, ogFonts } from "@/lib/og/card";
-import { getPage, pageSummary } from "@/lib/wiki/load";
+import { getPublicPage, pageSummary } from "@/lib/wiki/load";
 
 /**
  * 위키 한 장의 공유 카드.
@@ -30,13 +30,14 @@ const KIND_LABEL: Record<string, string> = {
   entity: "인물·기관",
   event: "사건",
   synthesis: "종합",
+  policy: "정책",
   meta: "기록",
 };
 
 export async function GET(request: Request) {
   const name = new URL(request.url).searchParams.get("name") ?? "";
-  const page = getPage(name);
-  if (!page || page.name === "log") return new Response("없는 페이지입니다.", { status: 404 });
+  const page = getPublicPage(name);
+  if (!page) return new Response("없는 페이지입니다.", { status: 404 });
 
   const mark = await dataUri("public/images/jamtong-icon-192.png");
 

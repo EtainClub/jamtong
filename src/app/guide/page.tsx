@@ -98,7 +98,7 @@ export default function GuidePage() {
     ACHIEVEMENTS.reduce((n, a) => n + a.claims.filter((c) => !c.verified).length, 0) +
     ALL_CLAIMS.filter((c) => !c.verified).length;
 
-  const wikiPages = contentPages().filter((page) => page.name !== "log");
+  const wikiPages = contentPages();
   const booksWithChapters = BOOKS.filter((book) => !book.sample && hasChapters(book));
 
   const map = demoFor("route-map");
@@ -166,7 +166,7 @@ export default function GuidePage() {
     {
       q: "한 편으로는 보이지 않는 이야기",
       label: "위키",
-      body: "여러 업적에 걸친 맥락을 따로 쌓습니다. 에이전트가 쓰고 사람이 읽습니다.",
+      body: "여러 업적에 걸친 맥락을 따로 쌓습니다. AI가 쓰고 사람이 읽습니다.",
       count: `${wikiPages.length}쪽`,
       href: "/wiki",
     },

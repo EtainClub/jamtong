@@ -1,6 +1,7 @@
 import { ACHIEVEMENTS } from "@/content/achievements";
 import { STATEMENTS } from "@/content/words";
 import { ALL_SOURCES } from "@/content/milestones";
+import { POLICIES } from "@/content/policies";
 
 /**
  * 위키 앵커를 사이트의 실제 자리로 잇는다.
@@ -19,7 +20,7 @@ export interface ResolvedAnchor {
   /** 각주에 적을 이름. */
   label: string;
   /** 무엇을 가리키는지. */
-  kind: "업적" | "언행" | "자료";
+  kind: "업적" | "언행" | "정책" | "자료";
   href?: string;
   external?: boolean;
   /** claim id처럼 페이지 안의 어느 대목인지. 링크로 만들 자리는 아직 없다. */
@@ -39,6 +40,13 @@ for (const achievement of ACHIEVEMENTS) {
     if (!sourceById.has(source.id)) sourceById.set(source.id, source);
   }
 }
+for (const policy of POLICIES) {
+  for (const source of policy.sources) {
+    if (!sourceById.has(source.id)) sourceById.set(source.id, source);
+  }
+}
+
+const policyTitle = new Map(POLICIES.map((p) => [p.slug, p.title]));
 
 export function resolveAnchor(raw: string): ResolvedAnchor {
   if (raw.startsWith("source:")) {
@@ -62,6 +70,18 @@ export function resolveAnchor(raw: string): ResolvedAnchor {
       label: title ? `「${title}」` : slug,
       href: title ? `/words/${slug}` : undefined,
       detail: point,
+    };
+  }
+
+  if (raw.startsWith("policy:")) {
+    const [slug, claim] = raw.slice("policy:".length).split("#");
+    const title = policyTitle.get(slug);
+    return {
+      raw,
+      kind: "정책",
+      label: title ? `「${title}」` : slug,
+      href: title ? `/wiki/policy/${slug}` : undefined,
+      detail: claim,
     };
   }
 

@@ -1,4 +1,4 @@
-import { allPages, type WikiPage } from "./load";
+import { contentPages, type WikiPage } from "./load";
 
 /**
  * 위키에 묻기 — 모델에게 줄 맥락을 만든다 (docs/llm-wiki.md §7 Query).
@@ -91,7 +91,7 @@ function score(page: WikiPage, keys: string[]): number {
 }
 
 export function buildWikiContext(question: string): WikiContext {
-  const pages = allPages().filter((page) => page.name !== "index" && page.name !== "log");
+  const pages = contentPages();
   const corpus = pages.map((page) => `${page.title}\n${page.body}`).join("\n").toLowerCase();
 
   const keys = terms(question, corpus);

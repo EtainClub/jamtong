@@ -19,6 +19,8 @@ const LINKS = [
   { href: "/guide", label: "처음 오셨나요 · 둘러보기" },
   { href: "/explore", label: "업적" },
   { href: "/words", label: "이재명 대통령의 언행" },
+  /* 하단 탭에서 위키에 자리를 내주고 여기로 왔다. */
+  { href: "/timeline", label: "타임라인" },
   { href: "/links", label: "관련 사이트" },
   { href: "/feedback", label: "피드백" },
   { href: "/correction", label: "정정·반론" },

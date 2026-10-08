@@ -19,6 +19,7 @@ import { join } from "node:path";
 import { ACHIEVEMENTS } from "../src/content/achievements";
 import { STATEMENTS } from "../src/content/words";
 import { ALL_SOURCES } from "../src/content/milestones";
+import { POLICIES } from "../src/content/policies";
 
 const WIKI = "wiki";
 const KINDS = new Set(["source", "concept", "entity", "event", "synthesis"]);
@@ -89,6 +90,11 @@ function knownAnchors(): Set<string> {
     for (const p of s.easy?.points ?? []) set.add(`words:${s.slug}#${p.id}`);
   }
   for (const s of ALL_SOURCES) set.add(`source:${s.id}`);
+  for (const p of POLICIES) {
+    set.add(`policy:${p.slug}`);
+    for (const c of p.claims) set.add(`policy:${p.slug}#${c.id}`);
+    for (const s of p.sources) set.add(`source:${s.id}`);
+  }
   return set;
 }
 
@@ -105,6 +111,8 @@ function main() {
 
   const pages = readPages();
   const names = new Set(pages.map((p) => p.name));
+  // 정책 페이지는 데이터에서 만들어지므로 디스크에 없다. 위키링크 대상으로는 인정한다.
+  for (const p of POLICIES) names.add(`policy/${p.slug}`);
   const anchors = knownAnchors();
   const inbound = new Map<string, number>(pages.map((p) => [p.name, 0]));
 

@@ -5,24 +5,12 @@ import { ACHIEVEMENTS } from "@/content/achievements";
 import { ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
-import { BUILD } from "@/lib/build-info";
 
 export const metadata: Metadata = {
   title: "이 사이트에 대하여",
-  description: "잼통이 무엇을 어떻게 다루는지, 그리고 지금 어떤 빌드가 떠 있는지.",
+  description: "잼통이 무엇을 어떻게 다루는지.",
   alternates: { canonical: "/about" },
 };
-
-function formatDateTime(iso: string): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Seoul",
-  }).format(d);
-}
 
 export default function AboutPage() {
   const claimCount = ACHIEVEMENTS.reduce((n, s) => n + s.claims.length, 0) + ALL_CLAIMS.length;
@@ -98,7 +86,7 @@ export default function AboutPage() {
           <p className="mt-2.5 text-[15px] leading-relaxed text-graphite">
             업적 페이지는 업적 하나가, 언행 페이지는 글 하나가 단위입니다. 여러 건에
             걸친 이야기가 모일 자리가 없어서, 그것만 따로 쌓는 층을 두었습니다.
-            에이전트가 쓰고 사람이 읽습니다.
+            AI가 쓰고 사람이 읽습니다.
           </p>
           <p className="mt-3 text-[15px] leading-relaxed text-graphite">
             여기에도 같은 규칙이 걸립니다. 모든 단정문은 원자료의 id를 가리키고,
@@ -111,26 +99,6 @@ export default function AboutPage() {
             위키 읽기
             <span aria-hidden="true">→</span>
           </Link>
-        </section>
-
-        <section className="mt-8">
-          <h2 className="text-[13px] font-semibold text-smoke">버전</h2>
-          <p className="mt-2.5 text-[13px] leading-relaxed text-ash">
-            웹앱이라 따로 설치할 것이 없습니다. 새로고침하면 늘 최신입니다.
-            아래는 지금 이 화면을 그린 빌드입니다.
-          </p>
-          <dl className="mt-3 divide-y divide-stone border-y border-stone">
-            {[
-              ["버전", BUILD.version],
-              ["커밋", BUILD.commit || "—"],
-              ["빌드 시각", formatDateTime(BUILD.builtAt)],
-            ].map(([label, value]) => (
-              <div key={label} className="flex items-baseline justify-between gap-4 py-3">
-                <dt className="text-sm text-smoke">{label}</dt>
-                <dd className="tabular font-mono text-[13px] text-graphite">{value}</dd>
-              </div>
-            ))}
-          </dl>
         </section>
 
         <section className="mt-8">

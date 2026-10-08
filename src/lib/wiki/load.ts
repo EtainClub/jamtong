@@ -1,6 +1,10 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { POLICIES } from "@/content/policies";
+
+import { policyMarkdown } from "./policy";
+
 /**
  * 위키 페이지를 디스크에서 읽는다.
  *
@@ -61,6 +65,17 @@ export function allPages(): WikiPage[] {
   };
   walk(WIKI_DIR, "");
 
+  /* 정책 페이지는 디스크의 마크다운이 아니라 정책 데이터에서 만든다. */
+  for (const policy of POLICIES) {
+    out.push({
+      name: `policy/${policy.slug}`,
+      title: policy.title,
+      kind: "policy",
+      updated: policy.asOf,
+      body: policyMarkdown(policy),
+    });
+  }
+
   cache = out.sort((a, b) => a.name.localeCompare(b.name));
   return cache;
 }
@@ -90,9 +105,27 @@ export function getPage(name: string): WikiPage | undefined {
   return allPages().find((page) => page.name === name);
 }
 
-/** 카탈로그는 `/wiki` 자체가 맡는다. 나머지가 하위 경로를 갖는다. */
+/**
+ * 독자에게 보이는 페이지.
+ *
+ * 카탈로그(`index`), ingest 기록(`log`), 위키 점검 기록(`synthesis/lint-*`)은
+ * 위키를 고치는 쪽이 보는 문서다. 화면·검색·사이트맵·질문 답에서 모두 뺀다.
+ */
+export function isPublicPage(name: string): boolean {
+  return name !== "index" && name !== "log" && !name.startsWith("synthesis/lint-");
+}
+
 export function contentPages(): WikiPage[] {
-  return allPages().filter((page) => page.name !== "index");
+  return allPages().filter((page) => isPublicPage(page.name));
+}
+
+export function getPublicPage(name: string): WikiPage | undefined {
+  return isPublicPage(name) ? getPage(name) : undefined;
+}
+
+/** 위키링크가 보여 줄 제목. 감춘 페이지는 들어 있지 않아 링크가 걸리지 않는다. */
+export function publicTitles(): Map<string, string> {
+  return new Map(contentPages().map((page) => [page.name, page.title]));
 }
 
 export interface WikiConceptCard {

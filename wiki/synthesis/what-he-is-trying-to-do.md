@@ -134,8 +134,8 @@ updated: 2026-09-20
 그리고 **효과를 보여주는 자료는 거의 없다.** 신천지 전수조사가 확산을 얼마나
 줄였는지, ^[gyeonggi-shincheonji#claim-survey] 원가 공개가 공사비를
 낮췄는지, ^[gyeonggi-construction#claim-cost] 급식카드가 낙인감을 줄였는지
-^[gyeonggi-child-meal#claim-design] 모두 모른다. 열여덟 자리가
-[[synthesis/lint-2026-09-20]]에 목록으로 있다.
+^[gyeonggi-child-meal#claim-design] 모두 모른다.
+이런 자리가 위키 전체에 열여덟 곳 있다.
 
 ## 한 문단으로
 
@@ -152,7 +152,7 @@ updated: 2026-09-20
 
 ## 이 답의 한계
 
-- 위키에 없는 것은 답에도 없다. 대장동 수사·재판처럼 raw source에 앵커가
+- 위키에 없는 것은 답에도 없다. 대장동 수사·재판처럼 원자료에 앵커가
   없는 것은 다루지 않았다. **없다는 것이 없었다는 뜻은 아니다.**
   ^[daejangdong#claim-overview]
 - 목표에 대한 진술은 대부분 본인의 글에서 왔다. 제3자 평가나 비판 쪽

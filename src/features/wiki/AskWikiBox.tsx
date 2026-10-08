@@ -130,7 +130,7 @@ export function AskWikiBox() {
 
       <p id="ask-note" className="mt-3 text-[12px] leading-relaxed text-smoke">
         {!configured
-          ? "이 환경에는 로그인이 설정되어 있지 않아 물을 수 없습니다. 아래 카탈로그는 그대로 읽을 수 있습니다."
+          ? "지금은 물을 수 없습니다. 위키 페이지는 로그인 없이 읽을 수 있습니다."
           : signedIn
             ? "위키에 있는 내용만 답합니다. 옮긴 사실에는 원자료 앵커가 함께 붙고, 위키에 없으면 없다고 답합니다."
             : "읽는 것은 로그인 없이 됩니다. 묻는 것은 로그인이 필요합니다 — 한 번 물을 때마다 위키 여러 장을 모델에 실어 보내기 때문입니다."}
@@ -175,7 +175,7 @@ function Answer({ answer }: { answer: WikiAnswer }) {
 
       {!answer.grounded && (
         <p className="mt-2.5 text-[12px] leading-relaxed text-pending">
-          위키에서 근거를 찾지 못한 답입니다. 아래 카탈로그에서 직접 찾아보시기 바랍니다.
+          위키에서 근거를 찾지 못한 답입니다. 질문을 바꿔 다시 물어보시기 바랍니다.
         </p>
       )}
 

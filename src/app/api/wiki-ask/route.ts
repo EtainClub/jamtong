@@ -10,7 +10,7 @@ import {
 } from "@/lib/agent/guard";
 import { resolveAnchor } from "@/lib/wiki/anchors";
 import { buildWikiContext, WIKI_SYSTEM_PROMPT } from "@/lib/wiki/ask";
-import { allPages } from "@/lib/wiki/load";
+import { publicTitles } from "@/lib/wiki/load";
 
 /**
  * 위키에 묻기 (docs/llm-wiki.md §7 Query).
@@ -188,7 +188,7 @@ export async function POST(request: Request) {
    * 펴 주지 않은 페이지를 근거로 댈 수는 없다. 위키에 있는 이름이라도
    * 이번에 읽지 않았으면 버린다 — 모델이 제목만 보고 짐작한 것이다.
    */
-  const titles = new Map(allPages().map((page) => [page.name, page.title]));
+  const titles = publicTitles();
   const opened = new Set(context.used);
   const pages = answer.pages
     .filter((name) => opened.has(name) && titles.has(name))
