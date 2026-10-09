@@ -1,0 +1,2894 @@
+[
+  {
+    "slug": "ai-learning-materials",
+    "title": "AI 디지털교과서",
+    "scope": "청소년 정책 — 2025년 교과서로 학교에 들어왔다가, 같은 해 법 개정으로 학교장이 쓸지 정하는 교육자료가 된 AI 디지털교과서",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-01",
+    "claims": [
+      {
+        "id": "introduced",
+        "text": "AI 디지털교과서는 2025학년도 1학기에 교과서로 학교에 들어왔다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-ai-learning-materials--khan-2025-08-04"
+        ]
+      },
+      {
+        "id": "law-change",
+        "text": "2025년 8월 4일 국회가 초중등교육법 개정안을 통과시켜 AI 디지털교과서의 지위를 '교과서'에서 '교육자료'로 바꿨다. 교과서는 학교가 반드시 채택해야 하지만, 교육자료는 학교장이 쓸지 정한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-ai-learning-materials--khan-2025-08-04"
+        ]
+      },
+      {
+        "id": "adoption-drop",
+        "text": "국회 교육위원회 백승아 의원(더불어민주당)이 공개한 자료에 따르면, AI 디지털교과서를 쓴 학교는 2025년 1학기 4,095곳에서 2학기 1,686곳으로 약 59% 줄었다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-ai-learning-materials--unn-2025-10-24"
+        ]
+      },
+      {
+        "id": "funding",
+        "text": "교육자료가 되면서 교육청이 구독료를 지원하기 어려워졌고, 쓰려는 학교가 비용을 스스로 마련해야 하게 됐다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-ai-learning-materials--unn-2025-10-24"
+        ]
+      },
+      {
+        "id": "cp-ministry",
+        "text": "교육자료는 무상·의무교육 대상이 아니어서 학생·학부모 부담이 늘 수 있고, 지역과 학교 재정 형편에 따라 교육 격차가 생길 수 있다.",
+        "assertionType": "CLAIM",
+        "assertedBy": "교육부(2024년 12월, 이주호 당시 장관)",
+        "verified": true,
+        "sourceIds": [
+          "tt-ai-learning-materials--korea-2024-12-26"
+        ]
+      },
+      {
+        "id": "cp-usage",
+        "text": "대다수 학교가 채택하고서도 실제로는 사용하지 않았다. 실제 사용률은 10%에 못 미쳤다.",
+        "assertionType": "CLAIM",
+        "assertedBy": "고민정 국회의원(더불어민주당)",
+        "verified": true,
+        "sourceIds": [
+          "tt-ai-learning-materials--khan-2025-08-04"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-ministry",
+      "cp-usage"
+    ],
+    "sources": [
+      {
+        "id": "tt-ai-learning-materials--khan-2025-08-04",
+        "title": "급히 도입해 탈난 AI 교과서 결국 '교육자료' 지위격하",
+        "url": "https://www.khan.co.kr/article/202508041631001",
+        "publisher": "경향신문",
+        "publishedAt": "2025-08-04",
+        "type": "press",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-ai-learning-materials--unn-2025-10-24",
+        "title": "[2025 국감] 교육자료 격하된 AI 디지털교과서, 2학기 도입률 60% 급감",
+        "url": "https://news.unn.net/news/articleView.html?idxno=585404",
+        "publisher": "한국대학신문",
+        "publishedAt": "2025-10-24",
+        "type": "press",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-ai-learning-materials--korea-2024-12-26",
+        "title": "AI 디지털교과서 관련 초중등교육법 일부개정법률안 본회의 의결에 대한 정부입장",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=156667666",
+        "publisher": "교육부 (대한민국 정책브리핑)",
+        "publishedAt": "2024-12-26",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/ai-learning-materials"
+    }
+  },
+  {
+    "slug": "bk21-four",
+    "title": "4단계 BK21",
+    "scope": "청년 정책 — 대학의 교육연구단을 뽑아 지원하고, 참여한 대학원생에게 연구장학금을 주는 사업. 2027년 8월까지다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "period",
+        "text": "4단계 BK21은 세계적 수준의 연구중심대학 육성을 목표로 2020년 9월부터 2027년 8월까지 7년 동안 진행된다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-bk21-four--nrf-bk21four"
+        ]
+      },
+      {
+        "id": "unit",
+        "text": "대학의 교육연구단(팀)을 선정해 지원하고, 그 교육연구단에 참여한 대학원생이 연구장학금을 받는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-bk21-four--nrf-bk21four"
+        ]
+      },
+      {
+        "id": "stipend",
+        "text": "대학원생 연구장학금 지급 기준액은 석사 월 100만 원, 박사 월 160만 원, 박사수료생 월 130만 원이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-bk21-four--nrf-bk21four"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-bk21-four--nrf-bk21four",
+        "title": "4단계 두뇌한국21 사업 소개",
+        "url": "https://bk21four.nrf.re.kr/sub01/sub111/list.do",
+        "publisher": "한국연구재단",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/bk21-four"
+    }
+  },
+  {
+    "slug": "everyone-transit-card",
+    "title": "모두의카드",
+    "scope": "청년 정책 — 쓴 대중교통비의 일부를 돌려주는 환급 제도. 청년은 기본형으로 30%를 돌려받는다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-08",
+    "claims": [
+      {
+        "id": "target",
+        "text": "만 19~34세 청년은 청년 유형으로 적용받는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--korea-2026-02-02"
+        ]
+      },
+      {
+        "id": "basic-rate",
+        "text": "기본형은 쓴 교통비의 일정 비율을 돌려주는 정률 환급이고, 청년 유형의 환급률은 30%다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--korea-2026-02-02"
+        ]
+      },
+      {
+        "id": "flat-types",
+        "text": "일반형·플러스형은 기준금액을 넘게 쓴 만큼을 돌려주는 방식이다. 청년 기준금액은 지역에 따라 다르다(수도권 5.5~9만 원, 일반 지방권 5~8.5만 원 등).",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--korea-2026-02-02"
+        ]
+      },
+      {
+        "id": "half-price",
+        "text": "일반형·플러스형의 환급 기준금액이 50% 인하돼, 수도권 청년 기준 일반형 2만 5천 원·플러스형 4만 5천 원이 적용된다. 9월 이용분까지다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--korea-half-price",
+          "tt-everyone-transit-card--korea-2026-09-28"
+        ],
+        "validUntil": "2026-09-30"
+      },
+      {
+        "id": "half-price-ended",
+        "text": "일반형·플러스형(정액형) 환급 기준금액 50% 인하는 계획대로 9월 이용분까지만 적용됐다. 10월 이용분부터는 인하 없이 원래 기준금액이 적용된다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--korea-2026-09-28"
+        ]
+      },
+      {
+        "id": "green-card",
+        "text": "국토교통부 대도시권광역교통위원회와 기후에너지환경부는 대중교통비 환급과 그린카드 혜택(친환경·저탄소 제품 구매 인센티브, 공공시설 요금 할인 등)을 카드 한 장으로 받는 '모두의그린카드'를 10월부터 BC카드·광주은행·제주은행·경남은행·수협·IM뱅크 등 6개 카드사에서 출시한다고 밝혔다. 발급 조건과 세부 혜택은 카드사마다 다를 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--newspim-2026-09-21"
+        ]
+      },
+      {
+        "id": "off-peak",
+        "text": "출퇴근 혼잡시간 전후(오전 5시 30분~6시 30분·9~10시, 오후 4~5시·7~8시)에 타면 정률 환급률이 30%p 올라, 청년은 60%를 돌려받는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--korea-half-price"
+        ]
+      },
+      {
+        "id": "off-peak-extended",
+        "text": "출퇴근 시차시간 인센티브는 올해 말까지 연장 운영되고, 정부는 2027년 예산안에 관련 예산을 반영했다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--korea-2026-09-28"
+        ]
+      },
+      {
+        "id": "register",
+        "text": "K-패스 앱이나 홈페이지에서 회원가입하고 카드를 등록해야 환급받는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--korea-2026-02-02"
+        ]
+      },
+      {
+        "id": "calc-120k",
+        "text": "한 달 교통비가 12만 원이면 기본형 30%로 3만 6천 원을 돌려받는다. 모두 시차시간에 탔다면 60%로 7만 2천 원이다. 통통의 단순 계산이며, 실제로는 일반형·플러스형 조건과 지역 기준금액에 따라 달라진다.",
+        "assertionType": "INTERPRETATION",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--korea-2026-02-02",
+          "tt-everyone-transit-card--korea-half-price"
+        ]
+      },
+      {
+        "id": "cp-budget",
+        "text": "환급은 정해진 국비·지방비 예산 안에서 나간다. 2024년 K-패스는 예산 1,584억 원 가운데 5~8월에만 63%를 썼고, 국토교통부는 추가 투입이 없으면 감액 지급이 불가피하다고 밝혔다. 앞선 알뜰교통카드는 2022~2023년 예산이 모자라 환급금을 줄여 지급했다(평균 9.5%, 경북 최대 25.4%).",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-everyone-transit-card--khan-2024-10-06"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-budget"
+    ],
+    "sources": [
+      {
+        "id": "tt-everyone-transit-card--korea-2026-02-02",
+        "title": "'청년'을 위한 모두의 카드",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148958934",
+        "publisher": "국토교통부 (대한민국 정책브리핑)",
+        "publishedAt": "2026-02-02",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-everyone-transit-card--korea-half-price",
+        "title": "'모두의 카드' 9월까지 더 돌려받는다…환급 기준액 50% 인하",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148962910",
+        "publisher": "국토교통부 (대한민국 정책브리핑)",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-everyone-transit-card--korea-2026-09-28",
+        "title": "모두의카드 '출퇴근 시차시간 환급' 12월까지 연장…내년 예산 반영",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148972677",
+        "publisher": "국토교통부 (대한민국 정책브리핑)",
+        "publishedAt": "2026-09-28",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-everyone-transit-card--newspim-2026-09-21",
+        "title": "'모두의카드+그린카드' 한 장에…10월부터 6개 카드사서 발급",
+        "url": "https://newspim.com/news/view/20260921000156",
+        "publisher": "뉴스핌",
+        "publishedAt": "2026-09-21",
+        "type": "press",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-everyone-transit-card--khan-2024-10-06",
+        "title": "K-패스 예산 바닥난다…알뜰교통카드 '환급 대란' 재현되나",
+        "url": "https://www.khan.co.kr/article/202410061449001",
+        "publisher": "경향신문",
+        "publishedAt": "2024-10-06",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/everyone-transit-card"
+    }
+  },
+  {
+    "slug": "exam-fee-support",
+    "title": "국가기술자격 응시료 지원",
+    "scope": "청년 정책 — 청년이 국가기술자격시험을 볼 때 응시료의 50%를 지원한다. 예산이 떨어지면 마감된다",
+    "ministries": [],
+    "categories": [
+      "welfare",
+      "economy"
+    ],
+    "asOf": "2026-10-08",
+    "claims": [
+      {
+        "id": "rate",
+        "text": "청년에게 국가기술자격시험 응시료의 50%를 지원한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-exam-fee-support--moel-policy",
+          "tt-exam-fee-support--hrdk-2025"
+        ]
+      },
+      {
+        "id": "count",
+        "text": "지원은 1인당 연간 3회까지다. 나이 기준에 들면 해마다 3회씩 받는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-exam-fee-support--qnet-2026",
+          "tt-exam-fee-support--hrdk-2025"
+        ]
+      },
+      {
+        "id": "age",
+        "text": "2026년 안내 기준으로 대상은 만 34세 이하(1991년 1월 1일 이후 출생) 청년 누구나다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-exam-fee-support--qnet-2026"
+        ]
+      },
+      {
+        "id": "budget",
+        "text": "신청은 2026년 1월 6일부터 예산이 소진될 때까지다. 예산이 소진되면 개인별로 남은 횟수와 상관없이 지원받을 수 없고, 소진이 예상되면 미리 공지한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-exam-fee-support--qnet-2026"
+        ]
+      },
+      {
+        "id": "continued-2026",
+        "text": "2026년에도 지원이 이어지며, 세부 기준은 Q-Net 공고의 첨부 문서에 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-exam-fee-support--qnet-2026"
+        ]
+      },
+      {
+        "id": "auto-apply",
+        "text": "따로 신청하지 않고, Q-Net에서 원서를 접수할 때 자동으로 적용된다. 원하지 않으면 '지원받지 않기'를 고를 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-exam-fee-support--qnet-2026"
+        ]
+      },
+      {
+        "id": "no-show",
+        "text": "감면된 응시료로 결제하면 연간 횟수가 차감된다. 접수를 취소하면 횟수가 돌아오지만, 접수한 뒤 시험을 보지 않으면 차감된 횟수는 돌아오지 않는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-exam-fee-support--qnet-2026"
+        ]
+      },
+      {
+        "id": "cp-scope",
+        "text": "지원은 한국산업인력공단이 시행하는 국가기술자격시험(488개 종목)에만 적용된다. 대한상공회의소 등 다른 기관이 시행하는 국가기술자격은 대상이 아니다. 정부는 제2차 청년정책 기본계획(2026~2030)에서 지원 종목을 대한상공회의소 등 10개 기관 소관 540개로 넓히겠다고 밝혔지만, 2026년 안내는 여전히 한국산업인력공단 시행 시험만 지원한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-exam-fee-support--youth-plan-2",
+          "tt-exam-fee-support--qnet-2026"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-scope"
+    ],
+    "sources": [
+      {
+        "id": "tt-exam-fee-support--moel-policy",
+        "title": "청년 국가기술자격 응시료 지원 사업",
+        "url": "https://www.moel.go.kr/policyitrd/policyItrdView.do?policy_itrd_sn=100",
+        "publisher": "고용노동부",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-exam-fee-support--hrdk-2025",
+        "title": "청년 국가기술자격시험 응시료 지원사업 (2025년 안내)",
+        "url": "https://hrdc.hrdkorea.or.kr/hrdc/193642",
+        "publisher": "한국산업인력공단",
+        "publishedAt": "2025-02-10",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-exam-fee-support--qnet-2026",
+        "title": "2026년 청년 국가기술자격 응시료 지원 안내",
+        "url": "https://q-net.or.kr/man004.do?ARTL_SEQ=5251124&BOARD_ID=Q001&gId=&gSite=Q&id=man00402",
+        "publisher": "한국산업인력공단 (Q-Net)",
+        "publishedAt": "2026-01-06",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-exam-fee-support--youth-plan-2",
+        "title": "제2차 청년정책 기본계획 ('26~'30)",
+        "url": "https://www.opm.go.kr/_res/opm/etc/opm_youth_plan2.pdf",
+        "publisher": "관계부처 합동 (국무조정실)",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/exam-fee-support"
+    }
+  },
+  {
+    "slug": "happy-housing",
+    "title": "행복주택 (청년)",
+    "scope": "청년 정책 — 만 19~39세 무주택 청년이 시중 시세의 60~80% 임대료로 최대 6년 살 수 있는 공공임대주택",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "target",
+        "text": "청년 계층은 만 19세 이상 만 39세 이하이면서 혼인 중이 아닌 무주택자다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-happy-housing--lh-qualify",
+          "tt-happy-housing--myhome-guide"
+        ]
+      },
+      {
+        "id": "income",
+        "text": "세대 월평균 소득이 전년도 도시근로자 가구원수별 월평균 소득의 100% 이하여야 한다. 1인 가구는 120%, 2인 가구는 110% 이하다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-happy-housing--lh-qualify"
+        ]
+      },
+      {
+        "id": "asset",
+        "text": "총자산과 자동차가액 기준도 따로 충족해야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-happy-housing--lh-qualify",
+          "tt-happy-housing--myhome-guide"
+        ]
+      },
+      {
+        "id": "newcomer",
+        "text": "청년 계층에는 사회초년생 구분이 있고, 소득이 있는 업무에 종사한 기간이 모두 합쳐 5년 이내여야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-happy-housing--lh-qualify"
+        ]
+      },
+      {
+        "id": "rent",
+        "text": "임대료는 공급대상자별로 시중 시세의 60~80%다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-happy-housing--myhome-guide"
+        ]
+      },
+      {
+        "id": "duration",
+        "text": "2년 단위로 계약하고, 기간이 끝날 때 입주자격을 다시 확인해 갱신한다. 대학생·청년은 최대 6년 살 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-happy-housing--myhome-guide"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-happy-housing--lh-qualify",
+        "title": "임대가이드 — 행복주택 입주자격",
+        "url": "https://apply.lh.or.kr/lhapply/cm/cntnts/cntntsView.do?cntntsId=1201391&mi=1201663",
+        "publisher": "한국토지주택공사 (LH청약플러스)",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-happy-housing--myhome-guide",
+        "title": "행복주택 입주자격 (마이홈 공공주택 안내)",
+        "url": "https://www.myhome.go.kr/html/guide/QulifyGuideType5.html",
+        "publisher": "국토교통부 마이홈",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/happy-housing"
+    }
+  },
+  {
+    "slug": "high-school-credit",
+    "title": "고교학점제",
+    "scope": "청소년 정책 — 과목마다 기준을 채워야 학점을 받는 고등학교 제도. 2026학년도부터 선택과목은 출석률만 채우면 된다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-01",
+    "claims": [
+      {
+        "id": "before",
+        "text": "지금까지는 과목마다 출석률과 학업성취율 기준을 모두 채워야 학점을 받았다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-credit--imbc-2026-01-28"
+        ]
+      },
+      {
+        "id": "elective-rule",
+        "text": "2026학년도부터 선택과목은 출석률만 채우면 학점을 받는다. 학업성취율은 보지 않는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-credit--moe-2026-01-28"
+        ]
+      },
+      {
+        "id": "common-rule",
+        "text": "공통과목은 지금처럼 출석률과 학업성취율을 모두 본다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-credit--moe-2026-01-28"
+        ]
+      },
+      {
+        "id": "online",
+        "text": "과목을 이수하지 못하면 온라인 콘텐츠로 학점을 딸 수 있는 플랫폼을 만들고, 3분의 2 이상 출석하면 이수로 인정한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-credit--moe-2026-01-28"
+        ]
+      },
+      {
+        "id": "schedule",
+        "text": "바뀐 기준은 2026학년도에 고1·고2에 적용하고, 2027학년도부터 고1~고3으로 넓힌다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-credit--moe-2026-01-28"
+        ]
+      },
+      {
+        "id": "cp-unions",
+        "text": "공통과목에 학업성취율을 남긴 것은 최소 성취수준 보장지도가 형식적으로 운영될 수밖에 없는 구조를 굳힐 가능성이 크고, 학교들이 평가 기준을 낮추거나 절차만 채우는 식으로 대응하게 될 것이다.",
+        "assertionType": "CLAIM",
+        "assertedBy": "교사노동조합연맹·전국교직원노동조합·한국교원단체총연합회",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-credit--asiae-2026-01-28"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-unions"
+    ],
+    "sources": [
+      {
+        "id": "tt-high-school-credit--moe-2026-01-28",
+        "title": "고교학점제 안착을 위한 지원 대책 발표",
+        "url": "https://www.moe.go.kr/boardCnts/viewRenew.do?boardID=294&boardSeq=105223&lev=0&searchType=null&statusYN=W&page=1&s=moe&m=020402&opType=N",
+        "publisher": "교육부",
+        "publishedAt": "2026-01-28",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-high-school-credit--imbc-2026-01-28",
+        "title": "새학기 고교학점제 개선안 시행‥선택과목은 출석만 해도 이수 가능",
+        "url": "https://imnews.imbc.com/news/2026/society/article/6796858_36918.html",
+        "publisher": "MBC",
+        "publishedAt": "2026-01-28",
+        "type": "press",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-high-school-credit--asiae-2026-01-28",
+        "title": "교원 3단체 \"고교학점제 지원 대책, 형식적 보완에 그쳐\"",
+        "url": "https://view.asiae.co.kr/article/2026012816090159670",
+        "publisher": "아시아경제",
+        "publishedAt": "2026-01-28",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/high-school-credit"
+    }
+  },
+  {
+    "slug": "high-school-free-tuition",
+    "title": "고교 무상교육",
+    "scope": "청소년 정책 — 고등학교 입학금·수업료·학교운영지원비·교과서비를 지원한다. 국가가 내는 몫은 줄어들고 있다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-01",
+    "claims": [
+      {
+        "id": "covers",
+        "text": "고등학교 입학금·수업료·학교운영지원비·교과서비를 지원하고, 2021년부터 고1~고3 전 학년이 대상이다. 학비를 학교장이 정하는 일부 사립학교는 빠진다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-free-tuition--korea-2021-02-28"
+        ]
+      },
+      {
+        "id": "saving",
+        "text": "전면 시행 때 학생 약 124만 명이 1인당 연 160만 원 정도의 학비 부담을 덜었다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-free-tuition--korea-2021-02-28"
+        ]
+      },
+      {
+        "id": "law-2025",
+        "text": "2025년 8월 4일 국회는 '국가는 고교 무상교육 경비 중 47.5% 이내의 금액을 교부해야 한다'는 법 개정안을 통과시켰다. 이 특례는 2027년까지다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-free-tuition--edupress-2025-08-04"
+        ]
+      },
+      {
+        "id": "share-2026",
+        "text": "정부가 내는 몫은 47.5%에서 2026년 30%로 낮아졌다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-free-tuition--mt-2026-04-20"
+        ]
+      },
+      {
+        "id": "budget-2027",
+        "text": "2026년 국가 증액교부금은 5,785억 원, 2027년 정부 예산안은 3,044억 원이다. 정부 몫은 30%에서 15%로 줄어든다. 국회 심의 전 예산안이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-free-tuition--edpl-2026-09-03"
+        ]
+      },
+      {
+        "id": "phase-down",
+        "text": "기획예산처의 2027년 예산안 편성지침에는 고교 무상교육 국비 지원을 점차 줄이고 일몰을 검토하겠다는 내용이 담겼다. 교육부는 안정적으로 추진하겠다고 밝혔다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-free-tuition--mt-2026-04-20"
+        ]
+      },
+      {
+        "id": "cp-shift",
+        "text": "고등학생 수는 늘어나는데 국비는 절반으로 줄어, 무상교육을 약속만 하고 비용은 교육청 재정으로 넘기는 셈이라는 비판이 나왔다.",
+        "assertionType": "CLAIM",
+        "assertedBy": "전국교직원노동조합 관계자",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-free-tuition--edpl-2026-09-03"
+        ]
+      },
+      {
+        "id": "cp-47",
+        "text": "'47.5% 이내'라는 표현 때문에 정부가 몫을 줄일 수 있게 돼 중앙정부와 교육청 사이 갈등이 생길 수 있다는 우려가 법 통과 때부터 나왔다.",
+        "assertionType": "INTERPRETATION",
+        "assertedBy": "에듀프레스 보도",
+        "verified": true,
+        "sourceIds": [
+          "tt-high-school-free-tuition--edupress-2025-08-04"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-shift",
+      "cp-47"
+    ],
+    "sources": [
+      {
+        "id": "tt-high-school-free-tuition--korea-2021-02-28",
+        "title": "새학기부터 고교도 전면 무상교육…초중고 무상교육 완성",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148884480",
+        "publisher": "교육부 (대한민국 정책브리핑)",
+        "publishedAt": "2021-02-28",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-high-school-free-tuition--edupress-2025-08-04",
+        "title": "고교 무상교육 국비지원 3년 연장 .. '47.5% 이내' 갈등 불씨 될 듯",
+        "url": "https://www.edupress.kr/news/articleView.html?idxno=21009",
+        "publisher": "에듀프레스",
+        "publishedAt": "2025-08-04",
+        "type": "press",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-high-school-free-tuition--mt-2026-04-20",
+        "title": "고교 무상교육 국비 축소 우려에…교육부 \"안정 추진\" 진화",
+        "url": "https://www.mt.co.kr/policy/2026/04/20/2026042014375817414",
+        "publisher": "머니투데이",
+        "publishedAt": "2026-04-20",
+        "type": "press",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-high-school-free-tuition--edpl-2026-09-03",
+        "title": "고교생은 느는데, 내년 무상교육 국비 '반토막'",
+        "url": "https://www.edpl.co.kr/news/articleView.html?idxno=21444",
+        "publisher": "교육플러스",
+        "publishedAt": "2026-09-03",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/high-school-free-tuition"
+    }
+  },
+  {
+    "slug": "income-contingent-loan",
+    "title": "취업 후 상환 학자금대출",
+    "scope": "청년 정책 — 대학생·대학원생에게 등록금과 생활비를 빌려주고, 취업 등으로 소득이 생긴 때부터 갚게 하는 대출",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "undergrad",
+        "text": "학부생은 대출 신청일 기준 만 35세 이하이고 직전 학기에 12학점 이상 이수해야 한다. 등록금 대출은 소득구간과 관계없고, 생활비 대출은 학자금 지원구간 8구간 이하여야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-income-contingent-loan--kosaf-icl"
+        ]
+      },
+      {
+        "id": "grad",
+        "text": "대학원생은 대출 신청일 기준 만 40세 이하여야 한다. 등록금 대출은 소득구간과 관계없고, 생활비 대출은 학자금 지원구간 6구간 이하여야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-income-contingent-loan--kosaf-icl"
+        ]
+      },
+      {
+        "id": "repay",
+        "text": "등록금과 생활비를 빌려주고, 취업 등으로 소득이 생긴 때부터 소득 수준에 따라 원금과 이자를 갚는 대출이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-income-contingent-loan--kosaf-icl"
+        ]
+      },
+      {
+        "id": "period-2026-2",
+        "text": "2026학년도 2학기 신청은 2026년 7월 1일 오전 9시부터 11월 17일 오후 6시까지다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-income-contingent-loan--kosaf-icl"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-income-contingent-loan--kosaf-icl",
+        "title": "취업 후 상환 학자금대출",
+        "url": "https://www.kosaf.go.kr/ko/tuition.do?pg=tuition04_01_01&ttab1=1",
+        "publisher": "한국장학재단",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2026-07-01",
+        "datePrecision": "day",
+        "title": "신청 (2026학년도 2학기)",
+        "summary": "2026-07-01 ~ 2026-11-17. 한국장학재단에서 신청.",
+        "claimIds": [
+          "undergrad",
+          "grad",
+          "repay",
+          "period-2026-2"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/income-contingent-loan"
+    }
+  },
+  {
+    "slug": "national-employment-support",
+    "title": "국민취업지원제도",
+    "scope": "청년 정책 — 취업이 어려운 구직자에게 상담·훈련·일경험을 잇는 취업지원을 하고, 소득이 낮으면 구직촉진수당을 6개월 준다",
+    "ministries": [],
+    "categories": [
+      "welfare",
+      "economy"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "type1-screened",
+        "text": "Ⅰ유형(요건심사형)은 15~69세 구직자 중 중위소득 60% 이하, 재산 4억 원 이하(15~34세 청년은 5억 원 이하)이면서 최근 2년 안에 100일 또는 800시간 이상 일한 경험이 있는 사람이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-employment-support--gov24"
+        ]
+      },
+      {
+        "id": "type1-youth",
+        "text": "Ⅰ유형(선발형)은 취업경험 요건을 채우지 못한 구직자다. 15~34세 청년은 중위소득 120% 이하, 재산 5억 원 이하면 되고 취업경험은 선발할 때 고려한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-employment-support--gov24"
+        ]
+      },
+      {
+        "id": "type2",
+        "text": "Ⅱ유형은 Ⅰ유형에 해당하지 않는 15~69세 구직자 중 가구 중위소득 100% 이하인 사람이고, 청년은 소득과 관계없다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-employment-support--gov24"
+        ]
+      },
+      {
+        "id": "allowance",
+        "text": "Ⅰ유형은 구직활동을 하면 구직촉진수당을 6개월 받는다. 정부24는 월 60~100만 원으로 적고 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-employment-support--gov24"
+        ]
+      },
+      {
+        "id": "allowance-2026",
+        "text": "구직촉진수당 기본 월액은 2026년 1월 1일부터 50만 원에서 60만 원으로 올랐다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-employment-support--moel-2026-allowance"
+        ]
+      },
+      {
+        "id": "services",
+        "text": "Ⅰ·Ⅱ유형 모두 심층상담을 거쳐 직업훈련, 일경험, 복지 프로그램 연계 같은 취업지원서비스를 받는다. Ⅱ유형은 취업활동계획 수립 참여수당 등 취업활동비용을 받는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-employment-support--gov24"
+        ]
+      },
+      {
+        "id": "apply",
+        "text": "상시 신청한다. 거주지 관할 고용센터에 가거나 고용24(www.work24.go.kr)에서 본인이 신청하고, 문의는 고용노동부 고객상담센터 1350.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-employment-support--gov24"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-national-employment-support--gov24",
+        "title": "국민취업지원제도 (정부24 서비스 상세)",
+        "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/149200005007",
+        "publisher": "고용노동부 (정부24)",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-national-employment-support--moel-2026-allowance",
+        "title": "국민취업지원제도 구직활동지원금 확대",
+        "url": "https://www.moel.go.kr/news/achievements/view.do?bbs_seq=20260201211",
+        "publisher": "고용노동부",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/national-employment-support"
+    }
+  },
+  {
+    "slug": "national-scholarship",
+    "title": "국가장학금 Ⅰ유형",
+    "scope": "청년 정책 — 소득구간에 따라 대학생 등록금을 지원하는 장학금. 기초·차상위 가구는 등록금 전액, 9구간은 연 100만 원이다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "amount",
+        "text": "2026년 국가장학금 Ⅰ유형은 기초·차상위 가구 대학생에게 등록금 전액을, 1~3구간은 연 600만 원, 4~6구간은 연 440만 원, 7~8구간은 연 360만 원, 9구간은 연 100만 원을 지원한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-scholarship--korea-2025-11-20"
+        ]
+      },
+      {
+        "id": "multi-child",
+        "text": "8구간 이하 다자녀 가구의 셋째 이상 대학생은 등록금 전액을 지원받을 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-scholarship--korea-2025-11-20"
+        ]
+      },
+      {
+        "id": "who",
+        "text": "입학 예정자를 포함한 신입생, 재학생, 복학생, 편입생, 재입학생 등 모든 대학생이 신청할 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-scholarship--korea-2025-11-20"
+        ]
+      },
+      {
+        "id": "rounds",
+        "text": "한국장학재단 누리집과 앱에서 신청한다. 2026학년도 1학기 1차 신청은 2025년 11월 20일부터 12월 26일까지였다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-national-scholarship--korea-2025-11-20"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-national-scholarship--korea-2025-11-20",
+        "title": "대학 국가장학금 신청 개시…8구간 이하 '셋째 이상'엔 전액 지원",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148955036",
+        "publisher": "교육부(정책브리핑)",
+        "publishedAt": "2025-11-20",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2025-11-20",
+        "datePrecision": "day",
+        "title": "신청 (2026학년도 1학기 1차)",
+        "summary": "2025-11-20 ~ 2025-12-26. 한국장학재단 누리집·앱에서 신청.",
+        "claimIds": [
+          "amount",
+          "multi-child",
+          "who",
+          "rounds"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/national-scholarship"
+    }
+  },
+  {
+    "slug": "out-of-school-youth",
+    "title": "학교 밖 청소년 지원",
+    "scope": "청소년 정책 — 학교를 그만두었거나 다니지 않는 9~24세 청소년에게 꿈드림 센터가 상담·교육·취업·자립을 지원한다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-01",
+    "claims": [
+      {
+        "id": "who",
+        "text": "학교 밖 청소년은 9~24세 가운데 입학 후 3개월 이상 결석했거나 취학 의무를 유예한 청소년, 제적·퇴학·자퇴한 청소년, 상급학교에 진학하지 않은 청소년이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-out-of-school-youth--mogef-program"
+        ]
+      },
+      {
+        "id": "services",
+        "text": "청소년지원센터 '꿈드림'이 상담, 복교·진학·검정고시 같은 교육 지원, 직업체험과 취업 지원, 생활·의료 같은 자립 지원, 건강증진 프로그램을 제공한다. 꿈드림 누리집이나 지역 센터에서 신청한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-out-of-school-youth--mogef-program"
+        ]
+      },
+      {
+        "id": "mock-exam",
+        "text": "2026년부터 6월·9월 수능 모의평가에 응시하는 학교 밖 청소년(9~24세)에게 응시료를 회당 1만 2천 원, 최대 2만 4천 원까지 전액 지원한다. 올해 신청은 6월 4일부터 9월 30일까지 청소년1388 누리집에서 받았다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-out-of-school-youth--mogef-2026-06-04"
+        ]
+      },
+      {
+        "id": "count",
+        "text": "학교 밖 청소년(6~17세)은 지난해 18만 694명으로, 2021년보다 24% 늘었다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-out-of-school-youth--mt-2026-09-26"
+        ]
+      },
+      {
+        "id": "cp-reach",
+        "text": "실태 파악에 쓰는 기관 자료는 학교 밖 청소년의 22% 정도만 담고, 지원센터가 한 해 돕는 청소년은 약 4만 명이다. 상담사 한 명이 50~60명을 맡을 만큼 인력도 부족하다는 지적이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-out-of-school-youth--mt-2026-09-26"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-reach"
+    ],
+    "sources": [
+      {
+        "id": "tt-out-of-school-youth--mogef-program",
+        "title": "학교 밖 청소년지원사업",
+        "url": "https://www.mogef.go.kr/cs/opf/cs_opf_f941.do",
+        "publisher": "성평등가족부",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-out-of-school-youth--mogef-2026-06-04",
+        "title": "성평등가족부, 학교 밖 청소년 수능 모의평가 응시료 지원",
+        "url": "https://www.mogef.go.kr/nw/enw/nw_enw_s001d.do?mid=mda700&bbtSn=713872",
+        "publisher": "성평등가족부",
+        "publishedAt": "2026-06-04",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-out-of-school-youth--mt-2026-09-26",
+        "title": "학교 밖 청소년 5년간 24% 급증했는데 \"정확한 규모 측정도 어려워\"",
+        "url": "https://www.mt.co.kr/policy/2026/09/26/2026092210372682254",
+        "publisher": "머니투데이",
+        "publishedAt": "2026-09-26",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2026-06-04",
+        "datePrecision": "day",
+        "title": "신청 (2026년 모의평가 응시료)",
+        "summary": "2026-06-04 ~ 2026-09-30. 청소년1388 누리집 → 서비스 신청 → 수능모의평가 응시료 신청.",
+        "claimIds": [
+          "mock-exam"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/out-of-school-youth"
+    }
+  },
+  {
+    "slug": "pre-startup-package",
+    "title": "예비창업패키지",
+    "scope": "청년 정책 — 사업자등록 전인 예비창업자에게 사업화 자금과 창업 프로그램을 지원한다",
+    "ministries": [],
+    "categories": [
+      "economy",
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "who",
+        "text": "신청자 이름의 사업자등록증이 없고 법인의 법률상 대표권도 없는 예비창업자가 신청할 수 있다. 2026년 공고의 기준일은 1월 22일이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-pre-startup-package--bizinfo-2026-03-03"
+        ]
+      },
+      {
+        "id": "support",
+        "text": "사업화 자금과 창업 프로그램을 지원한다. 중소벤처기업부 소관이고 창업진흥원이 수행한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-pre-startup-package--bizinfo-2026-03-03"
+        ]
+      },
+      {
+        "id": "period-2026",
+        "text": "2026년 모집 접수는 3월 6일부터 3월 24일까지였다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-pre-startup-package--bizinfo-2026-03-03"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-pre-startup-package--bizinfo-2026-03-03",
+        "title": "2026년 예비창업패키지 예비창업자 모집 수정 공고 (중소벤처기업부 공고 제2026-143호)",
+        "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000119019",
+        "publisher": "중소벤처기업부(기업마당)",
+        "publishedAt": "2026-03-03",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2026-03-06",
+        "datePrecision": "day",
+        "title": "신청 (2026년)",
+        "summary": "2026-03-06 ~ 2026-03-24. K-Startup 누리집에서 온라인 신청.",
+        "claimIds": [
+          "who",
+          "support",
+          "period-2026"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/pre-startup-package"
+    }
+  },
+  {
+    "slug": "stem-research-stipend",
+    "title": "이공계 연구생활장려금",
+    "scope": "청년 정책 — 참여 대학 이공계 대학원생이 매달 석사 80만 원·박사 110만 원 이상을 받도록 보장한다. 따로 더 주는 돈은 아니다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "base",
+        "text": "참여 대학의 이공계 대학원생에게 매달 기준금액 이상을 보장한다. 기준금액은 석사과정 월 80만 원, 박사과정 월 110만 원이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-stem-research-stipend--korea-2025-07-01"
+        ]
+      },
+      {
+        "id": "floor",
+        "text": "따로 더 주는 돈이 아니다. 산학협력단이 주던 R&D 인건비 같은 학생지원금과 합쳐 최저 지급액을 보장하고, 대학별로 모자라는 만큼을 정부가 지원한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-stem-research-stipend--korea-2025-02-11"
+        ]
+      },
+      {
+        "id": "who",
+        "text": "참여 요건을 갖춘 대학에서 연구 활동 중인 이공계 전일제 대학원생이 대상이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-stem-research-stipend--korea-2025-02-11"
+        ]
+      },
+      {
+        "id": "scale-2026",
+        "text": "2026년 하반기에 5개 대학이 새로 참여해 참여 대학은 48곳, 대상 대학원생은 약 5만 5천 명이 됐다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-stem-research-stipend--etoday-2026-09-03"
+        ]
+      },
+      {
+        "id": "period",
+        "text": "2025년부터 2033년까지 9년간 모두 9,790억 원을 들인다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-stem-research-stipend--korea-2025-07-01"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-stem-research-stipend--korea-2025-02-11",
+        "title": "이공계 석·박사 '연구생활장려금' 받는다…올해 30개 대학·5만 명",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148939468",
+        "publisher": "과학기술정보통신부(정책브리핑)",
+        "publishedAt": "2025-02-11",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-stem-research-stipend--korea-2025-07-01",
+        "title": "이공계 대학원생 최소생활 보장…'연구생활장려금' 지급 시작",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148945240",
+        "publisher": "과학기술정보통신부(정책브리핑)",
+        "publishedAt": "2025-07-01",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-stem-research-stipend--etoday-2026-09-03",
+        "title": "석사 월 80만원·박사 110만원 보장…이공계 연구생활장려금 48개 대학 확대",
+        "url": "https://www.etoday.co.kr/news/view/2621431",
+        "publisher": "이투데이",
+        "publishedAt": "2026-09-03",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-history-1",
+        "date": "2025-07-01",
+        "datePrecision": "day",
+        "title": "도입",
+        "summary": "연구생활장려금 지급 시작",
+        "claimIds": [
+          "base",
+          "period"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/stem-research-stipend"
+    }
+  },
+  {
+    "slug": "student-startup-teams",
+    "title": "학생 창업유망팀 300+",
+    "scope": "청소년·청년 정책 — 학생 창업팀을 뽑아 창업교육·멘토링·네트워킹을 지원하는 교육부 사업",
+    "ministries": [],
+    "categories": [
+      "economy",
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "scale",
+        "text": "교육부와 한국청년기업가정신재단이 2026년 학생 창업유망팀 400팀(성장트랙 360팀, 도약트랙 40팀)을 뽑는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-student-startup-teams--newsis-2026-04-08"
+        ]
+      },
+      {
+        "id": "who",
+        "text": "전국 초·중·고·대학(원)생과 학교 밖 청소년이 신청할 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-student-startup-teams--newsis-2026-04-08"
+        ]
+      },
+      {
+        "id": "support",
+        "text": "창업교육과 일대일 멘토링, 분야별·지역별 네트워킹을 지원하고, 우수팀에는 시드투자 연계와 국제 신기술 박람회 참여 기회를 준다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-student-startup-teams--newsis-2026-04-08"
+        ]
+      },
+      {
+        "id": "period-2026",
+        "text": "2026년 접수는 4월 8일부터 27일까지 공식 누리집에서 받았다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-student-startup-teams--newsis-2026-04-08"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-student-startup-teams--newsis-2026-04-08",
+        "title": "멘토링에 시드투자 연계까지…학생 창업가 400팀 키운다",
+        "url": "https://www.newsis.com/view/NISX20260407_0003581433",
+        "publisher": "뉴시스",
+        "publishedAt": "2026-04-08",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2026-04-08",
+        "datePrecision": "day",
+        "title": "신청 (2026년)",
+        "summary": "2026-04-08 ~ 2026-04-27. 공식 누리집에서 온라인 신청.",
+        "claimIds": [
+          "scale",
+          "who",
+          "support",
+          "period-2026"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/student-startup-teams"
+    }
+  },
+  {
+    "slug": "teen-culture-nuri",
+    "title": "문화누리카드",
+    "scope": "청소년 정책 — 6세 이상 기초생활수급자·차상위계층에게 1인당 연 15만 원(13~18세는 16만 원)을 충전해 주는 카드",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-01",
+    "claims": [
+      {
+        "id": "target",
+        "text": "대상은 6세 이상(2020년 12월 31일 이전 출생) 기초생활수급자와 법정 차상위계층이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-teen-culture-nuri--korea-2026-02-02"
+        ]
+      },
+      {
+        "id": "amount",
+        "text": "2026년 지원금은 1인당 15만 원이고, 13~18세 청소년과 60~64세는 1만 원을 더해 16만 원이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-teen-culture-nuri--korea-2026-02-02"
+        ]
+      },
+      {
+        "id": "scale",
+        "text": "국비 2,636억 원과 지방비 1,109억 원, 모두 3,745억 원으로 270만 명을 지원한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-teen-culture-nuri--korea-2026-02-02"
+        ]
+      },
+      {
+        "id": "period",
+        "text": "신청은 2026년 2월 2일부터 11월 30일까지 주민센터·문화누리카드 누리집·앱에서 하고, 카드는 12월 31일까지 쓸 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-teen-culture-nuri--korea-2026-02-02"
+        ]
+      },
+      {
+        "id": "recharge",
+        "text": "지난해 3만 원 이상 쓰고 올해도 자격이 유지되면 따로 신청하지 않아도 자동으로 충전된다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-teen-culture-nuri--korea-2026-02-02"
+        ]
+      },
+      {
+        "id": "cp-unused",
+        "text": "충남에서는 2023년 약 14억 9천만 원, 2024년 약 10억 2천만 원이 쓰이지 않고 사라졌다. 예산은 늘었지만 제도가 일상에 스며들지 못했다는 신호라는 지적이다.",
+        "assertionType": "CLAIM",
+        "assertedBy": "방한일 충남도의원(국민의힘)",
+        "verified": true,
+        "sourceIds": [
+          "tt-teen-culture-nuri--gukje-2025-11-26"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-unused"
+    ],
+    "sources": [
+      {
+        "id": "tt-teen-culture-nuri--korea-2026-02-02",
+        "title": "올해 문화누리카드 15만 원 지원…청소년 등엔 1만 원 더",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148958946",
+        "publisher": "문화체육관광부 (대한민국 정책브리핑)",
+        "publishedAt": "2026-02-02",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-teen-culture-nuri--gukje-2025-11-26",
+        "title": "방한일 충남도의원, 문화누리카드 예산 확대에도 체감 미흡 지적",
+        "url": "https://www.gukjenews.com/news/articleView.html?idxno=3439423",
+        "publisher": "국제뉴스",
+        "publishedAt": "2025-11-26",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2026-02-02",
+        "datePrecision": "day",
+        "title": "신청 (2026년)",
+        "summary": "2026-02-02 ~ 2026-11-30. 주민센터 방문, 문화누리카드 누리집·앱으로 신청. 카드는 12월 31일까지 사용.",
+        "claimIds": [
+          "target",
+          "amount",
+          "scale",
+          "period",
+          "recharge"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/teen-culture-nuri"
+    }
+  },
+  {
+    "slug": "tomorrow-learning-card",
+    "title": "국민내일배움카드",
+    "scope": "청년 정책 — 직업훈련이 필요한 사람에게 카드를 발급해 5년간 훈련비를 300만 원(일부 500만 원)까지 지원한다. 훈련비 일부는 본인이 낸다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "who",
+        "text": "직업훈련이 필요한 국민 누구나 발급받을 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-tomorrow-learning-card--work24-issue",
+          "tt-tomorrow-learning-card--moel-policy"
+        ]
+      },
+      {
+        "id": "excluded-students",
+        "text": "졸업까지 남은 수업연한이 2년 이상인 대학·대학원 재학생과 고등학교 1~2학년생은 발급 대상에서 빠진다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-tomorrow-learning-card--work24-issue"
+        ]
+      },
+      {
+        "id": "excluded-others",
+        "text": "공무원·사립학교 교직원, 75세 이상, 월 임금 300만 원 이상인 45세 미만 대규모 기업 근로자, 월 소득 500만 원 이상 특수형태근로종사자 등도 제외된다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-tomorrow-learning-card--work24-issue"
+        ]
+      },
+      {
+        "id": "limit",
+        "text": "카드 유효기간은 5년이고 훈련비 지원 한도는 300만 원이다. 5년이 지나면 잔액은 사라진다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-tomorrow-learning-card--work24-issue"
+        ]
+      },
+      {
+        "id": "extra",
+        "text": "한도를 다 쓴 뒤 기간제·파견·단시간·일용 근로자, 기초생활수급자·차상위계층, 장애인, 자립준비청년 등은 유효기간 안에 한 번 200만 원을 더 받을 수 있다. 총 한도는 500만 원을 넘지 않는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-tomorrow-learning-card--work24-issue"
+        ]
+      },
+      {
+        "id": "copay",
+        "text": "훈련과정 직종의 평균 취업률, 근로장려금 수급 여부, 국민취업지원제도 참여 유형 등에 따라 정부승인 훈련비의 0~55%를 본인이 낸다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-tomorrow-learning-card--work24-issue"
+        ]
+      },
+      {
+        "id": "apply",
+        "text": "고용24에서 온라인으로 신청하거나 거주지 관할 고용센터에 가서 신청한다. 문의는 1350.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-tomorrow-learning-card--work24-issue",
+          "tt-tomorrow-learning-card--moel-policy"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-tomorrow-learning-card--work24-issue",
+        "title": "국민내일배움카드 발급안내",
+        "url": "https://www.work24.go.kr/hr/h/a/1100/selectIssuGudn.do",
+        "publisher": "고용노동부 (고용24)",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-tomorrow-learning-card--moel-policy",
+        "title": "국민내일배움카드 (정책 소개)",
+        "url": "https://www.moel.go.kr/policyitrd/policyItrdView.do?policy_itrd_sn=216",
+        "publisher": "고용노동부",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/tomorrow-learning-card"
+    }
+  },
+  {
+    "slug": "work-experience",
+    "title": "미래내일 일경험",
+    "scope": "청년 정책 — 15~34세 미취업 청년이 인턴·프로젝트 등으로 일을 경험하는 사업. 주 25시간 이상 참여하면 수당을 받는다",
+    "ministries": [],
+    "categories": [
+      "welfare",
+      "economy"
+    ],
+    "asOf": "2026-09-30",
+    "claims": [
+      {
+        "id": "types",
+        "text": "2026년 미래내일 일경험 사업은 인턴형·프로젝트형·ESG지원형으로 운영기관을 모집했다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-work-experience--moel-2026-01-26"
+        ]
+      },
+      {
+        "id": "target",
+        "text": "만 15~34세 미취업 청년이 참여할 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-work-experience--korea-reporter-2026"
+        ]
+      },
+      {
+        "id": "tour",
+        "text": "인턴형·프로젝트형·ESG 지원형 외에 기업 탐방형도 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-work-experience--korea-reporter-2026"
+        ]
+      },
+      {
+        "id": "multiple",
+        "text": "한 해에 여러 번 참여할 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-work-experience--korea-reporter-2026"
+        ]
+      },
+      {
+        "id": "allowance",
+        "text": "주 25시간 이상 참여하면 수당이 지급된다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-work-experience--korea-reporter-2026"
+        ]
+      },
+      {
+        "id": "portal",
+        "text": "신청은 청년일경험포털(yw.work24.go.kr)에서 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-work-experience--korea-reporter-2026"
+        ]
+      },
+      {
+        "id": "cp-recognition",
+        "text": "정부가 제공하는 훈련·일경험을 기업이 실제 경력으로 인정할지는 불확실하고, 오히려 청년의 취업 준비 기간과 비용을 늘릴 수 있다.",
+        "assertionType": "CLAIM",
+        "assertedBy": "국민일보 분석",
+        "verified": true,
+        "sourceIds": [
+          "tt-work-experience--kmib-2026-09-01"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-recognition"
+    ],
+    "sources": [
+      {
+        "id": "tt-work-experience--moel-2026-01-26",
+        "title": "2026년 미래내일일경험사업 운영기관 모집 안내",
+        "url": "https://www.moel.go.kr/news/notice/noticeView.do?bbs_seq=20260101033",
+        "publisher": "고용노동부",
+        "publishedAt": "2026-01-26",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-work-experience--korea-reporter-2026",
+        "title": "취준생이라면 주목! 2026 청년인턴, 미래내일 일경험 정보 알아보아요",
+        "url": "https://www.korea.kr/news/reporterView.do?newsId=148959764",
+        "publisher": "대한민국 정책브리핑 정책기자단",
+        "type": "press",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-work-experience--kmib-2026-09-01",
+        "title": "정부가 만들어준 경력 통할까… 취업준비 기간만 더 늘릴 수도",
+        "url": "https://www.kmib.co.kr/article/view.asp?arcid=9000007856",
+        "publisher": "국민일보",
+        "publishedAt": "2026-09-01",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/work-experience"
+    }
+  },
+  {
+    "slug": "young-future-savings",
+    "title": "청년미래적금",
+    "scope": "청년 정책 — 청년이 3년간 매달 최대 50만 원을 넣으면 정부가 납입액의 일정 비율을 더해 주는 적금. 이자는 비과세다",
+    "ministries": [],
+    "categories": [
+      "welfare",
+      "economy"
+    ],
+    "asOf": "2026-09-30",
+    "claims": [
+      {
+        "id": "age",
+        "text": "만 19~34세 청년이 가입할 수 있다. 이번 2차 모집은 1991년 11월 17일생부터 2007년 11월 27일생까지다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-young-future-savings--fsc-2026-09-16"
+        ]
+      },
+      {
+        "id": "income",
+        "text": "총급여 7,500만 원 이하 소득자 또는 연매출 3억 원 이하 소상공인이면서, 가구 중위소득 200% 이하여야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-young-future-savings--fsc-2026-09-16"
+        ]
+      },
+      {
+        "id": "deposit",
+        "text": "3년간 매월 최소 1천 원에서 최대 50만 원까지 자유롭게 넣을 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-young-future-savings--fsc-2026-09-16"
+        ]
+      },
+      {
+        "id": "match-rate",
+        "text": "정부가 가입자 납입액의 일정 비율을 기여금으로 더한다. 2026년 2차 모집의 기여율은 일반형 6%, 우대형 12%다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-young-future-savings--fsc-2026-09-16"
+        ]
+      },
+      {
+        "id": "tax-free",
+        "text": "이자소득에는 세금을 매기지 않는다(비과세).",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-young-future-savings--fsc-2026-09-16"
+        ]
+      },
+      {
+        "id": "calc-36m",
+        "text": "월 50만 원을 36개월 넣으면 원금은 1,800만 원이고, 정부 기여금은 일반형 108만 원·우대형 216만 원이다. 이자는 뺀 통통의 계산이다.",
+        "assertionType": "INTERPRETATION",
+        "verified": true,
+        "sourceIds": [
+          "tt-young-future-savings--fsc-2026-09-16"
+        ]
+      },
+      {
+        "id": "cp-low-deposit",
+        "text": "8월 말 기준 가입자 138만 5천 명 가운데 한 달에 10만 원 이하로 넣는 사람이 16만 9천 명(12.2%)이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-young-future-savings--seoul-2026-09-29"
+        ]
+      },
+      {
+        "id": "cp-dropout",
+        "text": "앞선 청년도약계좌에서는 월 10만 원 이하 납입자의 중도해지율이 48%로, 월 70만 원 납입자(11.1%)보다 크게 높았다. 중도에 해지하면 정부 기여금 혜택을 받지 못한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-young-future-savings--seoul-2026-09-29"
+        ]
+      },
+      {
+        "id": "cp-low-income-rate",
+        "text": "소득이 낮은 청년에게는 저축액에 정부가 보태는 비율을 더 높일 필요가 있다.",
+        "assertionType": "CLAIM",
+        "verified": true,
+        "assertedBy": "김대성 국회입법조사처 입법조사관",
+        "sourceIds": [
+          "tt-young-future-savings--seoul-2026-09-29"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-low-deposit",
+      "cp-dropout",
+      "cp-low-income-rate"
+    ],
+    "sources": [
+      {
+        "id": "tt-young-future-savings--fsc-2026-09-16",
+        "title": "10월 7일부터 청년미래적금 2차 가입 신청을 받습니다.",
+        "url": "https://fsc.go.kr/no010101/87726",
+        "publisher": "금융위원회",
+        "publishedAt": "2026-09-16",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-young-future-savings--seoul-2026-09-29",
+        "title": "청년미래적금, 12%는 10만원도 채 못 넣는다…“저소득 지원 강화해야”",
+        "url": "https://www.seoul.co.kr/news/economy/2026/09/29/20260929500258",
+        "publisher": "서울신문 (금융위원회·서민금융진흥원 자료 인용)",
+        "publishedAt": "2026-09-29",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2026-10-07",
+        "datePrecision": "day",
+        "title": "신청 (2026년 2차)",
+        "summary": "2026-10-07 ~ 2026-10-16. 10/7은 출생연도 끝자리 홀수, 10/8은 짝수, 10/12~16은 누구나. 심사 10/19~11/13, 계좌 개설 11/16~27.",
+        "claimIds": [
+          "age",
+          "income",
+          "deposit",
+          "match-rate",
+          "tax-free",
+          "calc-36m"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/young-future-savings"
+    }
+  },
+  {
+    "slug": "youth-challenge",
+    "title": "청년도전지원사업",
+    "scope": "청년 정책 — 구직을 멈춘 18~34세 청년에게 자신감 회복·구직의욕 프로그램과 참여수당을 지원한다",
+    "ministries": [],
+    "categories": [
+      "welfare",
+      "economy"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "purpose",
+        "text": "구직을 멈춘 청년 등의 경제활동 참여와 노동시장 복귀를 돕기 위해 자신감 회복, 구직의욕 높이기 같은 맞춤형 프로그램을 제공한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-challenge--youth-up"
+        ]
+      },
+      {
+        "id": "target",
+        "text": "구직단념청년 유형은 18~34세로, 신청일 전 6개월 이상 취업·교육·훈련 이력이 없고 상담원 문답표 점수가 21점 이상(30점 만점)이어야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-challenge--youth-up"
+        ]
+      },
+      {
+        "id": "other-groups",
+        "text": "자립준비청년, 청소년복지시설 입·퇴소자, 북한이탈청년 등 18~34세의 다른 대상 유형도 있고, 지자체가 인정한 청년도 참여할 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-challenge--youth-up"
+        ]
+      },
+      {
+        "id": "programs",
+        "text": "단기(5주·40시간 이상) 참여수당 50만 원, 중기(15주·120시간 이상) 150만 원, 장기(25주·200시간 이상) 250만 원이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-challenge--youth-up"
+        ]
+      },
+      {
+        "id": "incentive",
+        "text": "중기·장기는 이수 20만 원, 구직활동 30만 원, 취업 최대 50만 원의 인센티브가 더해진다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-challenge--youth-up"
+        ]
+      },
+      {
+        "id": "contact",
+        "text": "문의는 고용노동부 고객상담센터 1350.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-challenge--youth-up"
+        ]
+      },
+      {
+        "id": "cp-allowance-without-job",
+        "text": "취업하지 못해도 프로그램을 마치기만 하면 참여수당을 모두 받는 구조라는 비판이 있었다. 정부는 이 사업의 목적이 구직의욕과 자신감을 되찾게 하는 것이라고 설명했다.",
+        "assertionType": "CLAIM",
+        "assertedBy": "서울경제 보도(2022-11-09), 정책브리핑 「사실은 이렇습니다」에 실림",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-challenge--korea-actually-2022-11-10"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-allowance-without-job"
+    ],
+    "sources": [
+      {
+        "id": "tt-youth-challenge--youth-up",
+        "title": "청년도전지원사업 안내",
+        "url": "https://youth-up.kr/challenge-info",
+        "publisher": "고용노동부 청년도전지원사업",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-youth-challenge--korea-actually-2022-11-10",
+        "title": "청년도전지원사업, 구직단념청년의 구직의욕 고취·자신감 회복이 목적 (사실은 이렇습니다)",
+        "url": "https://www.korea.kr/briefing/actuallyView.do?newsId=148908090",
+        "publisher": "기획재정부·고용노동부 (대한민국 정책브리핑)",
+        "publishedAt": "2022-11-10",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/youth-challenge"
+    }
+  },
+  {
+    "slug": "youth-culture-pass",
+    "title": "청년문화예술패스",
+    "scope": "청년 정책 — 올해 19·20세가 되는 청년에게 공연·전시·영화·도서에 쓸 수 있는 15만~20만 원을 지원한다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-09-30",
+    "claims": [
+      {
+        "id": "target",
+        "text": "2026년 대상은 올해 19·20세가 되는 2006년생과 2007년생이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-culture-pass--korea-2026-02-09"
+        ]
+      },
+      {
+        "id": "amount",
+        "text": "수도권(서울·경기·인천)은 15만 원, 비수도권은 20만 원을 지원한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-culture-pass--korea-2026-02-09"
+        ]
+      },
+      {
+        "id": "uses",
+        "text": "공연·전시·영화에 쓸 수 있다. 영화는 수도권 2회, 비수도권 4회로 횟수가 제한된다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-culture-pass--korea-2026-02-09"
+        ]
+      },
+      {
+        "id": "books",
+        "text": "2026년 8월부터 도서 구매에도 쓸 수 있게 됐고, 8월 10일부터 추가 발급을 받았다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-culture-pass--korea-reporter-books"
+        ]
+      },
+      {
+        "id": "deadline",
+        "text": "2026년에 받은 패스는 12월 31일까지 쓸 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-culture-pass--korea-2026-02-09"
+        ]
+      },
+      {
+        "id": "first-come",
+        "text": "시도별로 정해진 인원 안에서 신청 순서대로 발급한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-culture-pass--korea-2026-02-09"
+        ]
+      },
+      {
+        "id": "budget-2027",
+        "text": "문화체육관광부의 2027년 예산안은 이름을 '청년문화패스'로 하고 대상을 19~34세 모든 청년으로 넓혔다. 국비 지원액은 수도권 10만 원·비수도권 15만 원이고, 체육활동에도 쓸 수 있게 한다. 국회 심의 전 예산안이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-culture-pass--korea-budget-2027"
+        ]
+      },
+      {
+        "id": "cp-usage",
+        "text": "2024년 패스의 전국 이용률은 34.3%였고, 예산 233억 원 가운데 153억 원이 쓰이지 않았다. 전국 공연장의 60%가 수도권에 몰려 있어 지방에서는 쓸 곳이 부족하다는 지적이 나왔다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-culture-pass--khan-2025-04-10"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-usage"
+    ],
+    "sources": [
+      {
+        "id": "tt-youth-culture-pass--korea-2026-02-09",
+        "title": "19·20세 청년에 '문화예술패스' 발급…최대 20만 원까지",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148959296",
+        "publisher": "문화체육관광부 (대한민국 정책브리핑)",
+        "publishedAt": "2026-02-09",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-youth-culture-pass--korea-reporter-books",
+        "title": "\"가을부턴 책도 살 수 있다\" 청년문화예술패스 200% 활용하기",
+        "url": "https://www.korea.kr/news/reporterView.do?newsId=148969816",
+        "publisher": "대한민국 정책브리핑 정책기자단",
+        "type": "press",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-youth-culture-pass--korea-budget-2027",
+        "title": "문체부 내년 예산 첫 9조 원 돌파…청년문화패스, 19~34세로 확대",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148971276",
+        "publisher": "문화체육관광부 (대한민국 정책브리핑)",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-youth-culture-pass--khan-2025-04-10",
+        "title": "“문화체험 기회 늘린다”는 청년문화예술패스, 지방청년들은 쓸 곳 없어 ‘패스’",
+        "url": "https://www.khan.co.kr/article/202504101406001",
+        "publisher": "경향신문",
+        "publishedAt": "2025-04-10",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2026-02-25",
+        "datePrecision": "day",
+        "title": "신청 (2026년)",
+        "summary": "2026-02-25 ~ 2026-06-30. 공식 누리집에서 회원가입 후 신청. 8월 10일부터 추가 발급(선착순)이 있었다.",
+        "claimIds": [
+          "target",
+          "amount",
+          "uses",
+          "books",
+          "deadline",
+          "first-come"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/youth-culture-pass"
+    }
+  },
+  {
+    "slug": "youth-housing-dream-account",
+    "title": "청년주택드림청약통장",
+    "scope": "청년 정책 — 무주택 청년의 청약통장. 2년 이상 가입하면 연 4.5% 금리와 비과세·소득공제를 받는다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-09-30",
+    "claims": [
+      {
+        "id": "age",
+        "text": "만 19세 이상 34세 이하가 가입할 수 있고, 병역 기간은 최대 6년까지 인정된다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-housing-dream-account--nhuf-product"
+        ]
+      },
+      {
+        "id": "income",
+        "text": "연소득 5천만 원 이하의 근로·사업·기타소득자로, 소득세 신고·납부 등이 증빙돼야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-housing-dream-account--nhuf-product"
+        ]
+      },
+      {
+        "id": "no-house",
+        "text": "무주택자만 가입할 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-housing-dream-account--nhuf-product"
+        ]
+      },
+      {
+        "id": "deposit",
+        "text": "매달 최대 100만 원까지 넣을 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-housing-dream-account--korea-launch"
+        ]
+      },
+      {
+        "id": "rate",
+        "text": "2년 이상 가입하면 무주택 기간(최대 10년)에 대해 연 4.5%(세전·단리)가 적용된다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-housing-dream-account--nhuf-product"
+        ]
+      },
+      {
+        "id": "tax",
+        "text": "2년 이상 가입하면 이자소득 합계 500만 원, 원금 연 600만 원 한도로 비과세된다. 납입금액의 40%까지 소득공제도 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-housing-dream-account--nhuf-product",
+          "tt-youth-housing-dream-account--korea-launch"
+        ]
+      },
+      {
+        "id": "auto-switch",
+        "text": "기존 청년우대형청약저축 가입자는 따로 신청하지 않아도 청년주택드림청약통장으로 자동 전환됐다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-housing-dream-account--korea-launch"
+        ]
+      },
+      {
+        "id": "cp-loan-rarely-executed",
+        "text": "청약통장 가입자가 당첨 뒤 쓰는 청년주택드림대출은 2025년 4~11월 전국에서 13건(32억 원)이 실행돼, 같은 기간 신청 185건(422억 원)보다 크게 적었고 서울에서는 한 건도 없었다. 국토교통부는 심사를 마치고 입주를 기다리는 경우가 있어 실행이 점차 늘 것이라고 설명했다.",
+        "assertionType": "CLAIM",
+        "assertedBy": "국토교통부 제출 자료(문진석 의원실), 뉴스1 보도(2026-01-19)",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-housing-dream-account--news1-2026-01-19"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-loan-rarely-executed"
+    ],
+    "sources": [
+      {
+        "id": "tt-youth-housing-dream-account--nhuf-product",
+        "title": "청년 주택드림 청약통장 상품안내",
+        "url": "https://nhuf.molit.go.kr/FP/FP07/FP0701/FP07010301.jsp",
+        "publisher": "주택도시기금 (국토교통부)",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-youth-housing-dream-account--korea-launch",
+        "title": "이거 하나면 목돈 생기고 주택 청약도…청년주택드림청약통장 21일 출시",
+        "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148926066",
+        "publisher": "국토교통부 (대한민국 정책브리핑)",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-youth-housing-dream-account--news1-2026-01-19",
+        "title": "지난해 청년주택드림대출 서울 실행 0건…\"구조적 한계 존재\"",
+        "url": "https://www.news1.kr/realestate/general/6043215",
+        "publisher": "뉴스1",
+        "publishedAt": "2026-01-19",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-history-1",
+        "date": "2024-02-21",
+        "datePrecision": "day",
+        "title": "도입",
+        "summary": "기존 청년우대형청약저축의 대상과 지원을 넓혀 새로 출시했다.",
+        "claimIds": [
+          "deposit",
+          "tax",
+          "auto-switch"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/youth-housing-dream-account"
+    }
+  },
+  {
+    "slug": "youth-jeonse-loan",
+    "title": "청년전용 버팀목전세자금",
+    "scope": "청년 정책 — 무주택 청년 세대주에게 전세보증금을 최대 1.5억 원까지 연 2.2~3.3%로 빌려준다. 갚아야 하는 대출이다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "target",
+        "text": "대출접수일 현재 만 19세 이상 만 34세 이하의 무주택 세대주(예비 세대주 포함)가 대상이다. 세대원 전원이 무주택이어야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-jeonse-loan--nhuf"
+        ]
+      },
+      {
+        "id": "income-asset",
+        "text": "본인과 배우자의 합산 총소득이 5천만 원 이하이고 합산 순자산가액이 3.45억 원 이하여야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-jeonse-loan--nhuf"
+        ]
+      },
+      {
+        "id": "house",
+        "text": "임차 전용면적 85㎡ 이하(만 25세 미만 단독세대주는 60㎡ 이하), 임차보증금 3억 원 이하 주택이어야 하고, 보증금의 5% 이상을 낸 계약이 있어야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-jeonse-loan--nhuf"
+        ]
+      },
+      {
+        "id": "limit",
+        "text": "대출한도는 1.5억 원(만 25세 미만 단독세대주 1.2억 원) 이내이고 임차보증금의 80% 이내다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-jeonse-loan--nhuf"
+        ]
+      },
+      {
+        "id": "rate",
+        "text": "금리는 연 2.2~3.3% 변동금리로, 소득과 보증금 구간에 따라 다르다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-jeonse-loan--nhuf"
+        ]
+      },
+      {
+        "id": "term",
+        "text": "이용기간은 2년 이내이고 연장해 최장 10년까지 쓸 수 있다. 일시상환 또는 혼합상환으로 갚는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-jeonse-loan--nhuf"
+        ]
+      },
+      {
+        "id": "new-hire-limit",
+        "text": "재직 1년 미만이면 대출한도가 2천만 원 이하로 제한될 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-jeonse-loan--nhuf"
+        ]
+      },
+      {
+        "id": "when",
+        "text": "임대차계약서의 잔금지급일과 전입일 중 빠른 날로부터 3개월 안에 신청한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-jeonse-loan--nhuf"
+        ]
+      },
+      {
+        "id": "no-duplicate",
+        "text": "주택도시기금 대출, 은행 전세자금대출, 주택담보대출을 이미 이용 중이면 받을 수 없고, 공공임대주택에 살고 있으면 원칙적으로 받을 수 없다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-jeonse-loan--nhuf"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-youth-jeonse-loan--nhuf",
+        "title": "청년전용 버팀목전세자금 (상품안내)",
+        "url": "https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020301.jsp",
+        "publisher": "국토교통부 주택도시기금",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/youth-jeonse-loan"
+    }
+  },
+  {
+    "slug": "youth-job-leap",
+    "title": "청년일자리도약장려금",
+    "scope": "청년 정책 — 5인 이상 우선지원대상기업이 청년을 채용하면 기업에 최대 720만 원을, 비수도권에서 일하는 청년에게는 근속 인센티브를 준다",
+    "ministries": [],
+    "categories": [
+      "welfare",
+      "economy"
+    ],
+    "asOf": "2026-09-30",
+    "claims": [
+      {
+        "id": "reorganized",
+        "text": "2026년 사업은 기존 Ⅰ·Ⅱ유형을 수도권 유형과 비수도권 유형으로 개편했다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-job-leap--moel-2026-01-26"
+        ]
+      },
+      {
+        "id": "company-support",
+        "text": "5인 이상 우선지원대상기업이 청년을 채용하면, 수도권·비수도권 모두 기업에 1년간 최대 720만 원을 지원한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-job-leap--korea-2025-12-16"
+        ]
+      },
+      {
+        "id": "youth-incentive",
+        "text": "비수도권 기업에 취업한 청년은 6개월 이상 근속하면 2년간 최대 720만 원의 근속 인센티브를 받는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-job-leap--moel-2026-01-26",
+          "tt-youth-job-leap--korea-2025-12-16"
+        ]
+      },
+      {
+        "id": "youth-tiers",
+        "text": "청년 근속 인센티브는 지역에 따라 일반 비수도권 최대 480만 원, 우대지원지역 최대 600만 원, 특별지원지역 최대 720만 원이며, 근속 6·12·18·24개월 차에 나눠 받는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-job-leap--korea-2025-12-16"
+        ]
+      },
+      {
+        "id": "capital-no-youth",
+        "text": "정부 안내 자료에서 청년 근속 인센티브는 비수도권 유형에만 있다. 수도권 유형은 기업 지원만 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-job-leap--korea-2025-12-16"
+        ]
+      },
+      {
+        "id": "capital-target",
+        "text": "수도권 유형은 만 15~34세 가운데 4개월 이상 연속 실업 상태이거나 고졸 이하인 경우 등, 취업애로 요건 10개 중 하나에 해당하는 청년을 채용할 때 지원한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-job-leap--korea-2025-12-16"
+        ]
+      },
+      {
+        "id": "cp-retention",
+        "text": "청년일자리도약장려금 예산은 5년 새 70.4% 늘었지만 청년 고용률은 내림세이고, 지원받은 청년 가운데 2년 이상 고용이 유지된 인원은 참여 인원의 40%에 그친다.",
+        "assertionType": "CLAIM",
+        "verified": true,
+        "assertedBy": "이헌승 국회의원(국민의힘)",
+        "sourceIds": [
+          "tt-youth-job-leap--news1-2026-09-25"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-retention"
+    ],
+    "sources": [
+      {
+        "id": "tt-youth-job-leap--moel-2026-01-26",
+        "title": "'26년 청년일자리도약장려금 지방 기업·청년의 성장을 지원합니다",
+        "url": "https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=18886",
+        "publisher": "고용노동부",
+        "publishedAt": "2026-01-26",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-youth-job-leap--korea-2025-12-16",
+        "title": "비수도권 소재 기업 지원 특화! 2026 청년일자리도약장려금",
+        "url": "https://www.korea.kr/multi/visualNewsView.do?newsId=148956536",
+        "publisher": "고용노동부 (대한민국 정책브리핑)",
+        "publishedAt": "2025-12-16",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-youth-job-leap--news1-2026-09-25",
+        "title": "이헌승 \"청년일자리 사업 수천 억 쓰지만 2년 이상 고용 유지는 40%\"",
+        "url": "https://www.news1.kr/politics/assembly/6301264",
+        "publisher": "뉴스1",
+        "publishedAt": "2026-09-25",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-history-1",
+        "date": "2026-01-26",
+        "datePrecision": "day",
+        "title": "변경",
+        "summary": "Ⅰ·Ⅱ유형을 수도권·비수도권 유형으로 개편하고, 비수도권 청년 근속 인센티브를 도입했다.",
+        "claimIds": [
+          "reorganized",
+          "youth-incentive"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/youth-job-leap"
+    }
+  },
+  {
+    "slug": "youth-monthly-rent",
+    "title": "청년월세 지원",
+    "scope": "청년 정책 — 부모와 따로 사는 무주택 청년에게 월세를 월 최대 20만 원, 최대 24개월 지원한다. 생애 한 번만 받는다",
+    "ministries": [],
+    "categories": [
+      "welfare"
+    ],
+    "asOf": "2026-09-30",
+    "claims": [
+      {
+        "id": "target",
+        "text": "부모와 따로 사는 19~34세 무주택 청년이 대상이다. 2026년 신청 가능 출생연도는 1991~2007년생이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-monthly-rent--bokjiro-2026-03-20"
+        ]
+      },
+      {
+        "id": "income",
+        "text": "부모님 가구(원가구)는 기준 중위소득 100% 이하, 청년 본인 가구는 기준 중위소득 60% 이하여야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-monthly-rent--bokjiro-2026-03-20"
+        ]
+      },
+      {
+        "id": "amount",
+        "text": "실제로 내는 월세 가운데 최대 월 20만 원을, 최대 24개월(회) 지원한다. 생애 한 번만 받을 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-monthly-rent--bokjiro-2026-03-20"
+        ]
+      },
+      {
+        "id": "excluded",
+        "text": "임차보증금과 관리비 등은 지원하지 않는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-monthly-rent--bokjiro-2026-03-20"
+        ]
+      },
+      {
+        "id": "max-total",
+        "text": "월 20만 원 × 24개월, 받을 수 있는 최대 금액은 480만 원이다. 월세가 20만 원보다 적으면 그만큼 줄어든다.",
+        "assertionType": "INTERPRETATION",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-monthly-rent--bokjiro-2026-03-20"
+        ]
+      },
+      {
+        "id": "quota",
+        "text": "2026년 신규 수혜자는 전국 6만 명을 모집할 예정이며, 지역마다 선정 인원이 다르다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-monthly-rent--bokjiro-2026-03-20"
+        ]
+      },
+      {
+        "id": "cp-strict-income",
+        "text": "2023년 청년월세 특별지원 때 수도권 지자체 상당수가 예산의 30%도 쓰지 못했다(서울 29%). 신청자 다수가 소득 기준에 맞지 않아 탈락했는데, 청년 본인 소득 기준(중위소득 60%)이 최저임금 월급보다 낮아 일하는 청년은 사실상 받기 어렵다는 지적이었다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-monthly-rent--seoulpn-2023-06-20"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-strict-income"
+    ],
+    "sources": [
+      {
+        "id": "tt-youth-monthly-rent--bokjiro-2026-03-20",
+        "title": "2026년 청년월세 지원 신청 안내",
+        "url": "https://m.bokjiro.go.kr/ssis-tem/cms/mob/customer/notice/1309500_1155.html",
+        "publisher": "복지로",
+        "publishedAt": "2026-03-20",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-youth-monthly-rent--seoulpn-2023-06-20",
+        "title": "청년월세 지원받기 ‘바늘구멍’… 수도권 지자체 예산 30%도 못 써",
+        "url": "https://go.seoul.co.kr/news/newsView.php?id=20230620002002",
+        "publisher": "서울신문 서울Pn",
+        "publishedAt": "2023-06-20",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2026-03-30",
+        "datePrecision": "day",
+        "title": "신청 (2026년)",
+        "summary": "2026-03-30 ~ 2026-05-29. 청년 본인이 복지로에서 온라인 신청.",
+        "claimIds": [
+          "target",
+          "income",
+          "amount",
+          "excluded",
+          "max-total",
+          "quota"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/youth-monthly-rent"
+    }
+  },
+  {
+    "slug": "youth-startup-academy",
+    "title": "청년창업사관학교",
+    "scope": "청년 정책 — 39세 이하 초기 창업 대표자에게 사업화 자금(평균 7천만 원)과 창업공간·교육·코칭을 지원한다",
+    "ministries": [],
+    "categories": [
+      "economy",
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "who",
+        "text": "39세 이하이면서 창업한 지 3년 이내인 대표자가 대상이다. 경험창업자는 39세 이하, 창업 7년 이내 대표자까지 신청할 수 있다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-startup-academy--bizinfo-2026-01-30"
+        ]
+      },
+      {
+        "id": "support",
+        "text": "사업화 자금을 평균 7천만 원, 최대 1억 원 지원하고 창업공간·교육·코칭·기술지원 같은 창업 프로그램을 제공한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-startup-academy--bizinfo-2026-01-30"
+        ]
+      },
+      {
+        "id": "operator",
+        "text": "중소벤처기업부 소관이고 중소벤처기업진흥공단이 수행한다. K-Startup 누리집에서 온라인으로 신청한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-startup-academy--bizinfo-2026-01-30"
+        ]
+      },
+      {
+        "id": "period-2026",
+        "text": "2026년 기본과정 입교생 모집은 1월 30일부터 2월 13일까지였다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-startup-academy--bizinfo-2026-01-30"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-youth-startup-academy--bizinfo-2026-01-30",
+        "title": "2026년 창업성공패키지(청년창업사관학교) 기본과정 입교생 모집 공고 (제2026-60호)",
+        "url": "https://bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000118036",
+        "publisher": "중소벤처기업부(기업마당)",
+        "publishedAt": "2026-01-30",
+        "type": "official",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2026-01-30",
+        "datePrecision": "day",
+        "title": "신청 (2026년 기본과정)",
+        "summary": "2026-01-30 ~ 2026-02-13. K-Startup 누리집에서 온라인 신청.",
+        "claimIds": [
+          "who",
+          "support",
+          "operator",
+          "period-2026"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/youth-startup-academy"
+    }
+  },
+  {
+    "slug": "youth-startup-tax-relief",
+    "title": "청년창업중소기업 세액감면",
+    "scope": "청년 정책 — 청년이 창업한 중소기업의 법인세·소득세를 5년 동안 감면한다. 감면율은 창업 시기와 지역에 따라 다르다",
+    "ministries": [],
+    "categories": [
+      "economy",
+      "welfare"
+    ],
+    "asOf": "2026-10-04",
+    "claims": [
+      {
+        "id": "period",
+        "text": "창업 후 처음 소득이 생긴 과세연도와 그다음 과세연도부터 4년 안에 끝나는 과세연도까지, 모두 5년 동안 법인세나 소득세를 감면한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-startup-tax-relief--law-tax-6"
+        ]
+      },
+      {
+        "id": "rate-2025",
+        "text": "2025년 12월 31일 이전에 창업한 청년창업중소기업은 수도권과밀억제권역 밖이면 세액의 100%, 안이면 50%를 감면받는다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-startup-tax-relief--law-tax-6"
+        ]
+      },
+      {
+        "id": "rate-2026",
+        "text": "2026년 1월 1일 이후에 창업한 경우에는 2025년까지와 다른 감면 규정이 따로 적용된다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-startup-tax-relief--law-tax-6"
+        ]
+      },
+      {
+        "id": "youth-rule",
+        "text": "어떤 기업이 청년창업중소기업인지(대표자 나이 등)는 대통령령으로 정한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-startup-tax-relief--law-tax-6"
+        ]
+      }
+    ],
+    "critiqueIds": [],
+    "sources": [
+      {
+        "id": "tt-youth-startup-tax-relief--law-tax-6",
+        "title": "조세특례제한법 제6조(창업중소기업 등에 대한 세액감면) — 시행 2026. 9. 18.",
+        "url": "https://www.law.go.kr/LSW//lsLawLinkInfo.do?chrClsCd=010202&lsId=001584&lsJoLnkSeq=900239530&print=print",
+        "publisher": "국가법령정보센터",
+        "type": "legislative",
+        "license": "public"
+      }
+    ],
+    "timeline": [],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/youth-startup-tax-relief"
+    }
+  },
+  {
+    "slug": "youth-tomorrow-savings",
+    "title": "청년내일저축계좌",
+    "scope": "청년 정책 — 기준 중위소득 50% 이하 가구의 일하는 청년이 매달 10만 원 이상 저축하면 정부가 매달 30만 원을 더해 준다(3년)",
+    "ministries": [],
+    "categories": [
+      "welfare",
+      "economy"
+    ],
+    "asOf": "2026-09-30",
+    "claims": [
+      {
+        "id": "target",
+        "text": "기준 중위소득 50% 이하 가구의 일하는 청년이 대상이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-tomorrow-savings--mohw-2026-recruit"
+        ]
+      },
+      {
+        "id": "deposit",
+        "text": "본인이 매달 10만~50만 원을 저축하면 정부가 매달 30만 원을 지원한다. 기간은 3년이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-tomorrow-savings--mohw-2026-recruit"
+        ]
+      },
+      {
+        "id": "total",
+        "text": "월 10만 원씩 3년 저축하면 만기 적립금은 본인 저축 360만 원을 포함해 1,440만 원이고, 이자가 더해진다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-tomorrow-savings--mohw-2026-recruit"
+        ]
+      },
+      {
+        "id": "conditions",
+        "text": "지원금을 받으려면 저축 기간 동안 일을 계속하고, 금융교육 10시간을 이수하고, 자금사용계획서를 내야 한다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-tomorrow-savings--mohw-2026-recruit"
+        ]
+      },
+      {
+        "id": "pause",
+        "text": "2026년부터 실직·질병 같은 사정으로 적립을 멈출 수 있는 기간이 6개월에서 12개월로 늘었다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-tomorrow-savings--mohw-2026-recruit"
+        ]
+      },
+      {
+        "id": "recruit",
+        "text": "2026년 신규 모집 인원은 2만 5천 명이다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-tomorrow-savings--mohw-2026-recruit"
+        ]
+      },
+      {
+        "id": "cp-dropout",
+        "text": "2022년에 계좌를 연 4만 2,465명 가운데 8,492명(20.0%)이 중도에 해지해 정부지원금을 받지 못했다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-tomorrow-savings--khan-2026-09-18"
+        ]
+      },
+      {
+        "id": "cp-reasons",
+        "text": "해지한 청년을 조사한 결과 81.3%가 소득·자금 문제를 이유로 들었고, 가장 많은 사유는 휴직·실직(45.3%)이었다.",
+        "assertionType": "FACT",
+        "verified": true,
+        "sourceIds": [
+          "tt-youth-tomorrow-savings--khan-2026-09-18"
+        ]
+      },
+      {
+        "id": "cp-flexible",
+        "text": "실직이나 생계 위기로 한 달 10만 원을 넣기 어려운 청년을 위해 탄력적인 납입과 고용 지원 연계를 넓혀야 한다.",
+        "assertionType": "CLAIM",
+        "verified": true,
+        "assertedBy": "이인영 국회의원(더불어민주당)",
+        "sourceIds": [
+          "tt-youth-tomorrow-savings--khan-2026-09-18"
+        ]
+      }
+    ],
+    "critiqueIds": [
+      "cp-dropout",
+      "cp-reasons",
+      "cp-flexible"
+    ],
+    "sources": [
+      {
+        "id": "tt-youth-tomorrow-savings--mohw-2026-recruit",
+        "title": "월 10만 원씩 3년 모으면 1,440만 원 받는다 '청년내일저축계좌' 신규 모집",
+        "url": "https://www.mohw.go.kr/board.es?mid=a10503010100&bid=0027&act=view&list_no=1490402&tag=&nPage=1",
+        "publisher": "보건복지부",
+        "type": "official",
+        "license": "link-only"
+      },
+      {
+        "id": "tt-youth-tomorrow-savings--khan-2026-09-18",
+        "title": "저소득 청년 돕는다는 '내일저축계좌'···월 10만원이 버거운 청년들은 그마저도 못 지켰다",
+        "url": "https://www.khan.co.kr/article/202609180600061/",
+        "publisher": "경향신문 (이인영 의원실 자료 인용)",
+        "publishedAt": "2026-09-18",
+        "type": "press",
+        "license": "link-only"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t-apply-1",
+        "date": "2026-05-04",
+        "datePrecision": "day",
+        "title": "신청 (2026년)",
+        "summary": "2026-05-04 ~ 2026-05-20. 복지로 또는 행정복지센터에서 신청.",
+        "claimIds": [
+          "target",
+          "deposit",
+          "total",
+          "conditions",
+          "pause",
+          "recruit"
+        ]
+      }
+    ],
+    "origin": {
+      "name": "통통",
+      "url": "https://tt.jamtong.kr/policy/youth-tomorrow-savings"
+    }
+  }
+]

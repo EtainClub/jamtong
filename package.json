@@ -14,6 +14,7 @@
     "seo:check": "node --test scripts/seo-check.test.mjs",
     "wiki:ingest": "tsx scripts/wiki-ingest.ts",
     "wiki:lint": "tsx scripts/wiki-lint.ts",
+    "policies:tongtong": "tsx scripts/import-tongtong.ts",
     "check:rules": "tsx --env-file=.env.local scripts/check-rules.ts",
     "grant-admin": "tsx scripts/grant-admin.ts",
     "brand": "tsx scripts/build-brand.ts",

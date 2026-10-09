@@ -90,6 +90,14 @@ claim마다 `policy:<slug>#<claimId>` 앵커로 나간다.
 4. `src/content/policies/index.ts`의 `POLICIES`에 더한다.
 5. `pnpm validate && pnpm wiki:lint`.
 
+### 통통에서 가져온 청소년·청년 정책
+
+통통(tt.jamtong.kr)의 공개 정책 항목은 `pnpm policies:tongtong`이 `../tongtong`에서 읽어
+`src/content/policies/tongtong.generated.json`으로 가져온다. 사실은 통통에서 고치고 다시
+가져온다. 스냅샷을 손으로 고치지 않는다. 출처 id에는 `tt-<항목>--`가 붙고, 통통의
+비판(counterpoints)은 `critiqueIds`로 "비판과 한계"에 묶인다. 잼통에서만 쓰는 도는 주장과
+기한(`validUntil`) 지난 claim 빼기는 `src/content/policies/tongtong.ts`에 있다.
+
 ## Ingest
 
 ```

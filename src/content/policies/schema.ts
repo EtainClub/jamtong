@@ -54,6 +54,16 @@ export const policySchema = z
     timeline: z.array(timelineEventSchema).default([]),
     /** 아직 확인하지 못한 것. 비워 두면 다 확인한 것처럼 읽힌다. */
     gaps: z.array(z.string()).default([]),
+    /**
+     * 비판·한계를 적은 claim. 화면에서 "비판과 한계"로 따로 묶는다.
+     * 정책의 좋은 점만 모아 두면 객관적이라 할 수 없다.
+     */
+    critiqueIds: z.array(z.string()).default([]),
+    /**
+     * 다른 자매 서비스에서 가져온 페이지면 그 원본. 사실은 원본에서 고친다.
+     * 예: 통통(tt.jamtong.kr)의 청년 정책 항목 — scripts/import-tongtong.ts.
+     */
+    origin: z.object({ name: z.string(), url: z.string().url() }).optional(),
   })
   .superRefine((policy, ctx) => {
     const claimIds = new Set(policy.claims.map((c) => c.id));
@@ -72,6 +82,7 @@ export const policySchema = z
     const refs = [
       ...policy.rumors.flatMap((r) => r.claimIds.map((id) => [r.id, id] as const)),
       ...policy.timeline.flatMap((e) => e.claimIds.map((id) => [e.id, id] as const)),
+      ...policy.critiqueIds.map((id) => ["critiqueIds", id] as const),
     ];
     for (const [owner, id] of refs) {
       if (!claimIds.has(id)) {

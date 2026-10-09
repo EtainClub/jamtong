@@ -24,6 +24,10 @@ export function policyMarkdown(policy: Policy): string {
   L.push(`# ${policy.title}`, "");
   L.push(`${policy.scope}. 기준일 ${policy.asOf}.`);
   if (policy.ministries.length > 0) L.push(`소관 ${policy.ministries.join("·")}.`);
+  if (policy.origin) {
+    const where = policy.origin.url.replace(/^https?:\/\//, "");
+    L.push(`${policy.origin.name}(${where})의 정책 항목을 옮겨 왔습니다. 내용은 원본과 같습니다.`);
+  }
 
   const unverified = policy.claims.filter((c) => !c.verified).length;
   if (unverified > 0) {
@@ -48,10 +52,17 @@ export function policyMarkdown(policy: Policy): string {
     }
   }
 
-  const rest = policy.claims.filter((c) => !shown.has(c.id));
+  const critiques = new Set(policy.critiqueIds);
+  const rest = policy.claims.filter((c) => !shown.has(c.id) && !critiques.has(c.id));
   if (rest.length > 0) {
     L.push("", "## 확인된 사실", "");
     for (const claim of rest) L.push(line(claim));
+  }
+
+  const critiqueClaims = policy.claims.filter((c) => critiques.has(c.id) && !shown.has(c.id));
+  if (critiqueClaims.length > 0) {
+    L.push("", "## 비판과 한계", "");
+    for (const claim of critiqueClaims) L.push(line(claim));
   }
 
   if (policy.timeline.length > 0) {
