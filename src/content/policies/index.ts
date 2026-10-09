@@ -1,3 +1,4 @@
+import { EGG_IMPORTS } from "./egg-imports";
 import { FOREIGNER_HEALTH_VOTE } from "./foreigner-health-vote";
 import { HOUSING_MEASURES } from "./housing-measures";
 import { MIDEAST_RUMORS } from "./mideast-rumors";
@@ -17,6 +18,7 @@ export const POLICIES: Policy[] = [
   MIDEAST_RUMORS,
   FOREIGNER_HEALTH_VOTE,
   PROSECUTION_LAUNCH,
+  EGG_IMPORTS,
 ].map((policy) => policySchema.parse(policy));
 
 export function getPolicy(slug: string): Policy | undefined {
