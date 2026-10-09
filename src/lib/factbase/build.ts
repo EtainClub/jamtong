@@ -192,11 +192,16 @@ export function buildFactbase(): Factbase {
    * 정부 정책 팩트. 대통령의 업적·언행과 따로 쌓이는 근거다. kind는 업적과 같은
    * "claim"으로 넘기고, 앵커 접두사(`policy:`)로 구별한다 — 받는 쪽 스키마를
    * 바꾸지 않아도 된다.
+   *
+   * ★ 미검증 claim은 넘기지 않는다.
+   *   공개 업적은 미검증 claim이 있으면 빌드가 막히지만 정책은 미검증을 허용한다.
+   *   받는 쪽은 verified를 모르고 넘어온 것을 근거로 댓글을 쓰므로, 검증 전의
+   *   문장이 "잼통 근거"로 인스타그램에 나가지 않도록 여기서 거른다.
    */
   for (const policy of POLICIES) {
     entries.push(
       ...claimEntries(
-        policy.claims,
+        policy.claims.filter((claim) => claim.verified),
         policy.sources,
         (claim) => `policy:${policy.slug}#${claim.id}`,
         policy.title,
