@@ -1,4 +1,5 @@
 import type { BookFigure, FigureTone } from "@/content/books/schema";
+import { SLOT, fitSlot, stepWidth, textWidth } from "@/content/books/figure-fit";
 
 /**
  * 장면 도형.
@@ -31,11 +32,35 @@ function Stage({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+type SlotSpec = Parameters<typeof fitSlot>[1];
+
+/**
+ * 칸에 맞춘 글자. 넘치면 줄이고, 그래도 넘치면 두 줄로 접는다(figure-fit).
+ * y는 글자 덩어리의 가운데 기준선이다 — 두 줄이면 위아래로 반 줄씩 벌린다.
+ */
+function FitText({
+  text,
+  box,
+  y,
+  ...props
+}: { text: string; box: SlotSpec; y: number } & Omit<React.SVGProps<SVGTextElement>, "y" | "fontSize" | "slot">) {
+  const { size, lines } = fitSlot(text, box);
+  const lead = size * 1.2;
+  const top = y - ((lines.length - 1) * lead) / 2;
+  return (
+    <text y={top} fontSize={size} {...props}>
+      {lines.map((line, i) => (
+        <tspan key={i} x={props.x} dy={i === 0 ? 0 : lead}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
 function Caption({ children, tone = "ink" }: { children: string; tone?: string }) {
   return (
-    <text x={160} y={222} textAnchor="middle" fontSize={14} {...LABEL} fill={`var(--${tone})`}>
-      {children}
-    </text>
+    <FitText text={children} box={SLOT.caption} x={160} y={222} textAnchor="middle" {...LABEL} fill={`var(--${tone})`} />
   );
 }
 
@@ -61,9 +86,7 @@ export function Figure({ figure }: { figure: BookFigure }) {
             )}
           </text>
           {figure.note && (
-            <text x={160} y={158} textAnchor="middle" fontSize={13} fill="var(--ash)">
-              {figure.note}
-            </text>
+            <FitText text={figure.note} box={SLOT.numberNote} x={160} y={162} textAnchor="middle" fill="var(--ash)" />
           )}
           <Caption>{figure.caption}</Caption>
         </Stage>
@@ -74,20 +97,11 @@ export function Figure({ figure }: { figure: BookFigure }) {
         const tone = cell.tone ?? "ash";
         return (
           <g>
-            <text x={x + 66} y={62} textAnchor="middle" fontSize={12} fontWeight={600} fill="var(--smoke)">
-              {cell.label}
-            </text>
+            <FitText text={cell.label} box={SLOT.versusLabel} x={x + 66} y={62} textAnchor="middle" fontWeight={600} fill="var(--smoke)" />
             <rect x={x} y={74} width={132} height={68} rx={12} fill={COLOR[tone]} />
-            <text
-              x={x + 66}
-              y={116}
-              textAnchor="middle"
-              fontSize={cell.value && cell.value.length > 6 ? 17 : 22}
-              {...LABEL}
-              fill={ON[tone]}
-            >
-              {cell.value ?? ""}
-            </text>
+            {cell.value && (
+              <FitText text={cell.value} box={SLOT.versusValue} x={x + 66} y={115} textAnchor="middle" {...LABEL} fill={ON[tone]} />
+            )}
           </g>
         );
       };
@@ -101,9 +115,7 @@ export function Figure({ figure }: { figure: BookFigure }) {
             * 글자가 블록에 가린다 — 실제로 "같은 곳"이 그렇게 사라졌다.
             */}
           {figure.middle && (
-            <text x={160} y={164} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--graphite)">
-              {figure.middle}
-            </text>
+            <FitText text={figure.middle} box={SLOT.versusMiddle} x={160} y={164} textAnchor="middle" {...LABEL} fill="var(--graphite)" />
           )}
           <path d="M18 176 H302" stroke="var(--stone)" strokeWidth={2} />
           <Caption>{figure.caption}</Caption>
@@ -114,9 +126,7 @@ export function Figure({ figure }: { figure: BookFigure }) {
     case "stack":
       return (
         <Stage label={`${figure.title}: ${figure.items.map((i) => i.label).join(", ")}`}>
-          <text x={16} y={40} fontSize={12} fontWeight={600} fill="var(--smoke)">
-            {figure.title}
-          </text>
+          <FitText text={figure.title} box={SLOT.stackTitle} x={16} y={40} fontWeight={600} fill="var(--smoke)" />
           {figure.items.map((item, i) => (
             <g key={item.label}>
               <rect
@@ -127,13 +137,9 @@ export function Figure({ figure }: { figure: BookFigure }) {
                 rx={8}
                 fill={COLOR[item.tone ?? "burgundy"]}
               />
-              <text x={30} y={73 + i * 40} fontSize={13.5} {...LABEL} fill={ON[item.tone ?? "burgundy"]}>
-                {item.label}
-              </text>
+              <FitText text={item.label} box={SLOT.stackLabel} x={30} y={73 + i * 40} {...LABEL} fill={ON[item.tone ?? "burgundy"]} />
               {item.value && (
-                <text x={192} y={73 + i * 40} fontSize={11.5} fill="var(--ash)">
-                  {item.value}
-                </text>
+                <FitText text={item.value} box={SLOT.stackValue} x={192} y={72 + i * 40} fill="var(--ash)" />
               )}
             </g>
           ))}
@@ -144,19 +150,18 @@ export function Figure({ figure }: { figure: BookFigure }) {
                 stroke="var(--stone)"
                 strokeWidth={2}
               />
-              <text x={16} y={90 + figure.items.length * 40} fontSize={12} fontWeight={600} fill="var(--smoke)">
-                {figure.footer.label}
-              </text>
-              <text
-                x={122}
-                y={96 + figure.items.length * 40}
-                fontSize={32}
-                {...LABEL}
-                fill="var(--ink)"
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
-                {figure.footer.value}
-              </text>
+              <FitText text={figure.footer.label} box={SLOT.footerLabel} x={16} y={90 + figure.items.length * 40} fontWeight={600} fill="var(--smoke)" />
+              {figure.footer.value && (
+                <FitText
+                  text={figure.footer.value}
+                  box={SLOT.footerValue}
+                  x={122}
+                  y={96 + figure.items.length * 40}
+                  {...LABEL}
+                  fill="var(--ink)"
+                  style={{ fontVariantNumeric: "tabular-nums" }}
+                />
+              )}
             </g>
           )}
         </Stage>
@@ -210,7 +215,7 @@ export function Figure({ figure }: { figure: BookFigure }) {
 
     case "steps": {
       const n = figure.steps.length;
-      const width = (288 - (n - 1) * 18) / n;
+      const width = stepWidth(n);
 
       return (
         <Stage label={figure.steps.map((s) => s.label).join(" → ")}>
@@ -220,28 +225,38 @@ export function Figure({ figure }: { figure: BookFigure }) {
             return (
               <g key={step.label}>
                 <rect x={x} y={78} width={width} height={62} rx={10} fill={COLOR[tone]} />
-                <text
-                  x={x + width / 2}
-                  y={step.value ? 106 : 114}
-                  textAnchor="middle"
-                  fontSize={n > 3 ? 12.5 : 14}
-                  {...LABEL}
-                  fill={ON[tone]}
-                >
-                  {step.label}
-                </text>
-                {step.value && (
-                  <text
-                    x={x + width / 2}
-                    y={126}
-                    textAnchor="middle"
-                    fontSize={11}
-                    fill={ON[tone]}
-                    opacity={0.8}
-                  >
-                    {step.value}
-                  </text>
-                )}
+                {/* 이름과 값이 각각 두 줄까지 접힌다. 칸(78~140) 안에서 덩어리째 가운데에 둔다. */}
+                {(() => {
+                  const label = fitSlot(step.label, SLOT.stepLabel(n));
+                  const value = step.value ? fitSlot(step.value, SLOT.stepValue(n)) : undefined;
+                  const labelHeight = label.lines.length * label.size * 1.2;
+                  const valueHeight = value ? value.lines.length * value.size * 1.2 + 4 : 0;
+                  const top = 109 - (labelHeight + valueHeight) / 2;
+                  return (
+                    <>
+                      <FitText
+                        text={step.label}
+                        box={SLOT.stepLabel(n)}
+                        x={x + width / 2}
+                        y={top + labelHeight / 2 + label.size * 0.35}
+                        textAnchor="middle"
+                        {...LABEL}
+                        fill={ON[tone]}
+                      />
+                      {step.value && value && (
+                        <FitText
+                          text={step.value}
+                          box={SLOT.stepValue(n)}
+                          x={x + width / 2}
+                          y={top + labelHeight + 4 + (valueHeight - 4) / 2 + value.size * 0.35}
+                          textAnchor="middle"
+                          fill={ON[tone]}
+                          opacity={0.8}
+                        />
+                      )}
+                    </>
+                  );
+                })()}
                 {i < n - 1 && (
                   <path
                     d={`M${x + width + 4} 109 H${x + width + 14}`}
@@ -264,14 +279,12 @@ export function Figure({ figure }: { figure: BookFigure }) {
           {figure.bars.map((bar, i) => {
             const width = Math.max((bar.ratio / 100) * 284, 74);
             const tone = bar.tone ?? (i === 0 ? "burgundy" : "navy");
-            /* 막대가 길면 값이 무대 밖으로 나간다. 그럴 때는 막대 안에 넣는다. */
-            const inside = 18 + width + 60 > 316;
+            /* 막대가 길면 값이 무대 밖으로 나간다. 그럴 때는 막대 안에 넣는다. 값의 폭은 재서 본다. */
+            const inside = 18 + width + 8 + textWidth(bar.value, 13) > 316;
 
             return (
               <g key={bar.label}>
-                <text x={18} y={54 + i * 58} fontSize={12} fontWeight={600} fill="var(--smoke)">
-                  {bar.label}
-                </text>
+                <FitText text={bar.label} box={SLOT.barLabel} x={18} y={54 + i * 58} fontWeight={600} fill="var(--smoke)" />
                 <rect x={18} y={62 + i * 58} width={width} height={30} rx={15} fill={COLOR[tone]} />
                 <text
                   x={inside ? 18 + width - 14 : 18 + width + 8}
@@ -307,9 +320,7 @@ export function Figure({ figure }: { figure: BookFigure }) {
               fill={i < figure.filled ? "var(--navy)" : "var(--stone)"}
             />
           ))}
-          <text x={18} y={182} fontSize={13} {...LABEL} fill="var(--navy)">
-            {figure.label}
-          </text>
+          <FitText text={figure.label} box={SLOT.gridLabel} x={18} y={182} {...LABEL} fill="var(--navy)" />
           <Caption>{figure.caption}</Caption>
         </Stage>
       );

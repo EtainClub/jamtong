@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { checkFigure } from "./figure-fit";
+
 /**
  * 자서전 — 본인이 쓴 책.
  *
@@ -298,6 +300,10 @@ export function validateBook(book: Book): string[] {
     }
 
     for (const point of chapter.easy.points) {
+      /* 도형 글자가 칸을 넘으면 화면에서 잘린다. 줄이고 접어도 안 되면 막는다. */
+      if (point.figure) {
+        for (const error of checkFigure(point.figure)) errors.push(`${where}/${point.id}: ${error}`);
+      }
       if (!point.quote) continue;
       if (!chapter.body) {
         errors.push(`${where}/${point.id}: 본문이 없는데 옮긴 자리를 가리킨다`);

@@ -393,7 +393,7 @@ export const CHAPTERS: ChapterMeta[] = [
       {
         id: "a7-p1",
         title: "폭로의 대가로 벌금을 받았어요",
-        figure: { kind: "steps", steps: [{ label: "녹취 폭로" }, { label: "공직자·언론인 구속" }, { label: "저자 기소", value: "검사 사칭 공범", tone: "burgundy" }, { label: "벌금", value: "150만 원", tone: "burgundy" }], caption: "파크뷰 특혜 분양 사건" },
+        figure: { kind: "steps", steps: [{ label: "녹취 폭로" }, { label: "공직자 등 구속" }, { label: "저자 기소", value: "검사 사칭 공범", tone: "burgundy" }, { label: "벌금", value: "150만 원", tone: "burgundy" }], caption: "파크뷰 특혜 분양 사건" },
         say: "저자는 파크뷰 특혜 분양 비리를 폭로했고 여러 사람이 구속됐어요. 그 과정에서 저자도 검사 사칭을 도운 혐의로 벌금 150만 원을 선고받았어요.",
         quote: "이 폭로로 세간이 발칵 뒤집히고 도지사 부인과 고위 공직자, 경찰 간부, 언론인들이 줄줄이 구속되었으나, 오히려 검찰은 검사를 사칭하도록 도왔다며 공범으로 몰아 기소했고 결국 벌금 백오십만 원을 선고받았습니다.",
       },
