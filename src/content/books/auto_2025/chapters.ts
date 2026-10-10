@@ -26,6 +26,14 @@ export const CHAPTERS: ChapterMeta[] = [
     slug: "mountain-village",
     summary: "안동 산골 화전민 마을의 어린 시절, 어머니의 믿음, 가난 때문에 겪은 차별, 그리고 열세 살에 시작한 공장 생활.",
     lead: "저자가 태어나 자란 산골 마을과, 열세 살에 공장에 가기까지의 이야기예요.",
+    shorts: [
+      {
+        id: "a1-s1",
+        title: "소외 없는 수학여행을 만든 학교 매점의 비밀",
+        youtubeId: "emRim1Mlp4Y",
+        summary: "1장을 한 편으로 — 전교생을 수학여행에 보낸 선생님들과 산골의 어린 시절.",
+      },
+    ],
     points: [
       {
         id: "a1-p1",
@@ -78,6 +86,14 @@ export const CHAPTERS: ChapterMeta[] = [
     slug: "factory-boy",
     summary: "떼인 석 달 치 월급, 프레스기에 깨진 손목, 백 개의 흉터. 공장의 폭력을 보며 '홍 대리 없는 세상'을 다짐하기까지.",
     lead: "공장 소년공 시절, 저자의 몸과 생각에 남은 것들이에요.",
+    shorts: [
+      {
+        id: "a2-s1",
+        title: "지배자는 어떻게 손에 피를 묻히지 않는가",
+        youtubeId: "iLCxneQi_Fo",
+        summary: "2장을 한 편으로 — 공장의 폭력과 '홍 대리 없는 세상'이라는 다짐.",
+      },
+    ],
     points: [
       {
         id: "a2-p1",
@@ -130,6 +146,14 @@ export const CHAPTERS: ChapterMeta[] = [
     slug: "two-boys-poems",
     summary: "공장에서 시를 외우며 버틴 두 소년공, 학원비를 받지 않은 원장님, 굽어 버린 팔과 두 번의 절망, 그리고 학력고사 285점으로 법대에 들어가기까지.",
     lead: "공부로 공장을 벗어나려던 시절의 이야기예요. 저자가 삶을 포기하려 했던 대목이 나와요.",
+    shorts: [
+      {
+        id: "a3-s1",
+        title: "1980년대 소년공의 잔혹한 시간 확보법",
+        youtubeId: "U7Ty5k22WhE",
+        summary: "3장을 한 편으로 — 공장에 다니며 공부해 법대에 들어가기까지.",
+      },
+    ],
     points: [
       {
         id: "a3-p1",
@@ -181,6 +205,14 @@ export const CHAPTERS: ChapterMeta[] = [
     slug: "law-school",
     summary: "법대 특별장학생이 된 뒤 판검사 대신 변호사가 되겠다는 일기, 광주의 진실을 본 충격, 그리고 0.34점 차 사법시험 낙방.",
     lead: "대학에 들어가 무엇을 보고, 어떤 약속을 했는지에 대한 이야기예요.",
+    shorts: [
+      {
+        id: "a4-s1",
+        title: "빠른 성공이 파놓은 치명적인 함정",
+        youtubeId: "VnZ8aK4Ryds",
+        summary: "4장을 한 편으로 — 판검사 대신 변호사를 택하겠다는 법대 시절의 약속.",
+      },
+    ],
     points: [
       {
         id: "a4-p1",
@@ -232,6 +264,14 @@ export const CHAPTERS: ChapterMeta[] = [
     slug: "never-forget",
     summary: "고시원 창밖의 벽돌 나르던 아주머니, '공돌이'라는 말에 맞선 밤, 감옥에 간 친구에게 쓴 편지, 그리고 아버지의 마지막 날 전한 합격 소식.",
     lead: "출세의 문턱에서 저자가 무엇을 잊지 않겠다고 했는지에 대한 이야기예요.",
+    shorts: [
+      {
+        id: "a5-s1",
+        title: "개인의 성공이 구조적 고통을 끝내지 못하는 이유",
+        youtubeId: "FMYGv7pj8r0",
+        summary: "5장을 한 편으로 — 출세의 문턱에서 잊지 않겠다고 한 것들.",
+      },
+    ],
     points: [
       {
         id: "a5-p1",
@@ -282,6 +322,14 @@ export const CHAPTERS: ChapterMeta[] = [
     slug: "young-lawyer",
     summary: "판검사 대신 성남에서 연 인권변호사 사무실, 두 어른이 빌려준 천만 원, 무료 변론, 김혜경과의 결혼, 그리고 파크뷰 특혜 분양에 맞서다 받은 협박.",
     lead: "스물다섯 살 변호사가 된 저자가 누구의 도움으로, 누구를 위해 일했는지의 이야기예요.",
+    shorts: [
+      {
+        id: "a6-s1",
+        title: "토건 마피아는 어떻게 수천억을 벌까",
+        youtubeId: "9PJa-233JjU",
+        summary: "6장을 한 편으로 — 인권변호사 시절과 파크뷰 특혜 분양 싸움. 저자의 시각입니다.",
+      },
+    ],
     points: [
       {
         id: "a6-p1",
@@ -333,6 +381,14 @@ export const CHAPTERS: ChapterMeta[] = [
     slug: "unfinished-war",
     summary: "파크뷰 폭로와 첫 벌금, 대장동 개발이익에 대한 저자의 설명, 47초 만에 무산된 시립병원 조례와 정치를 결심한 교회 지하실, 그리고 시장 시절의 수사와 감사.",
     lead: "저자가 '기득권과의 싸움'이라고 부르는 일들이에요. 대장동처럼 평가가 갈리는 일은 저자의 설명으로 읽어 주세요.",
+    shorts: [
+      {
+        id: "a7-s1",
+        title: "민관 합동 개발, 이익과 위험을 나누는 원리",
+        youtubeId: "PDp8WnNha4s",
+        summary: "7장을 한 편으로 — 대장동 개발이익에 대한 저자의 설명. 평가가 갈리는 일입니다.",
+      },
+    ],
     points: [
       {
         id: "a7-p1",
@@ -392,6 +448,14 @@ export const CHAPTERS: ChapterMeta[] = [
     slug: "wounds-and-light",
     summary: "책 전체를 되짚는 맺음. 산골 소년에서 소년공, 인권변호사, 성남시장과 경기도지사를 거쳐 0.73%p 차 대선 패배, 피습, 12·3 비상계엄까지.",
     lead: "책 전체를 한 번에 되짚는 장이에요. 저자의 삶을 처음 읽는다면 여기서 시작해도 좋아요.",
+    shorts: [
+      {
+        id: "a8-s1",
+        title: "끔찍한 상처가 이타심으로 바뀌는 과정",
+        youtubeId: "_9ughs7Ec3Q",
+        summary: "8장을 한 편으로 — 책 전체를 되짚는 맺음.",
+      },
+    ],
     points: [
       {
         id: "a8-p1",
