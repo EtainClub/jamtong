@@ -19,6 +19,15 @@ import { sportsReform } from "./sports-reform";
 import { sangdaewonMarket } from "./sangdaewon-market";
 import { frontier } from "./frontier";
 import { campaignSpeech2017 } from "./2017-campaign-speech";
+import { bentArmRecord } from "./bent-arm-record";
+import { bentArmFrame } from "./bent-arm-frame";
+import { bentArmTax } from "./bent-arm-tax";
+import { bentArmWelfare } from "./bent-arm-welfare";
+import { bentArmPeace } from "./bent-arm-peace";
+import { bentArmUnion } from "./bent-arm-union";
+import { bentArmLaborLaw } from "./bent-arm-labor-law";
+import { bentArmWomen } from "./bent-arm-women";
+import { bentArmCulture } from "./bent-arm-culture";
 import { validateStatement, type Statement } from "./schema";
 
 /**
@@ -50,6 +59,16 @@ export const STATEMENTS: Statement[] = [
   /* 2022년. 현장에서 한 말과 책에 실린 글이라 목록 맨 아래다. */
   sangdaewonMarket,
   frontier,
+  /* 2017년 책 『이재명의 굽은 팔』에 실린 공부 노트 아홉 편. */
+  bentArmRecord,
+  bentArmFrame,
+  bentArmTax,
+  bentArmWelfare,
+  bentArmPeace,
+  bentArmUnion,
+  bentArmLaborLaw,
+  bentArmWomen,
+  bentArmCulture,
 ].sort((a, b) => b.postedAt.localeCompare(a.postedAt) || a.slug.localeCompare(b.slug));
 
 export function getStatement(slug: string): Statement | undefined {
