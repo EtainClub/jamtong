@@ -46,6 +46,27 @@ type LayoutConfig = {
 };
 
 const LAYOUTS: Record<string, LayoutConfig> = {
+  "housing-stabilization": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "대책이 나온 순서",
+          timelineLede: "대출 규제부터 양도세 중과까지, 발표와 시행 시점을 함께 봅니다.",
+          numbersHeading: "1년 뒤의 숫자",
+          numbersLede: "한국부동산원 통계를 인용한 보도입니다. 오른 곳과 덜 오른 곳을 같이 적었습니다.",
+          relationsHeading: "대책은 누구를 겨냥했나",
+          relationsLede: "정부, 금융회사, 다주택자, 구입자, 세입자 사이에 무엇이 바뀌었는지 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "hs-1015", label: "서울 전역 규제지역" },
+      { claimId: "hs-seoul-price", label: "1년 뒤 서울 아파트값" },
+    ],
+    askSuggestions: ["집값이 안정됐나요?", "강남과 다른 지역은 어떻게 달랐나요?", "전셋값은 어떻게 됐나요?"],
+  },
   "youth-future-savings": {
     Layout: (props) => (
       <NarrativeLayout

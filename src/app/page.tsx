@@ -20,6 +20,7 @@ import { JsonLd, webSiteLd } from "@/lib/seo/jsonld";
  */
 
 const HERO_IMAGES: Partial<Record<string, string>> = {
+  "housing-stabilization": "/images/achievements/housing-stabilization-hero.webp",
   "youth-future-savings": "/images/heroes/youth-future-savings.jpg",
   "arctic-route": "/images/heroes/arctic-route.jpg",
   daejangdong: "/images/heroes/daejangdong.jpg",
@@ -31,6 +32,9 @@ const HERO_IMAGES: Partial<Record<string, string>> = {
   "seongnam-debt": "/images/heroes/seongnam-debt.jpg",
   "stock-market": "/images/heroes/stock-market.jpg",
 };
+
+/** 히어로 첫 장에 세우는 메인 업적. */
+const MAIN_HERO = "youth-future-savings";
 
 /*
  * 제목과 설명은 layout.tsx의 기본값을 그대로 쓴다. 홈에서 한 번 더 적으면
@@ -53,7 +57,7 @@ export default function Home() {
   const byNewest = published.slice().sort(byRecency);
   const featured = byNewest.filter((a) => a.featured);
   const stories = (featured.length > 0 ? featured : byNewest.slice(0, 5)).sort(
-    (a, b) => Number(b.slug === "youth-future-savings") - Number(a.slug === "youth-future-savings") || byRecency(a, b),
+    (a, b) => Number(b.slug === MAIN_HERO) - Number(a.slug === MAIN_HERO) || byRecency(a, b),
   );
 
   const errors = validateMilestones({

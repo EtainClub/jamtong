@@ -23,6 +23,7 @@ import { resourceDiplomacy } from "./resource-diplomacy/achievement";
 import { oilSupply } from "./oil-supply/achievement";
 import { mexicoVisit } from "./mexico-visit/achievement";
 import { youthFutureSavings } from "./youth-future-savings/achievement";
+import { housingStabilization } from "./housing-stabilization/achievement";
 
 /**
  * 업적 레지스트리.
@@ -55,6 +56,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   resourceDiplomacy,
   oilSupply,
   mexicoVisit,
+  housingStabilization,
 ];
 
 export function getAchievement(slug: string): Achievement | undefined {
