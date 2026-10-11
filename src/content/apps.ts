@@ -1,0 +1,63 @@
+import { z } from "zod";
+
+/**
+ * 잼통 자매 앱.
+ *
+ * 관련 사이트(`links.ts`)와 따로 둔다. 그쪽은 남이 운영하는 곳을 성격별로
+ * 안내하고, 이쪽은 같은 곳에서 만드는 앱을 소개한다. 한 목록에 섞으면
+ * "잼통이 운영하지 않는 사이트"라는 그쪽 머리말이 거짓이 된다.
+ *
+ * 히어로 이미지는 각 앱이 공유 카드로 쓰는 OG 이미지를 내려받아 둔 것이다.
+ * 원격 주소를 그대로 걸면 그 앱이 이미지를 바꾸거나 내릴 때 이 화면이 깨진다.
+ */
+export const sisterAppSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  /** 이름 옆에 붙는 한 줄. */
+  tagline: z.string(),
+  description: z.string(),
+  url: z.string().url(),
+  image: z.string().startsWith("/images/apps/"),
+});
+export type SisterApp = z.infer<typeof sisterAppSchema>;
+
+const raw: z.input<typeof sisterAppSchema>[] = [
+  {
+    id: "im",
+    name: "임통",
+    tagline: "인물 아카이브",
+    description:
+      "이재명 대통령과 관련된 인물들이 해 온 말과, 그 인물에 대한 다른 사람들의 평가를 원자료와 함께 모아 두는 인물통입니다.",
+    url: "https://im.jamtong.kr",
+    image: "/images/apps/im.png",
+  },
+  {
+    id: "tt",
+    name: "통통",
+    tagline: "청소년·청년 정책 활용",
+    description:
+      "청소년과 청년이 장기적인 목표를 이루도록, 지금 시기에 쓸 수 있는 정부 정책을 찾아 제때 활용하게 돕습니다.",
+    url: "https://tt.jamtong.kr",
+    image: "/images/apps/tt.png",
+  },
+  {
+    id: "news",
+    name: "이재명 뉴스",
+    tagline: "보도 위키",
+    description:
+      "이재명 대통령과 관련된 보도를 언론사와 유튜브 채널별로 모아, 같은 사건을 어디가 어떻게 다뤘는지 나란히 보여 주는 뉴스 위키입니다.",
+    url: "https://news.jamtong.kr",
+    image: "/images/apps/news.png",
+  },
+  {
+    id: "bot",
+    name: "잼통 신고 센터",
+    tagline: "팩트 체크 댓글",
+    description:
+      "인스타그램에 도는 정부 정책 관련 가짜 뉴스를 신고하면, 근거를 확인한 팩트 체크 결과를 그 게시물에 댓글로 답니다.",
+    url: "https://bot.jamtong.kr",
+    image: "/images/apps/bot.png",
+  },
+];
+
+export const SISTER_APPS: SisterApp[] = raw.map((item) => sisterAppSchema.parse(item));

@@ -57,6 +57,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/guide", 0.6],
     ["/about", 0.5],
     ["/links", 0.4],
+    ["/apps", 0.4],
     ["/feedback", 0.3],
     ["/correction", 0.3],
   ];

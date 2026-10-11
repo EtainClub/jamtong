@@ -278,6 +278,27 @@ export function HomeFeed({
         </ul>
       </section>
 
+      {/*
+       * 자매 앱. 업적 다음 갈래로 가는 문이라 위키 바로 아래에 둔다. 앱 이름을
+       * 한 줄에 다 적는다 — "더 보기"만 있으면 무엇이 있는지 눌러 봐야 안다.
+       */}
+      <Link
+        href="/apps"
+        className="mt-9 flex items-center justify-between gap-3 rounded-card border border-stone bg-taupe px-4 py-3.5 transition-colors hover:border-graphite"
+      >
+        <span className="min-w-0">
+          <span className="block text-[15px] font-semibold leading-snug text-ink">
+            잼통 자매 앱
+          </span>
+          <span className="mt-1 block text-[12px] leading-relaxed text-ash">
+            임통 · 통통 · 이재명 뉴스 · 잼통 신고 센터
+          </span>
+        </span>
+        <span aria-hidden="true" className="shrink-0 text-[13px] text-ash">
+          →
+        </span>
+      </Link>
+
       <section aria-labelledby="home-topics" className="mt-9">
         <h2 id="home-topics" className="text-[17px] font-bold tracking-tight text-ink">
           세부 성과
