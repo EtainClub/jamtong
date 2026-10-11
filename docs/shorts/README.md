@@ -53,5 +53,7 @@
 | 핵심광물 공급망 외교 | [resource-diplomacy.md](resource-diplomacy.md) | 영상 없음 |
 | 원유 수입처 다변화 | [oil-supply.md](oil-supply.md) | 등록됨 |
 
+자서전 장별 쇼츠는 책마다 폴더를 따로 둔다 — 『이재명은 합니다』는 [lee-does-it/](lee-does-it/README.md).
+
 「등록됨」은 업적 파일의 `shorts[]`에 youtubeId가 들어간 것이다. 북극항로·대장동·
 주식시장은 대본을 거치지 않고 영상이 먼저 올라간 것이라 이 표에 없다.
