@@ -105,24 +105,7 @@ export default function TasksPage() {
           <StatusGuide />
         </section>
 
-        {tracked.length > 0 && (
-          <section aria-labelledby="tasks-tracked" className="mt-9">
-            <h2 id="tasks-tracked" className="text-[17px] font-bold tracking-tight text-ink">
-              근거로 확인한 진행 <span className="tabular">{tracked.length}</span>건
-            </h2>
-            <ul className="mt-3 space-y-2.5">
-              {tracked.map(({ task, c }) => (
-                <li key={`${task.no}-${c.label}`}>
-                  <TrackedLine
-                    line={{ ...c, text: c.label }}
-                    kicker={`국정과제 ${task.no} · ${task.title}`}
-                  />
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
+        {/* 과제 본문을 이행 현황 바로 아래에 둔다. 무엇을 하겠다고 했는지가 먼저다. */}
         {TASK_GOALS.map((goal) => (
           <section
             key={goal.goal}
@@ -158,6 +141,24 @@ export default function TasksPage() {
             })}
           </section>
         ))}
+
+        {tracked.length > 0 && (
+          <section aria-labelledby="tasks-tracked" className="mt-10">
+            <h2 id="tasks-tracked" className="text-[17px] font-bold tracking-tight text-ink">
+              근거로 확인한 진행 <span className="tabular">{tracked.length}</span>건
+            </h2>
+            <ul className="mt-3 space-y-2.5">
+              {tracked.map(({ task, c }) => (
+                <li key={`${task.no}-${c.label}`}>
+                  <TrackedLine
+                    line={{ ...c, text: c.label }}
+                    kicker={`국정과제 ${task.no} · ${task.title}`}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <p className="mt-10 border-t border-stone pt-4 text-[11px] leading-relaxed text-ash">
           출처: {TASKS_SOURCE.publisher} 『{TASKS_SOURCE.title}』. 과제 문장은 원문 그대로이며,

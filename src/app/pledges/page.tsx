@@ -82,22 +82,7 @@ export default function PledgesPage() {
           <StatusGuide />
         </section>
 
-        {/* 근거가 있는 것만 먼저 모아 본다. 열 개를 다 펼쳐야 찾을 수 있으면 안 된다. */}
-        {tracked.length > 0 && (
-          <section aria-labelledby="pledge-tracked" className="mt-9">
-            <h2 id="pledge-tracked" className="text-[17px] font-bold tracking-tight text-ink">
-              근거로 확인한 진행 <span className="tabular">{tracked.length}</span>건
-            </h2>
-            <ul className="mt-3 space-y-2.5">
-              {tracked.map(({ pledge, line }) => (
-                <li key={`${pledge.rank}-${line.text}`}>
-                  <TrackedLine line={line} kicker={`공약 ${pledge.rank} · ${pledge.field}`} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
+        {/* 공약 본문을 이행 현황 바로 아래에 둔다. 무엇을 약속했는지가 먼저다. */}
         <section aria-labelledby="pledge-list" className="mt-9">
           <h2 id="pledge-list" className="text-[17px] font-bold tracking-tight text-ink">
             10대 공약
@@ -113,6 +98,22 @@ export default function PledgesPage() {
             ))}
           </ol>
         </section>
+
+        {/* 근거가 있는 것만 따로 모아 본다. 열 개를 다 펼쳐야 찾을 수 있으면 안 된다. */}
+        {tracked.length > 0 && (
+          <section aria-labelledby="pledge-tracked" className="mt-9">
+            <h2 id="pledge-tracked" className="text-[17px] font-bold tracking-tight text-ink">
+              근거로 확인한 진행 <span className="tabular">{tracked.length}</span>건
+            </h2>
+            <ul className="mt-3 space-y-2.5">
+              {tracked.map(({ pledge, line }) => (
+                <li key={`${pledge.rank}-${line.text}`}>
+                  <TrackedLine line={line} kicker={`공약 ${pledge.rank} · ${pledge.field}`} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section aria-labelledby="pledge-common" className="mt-9 border-t border-stone pt-5">
           <h2 id="pledge-common" className="text-[14px] font-bold text-ink">
