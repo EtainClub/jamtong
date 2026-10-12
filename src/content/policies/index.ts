@@ -9,6 +9,7 @@ import { MIDEAST_RUMORS } from "./mideast-rumors";
 import { NATIONAL_DEBT } from "./national-debt";
 import { NEW_LEAP_FUND } from "./new-leap-fund";
 import { OIL_RELIEF_FUND } from "./oil-relief-fund";
+import { PLEDGE_CHECK_2026 } from "./pledge-check-2026";
 import { PROSECUTION_LAUNCH } from "./prosecution-launch";
 import { RETIREMENT_PENSION } from "./retirement-pension";
 import { policySchema, type Policy } from "./schema";
@@ -44,6 +45,7 @@ export const POLICIES: Policy[] = [
   US_INTEL_STANDARDS,
   HONAM_CHIP_CLUSTER,
   KRW_EXCHANGE_RATE,
+  PLEDGE_CHECK_2026,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
   ...TONGTONG_POLICIES,
 ].map((policy) => policySchema.parse(policy));

@@ -47,7 +47,10 @@ export const PLEDGES_21: PledgeInput[] = [
         subs: [
           { text: "AI 예산 비중 선진국 수준 이상 증액과 민간 투자 100조원 시대 개막" },
           { text: "AI 데이터센터 건설을 통한 ‘AI 고속도로’ 구축 및 국가 혁신거점 육성" },
-          { text: "고성능 GPU 5만개 이상 확보와 국가 AI데이터 집적 클러스터 조성" },
+          {
+            text: "고성능 GPU 5만개 이상 확보와 국가 AI데이터 집적 클러스터 조성",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-gpu", note: "엔비디아가 2030년까지 GPU 26만 장 이상을 공급하고 그중 5만 장을 정부가 구입한다고 보도됐다. 실제 도입 수량과 클러스터는 확인하지 못했다." },
+          },
           { text: "‘모두의 AI’ 프로젝트 추진 및 규제 특례를 통한 AI 융복합 산업 활성화" },
           { text: "AI 시대를 주도할 미래인재 양성 교육 강화" },
         ],
@@ -70,7 +73,10 @@ export const PLEDGES_21: PledgeInput[] = [
       {
         text: "국가첨단전략산업에 대한 대규모 집중투자방안 마련",
         subs: [
-          { text: "국민·기업·정부·연기금 등 모든 경제주체들이 참여할 수 있는 국민펀드 조성" },
+          {
+            text: "국민·기업·정부·연기금 등 모든 경제주체들이 참여할 수 있는 국민펀드 조성",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-growth-fund", note: "2025년 12월 150조 원 규모 국민성장펀드가 출범했다." },
+          },
           { text: "일반국민·기업의 투자금에 대해 소득세·법인세 감면 등 과감한 세제혜택 부여" },
           { text: "산업생태계 뒷받침을 위한 기금을 설치하여 맞춤형 자금공급 지원" },
         ],
@@ -104,7 +110,10 @@ export const PLEDGES_21: PledgeInput[] = [
     items: [
       {
         text: "대통령 계엄권한에 대한 민주적 통제 강화",
-        subs: [{ text: "계엄선포시 국회의 계엄해제권 행사에 대한 제도적 보장 강화" }],
+        subs: [{
+            text: "계엄선포시 국회의 계엄해제권 행사에 대한 제도적 보장 강화",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-martial-law", note: "개정 계엄법이 2025년 7월 시행돼 계엄 중 국회 출입·회의 방해를 처벌한다." },
+          }],
       },
       { text: "정치보복 관행 근절 등 국민통합 추진" },
       {
@@ -182,12 +191,21 @@ export const PLEDGES_21: PledgeInput[] = [
         text: "변호사의 공공성 강화",
         subs: [{ text: "별도 위원회에 변호사 징계권한 부여 및 변호사 비밀유지권 법제화" }],
       },
-      { text: "방송통신위원회의 정파성 극복을 위한 방송영상미디어 관련 법제 정비" },
+      {
+            text: "방송통신위원회의 정파성 극복을 위한 방송영상미디어 관련 법제 정비",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-kmcc", note: "2025년 10월 1일 방송통신위원회가 폐지되고 7인 체제 방송미디어통신위원회가 출범했다." },
+          },
       {
         text: "방송의 공공성 회복과 공적책무 이행으로 국민의 방송 실현",
         subs: [
-          { text: "공영방송의 정치적 독립성 보장을 위한 법제 정비" },
-          { text: "방송의 보도·제작·편성의 자율성 보장" },
+          {
+            text: "공영방송의 정치적 독립성 보장을 위한 법제 정비",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-broadcasting-act", note: "개정 방송법이 2025년 8월 26일 시행돼 공영방송 이사회와 사장 선임 구조가 바뀌었다." },
+          },
+          {
+            text: "방송의 보도·제작·편성의 자율성 보장",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-broadcasting-act", note: "개정 방송법으로 지상파·종편·보도채널에 사업자·종사자 동수의 편성위원회를 둔다." },
+          },
         ],
       },
       {
@@ -197,7 +215,10 @@ export const PLEDGES_21: PledgeInput[] = [
           { text: "방송통신심의위원회의 독립성 및 정치적 중립성 강화" },
         ],
       },
-      { text: "제3기 진실화해위원회의 신속 출범" },
+      {
+            text: "제3기 진실화해위원회의 신속 출범",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-truth-commission", note: "2026년 2월 26일 3기 진실화해위원회가 출범했다." },
+          },
       { text: "학교 역사교육 강화 및 역사연구기관 운영의 정상화" },
     ],
   },
@@ -207,7 +228,10 @@ export const PLEDGES_21: PledgeInput[] = [
     field: "경제·산업",
     goals: ["가계와 소상공인의 활력을 제고", "공정한 경제구조 실현"],
     items: [
-      { text: "코로나 정책자금 대출에 대한 채무조정부터 탕감까지 종합방안 마련" },
+      {
+            text: "코로나 정책자금 대출에 대한 채무조정부터 탕감까지 종합방안 마련",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-fresh-start", note: "2025년 9월 22일부터 새출발기금 대상을 넓히고 원금 감면율을 최대 90%로 높였다." },
+          },
       { text: "12.3 비상계엄으로 인한 피해 소상공인 지원방안 마련" },
       {
         text: "소상공인 금융과 경영부담 완화",
@@ -236,7 +260,10 @@ export const PLEDGES_21: PledgeInput[] = [
         subs: [
           { text: "경찰청 연계 안심콜 의무화로 여성 소상공인 안전 강화" },
           { text: "소상공인·자영업자 육아휴직수당 확대" },
-          { text: "자영업자의 ‘아프면 쉴 권리’를 위한 상병수당 확대" },
+          {
+            text: "자영업자의 ‘아프면 쉴 권리’를 위한 상병수당 확대",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-sick-pay", note: "정부가 상병수당을 2027년 하반기 전국 본사업으로 바꾸는 방안을 추진한다고 밝혔다. 아직 시범사업이다." },
+          },
         ],
       },
       { text: "가맹점주·대리점주·수탁사업자·온라인플랫폼 입점사업자 등 협상력 강화" },
@@ -320,7 +347,10 @@ export const PLEDGES_21: PledgeInput[] = [
         text: "국제적 통상환경 변화에 적극 대응하는 경제외교 추진",
         subs: [
           { text: "G20, G7 등을 통한 글로벌 현안 적극 참여" },
-          { text: "성공적인 2025경주 APEC개최를 통한 외교역량 강화 및 국제위상 제고" },
+          {
+            text: "성공적인 2025경주 APEC개최를 통한 외교역량 강화 및 국제위상 제고",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-apec", note: "2025년 11월 1일 경주 APEC이 폐막하며 정상들이 경주선언을 만장일치로 채택했다." },
+          },
           { text: "경제안보 증진을 위한 주요국과의 연대 강화" },
         ],
       },
@@ -445,12 +475,18 @@ export const PLEDGES_21: PledgeInput[] = [
         text: "지역·필수·공공의료 강화로 제대로 치료받을 권리 확보",
         subs: [
           { text: "필수의료에 대한 충분한 보상체계 확립 및 의료사고에 대한 국가책임 강화" },
-          { text: "지역의사·지역의대·공공의료사관학교 신설로 지역·필수·공공의료 인력 확보" },
+          {
+            text: "지역의사·지역의대·공공의료사관학교 신설로 지역·필수·공공의료 인력 확보",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-regional-doctor", note: "지역의사법이 2025년 12월 공포됐다. 지역의대·공공의료사관학교 신설은 확인하지 못했다." },
+          },
           { text: "진료권 중심 공공의료 인프라 확충 및 국립대병원 거점병원 역할 강화" },
           { text: "응급환자 신속 이송-수용-전원체계로 응급실 뺑뺑이 문제 해결" },
           { text: "진료권 중심 응급의료체계와 중증-응급 24시간 전문의 대응체계 확립" },
           { text: "주치의 중심 맞춤형 일차 의료체계 구축 및 방문·재택 진료 확대" },
-          { text: "의료의 질과 안전성을 고려한 비대면 진료 제도화" },
+          {
+            text: "의료의 질과 안전성을 고려한 비대면 진료 제도화",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-telemedicine", note: "비대면진료 제도화 의료법이 2025년 12월 23일 공포됐고 1년 뒤 시행된다." },
+          },
           { text: "필수의약품 수급불안 해소와 감염병 위기 대응 인프라 구축" },
         ],
       },
@@ -479,7 +515,10 @@ export const PLEDGES_21: PledgeInput[] = [
     items: [
       {
         text: "세종 행정수도 완성 추진",
-        subs: [{ text: "국회 세종의사당과 대통령 세종 집무실 임기 내 건립" }],
+        subs: [{
+            text: "국회 세종의사당과 대통령 세종 집무실 임기 내 건립",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-sejong-office", note: "세종집무실은 2029년 8월 입주가 목표다. 세종의사당은 마스터플랜 당선작을 뽑은 단계다." },
+          }],
       },
       { text: "이전 공공기관 정주여건 개선 및 제2차 공공기관 지방이전 추진" },
       {
@@ -524,7 +563,10 @@ export const PLEDGES_21: PledgeInput[] = [
           { text: "지역과 함께 성장하고 국립대-사립대가 동반성장하는 RISE 체계 구축" },
         ],
       },
-      { text: "지역사랑상품권 발행 의무화를 통해 지역경제를 살리고 균형발전 달성" },
+      {
+            text: "지역사랑상품권 발행 의무화를 통해 지역경제를 살리고 균형발전 달성",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-local-voucher", note: "국가의 발행 지원을 의무화한 법이 2025년 8월 국회를 통과했다. 발행 자체의 의무화는 아니다." },
+          },
       {
         text: "‘잘사니즘’의 실현, 관광산업으로 지역경제 활성화",
         subs: [
@@ -554,7 +596,10 @@ export const PLEDGES_21: PledgeInput[] = [
         text: "자영업자, 특수고용 및 플랫폼 노동자 등 일하는 모든 사람들의 일터 권리 보장, 일한 만큼 보상받는 공정한 노동환경 조성",
         subs: [
           { text: "일하는 사람 권리 보장을 위한 법제도 개선, 미조직 취약계층 이해 대변 강화" },
-          { text: "「노동조합법」 2·3조 개정으로 하청노동자 등의 교섭권 보장" },
+          {
+            text: "「노동조합법」 2·3조 개정으로 하청노동자 등의 교섭권 보장",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-yellow-envelope", note: "개정 노동조합법 2·3조가 2026년 3월 10일 시행됐다." },
+          },
         ],
       },
       { text: "포괄임금제 금지 등 「근로기준법」에 명문화" },
@@ -582,7 +627,10 @@ export const PLEDGES_21: PledgeInput[] = [
       },
       {
         text: "주4.5일 도입·확산 등으로 2030년까지 OECD평균 이하로 노동시간 감축",
-        subs: [{ text: "범정부 차원 주 4.5일제 실시 지원 및 실노동시간 단축 로드맵 제시" }],
+        subs: [{
+            text: "범정부 차원 주 4.5일제 실시 지원 및 실노동시간 단축 로드맵 제시",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-working-hours", note: "2026년 1월 실노동시간 단축 로드맵이 발표됐고, 4.5일제 도입 기업 지원 예산이 편성됐다." },
+          }],
       },
       {
         text: "공무원 처우개선 및 공직문화 개선",
@@ -653,7 +701,10 @@ export const PLEDGES_21: PledgeInput[] = [
         text: "선진국형 농가소득 및 농업재해안전망 도입",
         subs: [
           { text: "농산물 가격 안정적 관리 및 농어업재해 국가책임 강화" },
-          { text: "양곡관리법 개정 등을 통한 쌀값 정상화 및 공익직불금 확대" },
+          {
+            text: "양곡관리법 개정 등을 통한 쌀값 정상화 및 공익직불금 확대",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-grain-act", note: "양곡관리법 개정안이 2025년 8월 국회를 통과했다. 2026년 8월 시행 여부와 직불금 확대는 확인하지 못했다." },
+          },
           { text: "농업인 퇴직연금제 도입 및 농지이양 은퇴직불금·공공비축농지 확대" },
         ],
       },
@@ -760,7 +811,10 @@ export const PLEDGES_21: PledgeInput[] = [
         subs: [
           { text: "치매·장애 등으로 재산 관리가 어려운 노인을 위한 공공신탁제도 도입" },
           { text: "어르신 주거 문제 해결을 위한 고령자 친화 주택·은퇴자 도시 조성" },
-          { text: "간호·간병 통합서비스 확대 및 요양병원 간병비 건강보험 적용" },
+          {
+            text: "간호·간병 통합서비스 확대 및 요양병원 간병비 건강보험 적용",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-care-cost", note: "정부가 2027년 상반기 요양병원 간병비 급여화 시범사업을 하겠다고 밝혔다." },
+          },
           { text: "노인 등이 집에서 의료·돌봄서비스를 받는 지역사회 통합 돌봄체계 구축" },
         ],
       },
@@ -782,7 +836,10 @@ export const PLEDGES_21: PledgeInput[] = [
       {
         text: "선진국으로서의 책임에 걸맞는 온실가스 감축목표 수립",
         subs: [
-          { text: "2030년 온실가스 감축 목표 달성 추진과 과학적 근거에 따른 2035년 이후 감축 로드맵 수립" },
+          {
+            text: "2030년 온실가스 감축 목표 달성 추진과 과학적 근거에 따른 2035년 이후 감축 로드맵 수립",
+            track: { status: "done", ref: "policy:pledge-check-2026#claim-ndc-2035", note: "2025년 11월 2035년 감축목표(2018년 대비 53~61%)가 국무회의에서 확정됐다." },
+          },
           { text: "헌법불합치 결정 취지를 감안하여 책임있는 중간목표를 담은 탄소중립기본법 개정" },
           { text: "2028년 제33차 기후변화협약 당사국총회(COP33) 유치" },
         ],
@@ -790,7 +847,10 @@ export const PLEDGES_21: PledgeInput[] = [
       {
         text: "재생에너지 중심의 에너지전환 가속화",
         subs: [
-          { text: "2040년까지 석탄화력발전 폐쇄" },
+          {
+            text: "2040년까지 석탄화력발전 폐쇄",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-coal-exit", note: "탈석탄동맹에 가입하고 61기 중 40기의 2040년 폐쇄를 확정했다. 나머지 21기는 일정 미정이다." },
+          },
           { text: "햇빛·바람 연금 확대, 농가태양광 설치로 주민소득 증대 및 에너지 자립 실현" },
           { text: "태양광 이격거리 규제 및 재생에너지 직접구매(PPA) 개선" },
         ],
@@ -798,7 +858,10 @@ export const PLEDGES_21: PledgeInput[] = [
       {
         text: "경제성장의 대동맥, 에너지고속도로 구축",
         subs: [
-          { text: "2030년까지 서해안, 2040년까지 한반도 에너지고속도로 건설 추진" },
+          {
+            text: "2030년까지 서해안, 2040년까지 한반도 에너지고속도로 건설 추진",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-grid-act", note: "국가기간 전력망 확충 특별법이 2025년 9월 시행되고 송전·변전 사업 99개가 지정됐다." },
+          },
           { text: "분산형 재생에너지 발전원을 효율적으로 연결·운영하는 ‘지능형 전력망’ 구축" },
           { text: "‘에너지산업 육성’ 및 공급망 내재화를 통한 차세대 성장동력 마련" },
         ],
@@ -831,7 +894,10 @@ export const PLEDGES_21: PledgeInput[] = [
       {
         text: "정의로운 전환을 위한 실현 방안 마련",
         subs: [
-          { text: "배출권거래제 유상할당 비중 확대 등 기후대응기금 확충" },
+          {
+            text: "배출권거래제 유상할당 비중 확대 등 기후대응기금 확충",
+            track: { status: "underway", ref: "policy:pledge-check-2026#claim-ndc-2035", note: "발전 부문 유상할당을 2030년 50%까지 단계적으로 올리기로 했다." },
+          },
           { text: "정의로운 전환 특구 지정 및 고용전환과 신산업 역량 개발 지원" },
         ],
       },
