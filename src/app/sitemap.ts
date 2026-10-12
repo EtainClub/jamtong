@@ -4,6 +4,7 @@ import { getPublishedAchievements } from "@/content/achievements";
 import { BOOKS_BY_YEAR } from "@/content/books";
 import { STATEMENTS } from "@/content/words";
 import { OPEN_CARTELS } from "@/content/cartels";
+import { TASKS } from "@/content/tasks";
 import { contentPages } from "@/lib/wiki/load";
 import { abs } from "@/lib/seo/site";
 
@@ -52,6 +53,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/", 1],
     ["/explore", 0.9],
     ["/pledges", 0.8],
+    ["/tasks", 0.8],
     ["/words", 0.9],
     ["/wiki", 0.8],
     ["/timeline", 0.7],
@@ -103,6 +105,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
    * 넣으면 사이트 전체의 품질 신호가 내려간다. 장이 없는 책과 같은 처리다.
    * lastModified는 비운다. 이 페이지는 제 날짜를 갖지 않고 모으기만 한다.
    */
+  /* 국정과제 123개. 원문을 옮긴 화면이라 제 편집일을 따로 추적하지 않는다. */
+  for (const task of TASKS) {
+    out.push({ url: abs(`/tasks/${task.no}`), priority: 0.6 });
+  }
+
   for (const cartel of OPEN_CARTELS) {
     out.push({ url: abs(`/cartel/${cartel.slug}`), priority: 0.6 });
   }

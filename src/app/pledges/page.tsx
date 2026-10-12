@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import {
   COMMON_FUNDING,
@@ -14,12 +13,8 @@ import {
 } from "@/content/pledges";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
-import {
-  PledgeBar,
-  PledgeLegend,
-  STATUS_CHIP,
-  STATUS_LABEL,
-} from "@/features/pledges/PledgeProgress";
+import { PledgeBar, PledgeLegend, StatusGuide, koreanDate } from "@/features/pledges/PledgeProgress";
+import { StatusChip, TrackedLine } from "@/features/pledges/TrackedLine";
 
 export const metadata: Metadata = {
   title: "21대 대선 공약",
@@ -37,12 +32,6 @@ export const metadata: Metadata = {
  * 펼치고 접는 데 스크립트를 쓰지 않는다(<details>). 열 개 공약이 모두
  * 서버에서 그려지고, 검색엔진과 스크린리더가 접힌 내용까지 읽는다.
  */
-
-function koreanDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  if (!y) return iso;
-  return d ? `${y}년 ${m}월 ${d}일` : m ? `${y}년 ${m}월` : `${y}년`;
-}
 
 export default function PledgesPage() {
   const total = totalCount();
@@ -90,26 +79,7 @@ export default function PledgesPage() {
           <div className="mt-2.5">
             <PledgeLegend count={total} />
           </div>
-          <dl className="mt-4 space-y-1.5 border-t border-stone pt-3 text-[12px] leading-relaxed text-smoke">
-            <div>
-              <dt className="inline font-semibold text-navy">시행</dt>
-              <dd className="inline"> — 법이 시행됐거나 제도가 실제로 시작됐습니다.</dd>
-            </div>
-            <div>
-              <dt className="inline font-semibold text-pending">추진 중</dt>
-              <dd className="inline">
-                {" "}
-                — 발표·법 통과·협약까지 왔지만 아직 효력이 없거나, 약속의 일부만 이뤄졌습니다.
-              </dd>
-            </div>
-            <div>
-              <dt className="inline font-semibold text-ash">확인 전</dt>
-              <dd className="inline">
-                {" "}
-                — 안 했다는 뜻이 아닙니다. 이 사이트가 아직 근거를 잇지 못했습니다.
-              </dd>
-            </div>
-          </dl>
+          <StatusGuide />
         </section>
 
         {/* 근거가 있는 것만 먼저 모아 본다. 열 개를 다 펼쳐야 찾을 수 있으면 안 된다. */}
@@ -169,76 +139,6 @@ export default function PledgesPage() {
 
       <BottomNav />
     </>
-  );
-}
-
-function StatusChip({ line }: { line: ResolvedLine }) {
-  return (
-    <span
-      className={`inline-block shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${STATUS_CHIP[line.status]}`}
-    >
-      {STATUS_LABEL[line.status]}
-    </span>
-  );
-}
-
-/** 근거가 붙은 약속 한 줄. 무엇이 됐는지 한 줄, 그 근거 원문, 출처. */
-function TrackedLine({ line, kicker }: { line: ResolvedLine; kicker?: string }) {
-  const evidence = line.evidence;
-  return (
-    <div className="rounded-card border border-stone bg-taupe px-4 py-3">
-      <div className="flex items-center gap-2">
-        <StatusChip line={line} />
-        {kicker && <span className="text-[10px] font-bold text-navy">{kicker}</span>}
-      </div>
-      <p className="mt-1.5 text-[13px] font-semibold leading-snug text-ink">{line.text}</p>
-      {line.note && <p className="mt-1 text-[12px] leading-relaxed text-smoke">{line.note}</p>}
-      {evidence && (
-        <details className="group mt-2">
-          <summary className="cursor-pointer list-none text-[11px] font-medium text-navy">
-            근거 보기 <span aria-hidden="true" className="inline-block transition-transform group-open:rotate-90">›</span>
-          </summary>
-          <blockquote className="mt-2 border-l-2 border-stone pl-3 text-[12px] leading-relaxed text-smoke">
-            {evidence.claim.text}
-            {evidence.claim.assertionType === "CLAIM" && evidence.claim.assertedBy && (
-              <span className="text-ash"> — {evidence.claim.assertedBy}의 주장</span>
-            )}
-            {!evidence.claim.verified && (
-              <span className="ml-1 rounded bg-pending-tint px-1 text-[10px] font-semibold text-pending">
-                미검증
-              </span>
-            )}
-          </blockquote>
-          <ul className="mt-2 space-y-0.5 text-[11px] leading-relaxed text-ash">
-            {evidence.sources.map((source) => (
-              <li key={source.id}>
-                {source.url ? (
-                  <a
-                    href={source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline underline-offset-2 hover:text-smoke"
-                  >
-                    {source.publisher} 『{source.title}』
-                  </a>
-                ) : (
-                  <>
-                    {source.publisher} 『{source.title}』
-                  </>
-                )}
-                {source.publishedAt && <span className="tabular"> · {source.publishedAt}</span>}
-              </li>
-            ))}
-          </ul>
-          <Link
-            href={evidence.href}
-            className="mt-2 inline-block text-[11px] font-semibold text-navy"
-          >
-            {evidence.label}에서 자세히 <span aria-hidden="true">→</span>
-          </Link>
-        </details>
-      )}
-    </div>
   );
 }
 

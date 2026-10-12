@@ -65,3 +65,36 @@ export function PledgeLegend({ count }: { count: StatusCount }) {
     </ul>
   );
 }
+
+/** "2026-10-12" → "2026년 10월 12일". 정밀도가 낮으면 있는 데까지만 적는다. */
+export function koreanDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y) return iso;
+  return d ? `${y}년 ${m}월 ${d}일` : m ? `${y}년 ${m}월` : `${y}년`;
+}
+
+/** 세 가지 상태가 무엇을 뜻하는지. "확인 전"이 "안 했다"로 읽히지 않게 늘 막대 곁에 둔다. */
+export function StatusGuide() {
+  return (
+    <dl className="mt-4 space-y-1.5 border-t border-stone pt-3 text-[12px] leading-relaxed text-smoke">
+      <div>
+        <dt className="inline font-semibold text-navy">시행</dt>
+        <dd className="inline"> — 법이 시행됐거나 제도가 실제로 시작됐습니다.</dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold text-pending">추진 중</dt>
+        <dd className="inline">
+          {" "}
+          — 발표·법 통과·협약까지 왔지만 아직 효력이 없거나, 약속의 일부만 이뤄졌습니다.
+        </dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold text-ash">확인 전</dt>
+        <dd className="inline">
+          {" "}
+          — 안 했다는 뜻이 아닙니다. 이 사이트가 아직 근거를 잇지 못했습니다.
+        </dd>
+      </div>
+    </dl>
+  );
+}

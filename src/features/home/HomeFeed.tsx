@@ -77,6 +77,7 @@ export function HomeFeed({
   wikiConcepts,
   claims,
   pledges,
+  tasks,
 }: {
   slides: HeroSlide[];
   /** 생활에서 달라진 것. 비어 있으면 묶음을 내보내지 않는다. */
@@ -91,6 +92,8 @@ export function HomeFeed({
   claims: Claim[];
   /** 대선 공약 이행 집계. 공약 본문은 홈에 싣지 않는다 — 세부 화면에서 읽는다. */
   pledges: { count: StatusCount; pledges: number };
+  /** 국정과제 주요내용의 이행 집계. */
+  tasks: StatusCount;
 }) {
   const [tab, setTab] = useState("all");
   const [query, setQuery] = useState("");
@@ -225,7 +228,7 @@ export function HomeFeed({
             <PledgeHomeCard count={pledges.count} total={pledges.pledges} />
           </li>
           <li>
-            <TasksHomeCard />
+            <TasksHomeCard count={tasks} />
           </li>
         </ul>
       </section>
@@ -660,29 +663,28 @@ function PledgeHomeCard({ count, total }: { count: StatusCount; total: number })
   );
 }
 
-/**
- * 123대 국정과제 카드. 아직 내용을 싣지 않았으므로 링크로 만들지 않는다 —
- * 눌러서 빈 화면이 나오느니 준비 중이라고 미리 말하는 편이 낫다.
- */
-function TasksHomeCard() {
+/** 123대 국정과제 카드. 공약 카드와 같은 막대로 주요내용의 진행을 보인다. */
+function TasksHomeCard({ count }: { count: StatusCount }) {
   return (
-    <div
-      aria-disabled="true"
-      className="flex h-full flex-col rounded-card border border-dashed border-stone bg-taupe/50 p-3.5"
+    <Link
+      href="/tasks"
+      className="flex h-full flex-col rounded-card border border-stone bg-taupe p-3.5 transition-colors hover:border-graphite"
     >
-      <div className="flex items-center gap-1.5">
-        <span className="text-[10px] font-bold text-navy">이재명 정부</span>
-        <span className="rounded-full bg-pending-tint px-1.5 py-0.5 text-[9px] font-semibold text-pending">
-          준비 중
-        </span>
-      </div>
+      <span className="text-[10px] font-bold text-navy">이재명정부</span>
       <h3 className="mt-1.5 text-[15px] font-bold leading-snug text-ink">
         <span className="tabular">123</span>대 국정과제
       </h3>
       <p className="mt-1 text-[11px] leading-relaxed text-smoke">
-        정부의 123대 국정과제와 그 진행을 정리하고 있습니다.
+        5대 국정목표 · 주요내용 <span className="tabular">{count.total}</span>개
       </p>
-    </div>
+
+      <div className="mt-auto pt-3">
+        <PledgeBar count={count} size="sm" />
+        <div className="mt-2">
+          <PledgeLegend count={count} />
+        </div>
+      </div>
+    </Link>
   );
 }
 

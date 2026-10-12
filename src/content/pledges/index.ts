@@ -57,7 +57,7 @@ for (const p of POLICIES) {
  * 앵커를 claim과 출처로 푼다. 없으면 던진다 — 근거를 가리킨다고 적어 놓고
  * 실제로는 아무것도 가리키지 않는 이행 표시는 화면에 오를 수 없다.
  */
-function resolveEvidence(ref: string): ResolvedEvidence {
+export function resolveEvidence(ref: string): ResolvedEvidence {
   const [owner, claimId] = ref.split("#");
   const bundle = bundles.get(owner);
   if (!bundle) throw new Error(`공약 근거 ${ref}: 없는 업적·정책 ${owner}`);
