@@ -1,5 +1,6 @@
 import { CASH_SUPPORT_WELFARE_FRAUD } from "./cash-support-welfare-fraud";
 import { CHILD_ALLOWANCE } from "./child-allowance";
+import { DELISTING_REFORM } from "./delisting-reform";
 import { EGG_IMPORTS } from "./egg-imports";
 import { FOREIGNER_HEALTH_VOTE } from "./foreigner-health-vote";
 import { HONAM_CHIP_CLUSTER } from "./honam-chip-cluster";
@@ -46,6 +47,7 @@ export const POLICIES: Policy[] = [
   US_INTEL_STANDARDS,
   HONAM_CHIP_CLUSTER,
   KRW_EXCHANGE_RATE,
+  DELISTING_REFORM,
   PLEDGE_CHECK_2026,
   TASKS_CHECK_2026,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong

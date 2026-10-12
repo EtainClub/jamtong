@@ -10,15 +10,20 @@ import type { PolicyInput } from "./schema";
  * 이재명 정부가 만든 제도가 아니라 오래된 제도의 문제다.
  *
  * ★ 인정 여부는 법령 요건을 갖춰도 고용센터(직업안정기관장)가 사정을 보고 판단한다.
+ * ★ '정부가 전면 개편에 착수했다'는 사실이다. 2026년 7월 TF 논의가 보도됐고 9월 1일
+ *   고용보험위원회가 개편안을 확정했다. 다만 법 개정이 남아 있어 아직 시행 전이다.
  * ★ 2026-10-11 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #5·#9.
+ *   2026-10-12 이슈 #12(제도 개편)를 더했다.
  */
 export const UNEMPLOYMENT_BENEFITS: PolicyInput = {
   slug: "unemployment-benefits",
-  title: "실업급여 — 자진 퇴사자 인정 사유와 반복 수급",
-  scope: "자발적 이직자가 구직급여를 받을 수 있는 정당한 사유, 5년 내 3회 이상 반복 수급 현황과 개편 논의",
+  title: "실업급여 — 자진 퇴사자 인정 사유, 반복 수급, 2027년 개편",
+  scope:
+    "자발적 이직자가 구직급여를 받을 수 있는 정당한 사유, 5년 내 3회 이상 반복 수급 현황, " +
+    "2026년 9월 확정된 고용보험 제도 개편안",
   ministries: ["고용노동부"],
   categories: ["welfare"],
-  asOf: "2026-10-11",
+  asOf: "2026-10-12",
   rumors: [
     {
       id: "rumor-voluntary",
@@ -29,6 +34,11 @@ export const UNEMPLOYMENT_BENEFITS: PolicyInput = {
       id: "rumor-repeat-tripled",
       text: "반복 수급자 지급액이 2016년 2,179억 원에서 지난해 5,998억 원으로 세 배 가까이 늘었다",
       claimIds: ["claim-repeat-2016", "claim-repeat-2025", "claim-repeat-cause", "claim-no-repeat-limit"],
+    },
+    {
+      id: "rumor-overhaul",
+      text: "정부가 실업급여 제도 전면 개편에 착수했다",
+      claimIds: ["claim-reform-tf", "claim-reform-confirmed", "claim-reform-pending"],
     },
   ],
   claims: [
@@ -113,6 +123,37 @@ export const UNEMPLOYMENT_BENEFITS: PolicyInput = {
       sourceIds: ["src-joongang-20260408"],
       verified: true,
     },
+    {
+      id: "claim-reform-tf",
+      text:
+        "고용노동부는 2026년 7월 노사가 참여하는 고용보험 제도개선 TF에서 개편 방향을 논의하고 " +
+        "연내 최종안을 정하겠다는 계획이 보도됐다. 무급 휴무일을 빼고 지급해 월 지급액이 " +
+        "최저임금 노동자의 실수령액보다 많아지는 문제를 고치는 것이 핵심으로 전해졌다.",
+      assertionType: "FACT",
+      sourceIds: ["src-insight-20260719"],
+      verified: true,
+    },
+    {
+      id: "claim-reform-confirmed",
+      text:
+        "고용노동부는 9월 1일 고용보험위원회에서 '고용보험 제도 개편 방안'을 확정했다. 2027년부터 " +
+        "실업급여를 주 7일이 아니라 주 6일 기준으로 지급해 하한액 기준 월 지급액이 약 198만 원에서 " +
+        "176만 원으로 줄고, 대신 총액은 유지하고 수급 기간을 늘린다(최저임금 노동자 5개월 → 약 " +
+        "5.8개월). 상한액은 하한액의 103%로 묶고, 근로자 보험료율은 0.9%에서 1.0%로 올린다. " +
+        "가입 기준은 월 60시간 이상 근로에서 월 보수 80만 원 이상으로 바뀐다.",
+      assertionType: "FACT",
+      sourceIds: ["src-hankyung-20260901"],
+      verified: true,
+    },
+    {
+      id: "claim-reform-pending",
+      text:
+        "정부는 연내 관련 법률과 하위 법령을 고치겠다는 방침이다. 2026년 10월 현재 개편안은 " +
+        "확정됐지만 법 개정 전이라 시행되지 않았다. 확정안 보도에는 반복 수급 제한 내용이 없었다.",
+      assertionType: "FACT",
+      sourceIds: ["src-hankyung-20260901"],
+      verified: true,
+    },
   ],
   critiqueIds: ["claim-no-repeat-limit", "claim-floor-inversion"],
   timeline: [
@@ -132,11 +173,29 @@ export const UNEMPLOYMENT_BENEFITS: PolicyInput = {
       summary: "5년 내 3회 이상.",
       claimIds: ["claim-repeat-2016", "claim-repeat-2025"],
     },
+    {
+      id: "t-reform-tf",
+      date: "2026-07",
+      datePrecision: "month",
+      title: "고용보험 제도개선 TF 논의",
+      summary: "주 6일 지급 등 개편 방향.",
+      claimIds: ["claim-reform-tf"],
+    },
+    {
+      id: "t-reform-confirmed",
+      date: "2026-09-01",
+      datePrecision: "day",
+      title: "고용보험위원회, 개편안 확정",
+      summary: "2027년 시행 목표, 법 개정 남음.",
+      claimIds: ["claim-reform-confirmed", "claim-reform-pending"],
+    },
   ],
   gaps: [
     "국가법령정보센터의 고용보험법 시행규칙 별표 2 현행 원문을 직접 열어 보지 못했다(접속 오류). 조문 내용은 2023년 보도에 인용된 별표 2로 확인했다.",
     "2016~2025년 사이 연도별 반복 수급 지급액과, 같은 기간 전체 실업급여 지급액·피보험자 수 증가를 함께 확인하지 못했다. 전체 대비 비중을 알아야 '세 배'의 의미를 판단할 수 있다.",
     "자발적 이직 사유로 수급을 인정받은 건수는 확인하지 못했다.",
+    "고용노동부의 9월 1일 보도자료 원문을 직접 확인하지 못했다. 개편안은 보도로 확인했다.",
+    "개편 법안이 국회에 제출·통과됐는지 확인하지 못했다.",
   ],
   sources: [
     {
@@ -171,6 +230,24 @@ export const UNEMPLOYMENT_BENEFITS: PolicyInput = {
       publisher: "파이낸셜뉴스",
       url: "https://www.fnnews.com/news/202610051901449521",
       publishedAt: "2026-10-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-insight-20260719",
+      title: "일하는 사람보다 실업급여가 더 많다?... 정부, 실업급여 전면 개편 착수",
+      publisher: "인사이트",
+      url: "https://www.insight.co.kr/news/563627",
+      publishedAt: "2026-07-19",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-hankyung-20260901",
+      title: "실업급여 내년부터 月 지급액 198만→176만원으로",
+      publisher: "한국경제",
+      url: "https://www.hankyung.com/article/2026090174651",
+      publishedAt: "2026-09-01",
       type: "press",
       license: "link-only",
     },
