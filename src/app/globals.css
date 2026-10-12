@@ -31,6 +31,18 @@
   --burgundy: #8a2233;
   --burgundy-tint: #f6e6e8;
 
+  /*
+   * 선택 강조 — 더불어민주당 파랑(#152484)을 옅게 쓴다.
+   *
+   * "UI는 무채색" 규칙의 유일한 예외다. 업적 카드 위에 손이 올라갔거나 방금
+   * 고른 카드에만 쓴다. 자료색인 navy와 구분되도록 채도가 높은 쪽을 고르고,
+   * 면은 거의 흰색에 가까운 tint로만 깐다 — 색이 자료처럼 읽히면 안 된다.
+   */
+  --dem: #152484;
+  --dem-tint: #f2f4fc;
+  --dem-ring: rgba(21, 36, 132, 0.16);
+  --dem-glow: rgba(21, 36, 132, 0.22);
+
   /* 검증 전. 오류가 아니라 "아직 출처가 확정되지 않음" */
   --pending: #8a6a12;
   --pending-tint: #f6f0df;
@@ -66,6 +78,9 @@
   --color-navy-tint: var(--navy-tint);
   --color-burgundy: var(--burgundy);
   --color-burgundy-tint: var(--burgundy-tint);
+
+  --color-dem: var(--dem);
+  --color-dem-tint: var(--dem-tint);
 
   --color-pending: var(--pending);
   --color-pending-tint: var(--pending-tint);
@@ -108,6 +123,53 @@ body {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/*
+ * 업적 카드의 손끝 반응.
+ *
+ *   올려 두면(hover)   테두리가 파랗게 물들고 카드가 2px 떠오른다. 제목도 파래진다.
+ *   누르는 순간(active) 살짝 눌려 들어가고 바깥 고리가 번진다.
+ *   고른 카드(aria-current) 옅은 파란 면 + 왼쪽 띠. 목록으로 돌아와도 남는다.
+ *
+ * hover는 마우스가 있는 기기에서만 건다. 터치 기기에서는 누른 뒤 hover가
+ * 들러붙어 고르지 않은 카드가 고른 것처럼 남는다.
+ */
+.dem-card {
+  transition:
+    border-color 0.2s ease,
+    background-color 0.25s ease,
+    box-shadow 0.3s var(--ease-out-expo),
+    transform 0.3s var(--ease-out-expo);
+}
+.dem-card .dem-title {
+  transition: color 0.2s ease;
+}
+@media (hover: hover) {
+  .dem-card:hover {
+    border-color: color-mix(in srgb, var(--dem) 38%, var(--stone));
+    background-color: color-mix(in srgb, var(--dem-tint) 60%, var(--taupe));
+    box-shadow: 0 10px 24px -14px var(--dem-glow);
+    transform: translateY(-2px);
+  }
+  .dem-card:hover .dem-title {
+    color: var(--dem);
+  }
+}
+.dem-card:active {
+  transform: translateY(0) scale(0.985);
+  box-shadow: 0 0 0 4px var(--dem-ring);
+  transition-duration: 0.08s;
+}
+.dem-card[aria-current="true"] {
+  border-color: var(--dem);
+  background-color: var(--dem-tint);
+  box-shadow:
+    inset 3px 0 0 var(--dem),
+    0 0 0 3px var(--dem-ring);
+}
+.dem-card[aria-current="true"] .dem-title {
+  color: var(--dem);
 }
 
 /* 키보드 사용자에게만 보이는 포커스 링 */

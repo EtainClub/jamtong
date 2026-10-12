@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import type { AchievementCardData } from "@/content/achievements";
@@ -25,7 +25,37 @@ import type { AchievementCategory } from "@/content/schema";
  *
  * 상태는 이 컴포넌트 안에만 둔다. 주소에 싣는 것도 생각했지만, 이 고르기는
  * 공유할 만한 무엇이 아니라 목록을 훑는 손놀림에 가깝다.
+ *
+ * ★ 고른 카드는 돌아와도 남는다.
+ *   업적 하나를 열었다가 뒤로 오면 목록이 처음(분야 고르기)으로 돌아가고,
+ *   방금 무엇을 봤는지도 사라졌다. 분야와 고른 카드를 sessionStorage에 두어
+ *   같은 탭에서 돌아오면 그 분야가 펴지고 그 카드가 파랗게 남게 한다.
+ *   저장소를 못 쓰는 브라우저에서는 예전처럼 처음부터 보일 뿐이다.
  */
+
+const STORE_KEY = "explore:selection";
+
+interface Selection {
+  picked: string | null;
+  slug: string | null;
+}
+
+function loadSelection(): Selection | null {
+  try {
+    const raw = sessionStorage.getItem(STORE_KEY);
+    return raw ? (JSON.parse(raw) as Selection) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSelection(selection: Selection) {
+  try {
+    sessionStorage.setItem(STORE_KEY, JSON.stringify(selection));
+  } catch {
+    // 저장하지 못하면 돌아왔을 때 처음부터 보일 뿐이다.
+  }
+}
 
 export interface BrowserGroup {
   category: AchievementCategory;
@@ -56,6 +86,38 @@ export function AchievementBrowser({
   partLabels: readonly string[];
 }) {
   const [picked, setPicked] = useState<Pick | null>(null);
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  /** 마지막으로 편 분야. 분야 고르기 화면으로 돌아왔을 때 그 칸을 표시한다. */
+  const [lastPicked, setLastPicked] = useState<Pick | null>(null);
+
+  /*
+   * 저장된 선택은 그린 뒤에 읽는다. 첫 렌더에서 읽으면 서버가 그린 화면과
+   * 달라져 hydration이 깨진다.
+   */
+  useEffect(() => {
+    const saved = loadSelection();
+    if (!saved) return;
+    const valid = (id: string | null): id is Pick =>
+      id === "featured" || groups.some((g) => g.category === id);
+    /* eslint-disable react-hooks/set-state-in-effect -- 브라우저 저장소에서 한 번 되살린다 */
+    if (valid(saved.picked)) {
+      setPicked(saved.picked);
+      setLastPicked(saved.picked);
+    }
+    if (saved.slug) setSelectedSlug(saved.slug);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [groups]);
+
+  const pick = (id: Pick | null) => {
+    setPicked(id);
+    if (id) setLastPicked(id);
+    saveSelection({ picked: id, slug: selectedSlug });
+  };
+
+  const select = (slug: string) => {
+    setSelectedSlug(slug);
+    saveSelection({ picked, slug });
+  };
 
   const bySlug = new Map(cards.map((card) => [card.slug, card]));
   const take = (slugs: string[]) =>
@@ -90,11 +152,12 @@ export function AchievementBrowser({
             <li key={tile.id}>
               <button
                 type="button"
-                onClick={() => setPicked(tile.id)}
-                className="flex h-full w-full flex-col rounded-card border border-stone bg-taupe px-4 py-3.5 text-left transition-colors hover:border-graphite"
+                onClick={() => pick(tile.id)}
+                aria-current={tile.id === lastPicked ? "true" : undefined}
+                className="dem-card flex h-full w-full flex-col rounded-card border border-stone bg-taupe px-4 py-3.5 text-left"
               >
                 <span className="flex items-baseline justify-between gap-2">
-                  <span className="text-[15px] font-bold text-ink">{tile.label}</span>
+                  <span className="dem-title text-[15px] font-bold text-ink">{tile.label}</span>
                   <span className="tabular shrink-0 text-[12px] font-semibold text-navy">
                     {tile.count}
                   </span>
@@ -127,7 +190,7 @@ export function AchievementBrowser({
       <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1">
         <button
           type="button"
-          onClick={() => setPicked(null)}
+          onClick={() => pick(null)}
           className="shrink-0 rounded-full border border-stone px-3 py-1.5 text-[12px] font-semibold text-smoke transition-colors hover:border-graphite hover:text-ink"
         >
           ← 분야
@@ -136,12 +199,12 @@ export function AchievementBrowser({
           <button
             key={tile.id}
             type="button"
-            onClick={() => setPicked(tile.id)}
+            onClick={() => pick(tile.id)}
             aria-current={tile.id === picked ? "true" : undefined}
             className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors ${
               tile.id === picked
-                ? "bg-ink text-eggshell"
-                : "border border-stone text-smoke hover:border-graphite hover:text-ink"
+                ? "bg-dem text-white shadow-[0_4px_12px_-6px_var(--dem-glow)]"
+                : "border border-stone text-smoke hover:border-dem/40 hover:text-dem"
             }`}
           >
             {tile.label}
@@ -160,7 +223,13 @@ export function AchievementBrowser({
       <ul className="mt-4 space-y-3">
         {items.map((card) => (
           <li key={card.id}>
-            <Card card={card} showCategory={picked === "featured"} partLabels={partLabels} />
+            <Card
+              card={card}
+              showCategory={picked === "featured"}
+              partLabels={partLabels}
+              selected={card.slug === selectedSlug}
+              onSelect={() => select(card.slug)}
+            />
           </li>
         ))}
       </ul>
@@ -179,17 +248,24 @@ function Card({
   card,
   showCategory,
   partLabels,
+  selected,
+  onSelect,
 }: {
   card: AchievementCardData;
   showCategory: boolean;
   partLabels: readonly string[];
+  /** 방금 고른 카드. 열리는 동안에도, 돌아와서도 파랗게 남는다. */
+  selected: boolean;
+  onSelect: () => void;
 }) {
   const ready = card.parts.filter(Boolean).length;
 
   return (
     <Link
       href={`/achievement/${card.slug}`}
-      className="block rounded-card border border-stone bg-taupe p-4 transition-colors hover:border-graphite"
+      onClick={onSelect}
+      aria-current={selected ? "true" : undefined}
+      className="dem-card block rounded-card border border-stone bg-taupe p-4"
     >
       {(showCategory || card.isDraft) && (
         <div className="mb-1.5 flex items-center gap-2">
@@ -204,7 +280,7 @@ function Card({
         </div>
       )}
 
-      <p className="text-base font-bold text-ink">{card.title}</p>
+      <p className="dem-title text-base font-bold text-ink">{card.title}</p>
       <p className="mt-1 text-[13px] leading-snug text-smoke">{card.subtitle}</p>
 
       {/* 일곱 칸 중 몇 칸이 찼는지. 채워진 칸은 잉크, 빈 칸은 테두리만. */}
