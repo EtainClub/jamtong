@@ -10,11 +10,13 @@ import { CATEGORY_LABEL, STATUS_LABEL } from "@/content/labels";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 import { KIND_LABEL, search, type SearchEntry } from "@/content/search";
 import type { WikiConceptCard } from "@/lib/wiki/load";
+import type { StatusCount } from "@/content/pledges";
+import { PledgeBar, PledgeLegend } from "@/features/pledges/PledgeProgress";
 
 /**
  * 홈 피드.
  *
- * 순서에 의도가 있다: 히어로 → 생활에서 달라진 것 → 업적 → 위키 → 세부 성과.
+ * 순서에 의도가 있다: 히어로 → 생활에서 달라진 것 → 공약·국정과제 → 업적 → 위키 → 세부 성과.
  * 단위는 업적이므로 업적이 먼저 오고, 한 부처 업무계획에서 뽑은 세부 성과는
  * 그 아래에 소속을 밝혀 둔다. 둘을 같은 층에 늘어놓으면 무엇이 단위인지
  * 보이지 않는다 — 예전 둘러보기가 그랬다.
@@ -74,6 +76,7 @@ export function HomeFeed({
   totalPublished,
   wikiConcepts,
   claims,
+  pledges,
 }: {
   slides: HeroSlide[];
   /** 생활에서 달라진 것. 비어 있으면 묶음을 내보내지 않는다. */
@@ -86,6 +89,8 @@ export function HomeFeed({
   totalPublished: number;
 
   claims: Claim[];
+  /** 대선 공약 이행 집계. 공약 본문은 홈에 싣지 않는다 — 세부 화면에서 읽는다. */
+  pledges: { count: StatusCount; pledges: number };
 }) {
   const [tab, setTab] = useState("all");
   const [query, setQuery] = useState("");
@@ -203,6 +208,27 @@ export function HomeFeed({
           </ul>
         </section>
       )}
+
+      {/*
+       * 약속과 그 진행. 업적이 "한 일"이라면 이쪽은 "하겠다고 한 일"이다.
+       * 둘을 한 줄에 섞지 않고 업적 목록 위에 따로 세운다.
+       */}
+      <section aria-labelledby="home-pledges" className="mt-9">
+        <h2 id="home-pledges" className="text-[17px] font-bold tracking-tight text-ink">
+          공약과 국정과제
+        </h2>
+        <p className="mt-1 text-[12px] leading-relaxed text-ash">
+          선거 때 한 약속과 정부가 정한 과제를 원문대로 싣고, 어디까지 왔는지를 근거와 함께 봅니다.
+        </p>
+        <ul className="mt-4 grid grid-cols-2 gap-3">
+          <li>
+            <PledgeHomeCard count={pledges.count} total={pledges.pledges} />
+          </li>
+          <li>
+            <TasksHomeCard />
+          </li>
+        </ul>
+      </section>
 
       <section aria-labelledby="home-achievements" className="mt-9">
         <div className="flex items-baseline justify-between gap-3">
@@ -607,6 +633,56 @@ function HeroCard({ slide, preload }: { slide: HeroSlide; preload: boolean }) {
         )}
       </div>
     </Link>
+  );
+}
+
+/** 21대 대선 공약 카드. 세부 약속 가운데 몇 개가 어디까지 왔는지 막대로 보인다. */
+function PledgeHomeCard({ count, total }: { count: StatusCount; total: number }) {
+  return (
+    <Link
+      href="/pledges"
+      className="flex h-full flex-col rounded-card border border-stone bg-taupe p-3.5 transition-colors hover:border-graphite"
+    >
+      <span className="text-[10px] font-bold text-navy">제21대 대통령선거</span>
+      <h3 className="mt-1.5 text-[15px] font-bold leading-snug text-ink">대선 공약</h3>
+      <p className="mt-1 text-[11px] leading-relaxed text-smoke">
+        <span className="tabular">{total}</span>대 공약 · 세부 약속{" "}
+        <span className="tabular">{count.total}</span>개
+      </p>
+
+      <div className="mt-auto pt-3">
+        <PledgeBar count={count} size="sm" />
+        <div className="mt-2">
+          <PledgeLegend count={count} />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+/**
+ * 123대 국정과제 카드. 아직 내용을 싣지 않았으므로 링크로 만들지 않는다 —
+ * 눌러서 빈 화면이 나오느니 준비 중이라고 미리 말하는 편이 낫다.
+ */
+function TasksHomeCard() {
+  return (
+    <div
+      aria-disabled="true"
+      className="flex h-full flex-col rounded-card border border-dashed border-stone bg-taupe/50 p-3.5"
+    >
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px] font-bold text-navy">이재명 정부</span>
+        <span className="rounded-full bg-pending-tint px-1.5 py-0.5 text-[9px] font-semibold text-pending">
+          준비 중
+        </span>
+      </div>
+      <h3 className="mt-1.5 text-[15px] font-bold leading-snug text-ink">
+        <span className="tabular">123</span>대 국정과제
+      </h3>
+      <p className="mt-1 text-[11px] leading-relaxed text-smoke">
+        정부의 123대 국정과제와 그 진행을 정리하고 있습니다.
+      </p>
+    </div>
   );
 }
 

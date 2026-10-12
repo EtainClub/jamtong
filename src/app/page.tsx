@@ -6,6 +6,7 @@ import { findScene, validateMilestones } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { HomeFeed, type HeroSlide, type LifeCard } from "@/features/home/HomeFeed";
+import { PLEDGES, totalCount } from "@/content/pledges";
 
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { conceptCards } from "@/lib/wiki/load";
@@ -137,6 +138,7 @@ export default function Home() {
           totalPublished={totalPublished}
           wikiConcepts={conceptCards()}
           claims={ALL_CLAIMS}
+          pledges={{ count: totalCount(), pledges: PLEDGES.length }}
         />
       </main>
 

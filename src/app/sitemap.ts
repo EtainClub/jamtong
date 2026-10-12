@@ -51,6 +51,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const fixed: [string, number][] = [
     ["/", 1],
     ["/explore", 0.9],
+    ["/pledges", 0.8],
     ["/words", 0.9],
     ["/wiki", 0.8],
     ["/timeline", 0.7],
