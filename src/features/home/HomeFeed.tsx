@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Milestone, Category, Claim } from "@/content/schema";
@@ -12,6 +12,10 @@ import { KIND_LABEL, search, type SearchEntry } from "@/content/search";
 import type { WikiConceptCard } from "@/lib/wiki/load";
 import type { StatusCount } from "@/content/pledges";
 import { PledgeBar, PledgeLegend } from "@/features/pledges/PledgeProgress";
+import { loadSelection, saveSelection } from "@/features/app/rememberSelection";
+
+/** 홈 업적 줄에서 마지막으로 연 업적. 돌아왔을 때 그 카드를 파랗게 남긴다. */
+const ACH_STORE_KEY = "home:achievement";
 
 /**
  * 홈 피드.
@@ -133,6 +137,30 @@ export function HomeFeed({
     page: pageAch,
   } = useScroller<HTMLUListElement>();
 
+  const [selectedAch, setSelectedAch] = useState<string | null>(null);
+
+  /*
+   * 저장된 선택은 그린 뒤에 되살린다(첫 렌더에서 읽으면 hydration이 깨진다).
+   * 가로 줄이 처음으로 돌아가 있으므로, 고른 카드가 화면 밖이면 그 자리까지 민다.
+   */
+  useEffect(() => {
+    const slug = loadSelection<string>(ACH_STORE_KEY);
+    if (!slug) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 브라우저 저장소에서 한 번 되살린다
+    setSelectedAch(slug);
+    const frame = requestAnimationFrame(() => {
+      const list = achRef.current;
+      const card = list?.querySelector<HTMLElement>(`[data-slug="${CSS.escape(slug)}"]`);
+      if (list && card) list.scrollLeft = card.offsetLeft - list.offsetLeft - 16;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [achRef]);
+
+  const selectAch = (slug: string) => {
+    setSelectedAch(slug);
+    saveSelection(ACH_STORE_KEY, slug);
+  };
+
   const {
     ref: topicsRef,
     canPrev: topicsCanPrev,
@@ -253,11 +281,23 @@ export function HomeFeed({
           <ul
             ref={achRef}
             onScroll={onAchScroll}
-            className="no-scrollbar -mx-4 mt-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1"
+            /*
+             * 위아래 여백은 호버 때 떠오르는 2px과 선택 고리(3px)가 잘리지 않게 둔 것이다.
+             * 가로 스크롤 상자는 세로로 넘친 것도 자른다. mt를 그만큼 줄여 간격은 그대로다.
+             */
+            className="no-scrollbar -mx-4 mt-2.5 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 pt-1.5"
           >
             {achievements.map((achievement) => (
-              <li key={achievement.id} className="w-[210px] shrink-0 snap-start">
-                <AchievementCard achievement={achievement} />
+              <li
+                key={achievement.id}
+                data-slug={achievement.slug}
+                className="w-[210px] shrink-0 snap-start"
+              >
+                <AchievementCard
+                  achievement={achievement}
+                  selected={achievement.slug === selectedAch}
+                  onSelect={() => selectAch(achievement.slug)}
+                />
               </li>
             ))}
           </ul>
@@ -694,14 +734,25 @@ function TasksHomeCard({ count }: { count: StatusCount }) {
  * 둘러보기의 카드와 같은 판단을 쓰되, 홈은 가로로 흐르므로 더 좁다.
  * 칸 이름을 다 적을 자리가 없어 점으로만 표시하고 개수를 따로 적는다.
  */
-function AchievementCard({ achievement }: { achievement: AchievementCardData }) {
+function AchievementCard({
+  achievement,
+  selected,
+  onSelect,
+}: {
+  achievement: AchievementCardData;
+  /** 마지막으로 연 업적. 업적 화면과 같은 파란 선택 표시를 단다. */
+  selected: boolean;
+  onSelect: () => void;
+}) {
   const { parts } = achievement;
   const ready = parts.filter(Boolean).length;
 
   return (
     <Link
       href={`/achievement/${achievement.slug}`}
-      className="flex h-full flex-col rounded-card border border-stone bg-taupe p-3.5 transition-colors hover:border-graphite"
+      onClick={onSelect}
+      aria-current={selected ? "true" : undefined}
+      className="dem-card flex h-full flex-col rounded-card border border-stone bg-taupe p-3.5"
     >
       <div className="flex items-center gap-1.5">
         <span className="text-[10px] font-bold text-navy">{achievement.kicker}</span>
@@ -712,7 +763,7 @@ function AchievementCard({ achievement }: { achievement: AchievementCardData }) 
         )}
       </div>
 
-      <h3 className="mt-1.5 text-[14px] font-bold leading-snug text-ink">
+      <h3 className="dem-title mt-1.5 text-[14px] font-bold leading-snug text-ink">
         {achievement.title}
       </h3>
       <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-smoke">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import type { AchievementCardData } from "@/content/achievements";
+import { loadSelection, saveSelection } from "@/features/app/rememberSelection";
 import type { AchievementCategory } from "@/content/schema";
 
 /**
@@ -40,22 +41,6 @@ interface Selection {
   slug: string | null;
 }
 
-function loadSelection(): Selection | null {
-  try {
-    const raw = sessionStorage.getItem(STORE_KEY);
-    return raw ? (JSON.parse(raw) as Selection) : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveSelection(selection: Selection) {
-  try {
-    sessionStorage.setItem(STORE_KEY, JSON.stringify(selection));
-  } catch {
-    // 저장하지 못하면 돌아왔을 때 처음부터 보일 뿐이다.
-  }
-}
 
 export interface BrowserGroup {
   category: AchievementCategory;
@@ -95,7 +80,7 @@ export function AchievementBrowser({
    * 달라져 hydration이 깨진다.
    */
   useEffect(() => {
-    const saved = loadSelection();
+    const saved = loadSelection<Selection>(STORE_KEY);
     if (!saved) return;
     const valid = (id: string | null): id is Pick =>
       id === "featured" || groups.some((g) => g.category === id);
@@ -111,12 +96,12 @@ export function AchievementBrowser({
   const pick = (id: Pick | null) => {
     setPicked(id);
     if (id) setLastPicked(id);
-    saveSelection({ picked: id, slug: selectedSlug });
+    saveSelection<Selection>(STORE_KEY, { picked: id, slug: selectedSlug });
   };
 
   const select = (slug: string) => {
     setSelectedSlug(slug);
-    saveSelection({ picked, slug });
+    saveSelection<Selection>(STORE_KEY, { picked, slug });
   };
 
   const bySlug = new Map(cards.map((card) => [card.slug, card]));
