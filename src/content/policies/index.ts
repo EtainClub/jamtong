@@ -1,9 +1,11 @@
 import { CASH_SUPPORT_WELFARE_FRAUD } from "./cash-support-welfare-fraud";
 import { CHILD_ALLOWANCE } from "./child-allowance";
+import { CHILD_BENEFITS_TOTAL } from "./child-benefits-total";
 import { DELISTING_REFORM } from "./delisting-reform";
 import { EGG_IMPORTS } from "./egg-imports";
 import { FOREIGNER_HEALTH_VOTE } from "./foreigner-health-vote";
 import { HONAM_CHIP_CLUSTER } from "./honam-chip-cluster";
+import { HOUSING_LOAN_BUDGET } from "./housing-loan-budget";
 import { HOUSING_MEASURES } from "./housing-measures";
 import { KRW_EXCHANGE_RATE } from "./krw-exchange-rate";
 import { MIDEAST_RUMORS } from "./mideast-rumors";
@@ -13,6 +15,7 @@ import { OIL_RELIEF_FUND } from "./oil-relief-fund";
 import { PLEDGE_CHECK_2026 } from "./pledge-check-2026";
 import { PROSECUTION_LAUNCH } from "./prosecution-launch";
 import { RETIREMENT_PENSION } from "./retirement-pension";
+import { SMALL_BUSINESS_SUPPORT } from "./small-business-support";
 import { policySchema, type Policy } from "./schema";
 import { TASKS_CHECK_2026 } from "./tasks-check-2026";
 import { TEEN_SUPPORT } from "./teen-support";
@@ -48,6 +51,9 @@ export const POLICIES: Policy[] = [
   HONAM_CHIP_CLUSTER,
   KRW_EXCHANGE_RATE,
   DELISTING_REFORM,
+  SMALL_BUSINESS_SUPPORT,
+  CHILD_BENEFITS_TOTAL,
+  HOUSING_LOAN_BUDGET,
   PLEDGE_CHECK_2026,
   TASKS_CHECK_2026,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
