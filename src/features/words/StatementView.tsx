@@ -5,6 +5,8 @@ import { useState } from "react";
 import type { Statement } from "@/content/words/schema";
 import { CardCarousel } from "@/features/carousel/CardCarousel";
 import { WORD_ART } from "./art";
+import { SpeechVideo } from "./SpeechVideo";
+import { youtubeVideoId } from "./youtube";
 
 /**
  * 원문 / 쉽게 보기 전환.
@@ -18,9 +20,16 @@ import { WORD_ART } from "./art";
  */
 export function StatementView({ statement }: { statement: Statement }) {
   const [view, setView] = useState<"easy" | "full">(statement.easy ? "easy" : "full");
+  /*
+   * 연설은 영상이 본래 모습이고 글은 그것을 받아 적은 것이다. 영상을 먼저 두고
+   * 전문이나 요약을 아래에 둔다. 글이 먼저인 언행에서 영상은 참고 자료라 뒤로 간다.
+   */
+  const videoFirst = statement.kind === "speech" && statement.media.length > 0;
 
   return (
     <>
+      {videoFirst && <MediaList statement={statement} />}
+
       {statement.easy && (
         <div
           role="radiogroup"
@@ -52,7 +61,7 @@ export function StatementView({ statement }: { statement: Statement }) {
       {!statement.body && statement.overview ? (
         <section className="mt-7" aria-labelledby="overview-heading">
           <h2 id="overview-heading" className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ash">
-            영상에서 다룬 주요 내용 · 제공된 요약
+            영상 요약 · 연설 전문이 아닙니다
           </h2>
           <p className="mt-3 whitespace-pre-line text-[15px] leading-[1.9] text-ink">
             {statement.overview}
@@ -63,28 +72,9 @@ export function StatementView({ statement }: { statement: Statement }) {
       ) : (
         <FullView statement={statement} />
       )}
-      {statement.media.length > 0 && <MediaList statement={statement} />}
+      {!videoFirst && statement.media.length > 0 && <MediaList statement={statement} />}
     </>
   );
-}
-
-/** Extract IDs from YouTube watch, share, embed, Shorts, and live URLs. */
-function youtubeVideoId(value: string): string | null {
-  try {
-    const url = new URL(value);
-    const host = url.hostname.replace(/^www\./, "");
-    const path = url.pathname.split("/").filter(Boolean);
-    const id =
-      host === "youtu.be"
-        ? path[0]
-        : ["youtube.com", "m.youtube.com", "youtube-nocookie.com"].includes(host)
-          ? url.searchParams.get("v") ??
-            (["embed", "shorts", "live"].includes(path[0]) ? path[1] : null)
-          : null;
-    return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
-  } catch {
-    return null;
-  }
 }
 
 function MediaList({ statement }: { statement: Statement }) {
@@ -98,18 +88,7 @@ function MediaList({ statement }: { statement: Statement }) {
           const videoId = media.type === "youtube" ? youtubeVideoId(media.url) : null;
           return (
             <li key={media.url}>
-              {videoId && (
-                <div className="aspect-video overflow-hidden rounded-card border border-stone bg-black">
-                  <iframe
-                    className="h-full w-full"
-                    src={`https://www.youtube-nocookie.com/embed/${videoId}`}
-                    title={media.title}
-                    loading="lazy"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                </div>
-              )}
+              {videoId && <SpeechVideo videoId={videoId} title={media.title} />}
               <a
                 href={media.url}
                 target="_blank"

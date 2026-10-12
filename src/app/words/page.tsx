@@ -8,6 +8,7 @@ import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { BooksPanel } from "@/features/books/BooksPanel";
 import { CheerBoard } from "@/features/words/CheerBoard";
+import { SpeechCard, speechVideoId } from "@/features/words/SpeechCard";
 import { WordsTabs } from "@/features/words/WordsTabs";
 
 export const metadata: Metadata = {
@@ -48,7 +49,19 @@ export default function WordsPage() {
   );
 }
 
+/**
+ * 대통령의 언행.
+ *
+ * 유튜브로 틀 수 있는 연설은 위에 따로 묶는다. 연설은 듣는 것이 본래 모습이라
+ * 목록에서 바로 틀고 읽을 수 있게 둔다. 영상이 없는 연설은 글과 같은 줄에 남는다.
+ */
 function WordsPanel() {
+  const speeches = STATEMENTS.flatMap((statement) => {
+    const videoId = speechVideoId(statement);
+    return videoId ? [{ statement, videoId }] : [];
+  });
+  const others = STATEMENTS.filter((statement) => !speechVideoId(statement));
+
   return (
     <>
       <p className="mt-6 text-[13px] leading-relaxed text-smoke">
@@ -56,8 +69,26 @@ function WordsPanel() {
         전문이 없는 연설은 영상 자료와 제공된 개요를 표시합니다.
       </p>
 
-      <ul className="mt-8 space-y-3">
-        {STATEMENTS.map((statement) => (
+      {speeches.length > 0 && (
+        <section aria-labelledby="speech-videos" className="mt-8">
+          <h2 id="speech-videos" className="text-[13px] font-bold text-ink">
+            연설 영상 <span className="font-normal text-ash">{speeches.length}</span>
+          </h2>
+          <ul className="mt-3 space-y-3">
+            {speeches.map(({ statement, videoId }) => (
+              <li key={statement.id}>
+                <SpeechCard statement={statement} videoId={videoId} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <h2 className="mt-10 text-[13px] font-bold text-ink">
+        글과 발언 <span className="font-normal text-ash">{others.length}</span>
+      </h2>
+      <ul className="mt-3 space-y-3">
+        {others.map((statement) => (
           <li key={statement.id}>
             <Link
               href={`/words/${statement.slug}`}
@@ -70,9 +101,9 @@ function WordsPanel() {
                 <span>{statement.displayDate}</span>
               </div>
 
-              <h2 className="mt-2 text-[17px] font-bold tracking-tight text-ink">
+              <h3 className="mt-2 text-[17px] font-bold tracking-tight text-ink">
                 {statement.title}
-              </h2>
+              </h3>
 
               <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-smoke">
                 {statement.body
