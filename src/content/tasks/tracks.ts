@@ -10,8 +10,104 @@ import type { PledgeTrack } from "@/content/pledges/schema";
  * 없는 과제·소제목을 가리키면 빌드가 멈춘다(index.ts).
  */
 const P = "policy:pledge-check-2026#";
+const T = "policy:tasks-check-2026#";
 
 export const TASK_TRACKS: Record<string, PledgeTrack> = {
+  "1:국민투표법 개정": {
+    status: "underway",
+    ref: `${T}claim-referendum-act`,
+    note: "재외국민 투표·18세 투표권을 담은 국민투표법 개정안이 2026년 3월 국회를 통과했다. 공포·시행일은 확인하지 못했다.",
+  },
+  "1:국회 개헌특위 구성 요청": {
+    status: "underway",
+    ref: `${T}claim-amendment-failed`,
+    note: "개헌안이 2026년 5월 국회에 상정됐으나 표결이 성립하지 않아 6·3 동시 국민투표는 무산됐다.",
+  },
+  "2:군 정보기관 개편": {
+    status: "underway",
+    ref: `${T}claim-counterintel`,
+    note: "2026년 6월 국방부가 방첩사 해체와 기능 분산을 발표했다. 새 조직 창설 완료는 확인하지 못했다.",
+  },
+  "4:경찰국 폐지": {
+    status: "done",
+    ref: `${T}claim-police-bureau`,
+    note: "행정안전부 경찰국을 없애는 직제 개정령이 2025년 8월 26일 공포·시행됐다.",
+  },
+  "20:국가AI위원회 역할 강화": {
+    status: "done",
+    ref: `${T}claim-ai-committee`,
+    note: "대통령이 위원장을 맡는 국가인공지능전략위원회가 2025년 9월 8일 출범했다.",
+  },
+  "21:독자 AI모델 개발 지원": {
+    status: "underway",
+    ref: `${T}claim-ai-model`,
+    note: "2025년 12월 독자 AI 파운데이션 모델 정예팀 5곳의 1차 결과가 공개됐다. 개발은 단계평가를 거치며 진행 중이다.",
+  },
+  "26:R&D 투자시스템 혁신": {
+    status: "underway",
+    ref: `${T}claim-rnd-budget`,
+    note: "2026년 정부 R&D 예산이 35조 5,000억 원(19.9% 증가)으로 확정됐다. 총지출 대비 5% 도달 여부는 확인하지 못했다.",
+  },
+  "60:대중교통비 절감": {
+    status: "underway",
+    ref: "policy:everyone-transit-card#flat-types",
+    note: "기준금액을 넘게 쓴 교통비를 돌려주는 모두의카드 일반형·플러스형이 운영 중이다. 무제한 정액패스와 같은지는 근거에 없다.",
+  },
+  "71:해상풍력 등 추진": {
+    status: "underway",
+    ref: `${T}claim-offshore-wind`,
+    note: "해상풍력특별법이 2026년 3월 26일 시행됐다. 계획입지(예비지구) 지정은 연내 계획이다.",
+  },
+  "78:본 제도 시행": {
+    status: "done",
+    ref: `${T}claim-care-integration`,
+    note: "통합돌봄 본사업이 2026년 3월 27일 전국 229개 시·군·구에서 시작됐다.",
+  },
+  "79:발달장애인 돌봄 국가책임제 실시": {
+    status: "underway",
+    ref: `${T}claim-dev-disability`,
+    note: "정부가 주간활동서비스 대상을 2027년 2만 명, 2030년 3만 명으로 늘리겠다고 밝혔다.",
+  },
+  "89:청년 주거 안정 강화": {
+    status: "underway",
+    ref: "policy:youth-monthly-rent#quota",
+    note: "청년 월세 지원이 2026년에도 이어져 신규 6만 명을 모집한다. 특화공공임대·기숙사형 주택은 확인하지 못했다.",
+  },
+  "89:자산형성 지원 강화": {
+    status: "underway",
+    ref: "youth-future-savings#ys-launch-fact",
+    note: "청년미래적금이 2026년 6월 가입 신청을 시작했다. 재무상담·중소기업 근속 인센티브는 확인하지 못했다.",
+  },
+  "94:노동존중문화 확산": {
+    status: "underway",
+    ref: `${T}claim-labor-day`,
+    note: "근로자의 날을 노동절로 바꾸는 법이 2025년 10월 국회를 통과했다. 교사·공무원 노동기본권은 확인하지 못했다.",
+  },
+  "97:성평등 거버넌스 강화": {
+    status: "done",
+    ref: `${T}claim-gender-ministry`,
+    note: "여성가족부가 2025년 10월 1일 성평등가족부로 확대 개편됐다.",
+  },
+  "110:전작권 전환": {
+    status: "underway",
+    ref: `${T}claim-opcon`,
+    note: "2025년 11월 SCM에서 2026년 미래연합사 완전운용능력(FOC) 검증을 추진하기로 했다.",
+  },
+  "114:통일부 조직 정상화 및 역량 강화": {
+    status: "done",
+    ref: `${T}claim-unification-org`,
+    note: "2025년 11월 4일 통일부 직제 개편으로 남북회담본부 등이 복원되고 정원이 600명으로 늘었다.",
+  },
+  "119:견고하고 성숙한 한일관계 구축": {
+    status: "underway",
+    ref: `${T}claim-japan-shuttle`,
+    note: "2025년 8월 방일과 9월 부산 정상회담으로 셔틀외교가 재개됐다. 분야별 협력의 진행은 이 근거에 없다.",
+  },
+  "119:한중관계를 명실상부한 전략적 협력 동반자 관계로 발전": {
+    status: "underway",
+    ref: `${T}claim-china-summit`,
+    note: "2025년 11월 경주 한중 정상회담에서 70조 원 통화스왑과 경제협력 공동계획 MOU를 맺었다.",
+  },
   "2:민주적 통제 강화": {
     status: "underway",
     ref: `${P}claim-martial-law`,
@@ -74,8 +170,8 @@ export const TASK_TRACKS: Record<string, PledgeTrack> = {
   },
   "47:공정한 시장질서 확립": {
     status: "underway",
-    ref: "stock-market#claim-manipulation",
-    note: "2025년 7월 주가조작 근절 합동대응단 설치를 담은 실천방안이 발표됐다.",
+    ref: `${T}claim-one-strike`,
+    note: "2025년 7월 주가조작 합동대응단이 가동되고 '원스트라이크 아웃'(계좌 지급정지, 부당이득 2배 과징금)이 발표됐다. 제도화 완료는 확인하지 못했다.",
   },
   "47:주식시장 수요기반 확충": {
     status: "underway",
