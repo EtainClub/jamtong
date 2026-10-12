@@ -19,6 +19,9 @@ import { sportsReform } from "./sports-reform";
 import { sangdaewonMarket } from "./sangdaewon-market";
 import { frontier } from "./frontier";
 import { campaignSpeech2017 } from "./2017-campaign-speech";
+import { gwangjuLecture2017 } from "./gwangju-lecture-2017";
+import { busanLecture2016 } from "./busan-lecture-2016";
+import { snuLecture2021 } from "./snu-lecture-2021";
 import { bentArmRecord } from "./bent-arm-record";
 import { bentArmFrame } from "./bent-arm-frame";
 import { bentArmTax } from "./bent-arm-tax";
@@ -56,6 +59,9 @@ export const STATEMENTS: Statement[] = [
   wish,
   sportsReform,
   campaignSpeech2017,
+  snuLecture2021,
+  gwangjuLecture2017,
+  busanLecture2016,
   /* 2022년. 현장에서 한 말과 책에 실린 글이라 목록 맨 아래다. */
   sangdaewonMarket,
   frontier,
