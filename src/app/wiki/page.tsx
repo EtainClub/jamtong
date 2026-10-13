@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { POLICIES } from "@/content/policies";
+import { TRIALS } from "@/content/policies/trials";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { AskWikiBox } from "@/features/wiki/AskWikiBox";
@@ -34,6 +35,26 @@ export default function WikiIndexPage() {
         </p>
 
         <AskWikiBox />
+
+        {/*
+         * 대통령 재판 다섯 건은 정책 팩트 목록에도 한 장씩 있지만, 따로 읽기보다
+         * 나란히 놓고 볼 때 뜻이 있다. 그래서 목록 앞에 묶음으로 들어가는 문을 둔다.
+         */}
+        <Link
+          href="/trials"
+          className="mt-9 flex items-center justify-between gap-3 rounded-card border border-stone bg-taupe/60 px-4 py-3.5 transition-colors hover:border-graphite"
+        >
+          <span className="min-w-0">
+            <span className="text-[14px] font-bold text-ink">대통령 재판 한눈에 보기</span>
+            <span className="mt-0.5 block text-[12px] leading-relaxed text-smoke">
+              멈춰 있는 형사재판 {TRIALS.length}건의 단계와 쟁점. 검찰 주장·대통령 측 반론·법원
+              판단을 나란히 둡니다.
+            </span>
+          </span>
+          <span aria-hidden="true" className="shrink-0 text-smoke">
+            →
+          </span>
+        </Link>
 
         <section aria-labelledby="wiki-policies" className="mt-9">
           <h2 id="wiki-policies" className="text-[17px] font-bold tracking-tight text-ink">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+import { TRIAL_POLICIES } from "@/content/policies/trials";
 import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
 import { WikiNotes } from "@/features/wiki/WikiNotes";
@@ -69,6 +70,7 @@ export default async function WikiPage({
   if (!page) notFound();
 
   const { nodes, notes } = renderWiki(page.body, publicTitles());
+  const isTrial = TRIAL_POLICIES.some((p) => page.name === `policy/${p.slug}`);
 
   return (
     <>
@@ -108,6 +110,19 @@ export default async function WikiPage({
           </span>
           {page.updated && <span>갱신 {page.updated}</span>}
         </div>
+
+        {/* 사건 하나로 들어온 사람이 다섯 재판을 한 화면에서 비교할 수 있게. */}
+        {isTrial && (
+          <Link
+            href="/trials"
+            className="mt-4 flex items-center justify-between gap-3 rounded-card border border-stone bg-taupe/60 px-4 py-3 text-[13px] transition-colors hover:border-graphite"
+          >
+            <span className="font-semibold text-ink">다섯 재판 한눈에 보기</span>
+            <span aria-hidden="true" className="shrink-0 text-smoke">
+              →
+            </span>
+          </Link>
+        )}
 
         {nodes}
         <WikiNotes notes={notes} />
