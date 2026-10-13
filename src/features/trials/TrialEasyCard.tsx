@@ -15,7 +15,7 @@ import { OpenFullButton } from "./TrialsView";
  * 원문 보기의 claim 문장에서 떼어 온 조각이기 때문이다.
  */
 
-const SIDE_STYLE: Record<Side, { bar: string; label: string }> = {
+export const SIDE_STYLE: Record<Side, { bar: string; label: string }> = {
   prosecution: { bar: "border-burgundy bg-burgundy-tint/60", label: "text-burgundy" },
   defense: { bar: "border-navy bg-navy-tint/60", label: "text-navy" },
   court: { bar: "border-ink bg-taupe", label: "text-ink" },
@@ -76,7 +76,10 @@ export function StepTrack({
   showPending?: boolean;
 }) {
   return (
-    <ol className="relative grid" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
+    <ol
+      className="relative grid"
+      style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
+    >
       {steps.map((step, i) => (
         <li key={step.label} className="relative flex flex-col items-center px-0.5 text-center">
           {/* 앞 단계와 잇는 선. 지난 구간은 실선, 남은 구간은 점선. */}
@@ -130,6 +133,35 @@ function Voice({ voice, policy }: { voice: EasyVoice; policy: Policy }) {
 
 /* ── 카드 ──────────────────────────────────────────────────────────── */
 
+/** 사건 카드의 틀. 쉽게 보기와 원문 보기가 같은 머리를 쓴다. */
+export function TrialCardShell({
+  trial,
+  headingId,
+  children,
+}: {
+  trial: TrialCase;
+  headingId: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <article
+      aria-labelledby={headingId}
+      className="rounded-card border border-stone bg-eggshell px-4 pb-4 pt-4 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
+    >
+      <header className="flex items-start justify-between gap-3">
+        <h3 id={headingId} className="text-[17px] font-bold tracking-tight text-ink">
+          <span className="text-smoke">{trial.no}</span> {trial.name}
+        </h3>
+        <span className="shrink-0 rounded-full border border-ink px-2 py-0.5 text-[10px] font-bold text-ink">
+          재판 중단
+        </span>
+      </header>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-graphite">{trial.question}</p>
+      {children}
+    </article>
+  );
+}
+
 export function TrialEasyCard({
   trial,
   easy,
@@ -145,20 +177,7 @@ export function TrialEasyCard({
   const total = easy.breakdown?.parts.reduce((sum, p) => sum + p.amount, 0) ?? 0;
 
   return (
-    <article
-      aria-labelledby={`${trial.slug}-easy-h`}
-      className="rounded-card border border-stone bg-eggshell px-4 pb-4 pt-4 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
-    >
-      <header className="flex items-start justify-between gap-3">
-        <h3 id={`${trial.slug}-easy-h`} className="text-[17px] font-bold tracking-tight text-ink">
-          <span className="text-smoke">{trial.no}</span> {trial.name}
-        </h3>
-        <span className="shrink-0 rounded-full border border-ink px-2 py-0.5 text-[10px] font-bold text-ink">
-          재판 중단
-        </span>
-      </header>
-      <p className="mt-1.5 text-[13px] leading-relaxed text-graphite">{trial.question}</p>
-
+    <TrialCardShell trial={trial} headingId={`${trial.slug}-easy-h`}>
       <div className="mt-4 rounded-lg bg-taupe/70 px-2 py-3">
         <StepTrack steps={easy.steps} policy={policy} />
       </div>
@@ -166,7 +185,9 @@ export function TrialEasyCard({
       {easy.numbers.length > 0 && (
         <dl
           className="mt-3 grid gap-2"
-          style={{ gridTemplateColumns: `repeat(${Math.min(easy.numbers.length, 2)}, minmax(0, 1fr))` }}
+          style={{
+            gridTemplateColumns: `repeat(${Math.min(easy.numbers.length, 2)}, minmax(0, 1fr))`,
+          }}
         >
           {easy.numbers.map((n) => {
             const prosecution = n.who.startsWith("검찰");
@@ -195,7 +216,10 @@ export function TrialEasyCard({
           <figcaption className="text-[11px] font-semibold text-smoke">
             {easy.breakdown.title} <span className="font-normal text-ash">· 검찰 주장</span>
           </figcaption>
-          <div className="mt-1.5 flex h-4 w-full overflow-hidden rounded-full bg-stone" aria-hidden="true">
+          <div
+            className="mt-1.5 flex h-4 w-full overflow-hidden rounded-full bg-stone"
+            aria-hidden="true"
+          >
             {easy.breakdown.parts.map((p, i) => (
               <span
                 key={p.label}
@@ -250,7 +274,7 @@ export function TrialEasyCard({
       <div className="mt-3 flex justify-end">
         <OpenFullButton anchor={trial.slug}>원문과 출처 보기 →</OpenFullButton>
       </div>
-    </article>
+    </TrialCardShell>
   );
 }
 
@@ -258,15 +282,18 @@ export function TrialEasyCard({
 
 export function TrialsOverview({
   rows,
+  anchorSuffix = "-easy",
 }: {
   rows: { trial: TrialCase; easy: TrialEasy; policy: Policy }[];
+  /** 누르면 갈 자리. 쉽게 보기는 `<slug>-easy`, 원문 보기는 `<slug>`. */
+  anchorSuffix?: string;
 }) {
   return (
     <ol className="space-y-3">
       {rows.map(({ trial, easy, policy }) => (
         <li key={trial.slug}>
           <a
-            href={`#${trial.slug}-easy`}
+            href={`#${trial.slug}${anchorSuffix}`}
             className="block rounded-card border border-stone px-3 pb-3 pt-2.5 transition-colors hover:border-graphite"
           >
             <span className="flex items-baseline justify-between gap-2">
@@ -293,21 +320,26 @@ const MARKS = ["done", "acquit", "stopped"] as const;
 export function TermCards({ terms }: { terms: [string, string][] }) {
   return (
     <ul className="grid grid-cols-3 gap-2">
-      {terms.map(([term, body], i) => ({ term, body, mark: MARKS[i] ?? "done" })).map((t) => (
-        <li key={t.term} className="rounded-card border border-stone bg-taupe/60 px-2.5 py-3">
-          <span className="flex h-6 items-center">
-            {t.mark === "stopped" ? (
-              <StepDot state="stopped" />
-            ) : t.mark === "done" ? (
-              <StepDot state="done" />
-            ) : (
-              <span aria-hidden="true" className="block h-3.5 w-3.5 rounded-full border-2 border-ink" />
-            )}
-          </span>
-          <span className="mt-1 block text-[13px] font-bold text-ink">{t.term}</span>
-          <span className="mt-1 block text-[11px] leading-snug text-graphite">{t.body}</span>
-        </li>
-      ))}
+      {terms
+        .map(([term, body], i) => ({ term, body, mark: MARKS[i] ?? "done" }))
+        .map((t) => (
+          <li key={t.term} className="rounded-card border border-stone bg-taupe/60 px-2.5 py-3">
+            <span className="flex h-6 items-center">
+              {t.mark === "stopped" ? (
+                <StepDot state="stopped" />
+              ) : t.mark === "done" ? (
+                <StepDot state="done" />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="block h-3.5 w-3.5 rounded-full border-2 border-ink"
+                />
+              )}
+            </span>
+            <span className="mt-1 block text-[13px] font-bold text-ink">{t.term}</span>
+            <span className="mt-1 block text-[11px] leading-snug text-graphite">{t.body}</span>
+          </li>
+        ))}
     </ul>
   );
 }

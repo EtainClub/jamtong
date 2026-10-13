@@ -1,4 +1,7 @@
 import type { Policy } from "@/content/policies/schema";
+import type { Side } from "@/content/policies/trials/easy";
+
+import { SIDE_STYLE } from "./TrialEasyCard";
 
 /*
  * 재판 허브의 문장 한 줄. claim 원문, 누가 한 말인지, 미검증 표식, 출처.
@@ -27,7 +30,10 @@ export function TrialClaim({ policy, claimId }: { policy: Policy; claimId: strin
       <details className="group mt-1">
         <summary className="cursor-pointer list-none text-[11px] font-medium text-navy">
           출처 {sources.length}{" "}
-          <span aria-hidden="true" className="inline-block transition-transform group-open:rotate-90">
+          <span
+            aria-hidden="true"
+            className="inline-block transition-transform group-open:rotate-90"
+          >
             ›
           </span>
         </summary>
@@ -57,21 +63,25 @@ export function TrialClaim({ policy, claimId }: { policy: Policy; claimId: strin
   );
 }
 
-/** 세 목소리 가운데 한 칸. 비어 있으면 비어 있다고 적는다. */
+/**
+ * 세 목소리 가운데 한 칸. 비어 있으면 비어 있다고 적는다.
+ * 색 띠는 쉽게 보기의 맞서는 말과 같다 — 두 화면에서 같은 색이 같은 쪽을 가리킨다.
+ */
 export function VoiceColumn({
   label,
-  tone,
+  side,
   policy,
   claimIds,
 }: {
   label: string;
-  tone: string;
+  side: Side;
   policy: Policy;
   claimIds: string[];
 }) {
+  const style = SIDE_STYLE[side];
   return (
-    <div className="rounded-card border border-stone px-3.5 py-3">
-      <h4 className={`text-[11px] font-bold tracking-[0.04em] ${tone}`}>{label}</h4>
+    <div className={`rounded-r-lg border-l-[3px] px-3.5 py-3 ${style.bar}`}>
+      <h4 className={`text-[11px] font-bold tracking-[0.04em] ${style.label}`}>{label}</h4>
       {claimIds.length > 0 ? (
         <ul className="mt-2 space-y-2.5">
           {claimIds.map((id) => (

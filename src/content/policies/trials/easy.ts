@@ -337,6 +337,13 @@ for (const easy of TRIAL_EASY) {
   }
 }
 
+/* 원문 보기도 이 목록의 단계 막대를 쓴다. 빠진 재판이 있으면 원문에서도 사라진다. */
+for (const trial of TRIALS) {
+  if (!TRIAL_EASY.some((e) => e.slug === trial.slug)) {
+    throw new Error(`쉽게 보기: 재판 ${trial.slug}의 카드가 없다`);
+  }
+}
+
 export function getTrialEasy(slug: string): TrialEasy | undefined {
   return TRIAL_EASY.find((e) => e.slug === slug);
 }

@@ -7,7 +7,13 @@ import { getTrialEasy } from "@/content/policies/trials/easy";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { TrialClaim, VoiceColumn } from "@/features/trials/TrialClaim";
-import { TermCards, TrialEasyCard, TrialsOverview } from "@/features/trials/TrialEasyCard";
+import {
+  StepTrack,
+  TermCards,
+  TrialCardShell,
+  TrialEasyCard,
+  TrialsOverview,
+} from "@/features/trials/TrialEasyCard";
 import { ModePane, TrialsView, TrialsViewToggle } from "@/features/trials/TrialsView";
 
 export const metadata: Metadata = {
@@ -104,109 +110,79 @@ export default function TrialsPage() {
             </div>
           </ModePane>
 
+          {/*
+           * 원문 보기 — 문장은 그대로 두고 틀만 쉽게 보기와 맞춘다. 같은 낱말 카드,
+           * 같은 단계 막대, 같은 사건 카드 머리, 같은 색 띠를 쓴다.
+           */}
           <ModePane mode="full">
-            <dl className="mt-5 grid gap-2 rounded-card border border-stone bg-taupe/60 px-4 py-3.5">
-              {TERMS.map(([term, body]) => (
-                <div key={term} className="flex gap-3 text-[12px] leading-relaxed">
-                  <dt className="w-[4.5em] shrink-0 font-bold text-ink">{term}</dt>
-                  <dd className="text-graphite">{body}</dd>
-                </div>
-              ))}
-            </dl>
+            <div className="mt-5">
+              <TermCards terms={TERMS} />
+            </div>
 
             <section aria-labelledby="tr-board" className="mt-8">
               <h2 id="tr-board" className="text-[15px] font-bold text-ink">
                 한눈에 보기
               </h2>
-              <ol className="mt-3 divide-y divide-stone border-y border-stone">
-                {TRIALS.map((trial) => (
-                  <li key={trial.slug}>
-                    <a
-                      href={`#${trial.slug}`}
-                      className="flex items-start gap-3 py-3 hover:bg-taupe/40"
-                    >
-                      <span className="tabular w-5 shrink-0 text-[14px] font-bold text-navy">
-                        {trial.no}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-[14px] font-bold text-ink">{trial.name}</span>
-                        <span className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                          <span className="rounded-full bg-taupe px-2 py-0.5 font-semibold text-graphite">
-                            {trial.stage}
-                          </span>
-                          <span className="rounded-full border border-stone px-2 py-0.5 text-ash">
-                            재판 중단
-                          </span>
-                        </span>
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ol>
+              <p className="mt-1 text-[12px] text-ash">● 지난 단계 · ‖ 멈춘 곳 · ○ 남은 단계</p>
+              <div className="mt-3">
+                <TrialsOverview rows={easyRows} anchorSuffix="" />
+              </div>
             </section>
 
-            {TRIALS.map((trial) => {
-              const policy = getPolicy(trial.slug);
-              if (!policy) return null;
-              return (
-                <section
-                  key={trial.slug}
-                  id={trial.slug}
-                  aria-labelledby={`${trial.slug}-h`}
-                  className="mt-10 scroll-mt-20"
-                >
-                  <h2
-                    id={`${trial.slug}-h`}
-                    className="text-[17px] font-bold tracking-tight text-ink"
-                  >
-                    <span className="text-navy">{trial.no}</span> {trial.name}
-                  </h2>
-                  <p className="mt-1.5 text-[13px] font-semibold leading-relaxed text-graphite">
-                    {trial.question}
-                  </p>
+            <div className="mt-10 space-y-5">
+              {easyRows.map(({ trial, easy, policy }) => (
+                <section key={trial.slug} id={trial.slug} className="scroll-mt-20">
+                  <TrialCardShell trial={trial} headingId={`${trial.slug}-h`}>
+                    <div className="mt-4 rounded-lg bg-taupe/70 px-2 py-3">
+                      <StepTrack steps={easy.steps} policy={policy} />
+                    </div>
 
-                  <div className="mt-3 grid gap-2">
-                    <VoiceColumn
-                      label="검찰 주장"
-                      tone="text-smoke"
-                      policy={policy}
-                      claimIds={trial.prosecution}
-                    />
-                    <VoiceColumn
-                      label="대통령 측 반론"
-                      tone="text-navy"
-                      policy={policy}
-                      claimIds={trial.defense}
-                    />
-                    <VoiceColumn
-                      label="법원 판단"
-                      tone="text-ink"
-                      policy={policy}
-                      claimIds={trial.court}
-                    />
-                    {trial.facts && trial.facts.length > 0 && (
+                    <div className="mt-4 space-y-2">
                       <VoiceColumn
-                        label="그 밖에 확인된 사실"
-                        tone="text-smoke"
+                        label="검찰 주장"
+                        side="prosecution"
                         policy={policy}
-                        claimIds={trial.facts}
+                        claimIds={trial.prosecution}
                       />
-                    )}
-                  </div>
+                      <VoiceColumn
+                        label="대통령 측 반론"
+                        side="defense"
+                        policy={policy}
+                        claimIds={trial.defense}
+                      />
+                      <VoiceColumn
+                        label="법원 판단"
+                        side="court"
+                        policy={policy}
+                        claimIds={trial.court}
+                      />
+                      {trial.facts && trial.facts.length > 0 && (
+                        <VoiceColumn
+                          label="그 밖에 확인된 사실"
+                          side="other"
+                          policy={policy}
+                          claimIds={trial.facts}
+                        />
+                      )}
+                    </div>
 
-                  <Link
-                    href={`/wiki/policy/${trial.slug}`}
-                    className="mt-3 inline-block text-[12px] font-semibold text-navy"
-                  >
-                    경과·비판과 한계·확인 못 한 것 전체 보기 →
-                  </Link>
+                    <Link
+                      href={`/wiki/policy/${trial.slug}`}
+                      className="mt-3 inline-block text-[12px] font-semibold text-navy"
+                    >
+                      경과·비판과 한계·확인 못 한 것 전체 보기 →
+                    </Link>
+                  </TrialCardShell>
                 </section>
-              );
-            })}
+              ))}
+            </div>
           </ModePane>
 
           {background && (
-            <section aria-labelledby="tr-bg" className="mt-12 border-t border-stone pt-6">
+            <section
+              aria-labelledby="tr-bg"
+              className="mt-12 rounded-card border border-stone bg-taupe/60 px-4 py-4"
+            >
               <h2 id="tr-bg" className="text-[15px] font-bold text-ink">
                 재판은 왜 멈췄고, 그 뒤 무엇이 있었나
               </h2>
