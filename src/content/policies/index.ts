@@ -20,6 +20,7 @@ import { policySchema, type Policy } from "./schema";
 import { TASKS_CHECK_2026 } from "./tasks-check-2026";
 import { TEEN_SUPPORT } from "./teen-support";
 import { TONGTONG_POLICIES } from "./tongtong";
+import { TRIAL_POLICIES } from "./trials";
 import { UNEMPLOYMENT_BENEFITS } from "./unemployment-benefits";
 import { US_INTEL_STANDARDS } from "./us-intel-standards";
 import { US_INVESTMENT } from "./us-investment";
@@ -56,6 +57,8 @@ export const POLICIES: Policy[] = [
   HOUSING_LOAN_BUDGET,
   PLEDGE_CHECK_2026,
   TASKS_CHECK_2026,
+  // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
+  ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
   ...TONGTONG_POLICIES,
 ].map((policy) => policySchema.parse(policy));

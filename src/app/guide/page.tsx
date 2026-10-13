@@ -11,6 +11,7 @@ import { BOOKS, hasChapters } from "@/content/books";
 import { CARTELS, OPEN_CARTELS } from "@/content/cartels";
 import { ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import { findScene, type SceneKind } from "@/content/schema";
+import { TRIALS } from "@/content/policies/trials";
 import { STATEMENTS } from "@/content/words";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
@@ -162,6 +163,13 @@ export default function GuidePage() {
       body: "분야가 아니라 표적으로 업적을 가로질러 봅니다. 아직 비어 있는 갈래도 그대로 둡니다.",
       count: `${CARTELS.length}갈래 중 ${OPEN_CARTELS.length}갈래`,
       href: "/cartel",
+    },
+    {
+      q: "대통령 재판은 어디까지 왔나",
+      label: "대통령 재판",
+      body: "멈춰 있는 다섯 형사재판의 단계와 쟁점. 검찰 주장·대통령 측 반론·법원 판단을 나란히 둡니다.",
+      count: `${TRIALS.length}건`,
+      href: "/trials",
     },
     {
       q: "한 편으로는 보이지 않는 이야기",
