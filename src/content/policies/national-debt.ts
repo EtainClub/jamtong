@@ -12,14 +12,17 @@ import type { PolicyInput } from "./schema";
  * ★ 적자 규모가 크다는 비판은 사실이다. 나랏빚이 매년 늘어나는 것도 사실이다.
  *   부정하지 않고 그 크기를 정확히 적는다.
  * ★ 2026-10-11 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #4·#7.
+ *   2026-10-13 이슈 #24(1인당 부채)·#35(IMF 권고)를 더했다.
  */
 export const NATIONAL_DEBT: PolicyInput = {
   slug: "national-debt",
   title: "국채 발행과 국가채무 전망",
-  scope: "2026년 예산의 적자국채·국고채 발행 규모, 2025~2029·2026~2030 국가재정운용계획의 국가채무 전망",
+  scope:
+    "2026년 예산의 적자국채·국고채 발행 규모, 2025~2029·2026~2030 국가재정운용계획의 국가채무 전망, " +
+    "1인당 국가채무, IMF 2025년 연례협의 권고",
   ministries: ["재정경제부", "기획예산처"],
   categories: ["economy"],
-  asOf: "2026-10-11",
+  asOf: "2026-10-13",
   rumors: [
     {
       id: "rumor-110-every-year",
@@ -30,6 +33,16 @@ export const NATIONAL_DEBT: PolicyInput = {
       id: "rumor-2000",
       text: "이대로 가면 임기 종료 시 국가채무는 2,000조 원이 된다",
       claimIds: ["claim-2025-plan-debt", "claim-2026-plan-debt"],
+    },
+    {
+      id: "rumor-per-capita",
+      text: "이재명 정부에서 국가부채가 국민 1인당 1억 3,000만 원이다",
+      claimIds: ["claim-per-capita", "claim-bis-total"],
+    },
+    {
+      id: "rumor-imf-warning",
+      text: "IMF가 이재명 정부의 확장 재정 정책에 이례적으로 강력한 경고를 내고 2030년부터 확장 재정을 반드시 중단해야 한다고 조언했다",
+      claimIds: ["claim-imf-2025", "claim-imf-reading"],
     },
   ],
   claims: [
@@ -125,6 +138,47 @@ export const NATIONAL_DEBT: PolicyInput = {
       sourceIds: ["src-newspim-20260901", "src-newscj-debt"],
       verified: false,
     },
+    {
+      id: "claim-per-capita",
+      text:
+        "2026년 말 계획 국가채무 1,413.8조 원을 2025년 말 주민등록인구 5,111만 7,378명으로 나누면 1인당 " +
+        "약 2,770만 원이다. 국가채무는 중앙·지방정부가 갚아야 할 빚이다.",
+      assertionType: "INTERPRETATION",
+      sourceIds: ["src-hankyung-20251203", "src-newsis-20260104"],
+      verified: true,
+    },
+    {
+      id: "claim-bis-total",
+      text:
+        "국제결제은행(BIS) 기준 한국의 국가총부채는 2025년 1분기 말 6,373조 원(GDP 대비 247.9%)이다. " +
+        "정부·가계·기업 빚을 모두 더한 것으로, 이 중 기업 부채만 2,861조 원이다. 이것을 인구로 나누면 1인당 " +
+        "약 1억 2,500만 원이 된다. '1인당 1억 3,000만 원'에 가까운 숫자는 기업과 가계 빚까지 넣어야 나온다.",
+      assertionType: "INTERPRETATION",
+      sourceIds: ["src-daum-20250918", "src-newsis-20260104"],
+      verified: true,
+    },
+    {
+      id: "claim-imf-2025",
+      text:
+        "IMF 이사회는 2025년 11월 한국 연례협의를 마치며, 마이너스 산출갭을 고려해 현재의 확장적 재정을 " +
+        "환영했고 일부 이사는 더 강한 경기 대응이 필요할 수 있다고 했다. 고령화에 따른 장기 지출 압력을 " +
+        "들어 성장이 잠재 수준으로 돌아오면 재정 건전화를 재개하고, 세제·지출 효율·연금 개혁과 중기 " +
+        "재정준칙(앵커) 도입을 서두르라고 권고했다.",
+      assertionType: "CLAIM",
+      assertedBy: "IMF 이사회(2025년 한국 연례협의)",
+      sourceIds: ["src-imf-pr-25385"],
+      verified: true,
+    },
+    {
+      id: "claim-imf-reading",
+      text:
+        "IMF 발표문에는 '2030년부터 확장 재정을 반드시 중단하라'는 시한이 없고 소비쿠폰 언급도 없다. " +
+        "건전화를 권고한 것은 맞지만, 현재의 확장 재정은 오히려 환영했다. '이례적으로 강력한 경고'라는 " +
+        "말은 발표문의 어조와 다르다.",
+      assertionType: "INTERPRETATION",
+      sourceIds: ["src-imf-pr-25385"],
+      verified: true,
+    },
   ],
   critiqueIds: ["claim-debt-growth", "claim-revenue-assumption"],
   timeline: [
@@ -167,6 +221,8 @@ export const NATIONAL_DEBT: PolicyInput = {
     "2027~2029년 국가채무 금액(조 원)은 확인하지 못했다. 비율만 적었다. 2027년 1,519.8조 원이라는 보도가 있으나 원문을 대조하지 못했다.",
     "국가채무비율이 2026년 51.6%에서 2027년 48.3%로 떨어지는 이유(세수 증가, GDP 통계 개편 여부 등)를 원자료로 확인하지 못했다.",
     "국회예산정책처의 독자 중기 전망은 싣지 않았다. 2,000조 원이라는 숫자의 출처도 찾지 못했다.",
+    "IMF 2025년 연례협의 직원보고서(Country Report No. 25/308)의 장기 부채 전망 표는 직접 확인하지 못했다. '2050년 부채비율 90~130%'라는 보도 수치는 대조하지 못했다.",
+    "BIS 국가총부채를 1인당으로 나눈 값은 이 위키의 계산이다. BIS 기준과 정부 국가채무(D1)는 범위가 다르다.",
   ],
   sources: [
     {
@@ -230,6 +286,33 @@ export const NATIONAL_DEBT: PolicyInput = {
       url: "https://www.newscj.com/news/articleView.html?idxno=3429501",
       type: "press",
       license: "link-only",
+    },
+    {
+      id: "src-newsis-20260104",
+      title: "행안부, '2025년 주민등록 인구통계 분석' 결과",
+      publisher: "뉴시스(행정안전부 발표)",
+      url: "https://www.newsis.com/view/NISX20260104_0003464167",
+      publishedAt: "2026-01-04",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-daum-20250918",
+      title: "\"그렇게 심각하다던 영국 보다 더 위험\"…한국 부채, 10년 만에 3000조원 불었다",
+      publisher: "다음 뉴스",
+      url: "https://v.daum.net/v/20250918045110882",
+      publishedAt: "2025-09-18",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-imf-pr-25385",
+      title: "IMF Executive Board Concludes 2025 Article IV Consultation with Republic of Korea (PR 25/385)",
+      publisher: "IMF",
+      url: "https://www.imf.org/en/news/articles/2025/11/21/pr-25385-republic-of-korea-imf-executive-board-concludes-2025-article-iv-consultation",
+      publishedAt: "2025-11-21",
+      type: "official",
+      license: "public",
     },
   ],
 };

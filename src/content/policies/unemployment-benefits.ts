@@ -14,6 +14,7 @@ import type { PolicyInput } from "./schema";
  *   고용보험위원회가 개편안을 확정했다. 다만 법 개정이 남아 있어 아직 시행 전이다.
  * ★ 2026-10-11 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #5·#9.
  *   2026-10-12 이슈 #12(제도 개편)를 더했다.
+ *   2026-10-13 이슈 #33 — 자진 퇴사 인정 사유를 법령 원문(시행규칙 별표 2, 2026. 9. 18. 시행)과 대조했다.
  */
 export const UNEMPLOYMENT_BENEFITS: PolicyInput = {
   slug: "unemployment-benefits",
@@ -23,7 +24,7 @@ export const UNEMPLOYMENT_BENEFITS: PolicyInput = {
     "2026년 9월 확정된 고용보험 제도 개편안",
   ministries: ["고용노동부"],
   categories: ["welfare"],
-  asOf: "2026-10-12",
+  asOf: "2026-10-13",
   rumors: [
     {
       id: "rumor-voluntary",
@@ -45,32 +46,33 @@ export const UNEMPLOYMENT_BENEFITS: PolicyInput = {
     {
       id: "claim-voluntary-rule",
       text:
-        "구직급여는 원칙적으로 비자발적으로 일자리를 잃은 사람이 받는다. 스스로 그만둔 사람은 " +
-        "받지 못하지만, 고용보험법 시행규칙 제101조 제2항과 별표 2가 정한 '정당한 이직 사유'가 " +
-        "있으면 예외로 받을 수 있다.",
+        "구직급여는 원칙적으로 비자발적으로 일자리를 잃은 사람이 받는다. 고용보험법 제58조는 전직·자영업 " +
+        "등 자기 사정으로 이직한 사람의 수급자격을 제한하지만, 고용보험법 시행규칙 제101조 제2항과 별표 2가 " +
+        "정한 '정당한 이직 사유'가 있으면 스스로 그만둬도 받을 수 있다.",
       assertionType: "FACT",
-      sourceIds: ["src-law-ei-rule", "src-dailypharm-20230320"],
-      verified: false,
+      sourceIds: ["src-law-ei-act", "src-law-ei-rule"],
+      verified: true,
     },
     {
       id: "claim-annex2-conditions",
       text:
-        "별표 2 제1호는 다음 사유가 이직일 전 1년 이내에 2개월 이상 있었던 경우를 정당한 사유로 " +
-        "든다. 실제 근로조건이 채용 때 제시된 조건이나 그동안 적용받던 조건보다 낮아진 경우, " +
-        "임금체불, 최저임금 미달, 근로기준법상 연장근로 제한 위반, 휴업으로 평균임금 70% " +
-        "미만을 받은 경우다. 임금이 한 번 깎였다고 바로 해당하는 것은 아니다.",
+        "별표 2 제1호는 다음 사유가 이직일 전 1년 이내에 2개월 이상 있었던 경우를 정당한 사유로 든다. 실제 " +
+        "근로조건이 채용 때 제시된 조건이나 채용 뒤 일반적으로 적용받던 조건보다 낮아진 경우, 임금체불, " +
+        "최저임금 미달, 근로기준법 제53조 연장근로 제한 위반, 휴업으로 평균임금 70% 미만을 받은 경우다. " +
+        "임금이 한 번 깎였다고 바로 해당하는 것은 아니다.",
       assertionType: "FACT",
-      sourceIds: ["src-law-ei-rule", "src-dailypharm-20230320"],
-      verified: false,
+      sourceIds: ["src-law-ei-rule"],
+      verified: true,
     },
     {
       id: "claim-judgement",
       text:
-        "요건에 해당하는지는 이직 경위와 근로조건 저하 정도 등을 보고 고용센터가 판단한다. " +
-        "사업주와 짜고 비자발적 퇴사로 꾸며 받으면 부정수급으로 처벌받는다.",
+        "사유에 해당하는지는 직업안정기관의 장(고용센터)이 인정한다. 사업주와 짜고 거짓으로 실업급여를 " +
+        "받으면 받은 사람과 사업주 모두 5년 이하 징역 또는 5천만 원 이하 벌금에 처해진다(고용보험법 " +
+        "제116조).",
       assertionType: "FACT",
-      sourceIds: ["src-dailypharm-20230320"],
-      verified: false,
+      sourceIds: ["src-law-ei-act", "src-dailypharm-20230320"],
+      verified: true,
     },
     {
       id: "claim-repeat-2016",
@@ -198,6 +200,14 @@ export const UNEMPLOYMENT_BENEFITS: PolicyInput = {
     "개편 법안이 국회에 제출·통과됐는지 확인하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-law-ei-act",
+      title: "고용보험법 제58조(이직 사유에 따른 수급자격의 제한), 제116조(벌칙)",
+      publisher: "국가법령정보센터",
+      url: "https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B3%A0%EC%9A%A9%EB%B3%B4%ED%97%98%EB%B2%95",
+      type: "legislative",
+      license: "public",
+    },
     {
       id: "src-law-ei-rule",
       title: "고용보험법 시행규칙 제101조, 별표 2 (수급자격이 제한되지 아니하는 정당한 이직 사유)",

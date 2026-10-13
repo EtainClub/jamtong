@@ -1,13 +1,17 @@
 import { CASH_SUPPORT_WELFARE_FRAUD } from "./cash-support-welfare-fraud";
 import { CHILD_ALLOWANCE } from "./child-allowance";
 import { CHILD_BENEFITS_TOTAL } from "./child-benefits-total";
+import { CONSUMPTION_COUPON } from "./consumption-coupon";
+import { COUPANG_DISPUTE } from "./coupang-dispute";
 import { DELISTING_REFORM } from "./delisting-reform";
 import { EGG_IMPORTS } from "./egg-imports";
 import { FOREIGNER_HEALTH_VOTE } from "./foreigner-health-vote";
 import { HONAM_CHIP_CLUSTER } from "./honam-chip-cluster";
 import { HOUSING_LOAN_BUDGET } from "./housing-loan-budget";
 import { HOUSING_MEASURES } from "./housing-measures";
+import { KOREA_JAPAN_EVACUATION } from "./korea-japan-evacuation";
 import { KRW_EXCHANGE_RATE } from "./krw-exchange-rate";
+import { LABOR_UNION_POLICY } from "./labor-union-policy";
 import { MIDEAST_RUMORS } from "./mideast-rumors";
 import { NATIONAL_DEBT } from "./national-debt";
 import { NEW_LEAP_FUND } from "./new-leap-fund";
@@ -55,6 +59,10 @@ export const POLICIES: Policy[] = [
   SMALL_BUSINESS_SUPPORT,
   CHILD_BENEFITS_TOTAL,
   HOUSING_LOAN_BUDGET,
+  KOREA_JAPAN_EVACUATION,
+  COUPANG_DISPUTE,
+  LABOR_UNION_POLICY,
+  CONSUMPTION_COUPON,
   PLEDGE_CHECK_2026,
   TASKS_CHECK_2026,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다

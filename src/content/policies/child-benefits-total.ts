@@ -13,6 +13,7 @@ import type { PolicyInput } from "./schema";
  *   무엇을 넣고 뺐는지 밝힌다.
  * ★ 아동수당 자체는 `child-allowance`가 다룬다.
  * ★ 2026-10-12 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #18·#19·#21·#22.
+ *   2026-10-13 이슈 #36 — 합계에 부모급여와 2027년 예산안을 더하고 육아휴직 개편 시점을 원문과 대조했다.
  */
 export const CHILD_BENEFITS_TOTAL: PolicyInput = {
   slug: "child-benefits-total",
@@ -22,7 +23,7 @@ export const CHILD_BENEFITS_TOTAL: PolicyInput = {
     "아동수당·첫만남이용권·자립펀드를 합친 한 아이당 정부 지원액",
   ministries: ["보건복지부", "고용노동부", "재정경제부"],
   categories: ["welfare"],
-  asOf: "2026-10-12",
+  asOf: "2026-10-13",
   rumors: [
     {
       id: "rumor-renewed",
@@ -42,7 +43,7 @@ export const CHILD_BENEFITS_TOTAL: PolicyInput = {
     {
       id: "rumor-300m",
       text: "2025년 육아정책이 개편되어 출산·양육·교육·주거까지 한 자녀당 최대 3억 원의 혜택을 받을 수 있다",
-      claimIds: ["claim-total", "claim-leave-2025"],
+      claimIds: ["claim-total", "claim-parent-benefit", "claim-2027-plan", "claim-leave-2025"],
     },
   ],
   claims: [
@@ -50,12 +51,13 @@ export const CHILD_BENEFITS_TOTAL: PolicyInput = {
       id: "claim-leave-2025",
       text:
         "육아휴직급여 상한을 월 150만 원에서 최대 250만 원(1~3개월째, 4~6개월째 200만 원, 이후 160만 원)으로 " +
-        "올리고 사후지급을 없애며, 배우자 출산휴가 급여를 5일분에서 20일분으로 늘리는 개편은 2024년 " +
-        "윤석열 정부가 2025년 예산안(8월 국무회의 의결)과 법령 개정안(10월 입법예고)으로 추진해 2025년부터 " +
-        "시행됐다. 이재명 정부(2025년 6월 출범)가 만든 제도가 아니다.",
+        "올리고 급여의 25%를 복직 뒤에 주던 사후지급을 없애며, 배우자 출산휴가 급여를 5일분에서 20일분으로 " +
+        "늘리는 개편은 윤석열 정부가 2024년 8월 27일 국무회의에서 의결한 2025년 예산안과 10월 입법예고한 법령 " +
+        "개정안으로 '내년(2025년)부터' 하겠다고 추진한 것이다. 이재명 정부(2025년 6월 출범)가 만든 제도가 " +
+        "아니다.",
       assertionType: "FACT",
       sourceIds: ["src-news1-20240827", "src-bokjiro-20241022"],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-first-voucher",
@@ -115,15 +117,43 @@ export const CHILD_BENEFITS_TOTAL: PolicyInput = {
       verified: true,
     },
     {
+      id: "claim-parent-benefit",
+      text:
+        "부모급여는 2024년 1월부터 0세(0~11개월) 아동 가정에 월 100만 원, 1세(12~23개월)에 월 50만 원이다. " +
+        "그 전에는 0세 월 70만 원, 1세 월 35만 원이었다.",
+      assertionType: "FACT",
+      sourceIds: ["src-yonhap-20240111"],
+      verified: true,
+    },
+    {
+      id: "claim-2027-plan",
+      text:
+        "정부가 2026년 9월 1일 국무회의에서 의결한 2027년 예산안은 출산·입양 세액공제, 첫만남이용권, " +
+        "부모급여를 합쳐 첫째 1,000만 원, 둘째 1,200만 원, 셋째 이상 1,500만 원을 주는 출산 지원금(지방 우대 " +
+        "지역은 500만 원 추가)과, 아동수당을 대신해 12세 이하에게 월 20만 원(지방 우대 지역 최대 30만 원)을 " +
+        "주는 아동기본수당을 담았다. 보도는 지방 우대 지역 셋째 아이가 혼인지원금까지 합쳐 최대 7,500만 원을 " +
+        "받는다고 계산했다. 국회 확정 전의 정부안이다.",
+      assertionType: "FACT",
+      sourceIds: ["src-sbsbiz-20260901"],
+      verified: true,
+    },
+    {
       id: "claim-total",
       text:
-        "2026년 9월 이후 태어난 첫째 아이 기준으로 세 제도의 정부 지원을 더하면, 아동수당 약 1,560만 원" +
-        "(월 10만 원 × 13년), 첫만남이용권 200만 원, 자립펀드 정부 매칭 약 1,900만~2,280만 원(연 100만~120만 원 " +
-        "× 19년)으로 약 3,660만~4,040만 원이다. 6,000만 원을 넘으려면 부모가 넣은 돈이나 운용 수익을 더해야 " +
-        "한다. 3억 원이라는 합계는 정부 발표에서 찾지 못했다.",
+        "2026년 9월 이후 태어난 첫째 아이 기준으로 지금 제도의 정부 지원을 더하면 부모급여 1,800만 원" +
+        "(0세 월 100만 원 × 12개월 + 1세 월 50만 원 × 12개월), 아동수당 약 1,560만 원(월 10만 원 × 13년), " +
+        "첫만남이용권 200만 원, 자립펀드 정부 매칭 약 1,900만~2,280만 원(연 100만~120만 원 × 19년)으로 약 " +
+        "5,460만~5,840만 원이다. 2027년 예산안대로 바뀌어도 보도가 든 최대 사례는 7,500만 원이다. 3억 원이라는 " +
+        "합계는 정부 발표에서 찾지 못했다.",
       assertionType: "INTERPRETATION",
-      sourceIds: ["src-bokjiro-allowance-cb", "src-socialservice-first", "src-newspim-20261001"],
-      verified: false,
+      sourceIds: [
+        "src-yonhap-20240111",
+        "src-bokjiro-allowance-cb",
+        "src-socialservice-first",
+        "src-newspim-20261001",
+        "src-sbsbiz-20260901",
+      ],
+      verified: true,
     },
   ],
   critiqueIds: ["claim-fund-status"],
@@ -161,6 +191,24 @@ export const CHILD_BENEFITS_TOTAL: PolicyInput = {
     "지역화폐 50만 원 추가가 어느 지자체 제도를 가리키는지 확인하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-yonhap-20240111",
+      title: "올해부터 부모급여 '0세 100만원·1세 50만원'으로 인상",
+      publisher: "연합뉴스(보건복지부 발표)",
+      url: "https://v.daum.net/v/20240111120033879",
+      publishedAt: "2024-01-11",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-sbsbiz-20260901",
+      title: "아이 한명당 최대 7500만원…혼인·출산·양육 지원 확대 [2027 예산안]",
+      publisher: "SBS Biz",
+      url: "https://biz.sbs.co.kr/amp/article/20000331915",
+      publishedAt: "2026-09-01",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-news1-20240827",
       title: "육아휴직급여 월 150만→250만원 인상…배우자 휴가급여도 4배↑",

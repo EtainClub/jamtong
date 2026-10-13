@@ -9,6 +9,7 @@ import type { PolicyInput } from "./schema";
  * ★ 금액표는 행정안전부 안내 페이지 기준이다. 보도마다 인구감소지역 금액을
  *   다르게 적었는데, 행안부 표는 우대지원지역 20만·특별지원지역 25만으로 나눈다.
  * ★ 사용기한(2026-08-31)이 지났다. 지금 "받을 수 있다"는 글은 시점이 틀린 것이다.
+ * ★ 2026-10-13 신생아·미성년자와 3월 30일 기준일 — 잼통 신고 센터 factbot-gap 이슈 #37.
  */
 export const OIL_RELIEF_FUND: PolicyInput = {
   slug: "oil-relief-fund",
@@ -16,7 +17,7 @@ export const OIL_RELIEF_FUND: PolicyInput = {
   scope: "2026년 중동 전쟁 추경으로 지급한 고유가 피해지원금의 대상·금액·기한",
   ministries: ["행정안전부"],
   categories: ["welfare", "economy"],
-  asOf: "2026-10-08",
+  asOf: "2026-10-13",
   rumors: [
     {
       id: "rumor-everyone",
@@ -27,6 +28,11 @@ export const OIL_RELIEF_FUND: PolicyInput = {
       id: "rumor-still-usable",
       text: "지금 신청하면 아직 받을 수 있다",
       claimIds: ["claim-deadline"],
+    },
+    {
+      id: "rumor-newborn",
+      text: "고유가 피해지원금은 신생아와 미성년자도 받고, 2026년생은 3월 30일 이전 출생인지 이후 출생인지에 따라 지급 여부가 달라진다",
+      claimIds: ["claim-household-basis", "claim-minors", "claim-after-0330"],
     },
   ],
   claims: [
@@ -78,6 +84,34 @@ export const OIL_RELIEF_FUND: PolicyInput = {
       sourceIds: ["src-mois-relief", "src-korea-relief-2nd"],
       verified: true,
     },
+    {
+      id: "claim-household-basis",
+      text:
+        "정부는 2026년 3월 30일 기준 주민등록표상 같은 세대를 한 가구로 보고 대상을 골랐다. 주소지가 달라도 " +
+        "건강보험 피부양자인 배우자와 자녀는 같은 가구로 쳤다. 금액은 가구원 1인당으로 정해진다.",
+      assertionType: "FACT",
+      sourceIds: ["src-korea-relief-2nd", "src-mois-relief"],
+      verified: true,
+    },
+    {
+      id: "claim-minors",
+      text:
+        "미성년 자녀 몫은 주민등록 세대주가 신청하고 받았다. 성인 구성원이 없는 미성년자 세대주는 직접 " +
+        "신청할 수 있었다.",
+      assertionType: "FACT",
+      sourceIds: ["src-gangnam-relief"],
+      verified: true,
+    },
+    {
+      id: "claim-after-0330",
+      text:
+        "3월 30일 이후 출생·혼인 등으로 가족관계가 바뀐 경우는 이의신청 대상이었다. 이의신청은 2026년 " +
+        "5월 18일부터 7월 17일까지 국민신문고와 읍면동 행정복지센터에서 받았다. 기준일 뒤 태어났다고 " +
+        "자동으로 빠지는 것이 아니라 이의신청으로 반영을 요청하는 구조였고, 그 기한도 지났다.",
+      assertionType: "FACT",
+      sourceIds: ["src-korea-relief-2nd"],
+      verified: true,
+    },
   ],
   timeline: [
     {
@@ -118,6 +152,14 @@ export const OIL_RELIEF_FUND: PolicyInput = {
     "신청 링크 사칭 피해 규모는 확인하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-gangnam-relief",
+      title: "고유가 피해지원금 신청 및 안내",
+      publisher: "서울특별시 강남구",
+      url: "https://www.gangnam.go.kr/contents/oil_support/1/view.do?mid=ID05_050501",
+      type: "official",
+      license: "public",
+    },
     {
       id: "src-mois-relief",
       title: "고유가 피해지원금 안내",
