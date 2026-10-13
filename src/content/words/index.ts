@@ -1,4 +1,11 @@
 import { presidentFriend } from "./president-friend";
+import { realWin } from "./real-win";
+import { whyPolitics } from "./why-politics";
+import { blockAbuse } from "./block-abuse";
+import { firstServant } from "./first-servant";
+import { pureRadicalism } from "./pure-radicalism";
+import { regionalBalanceYear } from "./regional-balance-year";
+import { greenTransition } from "./green-transition";
 import { prosecutionReformForPeople } from "./prosecution-reform-for-people";
 import { exProsecutorNominee } from "./ex-prosecutor-nominee";
 import { chuseokPressConference } from "./chuseok-press-conference";
@@ -40,6 +47,13 @@ import { validateStatement, type Statement } from "./schema";
  * 없다 — 말한 날은 이미 지난 날이다. 그냥 최근이 위다.
  */
 export const STATEMENTS: Statement[] = [
+  realWin,
+  whyPolitics,
+  blockAbuse,
+  firstServant,
+  pureRadicalism,
+  regionalBalanceYear,
+  greenTransition,
   prosecutionReformForPeople,
   exProsecutorNominee,
   presidentFriend,
