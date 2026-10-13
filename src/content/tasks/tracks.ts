@@ -196,7 +196,7 @@ export const TASK_TRACKS: Record<string, PledgeTrack> = {
   "56:북극항로 개척": {
     status: "underway",
     ref: "arctic-route#claim-trial-voyage",
-    note: "2026년 8~9월 국내 컨테이너선이 부산~로테르담 북극항로 시범운항을 했다.",
+    note: "2026년 8~10월 국내 컨테이너선이 수출 화물을 싣고 부산~유럽 북극항로 왕복 시범운항을 마쳤다. 상업 운항은 준비 단계다.",
   },
   "59:채무부담 경감": {
     status: "underway",

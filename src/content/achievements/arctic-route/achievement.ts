@@ -7,6 +7,7 @@ import { MOF_2026, NANET_2025 } from "@/content/sources";
  * 출처
  *  - `src-mof-2026`: 해양수산부 2026년도 업무계획 보도자료. 정책·일정·지원 규모.
  *  - `src-nanet-2025`: 국회도서관 Data&Law 2025-9호. 항로별 거리·운항일수.
+ *  - `src-mof-arctic-return`: 해양수산부 2026-10-13 보도자료. 시범운항 실제 왕복 경과.
  *
  * 거리 수치의 전제 조건에 주의한다. 부산 출발 로테르담행 78,000톤 선박,
  * 7~10월 기준 분석값이다. 북극항로는 연중 통항이 아니므로 이 조건을 빼고
@@ -25,7 +26,8 @@ const raw: AchievementInput = {
   summary:
     "부산에서 유럽으로 가는 뱃길은 지금까지 수에즈 운하나 희망봉을 지나 남쪽으로 크게 돌아갔다. " +
     "북극을 가로지르면 로테르담까지 거리는 20,400km에서 13,000km로 줄어든다. " +
-    "2026년 8월 22일 국내 컨테이너선이 부산을 떠나 22일 만인 9월 13일 로테르담에 닿았다. " +
+    "2026년 8월 22일 수출 화물을 실은 국내 컨테이너선이 부산을 떠나 20일 5시간 만에 영국 펠릭스토우에 닿았고, " +
+    "로테르담·그단스크를 거쳐 다시 북극항로로 10월 11일 부산에 돌아왔다. 우리 선사 컨테이너선의 첫 북극항로 왕복이다. " +
     "다만 결빙 때문에 연중 4~5개월만 다닐 수 있다는 한계가 지적되고, 러시아 제재가 풀리는지에 따라 쓸 수 있는 범위가 달라진다. " +
     "배를 직접 움직여 두 항로가 어떻게 다른지 확인해 보라.",
   type: "achievement",
@@ -34,7 +36,8 @@ const raw: AchievementInput = {
   sourceNote:
     "거리와 일수는 국회도서관이 인용한 한국해양수산개발원의 7~10월 기준 분석값입니다. " +
     "지원 조건과 계획은 해양수산부 2026년도 업무계획에서 왔고, 계획이 실제로 이행됐는지는 " +
-    "시범운항 한 건 말고는 대조하지 못했습니다. 시범운항의 경과와 한계는 보도에 기댑니다.",
+    "시범운항 한 건 말고는 대조하지 못했습니다. 시범운항의 왕복 경과는 해양수산부 보도자료(2026-10-13)에서, " +
+    "로테르담 입항 시각과 한계는 보도에서 왔습니다. 연료·비용 같은 운항 결과 수치는 아직 공개되지 않았습니다.",
 
   scenes: [
     {
@@ -60,7 +63,7 @@ const raw: AchievementInput = {
               lon: 129.04,
               lat: 35.1,
               cumulativeKm: 0,
-              note: "출발. 2026년 8월 22일 첫 컨테이너선 시범운항이 여기서 출항했다.",
+              note: "출발. 2026년 8월 22일 첫 컨테이너선 시범운항이 여기서 출항해 10월 11일 돌아왔다.",
             },
             {
               id: "laperouse",
@@ -124,7 +127,7 @@ const raw: AchievementInput = {
               lon: 4.48,
               lat: 51.92,
               cumulativeKm: 13000,
-              note: "도착. 유럽 최대 컨테이너 항만이자 시범운항의 종점이다.",
+              note: "도착. 유럽 최대 컨테이너 항만. 시범운항선은 영국 펠릭스토우를 먼저 들른 뒤 9월 13일 이곳에 입항했다.",
             },
           ],
         },
@@ -311,6 +314,13 @@ const raw: AchievementInput = {
       caption: "7~10월 기준",
       claimId: "claim-route-comparison",
     },
+    {
+      id: "kn-trial",
+      label: "시범운항 실측 · 부산 → 펠릭스토우",
+      value: "20일 5시간",
+      caption: "첫 유럽 기항지 도착까지",
+      claimId: "claim-trial-voyage",
+    },
   ],
 
   timeline: [
@@ -338,10 +348,19 @@ const raw: AchievementInput = {
       date: "2026-09-13",
       displayDate: "2026년 8월 22일 ~ 9월 13일",
       datePrecision: "day",
-      title: "부산 → 로테르담 컨테이너선 시범운항",
+      title: "부산 → 유럽 컨테이너선 시범운항",
       summary:
-        "국내 컨테이너선 팬스타 아크로호(2,758TEU급)가 8월 22일 부산신항을 떠나 북동항로를 거쳐 9월 13일 로테르담에 입항했다. 출항 22일 만이다.",
+        "국내 컨테이너선 팬스타 아크로호(2,758TEU급)가 수출 화물을 싣고 8월 22일 부산신항을 떠나 북동항로를 거쳐 20일 5시간 만에 영국 펠릭스토우에 도착했고, 9월 13일 로테르담에 입항했다.",
       claimIds: ["claim-trial-voyage", "claim-nsr-distance"],
+    },
+    {
+      id: "ev-return",
+      date: "2026-10-11",
+      datePrecision: "day",
+      title: "북극항로로 부산 귀항, 첫 왕복 완료",
+      summary:
+        "로테르담에 이어 폴란드 그단스크에 기항한 뒤 다시 북동항로로 10월 11일 부산항에 돌아왔다. 우리 선사 컨테이너선이 북극항로로 한국과 유럽을 왕복한 것은 처음이다. 해양수산부는 후속 시범운항과 상업 운항을 준비하겠다고 밝혔다.",
+      claimIds: ["claim-trial-return", "claim-next-voyage"],
     },
     {
       id: "ev-2030",
@@ -409,10 +428,10 @@ const raw: AchievementInput = {
       {
         id: "e-trial",
         title: "2026년에 한번 가봤어요",
-        say: "우리나라 회사 배가 짐을 싣고 부산에서 로테르담까지 시험 삼아 가봤어요. 22일 걸렸어요.",
+        say: "우리나라 회사 배가 수출 짐을 싣고 북극 위로 유럽까지 갔다가, 같은 길로 부산에 돌아왔어요. 첫 유럽 항구까지 20일 걸렸어요.",
         art: "trial-voyage",
-        fact: { value: "22일 만에 도착", tone: "ice" },
-        claimIds: ["claim-trial-voyage"],
+        fact: { value: "갈 때 20일 5시간 · 10월 11일 귀항", tone: "ice" },
+        claimIds: ["claim-trial-voyage", "claim-trial-return"],
       },
     ],
     caveat: {
@@ -424,7 +443,7 @@ const raw: AchievementInput = {
 
   graph: {
     note:
-      "해양수산부 「2026년도 업무계획」과 국회도서관 『Data&Law』에서 확인된 관계만 그렸다. " +
+      "해양수산부 「2026년도 업무계획」·시범운항 보도자료와 국회도서관 『Data&Law』에서 확인된 관계만 그렸다. " +
       "연표를 움직이면 그 시점까지 성립한 관계만 남는다.",
     entities: [
       { id: "mof", name: "해양수산부", kind: "government", isFocus: true },
@@ -433,6 +452,7 @@ const raw: AchievementInput = {
       { id: "shipper", name: "국내 민간 선사", kind: "company" },
       { id: "busan", name: "부산항", kind: "place" },
       { id: "rotterdam", name: "로테르담항", kind: "place" },
+      { id: "felixstowe", name: "펠릭스토우항", kind: "place" },
       { id: "russia", name: "러시아", kind: "country" },
       { id: "kmi", name: "해양수산개발원", kind: "organization" },
       { id: "tech2030", name: "쇄빙선 기술 · 해기사", kind: "project" },
@@ -524,7 +544,7 @@ const raw: AchievementInput = {
         id: "r-trial",
         fromId: "shipper",
         toId: "nsr",
-        label: "컨테이너선으로 북극항로 시범운항을 했다. 출항 22일 만에 로테르담에 입항했다.",
+        label: "수출 화물을 실은 컨테이너선으로 북극항로 시범운항을 했다. 출항 20일 5시간 만에 펠릭스토우, 22일 만에 로테르담에 닿았다.",
         startDate: "2026-08-22",
         startPrecision: "day",
         assertionType: "FACT",
@@ -544,11 +564,31 @@ const raw: AchievementInput = {
         id: "r-dest",
         fromId: "nsr",
         toId: "rotterdam",
-        label: "시범운항의 도착지. 해양수산부는 북극항로를 아시아와 유럽을 잇는 최단거리 항로로 본다.",
+        label: "시범운항의 두 번째 유럽 기항지. 해양수산부는 북극항로를 아시아와 유럽을 잇는 최단거리 항로로 본다.",
         startDate: "2026-08-22",
         startPrecision: "day",
         assertionType: "FACT",
         claimIds: ["claim-trial-voyage", "claim-shortest-route"],
+      },
+      {
+        id: "r-first-port",
+        fromId: "nsr",
+        toId: "felixstowe",
+        label: "시범운항의 첫 유럽 기항지. 부산 출항 20일 5시간 만에 도착했다.",
+        startDate: "2026-08-22",
+        startPrecision: "day",
+        assertionType: "FACT",
+        claimIds: ["claim-trial-voyage"],
+      },
+      {
+        id: "r-return",
+        fromId: "nsr",
+        toId: "busan",
+        label: "로테르담·그단스크를 거쳐 다시 북동항로로 부산에 돌아왔다. 첫 왕복.",
+        startDate: "2026-10-11",
+        startPrecision: "day",
+        assertionType: "FACT",
+        claimIds: ["claim-trial-return"],
       },
       {
         id: "r-tech",
@@ -592,8 +632,8 @@ const raw: AchievementInput = {
       id: "ar-cp-once",
       question: "한 번 가 봤다고 상업 항로가 된 것인가?",
       response:
-        "아니다. 배 한 척이 한 번 로테르담까지 갔다. 이것으로 확인된 것은 컨테이너선이 이 길을 22일 만에 지날 수 있다는 것까지다. 정기 항로가 되려면 운항 가능 기간과 보험료 문제가 남아 있고, 해양수산부는 2030년까지 쇄빙 컨테이너선 건조기술과 극지 해기사를 준비하겠다는 계획을 밝힌 단계다.",
-      claimIds: ["claim-trial-voyage", "claim-limits", "claim-2030-tech"],
+        "아니다. 배 한 척이 한 번 유럽을 다녀왔다. 이것으로 확인된 것은 수출 화물을 실은 컨테이너선이 여름철에 이 길로 왕복할 수 있고, 부산에서 첫 유럽 항구까지 20일 5시간이 걸렸다는 것까지다. 연료·비용 같은 운항 결과 수치는 아직 공개되지 않았다. 해양수산부도 이번 항해를 바탕으로 후속 시범운항과 상업 운항을 '준비'하겠다고 밝힌 단계다. 정기 항로가 되려면 운항 가능 기간과 보험료 문제가 남아 있다.",
+      claimIds: ["claim-trial-voyage", "claim-trial-return", "claim-next-voyage", "claim-limits"],
     },
   ],
 
@@ -610,9 +650,26 @@ const raw: AchievementInput = {
     {
       id: "claim-trial-voyage",
       text:
-        "해양수산부는 2026년도 업무계획에서 하반기에 국내 민간 선사의 컨테이너선으로 부산~로테르담 북극항로 시범운항을 추진한다고 밝혔다. 국내 컨테이너선 팬스타 아크로호(2,758TEU급)는 2026년 8월 22일 부산신항을 출항해 북동항로를 거쳐 9월 13일 로테르담에 입항했다. 출항 22일 만이다.",
+        "해양수산부는 2026년도 업무계획에서 하반기에 국내 민간 선사의 컨테이너선으로 부산~로테르담 북극항로 시범운항을 추진한다고 밝혔다. 국내 컨테이너선 팬스타 아크로호(2,758TEU급)는 실제 수출 컨테이너 화물을 싣고 2026년 8월 22일 21시경 부산신항을 출항해 북동항로를 거쳐 20일 5시간 만에 영국 펠릭스토우에 도착했고, 9월 13일 로테르담에 입항했다. 부산 출항 22일 만이다.",
       assertionType: "FACT",
-      sourceIds: ["src-mof-2026", "src-seoul-arctic-depart", "src-fn-arctic-arrive"],
+      sourceIds: ["src-mof-2026", "src-mof-arctic-return", "src-seoul-arctic-depart", "src-fn-arctic-arrive"],
+      verified: true,
+    },
+    {
+      id: "claim-trial-return",
+      text:
+        "팬스타 아크로호는 로테르담과 폴란드 그단스크에 차례로 기항한 뒤 다시 북동항로를 거쳐 2026년 10월 11일 부산항으로 돌아왔다. 우리 선사의 컨테이너선이 북극항로로 한국과 유럽을 왕복한 것은 이번이 처음이다.",
+      assertionType: "FACT",
+      sourceIds: ["src-mof-arctic-return"],
+      verified: true,
+    },
+    {
+      id: "claim-next-voyage",
+      text:
+        "해양수산부는 이번 항해에서 얻은 경험과 데이터를 바탕으로 후속 시범운항과 상업 운항을 준비하고, 북극항로를 국가 장기 과제로 추진하겠다고 밝혔다.",
+      assertionType: "CLAIM",
+      assertedBy: "해양수산부",
+      sourceIds: ["src-mof-arctic-return"],
       verified: true,
     },
     {
@@ -705,6 +762,20 @@ const raw: AchievementInput = {
   sources: [
     MOF_2026,
     NANET_2025,
+    {
+      id: "src-mof-arctic-return",
+      title: "대한민국, 북극항로 시대를 열다! 첫 컨테이너선 시범운항을 마치고 부산으로",
+      url: "https://www.mof.go.kr/doc/ko/selectDoc.do?docSeq=68989&bbsSeq=10&menuSeq=971",
+      publisher: "해양수산부 북극항로정책과",
+      publishedAt: "2026-10-13",
+      type: "official",
+      license: "public",
+      quote:
+        "팬스타 아크로호는 지난 8월 22일 21시경 부산항 신항을 출항해 북동항로를 거쳐 20일 5시간 만에 " +
+        "영국 펠릭스토우에 도착했다. 이후 네덜란드 로테르담과 폴란드 그단스크를 차례로 기항한 뒤, " +
+        "다시 북동항로를 통해 10월 11일(일) 부산항으로 돌아왔다. 우리 선사의 컨테이너선이 북극항로를 " +
+        "이용해 우리나라와 유럽을 왕복한 것은 이번이 처음이다.",
+    },
     {
       id: "src-seoul-arctic-depart",
       title: "북극항로 시대 연다… 국내 컨테이너선 22일 첫 시범운항",
