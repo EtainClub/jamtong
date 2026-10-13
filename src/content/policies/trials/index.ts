@@ -90,8 +90,8 @@ export const TRIALS: TrialCase[] = [
     stageClaimId: "claim-suspended",
     question: "정책적 판단과 형사상 배임·뇌물의 경계는 어디인가?",
     prosecution: ["claim-daejang-charge", "claim-fc-charge", "claim-baekhyeon-charge"],
-    defense: ["claim-defense"],
-    court: ["claim-private-verdict", "claim-private-leadership"],
+    defense: ["claim-defense", "claim-baekhyeon-defense", "claim-baekhyeon-party"],
+    court: ["claim-warrant", "claim-private-verdict", "claim-private-leadership"],
     facts: ["claim-police"],
   },
   {
@@ -103,7 +103,7 @@ export const TRIALS: TrialCase[] = [
     question: "대납이 있었다는 판단과 별개로, 이 대통령이 그것을 알았거나 승인했는가?",
     prosecution: ["claim-charge"],
     defense: ["claim-defense"],
-    court: ["claim-lee-final", "claim-lee-hwayoung", "claim-separate"],
+    court: ["claim-warrant", "claim-lee-final", "claim-lee-hwayoung", "claim-separate"],
   },
   {
     no: "⑤",

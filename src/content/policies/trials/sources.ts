@@ -236,6 +236,24 @@ const ENTRIES = {
     url: "https://www.dailian.co.kr/news/view/1499282/",
     publishedAt: "2025-05-19",
   },
+  "hani-0817": {
+    title: "이재명 대표, '백현동 의혹' 조목조목 반박…검찰 구속 영장 검토",
+    publisher: "한겨레",
+    url: "https://v.daum.net/v/XiRqIaEuPQ?f=p",
+    publishedAt: "2023-08-17",
+  },
+  "khan-1012": {
+    title: "'백현동 의혹'만 떼서 이재명 불구속 기소",
+    publisher: "경향신문",
+    url: "https://www.khan.co.kr/article/202310122059005",
+    publishedAt: "2023-10-12",
+  },
+  "mt-0927": {
+    title: "\"상당한 의심 들지만\"…이례적 장문 사유, 이재명 영장 왜 기각됐나",
+    publisher: "머니투데이",
+    url: "https://www.mt.co.kr/society/2023/09/27/2023092702420373676",
+    publishedAt: "2023-09-27",
+  },
 } satisfies Record<string, Entry>;
 
 export type TrialSourceKey = keyof typeof ENTRIES;

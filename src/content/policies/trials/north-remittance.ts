@@ -124,6 +124,16 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
       verified: false,
     },
     {
+      id: "claim-warrant",
+      text:
+        "서울중앙지법 유창훈 영장전담 판사는 2023년 9월 27일 백현동·대북송금 혐의의 구속영장을 " +
+        "기각하면서, 대북송금 부분은 이 대통령의 인식이나 공모 여부, 관여 정도에 \"다툼의 " +
+        "여지가 있다\"고 봤다. 구속할지를 정한 판단이고 유무죄 판단은 아니다.",
+      assertionType: "FACT",
+      sourceIds: [s("mt-0927")],
+      verified: false,
+    },
+    {
       id: "claim-suspended",
       text:
         "수원지법 형사11부는 2025년 7월 22일 \"국정운영 계속성 등을 보장하기 위해\" 이 대통령의 " +
@@ -135,6 +145,14 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
   ],
   critiqueIds: ["claim-lee-final", "claim-lee-hwayoung", "claim-coaxing-court", "claim-perjury-verdict"],
   timeline: [
+    {
+      id: "t-warrant",
+      date: "2023-09-27",
+      datePrecision: "day",
+      title: "구속영장 기각",
+      summary: "인식·공모 여부에 다툼의 여지가 있다고 했다.",
+      claimIds: ["claim-warrant"],
+    },
     {
       id: "t-charge",
       date: "2024-06-12",
@@ -194,6 +212,7 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
   sources: sourcesFor(P, [
     "scourt-2025do810",
     "seoul-0612",
+    "mt-0927",
     "dailian-0605",
     "newsis-1219",
     "khan-0505",
