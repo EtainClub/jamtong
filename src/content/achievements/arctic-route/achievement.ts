@@ -8,6 +8,8 @@ import { MOF_2026, NANET_2025 } from "@/content/sources";
  *  - `src-mof-2026`: 해양수산부 2026년도 업무계획 보도자료. 정책·일정·지원 규모.
  *  - `src-nanet-2025`: 국회도서관 Data&Law 2025-9호. 항로별 거리·운항일수.
  *  - `src-mof-arctic-return`: 해양수산부 2026-10-13 보도자료. 시범운항 실제 왕복 경과.
+ *  - 기업 반응 씬: 한국경제·부산일보·문화일보·뉴스토마토·이데일리 보도, MOL·Ocean Conservancy
+ *    자료, High North News·Loadstar·gCaptain·MarineLink 보도. 세 칸의 위치만 잼통의 판단이다.
  *  - 전망 씬: 아이뉴스24·뉴스토마토 보도, CHNL 2025 통계, IPCC 전망 보도. 업적이 아니라
  *    전망이므로 결론 두 claim만 INTERPRETATION이고 조건은 모두 출처의 말이다.
  *
@@ -226,6 +228,135 @@ const raw: AchievementInput = {
     note:
     "부산항에서 출발한 로테르담행 78,000톤 선박을 대상으로 7~10월 기준으로 분석한 값이다. " +
     "북극항로는 결빙으로 연중 통항이 어려우므로, 이 수치는 통항 가능 기간의 조건부 비교다.",
+    },
+    {
+      id: "reactions",
+      kind: "reactions",
+      heading: "기업들은 어떻게 움직이나",
+      lede:
+        "정부가 한 일이 아니라 시장의 반응입니다. 한국·일본·중국·미국 기업이 북극항로에 뛰어드는지, 지켜보는지, 거리를 두는지 모았습니다.",
+      claimIds: ["claim-co-big-carriers", "claim-co-pledge", "claim-co-sealegend"],
+      reactions: {
+        asOf: "2026-10-14",
+        axis: { out: "거리를 둔다", watch: "지켜본다", in: "뛰어든다" },
+        companies: [
+          {
+            id: "panstar",
+            name: "팬스타라인닷컴",
+            country: "KR",
+            sector: "해운",
+            stance: "in",
+            action: "시범운항 공모에 홀로 응모",
+            summary:
+              "정부 시범운항 공모에 유일하게 응모했다. HMM이 갖고 있던 컨테이너선 몸바사호를 사들여 팬스타 아크로호로 이름을 바꾸고 북극항로를 왕복했다.",
+            claimIds: ["claim-co-panstar", "claim-trial-return"],
+          },
+          {
+            id: "hmm-panocean",
+            name: "HMM·팬오션",
+            country: "KR",
+            sector: "해운",
+            stance: "watch",
+            action: "시범운항 공모 불참",
+            summary:
+              "대형 선사는 시범운항 공모에 응모하지 않았다. 해운업계는 정부의 지원 의지에도 신중하며, 내빙선에 맞는 특화 화물을 찾는 것이 과제라고 본다.",
+            claimIds: ["claim-co-big-carriers", "claim-co-industry-cautious"],
+          },
+          {
+            id: "hd-hhi",
+            name: "HD현대중공업",
+            country: "KR",
+            sector: "조선",
+            stance: "in",
+            action: "스웨덴 쇄빙전용선 수주",
+            summary:
+              "2026년 4월 스웨덴 해사청과 약 5,148억 원 규모 쇄빙전용선 1척 건조 계약을 맺었다. 2029년 인도할 계획이다.",
+            claimIds: ["claim-co-hd"],
+          },
+          {
+            id: "hanwha-ocean",
+            name: "한화오션",
+            country: "KR",
+            sector: "조선",
+            stance: "in",
+            action: "차세대 쇄빙연구선 건조",
+            summary:
+              "Arc7급 쇄빙 LNG 운반선 21척을 지은 경험이 있고, 정부 차세대 쇄빙연구선(PC3급)을 2029년까지 짓는다. 미국 해안경비대의 북극 안보쇄빙선 계약은 핀란드 조선소에 돌아갔다.",
+            claimIds: ["claim-co-hanwha"],
+          },
+          {
+            id: "samsung-heavy",
+            name: "삼성중공업",
+            country: "KR",
+            sector: "조선",
+            stance: "watch",
+            was: "in",
+            action: "러시아 쇄빙선 사업 차질",
+            summary:
+              "러시아 즈베즈다 조선소와 하던 쇄빙선 사업이 전쟁 장기화로 차질을 빚어, 계약 해지와 선수금 반환을 두고 국제중재를 하고 있다.",
+            claimIds: ["claim-co-samsung"],
+          },
+          {
+            id: "mol",
+            name: "상선미쓰이 (MOL)",
+            country: "JP",
+            sector: "해운·에너지",
+            stance: "watch",
+            was: "in",
+            action: "쇄빙 LNG선 선두 → 제재로 용선 철회",
+            summary:
+              "2018년 세계 첫 쇄빙 LNG선을 완성해 여름철 북동항로로 러시아 LNG를 중국에 실어 나르며 선두가 되겠다고 했다. 2024년에는 미국·유럽 제재로 한화에 발주한 쇄빙 LNG선 3척을 Arctic LNG 2에 예정대로 쓸 수 없다고 밝혔다.",
+            claimIds: ["claim-co-mol"],
+          },
+          {
+            id: "sea-legend",
+            name: "Sea Legend (海傳)",
+            country: "CN",
+            sector: "해운",
+            stance: "in",
+            action: "2026년 북극 급행 8항차",
+            summary:
+              "2026년 8~10월 닝보–펠릭스토우 북극 급행을 8항차 운항한다. 일정상 21일이 걸린다. 2025년에는 북동항로로 중국–영국 첫 직항 컨테이너 운송을 마쳤다.",
+            claimIds: ["claim-co-sealegend"],
+          },
+          {
+            id: "newnew",
+            name: "NewNew Shipping",
+            country: "CN",
+            sector: "해운",
+            stance: "in",
+            action: "2026년 운항 확대 예고",
+            summary:
+              "중국은 2025년 북동항로로 아시아–유럽 컨테이너선을 14회 띄웠다(2023년 7회, 2024년 11회). NewNew Shipping Line은 Sea Legend와 함께 2026년 운항을 늘리겠다고 밝혔다.",
+            claimIds: ["claim-co-newnew"],
+          },
+          {
+            id: "pledge",
+            name: "나이키·갭·컬럼비아·PVH",
+            country: "US",
+            sector: "화주",
+            stance: "out",
+            action: "북극항로 이용 안 한다고 서약",
+            summary:
+              "2019년 나이키와 해양보존단체 Ocean Conservancy가 만든 서약에 따라 북극해로 화물을 보내지 않겠다고 약속했다. CMA CGM·MSC·하팍로이드·에버그린 같은 대형 선사도 첫 서명사였고, 2026년 보도도 주요 화주의 참여를 전한다.",
+            claimIds: ["claim-co-pledge"],
+          },
+          {
+            id: "bollinger",
+            name: "볼린저 조선소",
+            country: "US",
+            sector: "조선(안보)",
+            stance: "in",
+            action: "해안경비대 대형 쇄빙선 건조",
+            summary:
+              "상업 항로가 아니라 안보용이다. 미국 해안경비대의 첫 대형 극지 쇄빙선 Polar Sentinel을 짓고 있고, 2030년 인도를 목표로 한다고 의회에 밝혔다(GAO는 2033년 예상).",
+            claimIds: ["claim-co-bollinger"],
+          },
+        ],
+        note:
+          "세 칸의 위치는 잼통이 출처에 적힌 행동(응모·수주·서약·계약 철회)을 보고 정했습니다. 흐린 자국은 예전 자리입니다. " +
+          "일본 NYK·미쓰이물산과 중국 COSCO의 최근 입장은 공개 자료로 확인하지 못해 싣지 않았습니다.",
+      },
     },
     {
       id: "outlook",
@@ -900,6 +1031,95 @@ const raw: AchievementInput = {
       sourceIds: ["src-nanet-2025"],
       verified: true,
     },
+    /* ── 기업 반응 씬의 근거. 위치(세 칸)는 잼통의 판단이고 문장은 모두 출처의 말이다. ── */
+    {
+      id: "claim-co-panstar",
+      text:
+        "팬스타그룹은 2026년 7월 31일 HMM이 보유하던 컨테이너선 몸바사호의 매입 계약을 마치고 이름을 팬스타 아크로호로 정했다. 정부 시범운항 공모에는 중견 선사인 팬스타라인닷컴만 응모했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-busan-acro-purchase", "src-hankyung-arctic-viability"],
+      verified: true,
+    },
+    {
+      id: "claim-co-big-carriers",
+      text: "북극항로 시범운항 공모에 HMM과 팬오션 등 대형 선사는 응모하지 않았다.",
+      assertionType: "FACT",
+      sourceIds: ["src-hankyung-arctic-viability"],
+      verified: true,
+    },
+    {
+      id: "claim-co-industry-cautious",
+      text:
+        "정부의 적극적인 지원 의지에도 해운업계는 신중한 반응을 보이고 있으며, 후속 운항으로 선종을 다양화하고 내빙선에 적합한 특화 화물을 발굴하는 것이 핵심 과제라는 업계의 지적이 있다.",
+      assertionType: "CLAIM",
+      assertedBy: "한국경제 보도",
+      sourceIds: ["src-hankyung-arctic-viability"],
+      verified: true,
+    },
+    {
+      id: "claim-co-hd",
+      text:
+        "HD현대중공업은 2026년 4월 스웨덴 해사청과 3억 4,890만 달러(약 5,148억 원) 규모 쇄빙전용선 1척의 건조 계약을 맺었고, 2029년 인도할 계획이다.",
+      assertionType: "FACT",
+      sourceIds: ["src-munhwa-hd-icebreaker"],
+      verified: true,
+    },
+    {
+      id: "claim-co-hanwha",
+      text:
+        "한화오션은 2008년부터 극지용 선박을 개발해 Arc7급 쇄빙 LNG 운반선 21척을 건조했고, 정부 차세대 쇄빙연구선 건조 사업 우선협상대상자로 선정돼 2029년까지 PC3급 연구선을 짓는다. 미국 해안경비대는 북극 안보쇄빙선(ASC) 건조 계약을 핀란드 라우마마린컨스트럭션과 맺었다.",
+      assertionType: "FACT",
+      sourceIds: ["src-newstomato-kship-arctic"],
+      verified: true,
+    },
+    {
+      id: "claim-co-samsung",
+      text:
+        "삼성중공업이 러시아 즈베즈다 조선소와 진행하던 쇄빙선 사업은 러시아-우크라이나 전쟁 장기화로 차질을 빚었고, 삼성중공업은 계약 해지와 선수금 반환 문제를 두고 국제중재 절차를 진행 중이다.",
+      assertionType: "FACT",
+      sourceIds: ["src-edaily-kship-icebreaker"],
+      verified: true,
+    },
+    {
+      id: "claim-co-mol",
+      text:
+        "상선미쓰이(MOL)는 2018년 세계 첫 쇄빙 LNG선을 완성해 여름철 북동항로로 러시아에서 중국으로 LNG를 수송하며 북극항로 수송의 선두가 되겠다고 밝혔다(2021년). 2024년에는 미국·유럽 제재 강화로 한화에 발주한 Arc7 LNG선 3척의 용선 계약 구조를 바꿔야 하며, Arctic LNG 2 사업에 예정대로 용선 서비스를 제공할 수 없다고 밝혔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-mol-nsr-blog", "src-hnn-mol-exit"],
+      verified: true,
+    },
+    {
+      id: "claim-co-sealegend",
+      text:
+        "중국 Sea Legend는 2026년 8~10월 닝보–펠릭스토우 북극 급행을 8항차 운항하며, 운항 일정상 21일이 걸린다. 2025년에는 이 회사의 Istanbul Bridge호가 북동항로로 중국–영국 첫 직항 컨테이너 운송을 마쳤다.",
+      assertionType: "FACT",
+      sourceIds: ["src-loadstar-sealegend", "src-gcaptain-china-2025"],
+      verified: true,
+    },
+    {
+      id: "claim-co-newnew",
+      text:
+        "중국은 2025년 북동항로로 아시아–유럽 컨테이너선을 14회 운항했다(2024년 11회, 2023년 7회). NewNew Shipping Line과 Sea Legend는 2026년 북극 컨테이너 운항을 늘리겠다는 계획을 밝혔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-gcaptain-china-2025"],
+      verified: true,
+    },
+    {
+      id: "claim-co-pledge",
+      text:
+        "2019년 10월 나이키와 해양보존단체 Ocean Conservancy는 북극해로 의도적으로 배를 보내지 않겠다는 기업 서약을 내놓았고, 갭·컬럼비아·PVH·H&M·CMA CGM·에버그린·하팍로이드·MSC 등이 첫 서명사로 참여했다. 2026년 10월 보도도 나이키·H&M·갭 등 주요 화주가 이 서약에 참여했다고 전한다.",
+      assertionType: "FACT",
+      sourceIds: ["src-oc-arctic-pledge", "src-hankyung-arctic-viability"],
+      verified: true,
+    },
+    {
+      id: "claim-co-bollinger",
+      text:
+        "미국 해안경비대의 첫 대형 극지 쇄빙선 Polar Sentinel은 볼린저 조선소가 짓고 있다. 볼린저는 2030년 인도를 목표로 한다고 의회에 밝혔고, GAO는 2033년 인도를 예상한다. 해안경비대는 비용 증가분으로 볼린저에 9억 5,160만 달러 계약을 줬다.",
+      assertionType: "FACT",
+      sourceIds: ["src-marinelink-bollinger"],
+      verified: true,
+    },
     /* ── 전망 씬의 근거. 결론 두 개만 잼통의 정리(INTERPRETATION)이고, 나머지는 출처의 말이다. ── */
     {
       id: "claim-panstar-forecast",
@@ -1048,6 +1268,136 @@ const raw: AchievementInput = {
         "13일 해양수산부에 따르면 팬스타 아크로호(2758TEU급)는 한국시간으로 이날 오후 6시 25분께 " +
         "네덜란드 로테르담항에 입항했다. 지난달 22일 부산신항을 출항한 지 22일 만이다. (…) " +
         "동절기(연중 4~5개월만 운항 가능) 제약과 높은 보험료 등 한계도 존재한다.",
+    },
+    {
+      id: "src-hankyung-arctic-viability",
+      title: "첫발 뗀 '북극항로' 개척…사업성 확보가 최대 관건",
+      url: "https://www.hankyung.com/article/2026101396291",
+      publisher: "한국경제",
+      publishedAt: "2026-10-13",
+      type: "press",
+      license: "quotable",
+      quote:
+        "이번 시범 운항 공모에는 중견 선사인 팬스타라인닷컴만 응모했고 HMM과 팬오션 등 대형 선사는 불참했다. (…) " +
+        "정부의 적극적인 지원 의지에도 해운업계는 신중한 반응을 보이고 있다. (…) 나이키와 H&M, 갭 등 주요 화주는 " +
+        "북극 생태계를 보호하기 위해 자사 제품을 북극항로로 보내지 않겠다는 기업 서약에 참여했다.",
+    },
+    {
+      id: "src-busan-acro-purchase",
+      title: "북극항로 시범운항 선박 매입 완료... HMM의 2800TEU급 컨테이너선",
+      url: "https://www.busan.com/view/busan/view.php?code=2026073117592977072",
+      publisher: "부산일보",
+      publishedAt: "2026-07-31",
+      type: "press",
+      license: "quotable",
+      quote:
+        "31일 해운업계에 따르면 팬스타그룹은 이날 HMM이 보유한 컨테이너선 '몸바사(Mombasa)호'의 매각 계약을 완료했다. " +
+        "팬스타그룹은 해당 선박의 이름을 '팬스타 아크로(PANSTAR ACRO)호'로 확정하고",
+    },
+    {
+      id: "src-munhwa-hd-icebreaker",
+      title: "HD현대중 쇄빙선 첫 수주… 한화는 캐나다 주정부와 MOU",
+      url: "https://www.munhwa.com/article/11584158",
+      publisher: "문화일보",
+      publishedAt: "2026-04-22",
+      type: "press",
+      license: "quotable",
+      quote:
+        "HD현대중공업은 스웨덴 해사청과 3억4890만 달러(약 5148억 원) 규모의 쇄빙전용선 1척에 대한 건조 계약을 " +
+        "체결했다고 22일 밝혔다. (…) 건조 완료 후 오는 2029년 인도할 계획이다.",
+    },
+    {
+      id: "src-newstomato-kship-arctic",
+      title: "미 쇄빙선 수주 실패했지만…북극항로 힘 싣는 K조선",
+      url: "https://newstomato.com/ReadNews.aspx?no=1286951",
+      publisher: "뉴스토마토",
+      publishedAt: "2026-01-06",
+      type: "press",
+      license: "quotable",
+      quote:
+        "최근 미 해양경비대는 북극 안보쇄빙선(ASC) 건조 계약을 핀란드 라우마마린컨스트럭션(RMC)과 체결했습니다. (…) " +
+        "한화오션은 2008년부터 극지용 선박 개발을 시작해 세계에서 가장 많은 21척의 Arc7급 쇄빙 LNG 운반선을 건조한 경험이 있습니다.",
+    },
+    {
+      id: "src-edaily-kship-icebreaker",
+      title: "북극항로 뜨자…K조선, 쇄빙선 수주전 본격화",
+      url: "https://edaily.co.kr/News/Read?mediaCodeNo=257&newsId=06560006645546336",
+      publisher: "이데일리",
+      publishedAt: "2026-08-11",
+      type: "press",
+      license: "quotable",
+      quote:
+        "다만 러시아 즈베즈다 조선소와 진행하던 쇄빙선 사업은 러시아-우크라이나 전쟁 장기화로 차질을 빚었다. " +
+        "삼성중공업은 현재 계약 해지와 선수금 반환 문제를 두고 국제중재 절차를 진행 중이다.",
+    },
+    {
+      id: "src-mol-nsr-blog",
+      title: "Aiming to be a Top Runner in Northern Sea Route Transportation",
+      url: "https://www.mol-service.com/blog/northern-sea-route-transportation",
+      publisher: "Mitsui O.S.K. Lines",
+      publishedAt: "2021-01-20",
+      type: "official",
+      license: "quotable",
+      quote:
+        "MOL completed construction of the world's first ice-breaking LNG carrier and began transporting LNG " +
+        "from Russia to China via the Northern Sea Route (Summer only).",
+    },
+    {
+      id: "src-hnn-mol-exit",
+      title: "Arctic LNG 2 Facing Vessel Shortage as Zvezda Shipyard Delays Delivery, Japanese MOL Exits Charter Contract",
+      url: "https://en.highnorthnews.com/business/arctic-lng-2-facing-vessel-shortage-as-zvezda-shipyard-delays-delivery-japanese-mol-exits-charter-contract/214393",
+      publisher: "High North News",
+      publishedAt: "2024-11-04",
+      type: "press",
+      license: "quotable",
+      quote:
+        "MOL had placed orders for three highly ice-capable Arc7 LNG carriers with South Korean shipyard Hanwha. " +
+        "(…) will not be able to provide charter services as intended to the Arctic LNG 2 project.",
+    },
+    {
+      id: "src-loadstar-sealegend",
+      title: "Sea Legend Shipping returns to Arctic route with China-Europe NSR sailings",
+      url: "https://theloadstar.com/sea-legend-shipping-returns-to-arctic-route-with-china-europe-nsr-sailings/",
+      publisher: "The Loadstar",
+      publishedAt: "2026-07-17",
+      type: "press",
+      license: "quotable",
+      quote:
+        "there will be eight sailings by Sea Legend's China-Europe Arctic Express between August and October. " +
+        "(…) Sea Legend's vessel schedule shows the voyage will take 21 days.",
+    },
+    {
+      id: "src-gcaptain-china-2025",
+      title: "China Expands Arctic Container Shipping With Record 14 Voyages in 2025",
+      url: "https://gcaptain.com/china-expands-arctic-container-shipping-with-record-14-voyages-in-2025/",
+      publisher: "gCaptain",
+      publishedAt: "2025-12-18",
+      type: "press",
+      license: "quotable",
+      quote:
+        "14 container ship voyages between Asia and Europe, up from 11 such voyages in 2024 and seven in 2023 " +
+        "(…) Shipping companies NewNew Shipping Line and Sea Legend have already signaled plans",
+    },
+    {
+      id: "src-oc-arctic-pledge",
+      title: "Nike and Ocean Conservancy Announce New Arctic Shipping Pledge",
+      url: "https://oceanconservancy.org/newsroom/press-release/2019/10/24/nike-ocean-conservancy-announce-new-arctic-shipping-pledge/",
+      publisher: "Ocean Conservancy",
+      publishedAt: "2019-10-24",
+      type: "official",
+      license: "quotable",
+      quote: "commit to not intentionally send ships through this fragile Arctic ecosystem",
+    },
+    {
+      id: "src-marinelink-bollinger",
+      title: "Construction of Two Icebreakers at Bollinger Shipyards Progresses",
+      url: "https://www.marinelink.com/news/construction-two-icebreakers-bollinger-542208",
+      publisher: "MarineLink (USNI News)",
+      publishedAt: "2026-08-18",
+      type: "press",
+      license: "quotable",
+      quote:
+        "Polar Sentinel would deliver in 2033 (…) tracking to a 2030 delivery (…) a $951.6 million contract to Bollinger",
     },
     {
       id: "src-inews24-arctic-challenges",

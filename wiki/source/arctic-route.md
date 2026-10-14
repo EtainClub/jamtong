@@ -69,6 +69,32 @@ updated: 2026-10-14
 **거리 비교 분석과 정부 계획**까지다. ^[arctic-route#claim-shortest-route]
 ^[arctic-route#claim-trial-voyage]
 
+## 기업 반응 — 시장의 행동
+
+업적 페이지에 나라별 기업 반응을 더했다. 기업이 한 일이고, 세 칸(거리를 둔다·
+지켜본다·뛰어든다)에 놓은 것만 잼통의 판단이다. ^[arctic-route#claim-co-big-carriers]
+
+- **한국 해운.** 시범운항 공모에는 팬스타라인닷컴만 응모했고 HMM·팬오션은
+  불참했다. 팬스타는 HMM의 몸바사호를 사들여 띄웠다.
+  ^[arctic-route#claim-co-panstar] ^[arctic-route#claim-co-big-carriers]
+  해운업계가 신중하다는 것은 보도의 평가다. ^[arctic-route#claim-co-industry-cautious]
+- **한국 조선.** HD현대중공업은 스웨덴 해사청 쇄빙전용선을 수주했다.
+  ^[arctic-route#claim-co-hd] 한화오션은 차세대 쇄빙연구선을 짓지만 미국
+  북극 안보쇄빙선 계약은 핀란드 조선소에 갔다. ^[arctic-route#claim-co-hanwha]
+  삼성중공업의 러시아 쇄빙선 사업은 전쟁으로 중재에 들어갔다.
+  ^[arctic-route#claim-co-samsung]
+- **일본.** 상선미쓰이는 쇄빙 LNG선 선두를 자처했다가 2024년 제재로 Arctic
+  LNG 2 용선을 거뒀다. ^[arctic-route#claim-co-mol]
+- **중국.** Sea Legend는 2026년 북극 급행 8항차를 띄우고, 중국은 2025년
+  컨테이너선 14회를 운항했다. ^[arctic-route#claim-co-sealegend]
+  ^[arctic-route#claim-co-newnew]
+- **미국.** 나이키·갭·컬럼비아·PVH 등은 북극항로를 쓰지 않겠다고 서약했다.
+  ^[arctic-route#claim-co-pledge] 볼린저 조선소는 상업 항로가 아니라 해안경비대
+  쇄빙선을 짓는다. ^[arctic-route#claim-co-bollinger]
+
+일본 NYK·미쓰이물산, 중국 COSCO의 최근 입장은 공개 자료로 확인하지 못했다 —
+자료 공백이다. ^[arctic-route#claim-co-mol] ^[arctic-route#claim-co-newnew]
+
 ## 전망 — 업적이 아니다
 
 업적 페이지 끝에 두 갈래 전망을 더했다. 아래는 이룬 일이 아니라 잼통의

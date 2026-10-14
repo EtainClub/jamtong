@@ -10,6 +10,7 @@ import { QuantityTrack } from "@/features/motion/QuantityTrack";
 import { IndexSeriesChart } from "@/features/series/IndexSeriesChart";
 import { ExplainerScene } from "@/features/motion/explainer/ExplainerScene";
 import { OutlookFork } from "@/features/motion/OutlookFork";
+import { ReactionBoard } from "@/features/motion/ReactionBoard";
 import type { TimelineEvent } from "@/content/schema";
 
 /**
@@ -65,5 +66,8 @@ export function SceneRenderer({
 
     case "outlook":
       return <OutlookFork outlook={scene.outlook} claims={claims} />;
+
+    case "reactions":
+      return <ReactionBoard reactions={scene.reactions} claims={claims} />;
   }
 }

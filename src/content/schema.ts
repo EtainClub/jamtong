@@ -1665,6 +1665,56 @@ export const outlookSchema = z.object({
 export type Outlook = z.infer<typeof outlookSchema>;
 
 /* ────────────────────────────────────────────────────────────────
+ * 기업 반응 — 시장이 이 정책을 어떻게 받는가
+ *
+ * ★ 업적이 아니다.
+ *   정부가 한 일이 아니라 기업이 한 일이다. 뛰어든 기업이 많다고 정책이
+ *   성공한 것도, 거리를 둔 기업이 있다고 실패한 것도 아니다.
+ *
+ * ★ 위치는 말이 아니라 행동으로 정한다.
+ *   응모했다, 수주했다, 서약했다, 계약을 거뒀다 — 출처에 적힌 행동을 보고
+ *   잼통이 세 칸 중 하나에 놓는다. 그 판단은 칸 이름까지만이고, 설명 문장은
+ *   모두 claim의 말이다.
+ *
+ * ★ 옮겨 간 기업은 옮겨 간 것을 그린다.
+ *   예전 자리(was)를 적으면 그 자리에 흐린 자국이 남는다. 지금 자리만 그리면
+ *   "처음부터 지켜봤다"로 읽힌다.
+ * ──────────────────────────────────────────────────────────────── */
+
+export const ReactionStance = z.enum(["out", "watch", "in"]);
+export type ReactionStance = z.infer<typeof ReactionStance>;
+
+export const ReactionCountry = z.enum(["KR", "JP", "CN", "US"]);
+export type ReactionCountry = z.infer<typeof ReactionCountry>;
+
+export const reactionCompanySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  country: ReactionCountry,
+  /** "해운", "조선", "화주" 같은 업종. */
+  sector: z.string(),
+  stance: ReactionStance,
+  /** 예전 자리. 옮겨 간 기업만 적는다. */
+  was: ReactionStance.optional(),
+  /** 칩 아래 한 줄. 무엇을 했는가. */
+  action: z.string(),
+  /** 고르면 뜨는 설명. */
+  summary: z.string(),
+  claimIds: z.array(z.string()).min(1),
+});
+export type ReactionCompany = z.infer<typeof reactionCompanySchema>;
+
+export const reactionsSchema = z.object({
+  asOf: z.string(),
+  /** 세 칸의 이름. 왼쪽부터 out, watch, in. */
+  axis: z.object({ out: z.string(), watch: z.string(), in: z.string() }),
+  companies: z.array(reactionCompanySchema).min(2),
+  /** 읽는 법과 빠진 것. */
+  note: z.string(),
+});
+export type Reactions = z.infer<typeof reactionsSchema>;
+
+/* ────────────────────────────────────────────────────────────────
  * 씬 — 스토리 전용 개념의 확장 지점
  *
  * 스토리 셋을 만들고 나서 확인된 것:
@@ -1734,6 +1784,11 @@ export const sceneSchema = z.discriminatedUnion("kind", [
     ...sceneBase,
     kind: z.literal("outlook"),
     outlook: outlookSchema,
+  }),
+  z.object({
+    ...sceneBase,
+    kind: z.literal("reactions"),
+    reactions: reactionsSchema,
   }),
 ]);
 export type Scene = z.infer<typeof sceneSchema>;
@@ -1845,6 +1900,20 @@ export function validateScene(
         checkClaim(at, scenario.claimId);
         for (const f of scenario.factors) checkClaim(`${at} factor "${f.id}"`, f.claimId);
         for (const st of scenario.stages) checkClaim(`${at} stage "${st.id}"`, st.claimId);
+      }
+      break;
+    }
+
+    case "reactions": {
+      const ids = new Set<string>();
+      for (const company of scene.reactions.companies) {
+        const at = `${where} company "${company.id}"`;
+        if (ids.has(company.id)) errors.push(`${at} → 기업 id가 중복이다`);
+        ids.add(company.id);
+        if (company.was === company.stance) {
+          errors.push(`${at} → 예전 자리(was)가 지금 자리와 같다. 옮겨 가지 않았으면 비운다`);
+        }
+        for (const cid of company.claimIds) checkClaim(at, cid);
       }
       break;
     }

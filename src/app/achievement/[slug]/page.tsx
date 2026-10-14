@@ -22,6 +22,7 @@ import { scenesFor } from "@/features/achievement/scenes";
 import { AskGuide } from "@/features/agent/AskGuide";
 import { ViewSwitch, ViewToggle } from "@/features/achievement/ViewSwitch";
 import { OutlookFork } from "@/features/motion/OutlookFork";
+import { ReactionBoard } from "@/features/motion/ReactionBoard";
 import { Eli5Section } from "@/features/eli5/Eli5Section";
 import { UrlSyncBoundary } from "@/features/achievement/UrlSyncBoundary";
 import { ArcticRouteLayout } from "@/features/achievement/layouts/ArcticRouteLayout";
@@ -682,6 +683,7 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
   const { Layout, heroHighlights, askSuggestions } = config;
   const scenes = scenesFor(achievement);
   const outlook = findScene(achievement, "outlook");
+  const reactions = findScene(achievement, "reactions");
 
   /*
    * ⑦ 쇼츠. 업적마다 따로 붙이면 빠뜨리는 곳이 생기므로 여기서 한 번에 건다.
@@ -801,6 +803,16 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
             }
           />
         </div>
+
+        {/*
+         * 기업 반응도 보기 방식과 상관없이 끝에 둔다. 정부가 한 일이 아니라
+         * 시장의 반응이고, 바로 아래 전망이 이 반응에 기댄다.
+         */}
+        {reactions && (
+          <Section scene="reactions" heading={reactions.heading} lede={reactions.lede}>
+            <ReactionBoard reactions={reactions.reactions} claims={achievement.claims} />
+          </Section>
+        )}
 
         {/*
          * 전망은 보기 방식과 상관없이 맨 끝에 둔다. 쉽게 보기만 보는 사람도

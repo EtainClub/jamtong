@@ -189,6 +189,9 @@ export function buildTopicIndex(achievement: Achievement, sceneLabels: string[])
         ? scene.flow.scenarios.map((sc) => `${sc.name} ${sc.summary}`)
         : []),
       ...(scene.kind === "index-series" ? [scene.series.name] : []),
+      ...(scene.kind === "reactions"
+        ? scene.reactions.companies.flatMap((c) => [c.name, c.action, c.summary])
+        : []),
       ...(scene.kind === "outlook"
         ? scene.outlook.scenarios.flatMap((sc) => [
             sc.label,
