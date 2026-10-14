@@ -1,4 +1,5 @@
 import { EP01_BODY } from "./ep01";
+import { EP02_BODY } from "./ep02";
 
 /**
  * 정치소설 《면역》.
@@ -54,8 +55,14 @@ const KNOWN: NovelEpisode[] = [
     xUrl: "https://x.com/etainclub/status/2104034639749001611",
     shortsId: "4xJFHuHc_HE",
   },
-  /* 1편 꼬리의 "다음 이야기: 2편 《범인을 찾아라》"에서 제목만 알았다. */
-  { no: 2, title: "범인을 찾아라" },
+  {
+    no: 2,
+    title: "범인을 찾아라",
+    body: EP02_BODY,
+    postedAt: "2026-09-28",
+    xUrl: "https://x.com/etainclub/status/2104338608765419966",
+    shortsId: "z8DXK_HkDIU",
+  },
 ];
 
 const TOTAL = 15;
