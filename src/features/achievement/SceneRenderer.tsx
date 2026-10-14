@@ -9,6 +9,7 @@ import { MoneyFlow } from "@/features/motion/MoneyFlow";
 import { QuantityTrack } from "@/features/motion/QuantityTrack";
 import { IndexSeriesChart } from "@/features/series/IndexSeriesChart";
 import { ExplainerScene } from "@/features/motion/explainer/ExplainerScene";
+import { OutlookFork } from "@/features/motion/OutlookFork";
 import type { TimelineEvent } from "@/content/schema";
 
 /**
@@ -61,5 +62,8 @@ export function SceneRenderer({
 
     case "explainer":
       return <ExplainerScene explainer={scene.explainer} claims={claims} />;
+
+    case "outlook":
+      return <OutlookFork outlook={scene.outlook} claims={claims} />;
   }
 }

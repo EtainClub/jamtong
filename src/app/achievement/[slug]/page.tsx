@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ACHIEVEMENTS, getAchievement } from "@/content/achievements";
-import { validateAchievement, type Achievement } from "@/content/schema";
+import { findScene, validateAchievement, type Achievement } from "@/content/schema";
 
 import { AchievementHero } from "@/features/achievement/AchievementHero";
 import { Section } from "@/features/achievement/Section";
@@ -21,6 +21,7 @@ import { BottomNav } from "@/features/app/BottomNav";
 import { scenesFor } from "@/features/achievement/scenes";
 import { AskGuide } from "@/features/agent/AskGuide";
 import { ViewSwitch, ViewToggle } from "@/features/achievement/ViewSwitch";
+import { OutlookFork } from "@/features/motion/OutlookFork";
 import { Eli5Section } from "@/features/eli5/Eli5Section";
 import { UrlSyncBoundary } from "@/features/achievement/UrlSyncBoundary";
 import { ArcticRouteLayout } from "@/features/achievement/layouts/ArcticRouteLayout";
@@ -680,6 +681,7 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
 
   const { Layout, heroHighlights, askSuggestions } = config;
   const scenes = scenesFor(achievement);
+  const outlook = findScene(achievement, "outlook");
 
   /*
    * ⑦ 쇼츠. 업적마다 따로 붙이면 빠뜨리는 곳이 생기므로 여기서 한 번에 건다.
@@ -799,6 +801,16 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
             }
           />
         </div>
+
+        {/*
+         * 전망은 보기 방식과 상관없이 맨 끝에 둔다. 쉽게 보기만 보는 사람도
+         * "앞으로"를 읽어야 하고, 업적 본문 사이에 끼면 이룬 일과 섞여 읽힌다.
+         */}
+        {outlook && (
+          <Section scene="outlook" heading={outlook.heading} lede={outlook.lede}>
+            <OutlookFork outlook={outlook.outlook} claims={achievement.claims} />
+          </Section>
+        )}
 
         <div className="mt-10">
           <CorrectionLink page={`/achievement/${achievement.slug}`} />

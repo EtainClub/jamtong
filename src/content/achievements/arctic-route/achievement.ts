@@ -8,6 +8,8 @@ import { MOF_2026, NANET_2025 } from "@/content/sources";
  *  - `src-mof-2026`: 해양수산부 2026년도 업무계획 보도자료. 정책·일정·지원 규모.
  *  - `src-nanet-2025`: 국회도서관 Data&Law 2025-9호. 항로별 거리·운항일수.
  *  - `src-mof-arctic-return`: 해양수산부 2026-10-13 보도자료. 시범운항 실제 왕복 경과.
+ *  - 전망 씬: 아이뉴스24·뉴스토마토 보도, CHNL 2025 통계, IPCC 전망 보도. 업적이 아니라
+ *    전망이므로 결론 두 claim만 INTERPRETATION이고 조건은 모두 출처의 말이다.
  *
  * 거리 수치의 전제 조건에 주의한다. 부산 출발 로테르담행 78,000톤 선박,
  * 7~10월 기준 분석값이다. 북극항로는 연중 통항이 아니므로 이 조건을 빼고
@@ -224,6 +226,156 @@ const raw: AchievementInput = {
     note:
     "부산항에서 출발한 로테르담행 78,000톤 선박을 대상으로 7~10월 기준으로 분석한 값이다. " +
     "북극항로는 결빙으로 연중 통항이 어려우므로, 이 수치는 통항 가능 기간의 조건부 비교다.",
+    },
+    {
+      id: "outlook",
+      kind: "outlook",
+      heading: "앞으로 어떻게 될까 — 두 갈래 전망",
+      lede:
+        "여기서부터는 업적이 아니라 전망입니다. 확인된 첫 왕복에서 출발해, 조건에 따라 상업 항로로 자라는 길과 시범운항에 머무는 길을 나란히 그렸습니다.",
+      claimIds: ["claim-outlook-positive", "claim-outlook-negative"],
+      outlook: {
+        asOf: "2026-10-14",
+        notice:
+          "이 섹션은 이미 이룬 일이 아니라 앞으로의 전망입니다. 2026년 10월 14일까지 확인된 사실에서 출발해, " +
+          "조건에 따라 갈라지는 두 갈래를 잼통이 정리했습니다. 조건마다 근거를 달았지만 갈래의 결론은 예측이며, " +
+          "어느 쪽도 보장되지 않습니다. 운항 비용 자료가 아직 공개되지 않아 금액 추정은 싣지 않았습니다.",
+        now: {
+          label: "지금 · 2026년 10월",
+          text: "컨테이너선 한 척이 여름철 북동항로로 부산과 유럽을 처음 왕복했다.",
+          claimId: "claim-trial-return",
+        },
+        scenarios: [
+          {
+            id: "positive",
+            tone: "positive",
+            label: "긍정적 시나리오",
+            headline: "여름철 정기 항로로 자리 잡고 조선·에너지로 번진다",
+            factors: [
+              {
+                id: "p-sanction",
+                label: "제재 해제",
+                text: "러시아 제재가 풀려 북동항로로 컨테이너·LNG 수송을 늘린다. 해양수산부 계획의 '해제 시' 갈래다.",
+                claimId: "claim-russia",
+              },
+              {
+                id: "p-days",
+                label: "열흘의 값",
+                text: "수에즈보다 약 10일 빠르다. 홍해가 막혀 희망봉으로 돌아야 하는 해에는 차이가 약 16일로 벌어진다.",
+                claimId: "claim-route-comparison",
+              },
+              {
+                id: "p-fuel",
+                label: "연료 30%",
+                text: "선사는 연료 사용량을 약 30% 줄일 수 있다고 예상한다. 이 예상이 실측 데이터로 확인되어야 한다.",
+                claimId: "claim-panstar-forecast",
+              },
+              {
+                id: "p-season",
+                label: "길어지는 운항기간",
+                text: "IPCC는 2050년까지 북동항로의 항해 적합일이 연 최대 125일로 늘 것으로 전망했다.",
+                claimId: "claim-season-2050",
+              },
+              {
+                id: "p-support",
+                label: "초기 지원",
+                text: "항만시설사용료 50~100% 감면, 선박금융 금리 1%p 인하, LTV 90% 상향이 첫 몇 해의 부담을 줄인다.",
+                claimId: "claim-incentives",
+              },
+            ],
+            stages: [
+              {
+                id: "p-s1",
+                when: "2027~2028",
+                text: "후속 시범운항이 이어지고 연료 소비·선체 거동 데이터가 쌓인다.",
+                claimId: "claim-next-voyage",
+              },
+              {
+                id: "p-s2",
+                when: "2030",
+                text: "정부 구상대로 정기 상업화에 들어선다. 쇄빙 컨테이너선 건조기술과 극지 해기사가 갖춰진다.",
+                claimId: "claim-regular-2030",
+              },
+              {
+                id: "p-s3",
+                when: "2030년대",
+                text: "운항기간이 길어지고, 해양수산부가 기대하는 조선·금융 등 전후방 산업이 함께 자란다.",
+                claimId: "claim-shortest-route",
+              },
+            ],
+            outcome:
+              "수에즈 항로를 대신하지는 못해도, 여름철에 함께 쓰는 빠른 길로 자리 잡는다. 운임 절감보다 극지 선박 건조와 에너지 수송 같은 산업 기회가 더 큰 몫이 된다.",
+            claimId: "claim-outlook-positive",
+          },
+          {
+            id: "negative",
+            tone: "negative",
+            label: "부정적 시나리오",
+            headline: "몇 년에 한 번 다니는 실험 항로에 머문다",
+            factors: [
+              {
+                id: "n-sanction",
+                label: "제재 지속",
+                text: "제재가 이어지면 해양수산부도 북서항로 등 대안을 검토하겠다고 했다. 이번 시범운항이 지난 북동항로가 막히는 갈래다.",
+                claimId: "claim-russia",
+              },
+              {
+                id: "n-season",
+                label: "4~5개월",
+                text: "결빙 때문에 연중 4~5개월만 다닐 수 있고 보험료가 높다.",
+                claimId: "claim-limits",
+              },
+              {
+                id: "n-ice",
+                label: "해마다 다른 얼음",
+                text: "2025년 여름·가을 북동항로의 얼음 조건은 불리했다. 열리는 기간을 미리 장담하기 어렵다.",
+                claimId: "claim-nsr-2025-ice",
+              },
+              {
+                id: "n-size",
+                label: "작은 배의 원가",
+                text: "유럽 노선에는 1만 8천~2만 3천TEU급이 다니지만 북극항로에 쓸 수 있는 배는 4~5천TEU급에 그친다는 업계 지적이 있다.",
+                claimId: "claim-ship-size",
+              },
+              {
+                id: "n-load",
+                label: "다 채우지 못한 배",
+                text: "첫 항해는 2,758TEU급 배에 수출 화물 약 737TEU를 싣고 떠났다.",
+                claimId: "claim-trial-load",
+              },
+              {
+                id: "n-china",
+                label: "앞서 가는 중국",
+                text: "2025년 북동항로 컨테이너선 통과는 15회로 늘었고, 항로의 동쪽 끝은 중국이 주도한다.",
+                claimId: "claim-nsr-2025",
+              },
+            ],
+            stages: [
+              {
+                id: "n-s1",
+                when: "2027~2028",
+                text: "후속 시범운항은 이어지지만, 꾸준한 물동량과 왕복 화물을 확보하지 못해 정기 운항 결정이 미뤄진다.",
+                claimId: "claim-backhaul",
+              },
+              {
+                id: "n-s2",
+                when: "2030",
+                text: "정기 상업화 목표 시점. 제재가 이어지면 북서항로 시범운항 같은 대안 검토로 무게가 옮겨 간다.",
+                claimId: "claim-russia",
+              },
+              {
+                id: "n-s3",
+                when: "2030년대",
+                text: "정부 지원으로 간간이 다니는 실험 항로로 남고, 상업 운항은 앞서 자리 잡은 쪽이 가져간다.",
+                claimId: "claim-outlook-negative",
+              },
+            ],
+            outcome:
+              "북극항로는 열리는 해에만 지원을 받아 다니는 길로 남는다. 들인 지원에 비해 상업적 성과가 작다는 평가를 받을 수 있다.",
+            claimId: "claim-outlook-negative",
+          },
+        ],
+      },
     },
   ],
 
@@ -748,6 +900,102 @@ const raw: AchievementInput = {
       sourceIds: ["src-nanet-2025"],
       verified: true,
     },
+    /* ── 전망 씬의 근거. 결론 두 개만 잼통의 정리(INTERPRETATION)이고, 나머지는 출처의 말이다. ── */
+    {
+      id: "claim-panstar-forecast",
+      text: "팬스타라인은 북극항로로 운항기간을 약 10일, 연료 사용량을 약 30% 줄일 수 있을 것으로 예상한다.",
+      assertionType: "CLAIM",
+      assertedBy: "팬스타라인 (아이뉴스24 보도)",
+      sourceIds: ["src-inews24-arctic-challenges"],
+      verified: true,
+    },
+    {
+      id: "claim-trial-load",
+      text: "2,758TEU급 팬스타 아크로호는 화학제품·중고차·자동차 부품 등 수출 화물 약 737TEU를 싣고 출항했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-inews24-arctic-challenges", "src-seoul-arctic-depart"],
+      verified: true,
+    },
+    {
+      id: "claim-regular-2030",
+      text:
+        "정부는 시범운항에서 확보한 극지 운항 경험과 연료 소비, 선체 거동 등의 데이터를 바탕으로 2030년 북극항로 정기 상업화를 추진한다는 구상이다.",
+      assertionType: "CLAIM",
+      assertedBy: "정부 (아이뉴스24 보도)",
+      sourceIds: ["src-inews24-arctic-challenges"],
+      verified: true,
+    },
+    {
+      id: "claim-backhaul",
+      text:
+        "정기 컨테이너 항로로 정착하려면 지속적인 물동량과 왕복 화물을 확보하는 것이 우선이고, 극지 전용 선박과 전문 인력, 높은 보험료, 선체·장비 유지보수 비용도 고려해야 한다는 지적이 있다.",
+      assertionType: "CLAIM",
+      assertedBy: "업계 (아이뉴스24 보도)",
+      sourceIds: ["src-inews24-arctic-challenges"],
+      verified: true,
+    },
+    {
+      id: "claim-ship-size",
+      text:
+        "현재 유럽 노선에는 1만 8천~2만 3천TEU급 초대형 선박이 투입되지만 북극항로 운항이 가능한 선박은 4천~5천TEU급에 그치고, 컨테이너 해운은 대형 선박 여러 척으로 비용을 분산해야 수익이 난다는 지적이 있다.",
+      assertionType: "CLAIM",
+      assertedBy: "해운업계 관계자 (뉴스토마토 보도)",
+      sourceIds: ["src-newstomato-arctic-calc"],
+      verified: true,
+    },
+    {
+      id: "claim-nsr-2025",
+      text:
+        "2025년 11월 30일까지 북동항로 통과 운항은 103회(선박 88척)였고, 그중 컨테이너선 운항은 15회로 2024년 11회보다 늘었다. 항로의 동쪽 끝은 중국이 주도한다.",
+      assertionType: "FACT",
+      sourceIds: ["src-chnl-nsr-2025"],
+      verified: true,
+    },
+    {
+      id: "claim-nsr-2025-ice",
+      text:
+        "2025년 여름·가을 운항기 북동항로의 얼음 조건은 불리했다. 첫 통과 선박은 6월 30일 항로에 들어왔고 마지막 선박은 11월 17일 빠져나갔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-chnl-nsr-2025"],
+      verified: true,
+    },
+    {
+      id: "claim-season-2050",
+      text:
+        "IPCC는 2050년까지 북동항로에서 항해에 적합한 날이 연 최대 125일로 늘 것으로 전망했다. 보도 시점(2014년)의 항해 가능 기간은 약 50일이었다.",
+      assertionType: "CLAIM",
+      assertedBy: "IPCC (바렌츠옵서버 2014년 보도)",
+      sourceIds: ["src-barents-ipcc-2050"],
+      verified: true,
+    },
+    {
+      id: "claim-outlook-positive",
+      text:
+        "잼통의 전망(긍정적 시나리오): 러시아 제재 해제, 운항기간 연장, 연료 절감 예상의 실측 확인이 겹치면 북극항로는 수에즈 항로를 대신하지는 못해도 여름철 정기 항로로 자리 잡고, 쇄빙선 건조·에너지 수송 같은 전후방 산업 기회로 이어질 수 있다. 예측이며 보장되지 않는다.",
+      assertionType: "INTERPRETATION",
+      sourceIds: [
+        "src-mof-2026",
+        "src-mof-arctic-return",
+        "src-inews24-arctic-challenges",
+        "src-barents-ipcc-2050",
+        "src-nanet-2025",
+      ],
+      verified: true,
+    },
+    {
+      id: "claim-outlook-negative",
+      text:
+        "잼통의 전망(부정적 시나리오): 제재가 이어지고 꾸준한 물동량과 왕복 화물을 확보하지 못하면, 북극항로는 짧은 운항기간과 작은 선박의 원가 부담 속에 정부 지원으로 간간이 다니는 실험 항로에 머물 수 있다. 예측이며 보장되지 않는다.",
+      assertionType: "INTERPRETATION",
+      sourceIds: [
+        "src-mof-2026",
+        "src-inews24-arctic-challenges",
+        "src-newstomato-arctic-calc",
+        "src-chnl-nsr-2025",
+        "src-fn-arctic-arrive",
+      ],
+      verified: true,
+    },
     {
       id: "claim-limits",
       text:
@@ -800,6 +1048,57 @@ const raw: AchievementInput = {
         "13일 해양수산부에 따르면 팬스타 아크로호(2758TEU급)는 한국시간으로 이날 오후 6시 25분께 " +
         "네덜란드 로테르담항에 입항했다. 지난달 22일 부산신항을 출항한 지 22일 만이다. (…) " +
         "동절기(연중 4~5개월만 운항 가능) 제약과 높은 보험료 등 한계도 존재한다.",
+    },
+    {
+      id: "src-inews24-arctic-challenges",
+      title: "22일 만에 유럽 닿은 북극항로…'10일 단축' 뒤 남은 3대 난제",
+      url: "https://www.inews24.com/view/2005898",
+      publisher: "아이뉴스24",
+      publishedAt: "2026-09-16",
+      type: "press",
+      license: "quotable",
+      quote:
+        "운항기간은 약 10일, 연료 사용량은 약 30% 줄일 수 있을 것으로 팬스타는 예상한다. (…) " +
+        "정부는 이번 시범운항에서 확보한 극지 운항 경험과 연료 소비, 선체 거동 등의 데이터를 바탕으로 " +
+        "2030년 북극항로 정기 상업화를 추진한다는 구상이다. (…) 정기 컨테이너 항로로 정착하려면 " +
+        "지속적인 물동량과 왕복 화물을 확보하는 것이 우선",
+    },
+    {
+      id: "src-newstomato-arctic-calc",
+      title: "같은 북극항로, 해운업계 셈법은 제각각",
+      url: "https://www.newstomato.com/ReadNews.aspx?no=1285924",
+      publisher: "뉴스토마토",
+      publishedAt: "2025-12-24",
+      type: "press",
+      license: "quotable",
+      quote:
+        "현재 유럽 노선에는 1만8000~2만3000TEU급 초대형 선박이 투입되지만 북극항로 운항이 가능한 " +
+        "선박은 4000~5000TEU급에 그친다",
+    },
+    {
+      id: "src-chnl-nsr-2025",
+      title: "Main Results of NSR Transit Navigation in 2025",
+      url: "https://chnl.no/news/main-results-of-nsr-transit-navigation-in-2025/",
+      publisher: "CHNL (Centre for High North Logistics, Nord University)",
+      publishedAt: "2025-12-09",
+      type: "research",
+      license: "quotable",
+      quote:
+        "By November 30, 2025, we recorded 103 transit voyages performed by 88 unique vessels (…) " +
+        "We counted 15 such voyages. (…) China dominates the eastern end. (…) ice conditions along " +
+        "the NSR during the summer–autumn navigation period of 2025 were unfavorable.",
+    },
+    {
+      id: "src-barents-ipcc-2050",
+      title: "125 days of navigable conditions by 2050",
+      url: "https://www.thebarentsobserver.com/business/125-days-of-navigable-conditions-by-2050/235762",
+      publisher: "The Barents Observer",
+      publishedAt: "2014-04-01",
+      type: "press",
+      license: "quotable",
+      quote:
+        "The Northern Sea Route is predicted to have up to 125 days per year suitable for navigation " +
+        "by 2050. (…) Today the Northern Sea Route is open for navigation around 50 days.",
     },
   ],
 };

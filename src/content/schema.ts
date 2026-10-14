@@ -1601,6 +1601,70 @@ function validateExplainer(
 }
 
 /* ────────────────────────────────────────────────────────────────
+ * 전망 — 확인된 지점에서 조건에 따라 갈라지는 두 갈래
+ *
+ * ★ 업적이 아니다.
+ *   다른 씬은 이미 일어난 일을 그린다. 이 씬만 아직 일어나지 않은 일을
+ *   그리므로, 화면이 그 차이를 먼저 밝힌다(notice). 확인된 것은 실선,
+ *   전망은 점선이다 — 모양으로도 구분한다.
+ *
+ * ★ 갈래마다 조건이 근거를 단다.
+ *   전망 자체는 잼통의 정리(INTERPRETATION)이지만, 그 전망이 기대는 조건은
+ *   하나하나 출처가 있는 claim이어야 한다. 근거 없는 조건이 하나 끼면
+ *   전망은 바람이 된다.
+ *
+ * ★ 금액 추정을 싣지 않는다.
+ *   운항 비용 자료가 공개되기 전에 만든 숫자는 가정의 곱이고, 화면에 숫자가
+ *   뜨면 자료로 읽힌다.
+ * ──────────────────────────────────────────────────────────────── */
+
+export const outlookFactorSchema = z.object({
+  id: z.string(),
+  /** 칩에 적는 짧은 이름. */
+  label: z.string(),
+  /** 무엇이 그렇게 되어야 하는가. 한두 문장. */
+  text: z.string(),
+  claimId: z.string(),
+});
+export type OutlookFactor = z.infer<typeof outlookFactorSchema>;
+
+export const outlookStageSchema = z.object({
+  id: z.string(),
+  /** "2027~2028" 같은 시기. 예정이라 표기가 자유롭다. */
+  when: z.string(),
+  text: z.string(),
+  claimId: z.string(),
+});
+
+export const outlookScenarioSchema = z.object({
+  id: z.string(),
+  tone: z.enum(["positive", "negative"]),
+  /** "긍정적 시나리오" */
+  label: z.string(),
+  /** 이 갈래가 닿는 곳. 한 줄. */
+  headline: z.string(),
+  /** 이렇게 되려면 — 조건들. */
+  factors: z.array(outlookFactorSchema).min(2),
+  /** 갈래 위에 찍히는 단계. 시간순. */
+  stages: z.array(outlookStageSchema).min(2),
+  /** 이 갈래의 결론. 잼통의 정리라는 것이 claim에서 드러나야 한다. */
+  outcome: z.string(),
+  claimId: z.string(),
+});
+export type OutlookScenario = z.infer<typeof outlookScenarioSchema>;
+
+export const outlookSchema = z.object({
+  /** 전망을 정리한 기준일. 이 날 뒤의 일은 반영되지 않았다. */
+  asOf: z.string(),
+  /** "업적이 아니라 전망"이라는 안내. 씬 맨 위에 그대로 나온다. */
+  notice: z.string(),
+  /** 갈래가 시작되는 확인된 지점. */
+  now: z.object({ label: z.string(), text: z.string(), claimId: z.string() }),
+  scenarios: z.array(outlookScenarioSchema).length(2),
+});
+export type Outlook = z.infer<typeof outlookSchema>;
+
+/* ────────────────────────────────────────────────────────────────
  * 씬 — 스토리 전용 개념의 확장 지점
  *
  * 스토리 셋을 만들고 나서 확인된 것:
@@ -1665,6 +1729,11 @@ export const sceneSchema = z.discriminatedUnion("kind", [
     ...sceneBase,
     kind: z.literal("explainer"),
     explainer: explainerSchema,
+  }),
+  z.object({
+    ...sceneBase,
+    kind: z.literal("outlook"),
+    outlook: outlookSchema,
   }),
 ]);
 export type Scene = z.infer<typeof sceneSchema>;
@@ -1765,6 +1834,20 @@ export function validateScene(
         errors.push(error);
       }
       break;
+
+    case "outlook": {
+      const { outlook } = scene;
+      checkClaim(`${where} now`, outlook.now.claimId);
+      const tones = new Set(outlook.scenarios.map((s) => s.tone));
+      if (tones.size !== 2) errors.push(`${where} → 긍정·부정 갈래가 하나씩이어야 한다`);
+      for (const scenario of outlook.scenarios) {
+        const at = `${where} scenario "${scenario.id}"`;
+        checkClaim(at, scenario.claimId);
+        for (const f of scenario.factors) checkClaim(`${at} factor "${f.id}"`, f.claimId);
+        for (const st of scenario.stages) checkClaim(`${at} stage "${st.id}"`, st.claimId);
+      }
+      break;
+    }
   }
 
   return errors;

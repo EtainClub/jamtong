@@ -208,6 +208,37 @@ body {
 }
 
 /*
+ * 전망 씬. 갈래를 바꿀 때 조건 카드와 단계가 차례로 떠오른다.
+ * key가 바뀌면 처음부터 다시 돈다. 위 media 규칙이 함께 끈다.
+ */
+@keyframes outlook-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 갈래 위의 단계 점. svg 안이라 scale 대신 투명도와 반지름으로 튀어나온다. */
+@keyframes outlook-pop {
+  0% {
+    opacity: 0;
+    r: 0;
+  }
+  70% {
+    opacity: 1;
+    r: 11;
+  }
+  100% {
+    opacity: 1;
+    r: 9;
+  }
+}
+
+/*
  * prefers-reduced-motion 존중.
  * 모션 씬은 정적 요약으로 폴백하고, 장식 애니메이션은 전부 끈다.
  */

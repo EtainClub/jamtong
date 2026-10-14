@@ -12,7 +12,7 @@ import { track } from "@/lib/analytics";
  * AI Visual Guide가 화면을 조작할 지점도 여기 하나로 모인다.
  */
 
-export type SceneId = "hero" | "route" | "compare" | "land" | "composition" | "motion" | "flow" | "series" | "relations" | "counterpoint" | "timeline" | "shorts" | "share";
+export type SceneId = "hero" | "route" | "compare" | "land" | "composition" | "motion" | "flow" | "series" | "relations" | "counterpoint" | "outlook" | "timeline" | "shorts" | "share";
 export type PanelId = "evidence" | null;
 
 /**

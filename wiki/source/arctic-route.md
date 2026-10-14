@@ -2,7 +2,7 @@
 title: 북극항로
 kind: source
 source: arctic-route
-updated: 2026-09-27
+updated: 2026-10-14
 ---
 
 # 북극항로
@@ -68,6 +68,38 @@ updated: 2026-09-27
 「북극항로가 열렸다」·「항로를 단축했다」는 문장은 쓸 수 없다. 확인된 것은
 **거리 비교 분석과 정부 계획**까지다. ^[arctic-route#claim-shortest-route]
 ^[arctic-route#claim-trial-voyage]
+
+## 전망 — 업적이 아니다
+
+업적 페이지 끝에 두 갈래 전망을 더했다. 아래는 이룬 일이 아니라 잼통의
+정리이고, 결론 두 문장은 INTERPRETATION이다.
+^[arctic-route#claim-outlook-positive] ^[arctic-route#claim-outlook-negative]
+
+- **긍정적 갈래.** 제재 해제, 운항기간 연장, 연료 절감 예상의 실측 확인이
+  겹치면 수에즈를 대신하지는 못해도 여름철 정기 항로와 전후방 산업 기회로
+  이어질 수 있다고 정리했다. 예측이다. ^[arctic-route#claim-outlook-positive]
+- **부정적 갈래.** 제재가 이어지고 왕복 화물을 확보하지 못하면 정부 지원으로
+  간간이 다니는 실험 항로에 머물 수 있다고 정리했다. 예측이다.
+  ^[arctic-route#claim-outlook-negative]
+
+갈래가 기대는 조건은 출처의 말이다.
+
+- 팬스타라인은 운항기간 약 10일, 연료 약 30% 절감을 **예상한다** — 실측이
+  아니다. ^[arctic-route#claim-panstar-forecast]
+- 첫 항해는 2,758TEU급 배에 수출 화물 약 737TEU를 실었다.
+  ^[arctic-route#claim-trial-load]
+- 2030년 정기 상업화는 정부의 **구상**으로 보도됐다.
+  ^[arctic-route#claim-regular-2030]
+- 북극항로에 쓸 수 있는 배가 4~5천TEU급에 그친다는 것은 업계 관계자의
+  지적이다. ^[arctic-route#claim-ship-size]
+- 2025년 북동항로 컨테이너선 통과는 15회였고 동쪽 끝은 중국이 주도한다.
+  ^[arctic-route#claim-nsr-2025] 그해 얼음 조건은 불리했다.
+  ^[arctic-route#claim-nsr-2025-ice]
+- 2050년 항해 적합일 최대 125일은 2014년 보도된 IPCC 전망이다.
+  ^[arctic-route#claim-season-2050]
+
+운항 비용 자료가 공개되지 않아 금액 추정은 싣지 않았다.
+^[arctic-route#claim-trial-return]
 
 ## 관련
 

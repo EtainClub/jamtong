@@ -26,6 +26,7 @@ const SCENES: SceneId[] = [
   "series",
   "relations",
   "counterpoint",
+  "outlook",
   "timeline",
   "share",
 ];
