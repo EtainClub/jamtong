@@ -63,6 +63,15 @@ const entries = loadModule("src/app/sitemap.ts", {
       { slug: "sample-fixture", sample: true, chapters: [{ slug: "intro" }] },
     ],
   },
+  "@/content/novels": {
+    NOVELS: [
+      {
+        slug: "novel-fixture",
+        episodes: [{ no: 1, body: "본문", postedAt: "2026-09-27" }, { no: 2 }],
+      },
+    ],
+    publishedEpisodes: (novel) => novel.episodes.filter((e) => e.body),
+  },
   "@/content/cartels": {
     // 목록에 이름만 선 표적은 `OPEN_CARTELS`에서 이미 빠져 나온다.
     // 사이트맵이 지키는 것은 "받은 것만 싣고 날짜를 지어내지 않는다"까지다.
@@ -108,6 +117,8 @@ test("수정일을 모르면 날짜를 만들어 넣지 않는다", () => {
     "/wiki/concept/bad-date",
     "/cartel/cartel-fixture",
     "/tasks/1",
+    "/novels/novel-fixture",
+    "/novels/novel-fixture/1",
   ]) {
     assert.equal(entryAt(path).lastModified, undefined, path);
   }
@@ -121,6 +132,7 @@ test("계정/공유 URL과 로그/빈 책/샘플 책은 사이트맵에서 제�
     "/books/empty-fixture",
     "/books/sample-fixture",
     "/books/sample-fixture/intro",
+    "/novels/novel-fixture/2",
   ]) {
     assert.equal(entries.some((entry) => entry.url === abs(path)), false, path);
   }

@@ -29,7 +29,7 @@ export function ShareLinkButton({
   /** 공유 시트에 뜨는 이름. 주소가 아니라 사람이 읽는 제목이다. */
   title: string;
   /** 어느 화면에서 공유가 나왔는지. 무엇을 공유했는지는 세지 않는다. */
-  surface: "words" | "book" | "chapter";
+  surface: "words" | "book" | "chapter" | "novel" | "episode";
   /** 버튼에 적는 말과 스크린리더가 읽는 말. */
   label: { text: string; aria: string; copied: string };
   compact?: boolean;

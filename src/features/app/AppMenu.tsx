@@ -21,6 +21,7 @@ const LINKS = [
   { href: "/words", label: "이재명 대통령의 언행" },
   /* 하단 탭에서 위키에 자리를 내주고 여기로 왔다. */
   { href: "/timeline", label: "타임라인" },
+  { href: "/novels/immunity", label: "소설 보기 · 《면역》" },
   { href: "/apps", label: "자매 앱" },
   { href: "/links", label: "관련 사이트" },
   { href: "/feedback", label: "피드백" },

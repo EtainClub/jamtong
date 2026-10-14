@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { getPublishedAchievements } from "@/content/achievements";
 import { BOOKS_BY_YEAR } from "@/content/books";
+import { NOVELS, publishedEpisodes } from "@/content/novels";
 import { STATEMENTS } from "@/content/words";
 import { OPEN_CARTELS } from "@/content/cartels";
 import { TASKS } from "@/content/tasks";
@@ -20,6 +21,7 @@ import { abs } from "@/lib/seo/site";
  *     언행   생략. `postedAt`은 발언일이지 이 페이지의 수정일이 아니다.
  *     자서전 생략. 책의 발행 연도는 이 페이지의 수정일이 아니다.
  *     카르텔 생략. 업적을 모으기만 하고 제 날짜를 갖지 않는다.
+ *     소설   생략. X에 올린 날은 이 페이지의 수정일이 아니다.
  *
  * ★ 빈 껍데기는 싣지 않는다.
  *   초안 업적(`publishStatus: draft`), 장이 없는 책, 화면을 보이려고 만든
@@ -98,6 +100,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     out.push({ url: abs(`/books/${book.slug}`), priority: 0.6 });
     for (const chapter of book.chapters) {
       out.push({ url: abs(`/books/${book.slug}/${chapter.slug}`), priority: 0.6 });
+    }
+  }
+
+  /* 소설. 공개 예정인 편은 주소가 없으므로 본문이 있는 편만 싣는다. */
+  for (const novel of NOVELS) {
+    out.push({ url: abs(`/novels/${novel.slug}`), priority: 0.5 });
+    for (const ep of publishedEpisodes(novel)) {
+      out.push({ url: abs(`/novels/${novel.slug}/${ep.no}`), priority: 0.5 });
     }
   }
 
