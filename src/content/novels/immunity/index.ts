@@ -1,5 +1,9 @@
 import { EP01_BODY } from "./ep01";
 import { EP02_BODY } from "./ep02";
+import { EP03_BODY } from "./ep03";
+import { EP04_BODY } from "./ep04";
+import { EP05_BODY } from "./ep05";
+import { EP06_BODY } from "./ep06";
 
 /**
  * 정치소설 《면역》.
@@ -62,6 +66,37 @@ const KNOWN: NovelEpisode[] = [
     postedAt: "2026-09-28",
     xUrl: "https://x.com/etainclub/status/2104338608765419966",
     shortsId: "z8DXK_HkDIU",
+  },
+  {
+    no: 3,
+    title: "매일 생기는 이상",
+    body: EP03_BODY,
+    postedAt: "2026-09-29",
+    xUrl: "https://x.com/etainclub/status/2104848531060306044",
+    shortsId: "aMdpOTnBX28",
+  },
+  {
+    no: 4,
+    body: EP04_BODY,
+    postedAt: "2026-09-30",
+    xUrl: "https://x.com/etainclub/status/2105038674627002796",
+    shortsId: "SjLVByneyVA",
+  },
+  {
+    no: 5,
+    title: "전이",
+    body: EP05_BODY,
+    postedAt: "2026-10-01",
+    xUrl: "https://x.com/etainclub/status/2105406838628069491",
+    shortsId: "jmJqsb2SjdI",
+  },
+  {
+    no: 6,
+    title: "이상한 정치인",
+    body: EP06_BODY,
+    postedAt: "2026-10-02",
+    xUrl: "https://x.com/etainclub/status/2105782537499082920",
+    shortsId: "sr6R-yMg7c0",
   },
 ];
 
