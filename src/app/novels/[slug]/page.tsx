@@ -12,7 +12,7 @@ import {
 import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
 import { ShareLinkButton } from "@/features/app/ShareLinkButton";
-import { ShortsSlot } from "@/features/novels/ShortsSlot";
+import { ShortsRow } from "@/features/novels/ShortsRow";
 
 export function generateStaticParams() {
   return NOVELS.map((novel) => ({ slug: novel.slug }));
@@ -172,21 +172,10 @@ export default async function NovelPage({
               {shorts}/{novel.total}
             </span>
           </div>
-          <ul className="no-scrollbar mt-3 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pb-1">
-            {novel.episodes.map((ep) => (
-              <li key={ep.no} className="w-[124px] shrink-0 snap-start">
-                <ShortsSlot
-                  dark
-                  no={ep.no}
-                  youtubeId={ep.shortsId}
-                  title={`《${novel.title}》 ${ep.no}편${ep.title ? ` ${ep.title}` : ""}`}
-                />
-                <p className="mt-1.5 truncate text-[11.5px] font-semibold text-white/80">
-                  {ep.no}편{ep.title ? ` · ${ep.title}` : ""}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <ShortsRow
+            novelTitle={novel.title}
+            episodes={novel.episodes.map(({ no, title, shortsId }) => ({ no, title, shortsId }))}
+          />
         </section>
 
         {/* 편 목록 */}
