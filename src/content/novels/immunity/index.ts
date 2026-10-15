@@ -4,6 +4,10 @@ import { EP03_BODY } from "./ep03";
 import { EP04_BODY } from "./ep04";
 import { EP05_BODY } from "./ep05";
 import { EP06_BODY } from "./ep06";
+import { EP07_BODY } from "./ep07";
+import { EP08_BODY } from "./ep08";
+import { EP09_BODY } from "./ep09";
+import { EP10_BODY } from "./ep10";
 
 /**
  * 정치소설 《면역》.
@@ -97,6 +101,34 @@ const KNOWN: NovelEpisode[] = [
     postedAt: "2026-10-02",
     xUrl: "https://x.com/etainclub/status/2105782537499082920",
     shortsId: "sr6R-yMg7c0",
+  },
+  {
+    no: 7,
+    title: "조직검사",
+    body: EP07_BODY,
+    postedAt: "2026-10-10",
+    xUrl: "https://x.com/etainclub/status/2108737329544540277",
+  },
+  {
+    no: 8,
+    title: "구세주",
+    body: EP08_BODY,
+    postedAt: "2026-10-11",
+    xUrl: "https://x.com/etainclub/status/2109173471276392686",
+  },
+  {
+    no: 9,
+    title: "절제술",
+    body: EP09_BODY,
+    postedAt: "2026-10-12",
+    xUrl: "https://x.com/etainclub/status/2109657773080473815",
+  },
+  {
+    no: 10,
+    title: "왜 다시 생기는가",
+    body: EP10_BODY,
+    postedAt: "2026-10-15",
+    xUrl: "https://x.com/etainclub/status/2110721426340872357",
   },
 ];
 
