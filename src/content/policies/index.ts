@@ -9,6 +9,7 @@ import { FOREIGNER_HEALTH_VOTE } from "./foreigner-health-vote";
 import { HONAM_CHIP_CLUSTER } from "./honam-chip-cluster";
 import { HOUSING_LOAN_BUDGET } from "./housing-loan-budget";
 import { HOUSING_MEASURES } from "./housing-measures";
+import { HYBE_INVESTIGATION } from "./hybe-investigation";
 import { KOREA_JAPAN_EVACUATION } from "./korea-japan-evacuation";
 import { KRW_EXCHANGE_RATE } from "./krw-exchange-rate";
 import { LABOR_UNION_POLICY } from "./labor-union-policy";
@@ -16,11 +17,13 @@ import { MIDEAST_RUMORS } from "./mideast-rumors";
 import { NATIONAL_DEBT } from "./national-debt";
 import { NEW_LEAP_FUND } from "./new-leap-fund";
 import { OIL_RELIEF_FUND } from "./oil-relief-fund";
+import { PETITION_HANDLING } from "./petition-handling";
 import { PLEDGE_CHECK_2026 } from "./pledge-check-2026";
 import { PROSECUTION_LAUNCH } from "./prosecution-launch";
 import { RETIREMENT_PENSION } from "./retirement-pension";
 import { SMALL_BUSINESS_SUPPORT } from "./small-business-support";
 import { policySchema, type Policy } from "./schema";
+import { SINGLE_STOCK_LEVERAGE_ETF } from "./single-stock-leverage-etf";
 import { TASKS_CHECK_2026 } from "./tasks-check-2026";
 import { TEEN_SUPPORT } from "./teen-support";
 import { TONGTONG_POLICIES } from "./tongtong";
@@ -65,6 +68,9 @@ export const POLICIES: Policy[] = [
   CONSUMPTION_COUPON,
   PLEDGE_CHECK_2026,
   TASKS_CHECK_2026,
+  SINGLE_STOCK_LEVERAGE_ETF,
+  PETITION_HANDLING,
+  HYBE_INVESTIGATION,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
