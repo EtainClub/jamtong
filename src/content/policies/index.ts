@@ -7,6 +7,7 @@ import { DELISTING_REFORM } from "./delisting-reform";
 import { EGG_IMPORTS } from "./egg-imports";
 import { FOREIGNER_HEALTH_VOTE } from "./foreigner-health-vote";
 import { HONAM_CHIP_CLUSTER } from "./honam-chip-cluster";
+import { HOUSING_PLEDGE_VS_POLICY } from "./housing-pledge-vs-policy";
 import { HOUSING_LOAN_BUDGET } from "./housing-loan-budget";
 import { HOUSING_MEASURES } from "./housing-measures";
 import { HYBE_INVESTIGATION } from "./hybe-investigation";
@@ -16,12 +17,14 @@ import { LABOR_UNION_POLICY } from "./labor-union-policy";
 import { MIDEAST_RUMORS } from "./mideast-rumors";
 import { NATIONAL_DEBT } from "./national-debt";
 import { NEW_LEAP_FUND } from "./new-leap-fund";
+import { OIL_PRICE_CAP } from "./oil-price-cap";
 import { OIL_RELIEF_FUND } from "./oil-relief-fund";
 import { PETITION_HANDLING } from "./petition-handling";
 import { PLEDGE_CHECK_2026 } from "./pledge-check-2026";
 import { PROSECUTION_LAUNCH } from "./prosecution-launch";
 import { RETIREMENT_PENSION } from "./retirement-pension";
 import { SMALL_BUSINESS_SUPPORT } from "./small-business-support";
+import { SUPPORTER_CONFLICT } from "./supporter-conflict";
 import { policySchema, type Policy } from "./schema";
 import { SINGLE_STOCK_LEVERAGE_ETF } from "./single-stock-leverage-etf";
 import { TASKS_CHECK_2026 } from "./tasks-check-2026";
@@ -71,6 +74,9 @@ export const POLICIES: Policy[] = [
   SINGLE_STOCK_LEVERAGE_ETF,
   PETITION_HANDLING,
   HYBE_INVESTIGATION,
+  OIL_PRICE_CAP,
+  HOUSING_PLEDGE_VS_POLICY,
+  SUPPORTER_CONFLICT,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
