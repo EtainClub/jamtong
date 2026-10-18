@@ -40,7 +40,7 @@ export type SiteLink = z.infer<typeof siteLinkSchema>;
 const raw: z.input<typeof siteLinkSchema>[] = [
   {
     id: "news-jamtong",
-    title: "이재명 보도 위키",
+    title: "속통 — 이재명 정부 보도의 겉과 속",
     url: "https://news.jamtong.kr",
     description:
       "같은 사건에 어느 매체가 어떤 제목을 달았는지, 그리고 어디가 다루지 않았는지를 언론사별로 모아 기록합니다.",

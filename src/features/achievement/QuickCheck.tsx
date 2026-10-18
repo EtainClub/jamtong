@@ -86,7 +86,7 @@ export function QuickCheck({ achievement }: { achievement: Achievement }) {
             <p className="font-semibold text-ink">보도</p>
             <p className="mt-1 text-smoke">
               이 일을 언론이 어떻게 다뤘는지 — 어느 매체가 어떤 제목을 달았고 어디가 다루지
-              않았는지 — 는 이재명 보도 위키에 따로 모아 둡니다.
+              않았는지 — 는 속통에 따로 모아 둡니다.
             </p>
             <ul className="mt-2 space-y-1">
               {coverage.map((c) => (

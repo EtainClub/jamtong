@@ -8,7 +8,7 @@ import { BottomNav } from "@/features/app/BottomNav";
 
 export const metadata: Metadata = {
   title: "자매 앱",
-  description: "잼통과 같은 곳에서 만드는 앱을 모았습니다. 임통, 통통, 이재명 뉴스, 잼통 신고 센터, 잼통 Voice.",
+  description: "잼통과 같은 곳에서 만드는 앱을 모았습니다. 임통, 통통, 속통, 잼통 신고 센터, 잼통 Voice.",
   alternates: { canonical: "/apps" },
 };
 

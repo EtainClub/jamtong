@@ -334,18 +334,18 @@ export const achievementSchema = z.object({
    */
   lifeQuestion: z.string().optional(),
   /**
-   * 이 일이 언론에 어떻게 보도됐는지 — 이재명 보도 위키(news.jamtong.kr)의 사건.
+   * 이 일이 언론에 어떻게 보도됐는지 — 속통(news.jamtong.kr)의 사건.
    *
    * 받은 사람의 선입견은 대개 보도에서 온다. 같은 사건에 어느 매체가 어떤 제목을
    * 달았고 어디가 다루지 않았는지를 원자료 옆에 두면, 판단은 읽는 사람이 한다.
-   * 보도 위키는 다른 앱이라 데이터를 읽지 않고 사건 주소만 잇는다.
+   * 속통은 다른 앱이라 데이터를 읽지 않고 사건 주소만 잇는다.
    */
   coverage: z
     .array(
       z.object({
         title: z.string(),
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date는 YYYY-MM-DD 형식이어야 한다"),
-        url: z.string().url().startsWith("https://news.jamtong.kr/", "보도 위키의 사건 주소만 잇는다"),
+        url: z.string().url().startsWith("https://news.jamtong.kr/", "속통의 사건 주소만 잇는다"),
       }),
     )
     .default([]),

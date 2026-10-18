@@ -42,10 +42,10 @@ const raw: z.input<typeof sisterAppSchema>[] = [
   },
   {
     id: "news",
-    name: "이재명 뉴스",
-    tagline: "보도 위키",
+    name: "속통",
+    tagline: "이재명 정부 보도의 겉과 속",
     description:
-      "이재명 대통령과 관련된 보도를 언론사와 유튜브 채널별로 모아, 같은 사건을 어디가 어떻게 다뤘는지 나란히 보여 주는 뉴스 위키입니다.",
+      "이재명 정부를 다루는 언론과 정치 유튜브 채널을 지켜봅니다. 같은 사건에 누가 어떤 제목을 달았는지, 옹호하는 듯한 제목 속에 어떤 인식을 심는지, 어디가 다루지 않았는지 원문 그대로 기록합니다.",
     url: "https://news.jamtong.kr",
     image: "/images/apps/news.png",
   },
