@@ -8,7 +8,7 @@ import { BottomNav } from "@/features/app/BottomNav";
 
 export const metadata: Metadata = {
   title: "자매 앱",
-  description: "잼통과 같은 곳에서 만드는 앱을 모았습니다. 임통, 통통, 이재명 뉴스, 잼통 신고 센터.",
+  description: "잼통과 같은 곳에서 만드는 앱을 모았습니다. 임통, 통통, 이재명 뉴스, 잼통 신고 센터, 잼통 Voice.",
   alternates: { canonical: "/apps" },
 };
 
@@ -28,7 +28,7 @@ export default function AppsPage() {
         <h1 className="text-2xl font-light tracking-[-0.02em] text-ink">자매 앱</h1>
         <p className="mt-2 text-[13px] leading-relaxed text-smoke">
           잼통과 같은 곳에서 만드는 앱입니다. 잼통이 업적을 다룬다면, 이 앱들은 인물과
-          보도, 정책 활용, 가짜 뉴스 대응을 맡습니다.
+          보도, 정책 활용, 가짜 뉴스 대응, 시민 목소리 해설을 맡습니다.
         </p>
 
         <ul className="mt-7 space-y-4">

@@ -58,6 +58,15 @@ const raw: z.input<typeof sisterAppSchema>[] = [
     url: "https://bot.jamtong.kr",
     image: "/images/apps/bot.png",
   },
+  {
+    id: "voice",
+    name: "잼통 Voice",
+    tagline: "시민 목소리 해설",
+    description:
+      "대통령 X 게시물에 달린 시민의 질문과 비판을 주제별로 묶고, 잼통의 근거로 설명합니다. 근거가 없는 주제는 잼통에 자료 보충을 요청합니다.",
+    url: "https://voice.jamtong.kr",
+    image: "/images/apps/voice.png",
+  },
 ];
 
 export const SISTER_APPS: SisterApp[] = raw.map((item) => sisterAppSchema.parse(item));
