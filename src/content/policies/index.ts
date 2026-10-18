@@ -25,6 +25,11 @@ import { PROSECUTION_LAUNCH } from "./prosecution-launch";
 import { RETIREMENT_PENSION } from "./retirement-pension";
 import { SMALL_BUSINESS_SUPPORT } from "./small-business-support";
 import { SUPPORTER_CONFLICT } from "./supporter-conflict";
+import { HUMIDIFIER_DISINFECTANT_DECREE } from "./humidifier-disinfectant-decree";
+import { PROSECUTION_REFORM_STATEMENTS } from "./prosecution-reform-statements";
+import { GOVERNMENT_COMMUNICATION } from "./government-communication";
+import { KTV_VIDEO_REUSE } from "./ktv-video-reuse";
+import { GOVERNMENT_AD_ALLOCATION } from "./government-ad-allocation";
 import { policySchema, type Policy } from "./schema";
 import { SINGLE_STOCK_LEVERAGE_ETF } from "./single-stock-leverage-etf";
 import { TASKS_CHECK_2026 } from "./tasks-check-2026";
@@ -77,6 +82,11 @@ export const POLICIES: Policy[] = [
   OIL_PRICE_CAP,
   HOUSING_PLEDGE_VS_POLICY,
   SUPPORTER_CONFLICT,
+  HUMIDIFIER_DISINFECTANT_DECREE,
+  PROSECUTION_REFORM_STATEMENTS,
+  GOVERNMENT_COMMUNICATION,
+  KTV_VIDEO_REUSE,
+  GOVERNMENT_AD_ALLOCATION,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
