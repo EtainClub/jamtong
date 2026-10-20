@@ -23,7 +23,7 @@ export const PYONGYANG_DRONE_TRIAL: PolicyInput = {
     {
       id: "rumor-treason",
       text: "평양에 무인기를 보낸 일이 이적죄로 문제 삼아지고 있다",
-      claimIds: ["claim-verdict", "claim-reasoning", "claim-defense", "claim-appeal"],
+      claimIds: ["claim-verdict", "claim-reasoning", "claim-defense", "claim-appeal", "claim-appeal-defense"],
     },
   ],
   claims: [
@@ -70,9 +70,21 @@ export const PYONGYANG_DRONE_TRIAL: PolicyInput = {
       id: "claim-appeal",
       text:
         "특검은 2026년 10월 16일 서울고법 형사1부 항소심 결심 공판에서 윤 전 대통령과 김 전 장관에게 각각 징역 " +
-        "30년, 여 전 사령관에게 징역 20년, 김 전 사령관에게 징역 5년을 구형했다. 항소심 선고는 아직 나오지 않았다.",
+        "30년, 여 전 사령관에게 징역 20년, 김 전 사령관에게 징역 5년을 구형했다. 항소심 선고는 2026년 12월 4일 " +
+        "오후 3시로 잡혔다.",
       assertionType: "FACT",
-      sourceIds: ["src-asiae-drone-20261016"],
+      sourceIds: ["src-asiae-drone-20261016", "src-tf-drone-20261016"],
+      verified: true,
+    },
+    {
+      id: "claim-appeal-defense",
+      text:
+        "윤 전 대통령은 항소심 최후진술에서 작전을 사전에 승인했다는 증거가 없다며 1심을 \"재판이라는 형식을 빙자한 " +
+        "사법테러\"라고 했다. 변호인단은 무인기 작전이 북한 도발에 대응한 군사작전이었고 계엄 명분을 만들려는 " +
+        "모의를 입증할 증거가 없다며 공소기각 또는 무죄를 요청했다.",
+      assertionType: "CLAIM",
+      assertedBy: "윤석열 전 대통령·변호인단",
+      sourceIds: ["src-tf-drone-20261016"],
       verified: true,
     },
   ],
@@ -98,14 +110,14 @@ export const PYONGYANG_DRONE_TRIAL: PolicyInput = {
       date: "2026-10-16",
       datePrecision: "day",
       title: "항소심 결심, 특검 징역 30년 구형",
-      summary: "선고 날짜는 아직 확인하지 못했다.",
-      claimIds: ["claim-appeal"],
+      summary: "선고는 12월 4일로 잡혔다.",
+      claimIds: ["claim-appeal", "claim-appeal-defense"],
     },
   ],
-  critiqueIds: ["claim-defense"],
+  critiqueIds: ["claim-defense", "claim-appeal-defense"],
   gaps: [
-    "항소심 선고 날짜와 결과는 아직 없다. 1심 판결은 확정되지 않았다.",
-    "판결문 원문은 확인하지 못했다. 재판부 판단은 언론 보도 기준이다.",
+    "항소심 선고(2026년 12월 4일) 전이다. 1심 판결은 확정되지 않았다.",
+    "재판 일부는 국가안보를 이유로 비공개로 진행됐다. 여기 적은 재판부 판단은 판결문이 아니라 언론 보도 기준이다.",
   ],
   sources: [
     {
@@ -131,6 +143,15 @@ export const PYONGYANG_DRONE_TRIAL: PolicyInput = {
       title: "특검, 尹 '평양 무인기 작전' 혐의 2심서 징역 30년 구형",
       publisher: "아시아경제",
       url: "https://view.asiae.co.kr/article/2026101615220648711",
+      publishedAt: "2026-10-16",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-tf-drone-20261016",
+      title: "특검, '평양 무인기' 2심 징역 30년 구형…윤 \"재판 빙자 사법테러\"(종합)",
+      publisher: "더팩트",
+      url: "https://news.tf.co.kr/read/life/2377403.htm",
       publishedAt: "2026-10-16",
       type: "press",
       license: "link-only",

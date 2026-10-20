@@ -25,7 +25,7 @@ export const DMZ_MINE_2026: PolicyInput = {
     {
       id: "rumor-no-action",
       text: "지뢰 폭발로 우리 장병이 발목을 잃었는데 정부가 아무런 조치도 취하지 않았다",
-      claimIds: ["claim-investigation", "claim-demand", "claim-war-wound", "claim-slow"],
+      claimIds: ["claim-investigation", "claim-removal", "claim-demand", "claim-war-wound", "claim-resolution", "claim-slow"],
     },
   ],
   claims: [
@@ -42,12 +42,21 @@ export const DMZ_MINE_2026: PolicyInput = {
     {
       id: "claim-investigation",
       text:
-        "합동참모본부는 9월 30일 북한군이 묻은 지뢰일 가능성이 높다는 중간 결과를, 10월 5일 유엔군사령부 공동 " +
-        "현장조사와 국립과학수사연구원 감정을 종합한 최종 결과를 발표했다. 폭발 지점은 군사분계선 남쪽 약 10m였고, " +
-        "파편은 북한군 규격의 플라스틱 대인지뢰와 같았다. 유엔사는 정전협정 위반이라고 밝혔고, 지뢰가 최근 1년 " +
-        "안에 묻힌 것으로 평가했다.",
+        "합동참모본부는 9월 말 북한군 지뢰일 가능성이 매우 높다는 중간 결과를 낸 뒤, 10월 5일 최종 결과를 발표했다. " +
+        "유엔군사령부와 9월 26~29일 공동 현장조사를 하고 10월 2일 국립과학수사연구원 감정 결과를 받아, 부상자 몸에서 " +
+        "나온 파편이 북한군 수지반보병지뢰와 같다고 확인했다. 폭발 지점은 군사분계선 남쪽 약 10m였고, 합참은 자연 " +
+        "유실이 아닌 인위적 매설로 판단했다. 유엔사는 정전협정 위반이라고 밝히고 설치 시기를 12개월 이내로 평가했다.",
       assertionType: "FACT",
-      sourceIds: ["src-newspim-mine-20261020", "src-withnews-mine-20261010"],
+      sourceIds: ["src-newsis-mine-20261005", "src-newspim-mine-20261020"],
+      verified: true,
+    },
+    {
+      id: "claim-removal",
+      text:
+        "군은 10월 5일 낮 12시 51분께 폭발 원인이 된 군사분계선 이남의 북한군 지뢰지대를 제거했다. 유엔사를 통해 " +
+        "북측에 미리 알렸고, 북한이 스스로 제거하지 않으면 \"MDL 이남으로 넘어온 모든 지뢰를 제거할 것\"이라고 밝혔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-newsis-mine-20261005"],
       verified: true,
     },
     {
@@ -88,6 +97,16 @@ export const DMZ_MINE_2026: PolicyInput = {
       sourceIds: ["src-newspim-mine-20261020"],
       verified: true,
     },
+    {
+      id: "claim-resolution",
+      text:
+        "국회 국방위원회는 10월 14일 북한의 지뢰 매설을 정전협정 위반 도발로 규정하고 북한의 사과·책임자 처벌·재발 " +
+        "방지, 부상 장병의 치료·예우 지원을 촉구하는 결의안을 채택했다. 군의 대응 과정과 조사 지연 책임을 국회가 " +
+        "규명하자는 국민의힘 요구 조항은 더불어민주당 반대로 빠졌다.",
+      assertionType: "FACT",
+      sourceIds: ["src-voa-mine-20261014"],
+      verified: true,
+    },
   ],
   timeline: [
     {
@@ -100,19 +119,19 @@ export const DMZ_MINE_2026: PolicyInput = {
     },
     {
       id: "t-interim",
-      date: "2026-09-30",
-      datePrecision: "day",
+      date: "2026-09",
+      datePrecision: "month",
       title: "합참 중간 조사 결과 발표",
-      summary: "북한군 매설 지뢰일 가능성이 높다고 밝혔다. 유엔사는 정전협정 위반이라고 했다.",
+      summary: "북한군 지뢰일 가능성이 매우 높다고 밝혔다.",
       claimIds: ["claim-investigation"],
     },
     {
       id: "t-final",
       date: "2026-10-05",
       datePrecision: "day",
-      title: "최종 조사 결과 발표, 대북 사과·제거 요구",
-      summary: "파편이 북한군 지뢰와 같다고 밝혔다.",
-      claimIds: ["claim-investigation", "claim-demand"],
+      title: "최종 조사 결과 발표, 지뢰지대 제거",
+      summary: "북한에 사과와 지뢰 제거를 요구하고, MDL 이남 지뢰지대를 직접 제거했다.",
+      claimIds: ["claim-investigation", "claim-removal", "claim-demand"],
     },
     {
       id: "t-war-wound",
@@ -122,12 +141,19 @@ export const DMZ_MINE_2026: PolicyInput = {
       summary: "국정감사 답변으로 밝혔다.",
       claimIds: ["claim-war-wound"],
     },
+    {
+      id: "t-resolution",
+      date: "2026-10-14",
+      datePrecision: "day",
+      title: "국회 국방위, 북한 지뢰 도발 규탄 결의안 채택",
+      summary: "군 대응 진상 규명 조항은 빠졌다.",
+      claimIds: ["claim-resolution"],
+    },
   ],
   critiqueIds: ["claim-slow", "claim-wording"],
   gaps: [
-    "북한이 사과하거나 지뢰를 제거했다는 소식은 없다. 정부가 요구를 관철하기 위해 어떤 후속 조치를 할지는 발표되지 않았다.",
-    "다친 장병의 전상 판정이 실제로 끝났는지는 확인하지 못했다.",
-    "합참·유엔사 조사 결과 원문은 확인하지 못했다. 내용은 언론 보도 기준이다.",
+    "북한은 사과하지 않았고 책임을 부인했다. 정부가 요구를 관철하기 위해 어떤 추가 조치를 할지는 보안을 이유로 공개하지 않았다.",
+    "다친 장병의 전상 판정과 국가유공자 등록이 끝났다는 공식 발표는 아직 없다.",
   ],
   sources: [
     {
@@ -145,6 +171,24 @@ export const DMZ_MINE_2026: PolicyInput = {
       publisher: "뉴스핌",
       url: "https://www.newspim.com/news/view/20261020000593",
       publishedAt: "2026-10-20",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newsis-mine-20261005",
+      title: "합참 \"北지뢰로 우리 장병 부상 최종 판단…MDL 이남 北지뢰 모두 제거할 것\"(종합2보)",
+      publisher: "뉴시스",
+      url: "https://newsis.com/view/NISX20261005_0003814618",
+      publishedAt: "2026-10-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-voa-mine-20261014",
+      title: "한국 국회 국방위, 북한 지뢰 도발 규탄 결의안 채택..책임자 처벌·재발 방지 대책 촉구",
+      publisher: "VOA 한국어",
+      url: "https://www.voakorea.com/a/korean-peninsula-10-14-26/8211106.html",
+      publishedAt: "2026-10-14",
       type: "press",
       license: "link-only",
     },

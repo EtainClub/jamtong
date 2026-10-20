@@ -22,7 +22,7 @@ export const CHINA_GROUP_VISA_FREE: PolicyInput = {
     {
       id: "rumor-discussing",
       text: "중국인 무비자 입국이 논의되고 있다",
-      claimIds: ["claim-start", "claim-conditions", "claim-extension"],
+      claimIds: ["claim-origin", "claim-start", "claim-conditions", "claim-extension", "claim-petition"],
     },
   ],
   claims: [
@@ -74,6 +74,46 @@ export const CHINA_GROUP_VISA_FREE: PolicyInput = {
       sourceIds: ["src-shanghaibang-visa-20260630"],
       verified: true,
     },
+    {
+      id: "claim-origin",
+      text:
+        "이 제도는 윤석열 정부 때 검토가 시작됐다. 2023년 3월 중국 단체관광객 무비자 환승 관광을 허용했고, 2024년 " +
+        "12월 국가관광전략회의에서 방한 중국 단체관광객 무비자 시범 사업을 하기로 했다. 2025년 3월 최상목 대통령 " +
+        "권한대행은 \"중국 단체관광객에 대한 한시 비자 면제를 3분기 중 시행하겠다\"고 밝혔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-ohmynews-visa-20251015"],
+      verified: true,
+    },
+    {
+      id: "claim-concerns",
+      text:
+        "국민의힘 일부 인사는 시행 전후로 반대했다. 김민수 최고위원은 \"국민 안전을 담보로 한 위험한 도박\"이라며 범죄·" +
+        "불법체류·전염병 확산을 우려했고, 나경원 의원은 출입국 전산 오류로 입국자 주소 입력이 빠질 수 있다며 시행 " +
+        "연기를 요구했다. 더불어민주당은 근거 없이 특정 국가에 대한 혐오를 부추긴다고 맞섰다.",
+      assertionType: "CLAIM",
+      assertedBy: "김민수 국민의힘 최고위원·나경원 국민의힘 의원",
+      sourceIds: ["src-khan-visa-20250929"],
+      verified: true,
+    },
+    {
+      id: "claim-petition",
+      text:
+        "2026년 9월 '중국인 무비자 폐지'를 요구하는 국회 국민동의청원에 7만 8,800명이 동의해, 소관 상임위원회인 " +
+        "법제사법위원회 심사를 받게 됐다. 5만 명을 넘으면 상임위 심사 대상이 된다는 뜻이며, 제도가 폐지된다는 뜻은 " +
+        "아니다.",
+      assertionType: "FACT",
+      sourceIds: ["src-fnnews-visa-20260918"],
+      verified: true,
+    },
+    {
+      id: "claim-jeju",
+      text:
+        "단체관광 무비자와 별개로 운영되는 제주 무사증 제도에서는 2025년 8월 말 기준 무사증 자격 외국인 불법체류자가 " +
+        "1만 738명이었고, 이 가운데 중국 국적이 9,100명(85%)이었다(법무부가 국회에 낸 자료).",
+      assertionType: "FACT",
+      sourceIds: ["src-fnnews-visa-20260918"],
+      verified: true,
+    },
   ],
   timeline: [
     {
@@ -101,12 +141,10 @@ export const CHINA_GROUP_VISA_FREE: PolicyInput = {
       claimIds: ["claim-extension"],
     },
   ],
-  critiqueIds: [],
+  critiqueIds: ["claim-concerns", "claim-petition", "claim-jeju"],
   gaps: [
-    "2027년 이후 연장 여부는 아직 발표되지 않았다.",
-    "2026년 6월 이후의 이용 실적과 무단이탈 통계는 확인하지 못했다.",
-    "제도가 관광 수입에 준 효과를 따로 잰 공식 자료는 찾지 못했다.",
-    "불법체류·치안 우려 등 이 제도에 대한 반대 의견과 그 근거는 이 페이지에서 정리하지 못했다.",
+    "2027년 이후 연장 여부는 아직 발표되지 않았다. 지금까지는 중국의 한국인 무비자 기간에 맞춰 왔다.",
+    "2026년 6월 21일 이후의 무단이탈 통계는 공식 발표를 찾지 못했다.",
   ],
   sources: [
     {
@@ -142,6 +180,33 @@ export const CHINA_GROUP_VISA_FREE: PolicyInput = {
       publisher: "상하이방",
       url: "https://shanghaibang.com/ne/ne0402/ne0303/2026/06/30/1506362/",
       publishedAt: "2026-06-30",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-ohmynews-visa-20251015",
+      title: "\"중국인 무비자, 윤석열 정부에서 시작\" 민주당 주장 '사실' [오마이팩트]",
+      publisher: "오마이뉴스",
+      url: "https://www.ohmynews.com/NWS_Web/OhmyFact/at_pg.aspx?CNTN_CD=A0003173012",
+      publishedAt: "2025-10-15",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-khan-visa-20250929",
+      title: "또 열린 혐중의 입···국힘 김민수 \"무비자 입국으로 범죄·전염병 확산 가능성\"",
+      publisher: "경향신문",
+      url: "https://www.khan.co.kr/article/202509291056001",
+      publishedAt: "2025-09-29",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-fnnews-visa-20260918",
+      title: "'중국인 무비자 폐지' 청원 7만8800명… 제주 무사증도 쟁점",
+      publisher: "파이낸셜뉴스",
+      url: "https://www.fnnews.com/news/202609180938341556",
+      publishedAt: "2026-09-18",
       type: "press",
       license: "link-only",
     },

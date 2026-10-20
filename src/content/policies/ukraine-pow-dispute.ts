@@ -27,12 +27,12 @@ export const UKRAINE_POW_DISPUTE: PolicyInput = {
     {
       id: "rumor-ignore-pow",
       text: "이재명 정부가 북한의 반응을 의식해 우크라이나에 생포된 북한군 포로 문제를 외면하고 있다",
-      claimIds: ["claim-arrived", "claim-gov-principle"],
+      claimIds: ["claim-before", "claim-arrived", "claim-gov-principle"],
     },
     {
       id: "rumor-recall",
       text: "이재명 정부가 북한을 의식해 우크라이나와 갈등을 빚고 우크라이나 대사를 소환했다",
-      claimIds: ["claim-dispute-start", "claim-recall", "claim-ukraine-side", "claim-withdraw"],
+      claimIds: ["claim-dispute-start", "claim-recall", "claim-ukraine-side", "claim-withdraw", "claim-opposition-view", "claim-ruling-view"],
     },
   ],
   claims: [
@@ -107,6 +107,40 @@ export const UKRAINE_POW_DISPUTE: PolicyInput = {
       sourceIds: ["src-newdaily-pow-20261020"],
       verified: true,
     },
+    {
+      id: "claim-before",
+      text:
+        "송환 전에도 정부는 포로 문제를 다뤄 왔다. 2026년 5월 우크라이나 포로 조정본부 국장은 러시아가 다른 외국인 " +
+        "포로는 묻지 않고 북한군 포로 2명의 송환만 여러 차례 요구했으며, 강제송환을 금지한 제네바 협약을 지키겠다고 " +
+        "말했다. 6월 30일 조현 외교부 장관과 시비하 우크라이나 외교장관이 서울에서 회담한 뒤, 외교부는 \"우크라이나 " +
+        "북한군 포로가 한국행을 원하고 있는 것은 변함이 없다\"고 밝혔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-seoul-pow-20260510", "src-mtn-pow-20260630"],
+      verified: true,
+    },
+    {
+      id: "claim-opposition-view",
+      text:
+        "야권은 정부의 비공개 방침을 북한을 의식한 것이라고 비판했다. 안철수 국민의힘 의원은 \"북한 눈치에 포로 " +
+        "송환조차 우리가 주체적으로 공개할 수 없으면 그건 나라도 아니다\"라고 했고, 정점식 국민의힘 원내대표는 " +
+        "\"정부가 갑자기 비공개에 집착한 이유가 뭔가\"라고 물었다.",
+      assertionType: "CLAIM",
+      assertedBy: "안철수 국민의힘 의원·정점식 국민의힘 원내대표",
+      sourceIds: ["src-heraldk-pow-20260925"],
+      verified: true,
+    },
+    {
+      id: "claim-ruling-view",
+      text:
+        "더불어민주당 신현영 대변인은 젤렌스키 대통령의 공개를 \"양국 간 신뢰를 저버린 처사\"라고 하고, 정부가 송환을 " +
+        "\"자화자찬하거나 정치적으로 이용할 생각이 추호도 없다\"며 정쟁으로 키우지 말라고 했다. 대통령은 X에서 " +
+        "비공개 방침을 비판하는 쪽을 향해 \"생색을 위해 생명·안보를 해치면 살인자·매국노\"라고 썼고, 이 표현이 " +
+        "지나치다는 비판도 나왔다.",
+      assertionType: "CLAIM",
+      assertedBy: "더불어민주당 신현영 대변인·이재명 대통령",
+      sourceIds: ["src-heraldk-pow-20260925"],
+      verified: true,
+    },
   ],
   timeline: [
     {
@@ -142,11 +176,10 @@ export const UKRAINE_POW_DISPUTE: PolicyInput = {
       claimIds: ["claim-withdraw"],
     },
   ],
-  critiqueIds: ["claim-ukraine-side", "claim-embassy-testimony"],
+  critiqueIds: ["claim-ukraine-side", "claim-embassy-testimony", "claim-opposition-view"],
   gaps: [
-    "정부가 북한의 반응을 의식해 조치했다는 주장을 뒷받침하거나 반박하는 공식 자료는 찾지 못했다. 정부가 밝힌 이유는 비공개 합의 위반이다.",
-    "비공개 합의는 문서로 남지 않았다. 합의가 있었는지는 양국 주장이 엇갈린다.",
-    "송환된 2명의 정착 절차와 우크라이나에 남은 다른 북한군 포로가 있는지는 확인하지 못했다.",
+    "비공개 합의는 문서로 남지 않았다. 합의가 있었는지는 양국 주장이 엇갈리고, 정부는 문서화하면 사실상 조약이 된다며 증거를 내놓지 않았다.",
+    "비공개 방침이 북한을 의식한 것인지는 야권의 해석이다. 정부가 밝힌 이유는 포로와 가족의 신변안전이다.",
   ],
   sources: [
     {
@@ -182,6 +215,33 @@ export const UKRAINE_POW_DISPUTE: PolicyInput = {
       publisher: "뉴데일리",
       url: "https://www.newdaily.co.kr/site/data/html/2026/10/20/2026102000260.html",
       publishedAt: "2026-10-20",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-seoul-pow-20260510",
+      title: "러, 북한군 포로만 집요하게 송환 요구…포로들은 한국행 원하는데",
+      publisher: "서울신문",
+      url: "https://m.seoul.co.kr/news/2026/05/10/20260510500051",
+      publishedAt: "2026-05-10",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-mtn-pow-20260630",
+      title: "외교부 \"우크라 北포로, 한국행 의사 변함없어\"…재건 협력도 논의",
+      publisher: "머니투데이방송",
+      url: "https://news.mtn.co.kr/news-detail/2026063016361565999",
+      publishedAt: "2026-06-30",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-heraldk-pow-20260925",
+      title: "정부 北포로 송환 비공개…與 \"정쟁확대 말라\" vs 野 \"北 눈치보는 것\"",
+      publisher: "헤럴드경제",
+      url: "https://biz.heraldcorp.com/article/10884553",
+      publishedAt: "2026-09-25",
       type: "press",
       license: "link-only",
     },
