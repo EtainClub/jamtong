@@ -11,21 +11,30 @@ import type { PolicyInput } from "./schema";
  * ★ '아무 조치도 없었다'는 사실과 다르다. 그러나 조치가 충분했는지는 평가라서
  *   판정하지 않는다. 비판은 critique로 함께 보인다.
  * ★ 2026-10-20 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #53.
+ *   2026-10-23 신통 이슈 #64(전상 인정 시 보상금)를 더했다. 8,925만 원은 보훈 전문가가
+ *   법령 산식으로 계산한 추정치라 CLAIM이다. 실제 금액은 전상 판정과 장애등급 심사로 정해진다.
  */
 export const DMZ_MINE_2026: PolicyInput = {
   slug: "dmz-mine-2026",
   title: "비무장지대 지뢰 폭발과 정부 대응",
   scope:
     "2026년 9월 21일 서부전선 비무장지대 지뢰 폭발 사고의 경위, 합참·유엔사 조사 결과, 정부·군의 후속 조치와 " +
-    "그에 대한 평가",
+    "그에 대한 평가, 다친 장병이 전상으로 인정될 때의 보상",
   ministries: ["국방부", "합동참모본부", "국가보훈부", "통일부"],
   categories: ["diplomacy"],
-  asOf: "2026-10-20",
+  asOf: "2026-10-23",
   rumors: [
     {
       id: "rumor-no-action",
       text: "지뢰 폭발로 우리 장병이 발목을 잃었는데 정부가 아무런 조치도 취하지 않았다",
       claimIds: ["claim-investigation", "claim-removal", "claim-demand", "claim-war-wound", "claim-resolution", "claim-slow"],
+    },
+    {
+      id: "rumor-compensation",
+      text:
+        "발목을 잃은 25사단 수색대대장이 전상으로 인정받으면 장애보상금 약 8,925만 원을 일시금으로 받고, 상이연금과 " +
+        "국가유공자 보상금도 매달 받을 수 있다",
+      claimIds: ["claim-war-wound", "claim-disability-lump-sum", "claim-monthly", "claim-payment-timing"],
     },
   ],
   claims: [
@@ -107,6 +116,37 @@ export const DMZ_MINE_2026: PolicyInput = {
       sourceIds: ["src-voa-mine-20261014"],
       verified: true,
     },
+    {
+      id: "claim-disability-lump-sum",
+      text:
+        "군인 재해보상법 제33조의 장애보상금은 공무원 전체 기준소득월액 평균(2026년 5월부터 595만 원)에 장애등급별 " +
+        "배수를 곱하고, 전상이면 2.5배(특수직무공상은 1.88배)를 적용한다. 한쪽 발목 상실을 심신장애 5급(장애보상금 " +
+        "2급)으로 보면 전상일 때 약 8,925만 원, 특수직무공상일 때 약 6,711만 원이다.",
+      assertionType: "CLAIM",
+      assertedBy: "안종민 국가보훈행정사무소 대표(헤럴드경제 분석)",
+      sourceIds: ["src-herald-mine-20261005"],
+      verified: true,
+    },
+    {
+      id: "claim-monthly",
+      text:
+        "같은 분석에서, 상이연금은 퇴직한 간부가 일시금과 별도로 매달 받으며 본인 기준소득월액에 등급별 비율(5급 " +
+        "39%)을 곱해 정한다. 국가유공자로 등록되면 국가유공자법 시행령상 한쪽 다리를 발목관절 이상에서 잃은 경우 " +
+        "상이등급 5급으로, 2026년 월 보상금이 211만 6천 원이고 전상군경이면 전상수당 9만 원이 더해진다.",
+      assertionType: "CLAIM",
+      assertedBy: "안종민 국가보훈행정사무소 대표(헤럴드경제 분석)",
+      sourceIds: ["src-herald-mine-20261005"],
+      verified: true,
+    },
+    {
+      id: "claim-payment-timing",
+      text:
+        "장애보상금과 상이연금은 심신장애 판정 뒤 퇴직할 때 나오므로, 대대장이 현역으로 계속 복무하면 전역 이후로 " +
+        "미뤄진다. 실제 금액은 전상 여부와 장애등급 심사 결과에 따라 달라진다.",
+      assertionType: "FACT",
+      sourceIds: ["src-herald-mine-20261005"],
+      verified: true,
+    },
   ],
   timeline: [
     {
@@ -153,9 +193,19 @@ export const DMZ_MINE_2026: PolicyInput = {
   critiqueIds: ["claim-slow", "claim-wording"],
   gaps: [
     "북한은 사과하지 않았고 책임을 부인했다. 정부가 요구를 관철하기 위해 어떤 추가 조치를 할지는 보안을 이유로 공개하지 않았다.",
-    "다친 장병의 전상 판정과 국가유공자 등록이 끝났다는 공식 발표는 아직 없다.",
+    "다친 장병의 전상 판정과 국가유공자 등록이 끝났다는 공식 발표는 아직 없다. 그래서 장애등급과 실제 보상액도 확정되지 않았다.",
+    "장애보상금 등급별 배수(8,925만 원 계산에 쓰인 6배)는 보도된 금액으로 역산한 것이고, 군인 재해보상법 시행령 별표 원문과 대조하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-herald-mine-20261005",
+      title: "발목 잃은 DMZ 대대장, '전상' 인정시 장애보상금 8925만원…\"현역 복무 열어줘야\"",
+      publisher: "헤럴드경제",
+      url: "https://biz.heraldcorp.com/article/10893261",
+      publishedAt: "2026-10-05",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-withnews-mine-20261010",
       title: "“사고 아니라 북한 도발이다”…北 지뢰에 발목 잃은 장병 두고 ‘설왕설래’",

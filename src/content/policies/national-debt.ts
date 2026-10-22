@@ -13,16 +13,17 @@ import type { PolicyInput } from "./schema";
  *   부정하지 않고 그 크기를 정확히 적는다.
  * ★ 2026-10-11 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #4·#7.
  *   2026-10-13 이슈 #24(1인당 부채)·#35(IMF 권고)를 더했다.
+ *   2026-10-23 신통 이슈 #60(박수영 의원의 'GDP 대비 181%')을 더했다.
  */
 export const NATIONAL_DEBT: PolicyInput = {
   slug: "national-debt",
   title: "국채 발행과 국가채무 전망",
   scope:
     "2026년 예산의 적자국채·국고채 발행 규모, 2025~2029·2026~2030 국가재정운용계획의 국가채무 전망, " +
-    "1인당 국가채무, IMF 2025년 연례협의 권고",
+    "1인당 국가채무, IMF 2025년 연례협의 권고, 2024년 말 D1~D3와 연금 부채를 더한 'D4' 주장",
   ministries: ["재정경제부", "기획예산처"],
   categories: ["economy"],
-  asOf: "2026-10-13",
+  asOf: "2026-10-23",
   rumors: [
     {
       id: "rumor-110-every-year",
@@ -43,6 +44,11 @@ export const NATIONAL_DEBT: PolicyInput = {
       id: "rumor-imf-warning",
       text: "IMF가 이재명 정부의 확장 재정 정책에 이례적으로 강력한 경고를 내고 2030년부터 확장 재정을 반드시 중단해야 한다고 조언했다",
       claimIds: ["claim-imf-2025", "claim-imf-reading"],
+    },
+    {
+      id: "rumor-hidden-181",
+      text: "정부가 국가부채를 숨겨 왔고, 숨겨진 진짜 국가부채가 GDP 대비 181%에 달한다",
+      claimIds: ["claim-official-2024", "claim-park-d4", "claim-d4-reading"],
     },
   ],
   claims: [
@@ -179,6 +185,39 @@ export const NATIONAL_DEBT: PolicyInput = {
       sourceIds: ["src-imf-pr-25385"],
       verified: true,
     },
+    {
+      id: "claim-official-2024",
+      text:
+        "기획재정부가 2025년 12월 11일 발표한 2024년 말 집계로 국가채무(D1)는 1,172조 원(GDP 대비 46.0%), " +
+        "일반정부 부채(D2)는 1,270조 8천억 원(49.7%), 공기업까지 넣은 공공부문 부채(D3)는 1,738조 6천억 원" +
+        "(68.0%)이다. 정부는 이 세 지표를 해마다 공개한다.",
+      assertionType: "FACT",
+      sourceIds: ["src-hankyung-20251216", "src-heraldk-20251210"],
+      verified: true,
+    },
+    {
+      id: "claim-park-d4",
+      text:
+        "박수영 국민의힘 의원은 2025년 12월 16일, D3 1,738조 원에 국민연금 미적립부채 1,575조 원, 공무원연금 " +
+        "충당부채 1,052조 원, 군인연금 충당부채 267조 원을 더한 '광의의 국가부채(D4)'가 2024년 말 4,632조 원으로 " +
+        "GDP 대비 181%, 1인당 8,963만 원이라고 주장했다. 정부가 D3까지만 발표한다며 D4를 투명하게 공개하라고 했다.",
+      assertionType: "CLAIM",
+      assertedBy: "박수영 국민의힘 의원실",
+      sourceIds: ["src-munhwa-20251216", "src-hankyung-20251216"],
+      verified: true,
+    },
+    {
+      id: "claim-d4-reading",
+      text:
+        "181%는 정부 통계가 아니라 의원실 자체 집계이고, 기획재정부는 연금 충당부채를 포함한 D4 개념을 쓰지 않는다. " +
+        "공무원·군인연금 충당부채는 매년 국가결산 재무제표에 따로 공개돼 왔다(2022년 말 1,181조 3천억 원, 2023년 말 1,230조 2천억 원). 이 금액은 " +
+        "앞으로 약 70년간 줄 연금을 현재가치로 계산한 추정치로, 가입자가 낼 기여금 수입은 빼지 않은 값이다. " +
+        "박 의원의 요구도 '숨긴 빚'을 밝힌 것이 아니라, 공개된 항목을 하나의 지표로 더해 발표하라는 것이다. " +
+        "또 숫자의 기준 시점인 2024년 말은 이재명 정부 출범 전이다.",
+      assertionType: "INTERPRETATION",
+      sourceIds: ["src-hankyung-20251216", "src-munhwa-20251216", "src-newsis-20230404", "src-newsis-20240410"],
+      verified: true,
+    },
   ],
   critiqueIds: ["claim-debt-growth", "claim-revenue-assumption"],
   timeline: [
@@ -223,6 +262,7 @@ export const NATIONAL_DEBT: PolicyInput = {
     "국회예산정책처의 독자 중기 전망은 싣지 않았다. 2,000조 원이라는 숫자의 출처도 찾지 못했다.",
     "IMF 2025년 연례협의 직원보고서(Country Report No. 25/308)의 장기 부채 전망 표는 직접 확인하지 못했다. '2050년 부채비율 90~130%'라는 보도 수치는 대조하지 못했다.",
     "BIS 국가총부채를 1인당으로 나눈 값은 이 위키의 계산이다. BIS 기준과 정부 국가채무(D1)는 범위가 다르다.",
+    "2024회계연도 국가결산의 공무원·군인연금 충당부채 금액은 원자료로 확인하지 못했다. 박 의원이 쓴 1,052조·267조 원과 결산 수치의 차이도 대조하지 못했다.",
   ],
   sources: [
     {
@@ -313,6 +353,51 @@ export const NATIONAL_DEBT: PolicyInput = {
       publishedAt: "2025-11-21",
       type: "official",
       license: "public",
+    },
+    {
+      id: "src-heraldk-20251210",
+      title: "정부부채 1270.8조…부채비율 6년 만에 첫 하락",
+      publisher: "헤럴드경제",
+      url: "https://www.heraldk.com/article/2025121017000054091",
+      publishedAt: "2025-12-11",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-hankyung-20251216",
+      title: "한국 진짜 나랏빚 4632조원…무서운 경고 나왔다",
+      publisher: "한국경제",
+      url: "https://www.hankyung.com/article/2025121659307",
+      publishedAt: "2025-12-16",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-munhwa-20251216",
+      title: "박수영 의원 \"진짜 국가 부채는 4632조…1인당 빚 8963만 원\"",
+      publisher: "문화일보",
+      url: "https://www.munhwa.com/article/11554586",
+      publishedAt: "2025-12-16",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newsis-20230404",
+      title: "[국가결산]공무원·군인 등 연금충당부채 1181조…1년새 43조↑",
+      publisher: "뉴시스",
+      url: "https://www.newsis.com/view/NISX20230404_0002252803",
+      publishedAt: "2023-04-04",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newsis-20240410",
+      title: "고금리에 국가부채 2439조 '역대 최대'…순자산은 67.6조↑[국가결산]",
+      publisher: "뉴시스",
+      url: "https://www.newsis.com/view/NISX20240410_0002694354",
+      publishedAt: "2024-04-10",
+      type: "press",
+      license: "link-only",
     },
   ],
 };
