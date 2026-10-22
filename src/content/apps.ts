@@ -51,7 +51,7 @@ const raw: z.input<typeof sisterAppSchema>[] = [
   },
   {
     id: "bot",
-    name: "잼통 신고 센터",
+    name: "신통",
     tagline: "팩트 체크 댓글",
     description:
       "인스타그램에 도는 정부 정책 관련 가짜 뉴스를 신고하면, 근거를 확인한 팩트 체크 결과를 그 게시물에 댓글로 답니다.",

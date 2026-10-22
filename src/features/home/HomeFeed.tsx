@@ -360,7 +360,7 @@ export function HomeFeed({
             잼통 자매 앱
           </span>
           <span className="mt-1 block text-[12px] leading-relaxed text-ash">
-            임통 · 통통 · 속통 · 잼통 신고 센터 · 잼통 Voice
+            임통 · 통통 · 속통 · 신통 · 잼통 Voice
           </span>
         </span>
         <span aria-hidden="true" className="shrink-0 text-[13px] text-ash">
