@@ -8,6 +8,8 @@ import { EP07_BODY } from "./ep07";
 import { EP08_BODY } from "./ep08";
 import { EP09_BODY } from "./ep09";
 import { EP10_BODY } from "./ep10";
+import { EP11_BODY } from "./ep11";
+import { EP12_BODY } from "./ep12";
 
 /**
  * 정치소설 《면역》.
@@ -108,6 +110,7 @@ const KNOWN: NovelEpisode[] = [
     body: EP07_BODY,
     postedAt: "2026-10-10",
     xUrl: "https://x.com/etainclub/status/2108737329544540277",
+    shortsId: "GyBTAoSlYd8",
   },
   {
     no: 8,
@@ -115,6 +118,7 @@ const KNOWN: NovelEpisode[] = [
     body: EP08_BODY,
     postedAt: "2026-10-11",
     xUrl: "https://x.com/etainclub/status/2109173471276392686",
+    shortsId: "tJErYqF1Zqw",
   },
   {
     no: 9,
@@ -122,6 +126,7 @@ const KNOWN: NovelEpisode[] = [
     body: EP09_BODY,
     postedAt: "2026-10-12",
     xUrl: "https://x.com/etainclub/status/2109657773080473815",
+    shortsId: "B-TcfPDXEGI",
   },
   {
     no: 10,
@@ -129,6 +134,23 @@ const KNOWN: NovelEpisode[] = [
     body: EP10_BODY,
     postedAt: "2026-10-15",
     xUrl: "https://x.com/etainclub/status/2110721426340872357",
+    shortsId: "3DbQ8wfO2Lo",
+  },
+  {
+    no: 11,
+    title: "전신",
+    body: EP11_BODY,
+    postedAt: "2026-10-18",
+    xUrl: "https://x.com/etainclub/status/2111782750609113216",
+    shortsId: "3CgMrD7HyBA",
+  },
+  {
+    no: 12,
+    title: "구세주의 패배",
+    body: EP12_BODY,
+    postedAt: "2026-10-22",
+    xUrl: "https://x.com/etainclub/status/2113273718436999436",
+    shortsId: "en_P_CR30RE",
   },
 ];
 
