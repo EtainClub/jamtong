@@ -11,6 +11,9 @@ const s = (key: Parameters<typeof sid>[1]) => sid(P, key);
  * ★ "조사 대상 선정"은 "조작 입증"이 아니다.
  *   검찰미래위가 사건을 골랐다는 것은 들여다보겠다는 뜻이다. 결과가 나오기 전까지
  *   그 이상으로 쓰지 않는다. 사건명에 결론이 담겼다는 비판도 같이 싣는다.
+ * ★ 2026-10-24 잼통 Voice 이슈 #68: "대통령 본인 재판은 언제 받느냐"는 답글이 많다.
+ *   재판이 멈춘 근거와, 멈춘 상태를 법으로 굳히려던 재판중지법이 철회된 경과를 적는다.
+ *   재판을 언제 다시 여느냐는 재판부가 정할 일이라 날짜를 단정하지 않는다.
  */
 export const TRIAL_SUSPENSION: PolicyInput = {
   slug: "trial-suspension",
@@ -18,7 +21,14 @@ export const TRIAL_SUSPENSION: PolicyInput = {
   scope: "헌법 제84조에 따른 다섯 재판의 중단, 2026년 검찰 수사 과정 재조사와 조작기소 특검법 논의",
   ministries: ["법무부"],
   categories: ["institution"],
-  asOf: "2026-10-13",
+  asOf: "2026-10-24",
+  rumors: [
+    {
+      id: "rumor-when-trial",
+      text: "권한과 책임을 말하면서 대통령 본인의 재판은 언제 받는가, 멈춘 재판부터 받아라",
+      claimIds: ["claim-art84", "claim-all-stopped", "claim-not-acquittal", "claim-bill-withdrawn", "claim-resume-debate"],
+    },
+  ],
   claims: [
     {
       id: "claim-art84",
@@ -63,6 +73,26 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이 대통령 측 변호인(2025년 7월)",
       sourceIds: [s("newsis-0722")],
+      verified: false,
+    },
+    {
+      id: "claim-bill-withdrawn",
+      text:
+        "더불어민주당은 대통령에 당선된 피고인의 재판을 임기 동안 정지하도록 형사소송법을 고치는 이른바 " +
+        "'재판중지법'을 2025년 5월 발의해 법사위를 통과시켰으나, 6월 12일 본회의 처리를 보류했다. 2025년 11월 " +
+        "3일에는 대통령실과 조율해 이 법안을 추진하지 않기로 했다. 그래서 재판 정지는 법률이 아니라 각 재판부의 " +
+        "기일 추후 지정에 기대고 있다.",
+      assertionType: "FACT",
+      sourceIds: [s("heraldk-1102")],
+      verified: false,
+    },
+    {
+      id: "claim-resume-debate",
+      text:
+        "김대웅 서울고법원장은 2025년 국정감사에서 선거법 파기환송심 재개가 \"이론적으로는\" 가능하다고 답했다. " +
+        "국민의힘 장동혁 대표는 재판 재개를 거듭 요구했다. 재판을 언제 다시 열지는 각 재판부가 정한다.",
+      assertionType: "FACT",
+      sourceIds: [s("heraldk-1102")],
       verified: false,
     },
     {
@@ -151,6 +181,14 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       claimIds: ["claim-all-stopped"],
     },
     {
+      id: "t-bill-withdrawn",
+      date: "2025-11-03",
+      datePrecision: "day",
+      title: "재판중지법 추진 철회",
+      summary: "6월 본회의 보류 뒤 민주당이 추진하지 않기로 했다.",
+      claimIds: ["claim-bill-withdrawn"],
+    },
+    {
       id: "t-bill",
       date: "2026-04-30",
       datePrecision: "day",
@@ -196,5 +234,5 @@ export const TRIAL_SUSPENSION: PolicyInput = {
     "검찰미래위 조사 결과는 아직 나오지 않았다.",
     "특검법의 현재 조문(공소취소 조항 삭제 반영 여부)을 국회 의안정보시스템에서 확인하지 못했다.",
   ],
-  sources: sourcesFor(P, ["constitution", "moj-0610", "moj-0814", "newsis-0722", "inews-0814", "nocut-0610", "seoul-0918", "ilyo-1009"]),
+  sources: sourcesFor(P, ["constitution", "moj-0610", "moj-0814", "newsis-0722", "heraldk-1102", "inews-0814", "nocut-0610", "seoul-0918", "ilyo-1009"]),
 };

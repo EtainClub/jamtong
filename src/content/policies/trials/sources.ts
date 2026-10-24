@@ -164,6 +164,12 @@ const ENTRIES = {
     url: "https://m.news.nate.com/view/20260610n29790",
     publishedAt: "2026-06-10",
   },
+  "heraldk-1102": {
+    title: "민주, '재판중지법' 추진 않기로…\"대통령실과도 조율\"[이런정치]",
+    publisher: "헤럴드경제",
+    url: "https://www.heraldk.com/article/2025110221281235951",
+    publishedAt: "2025-11-02",
+  },
   "inews-0814": {
     title: "'성남FC·법카'도…檢미래위, '李재판 관련사건 6건'으로 늘어",
     publisher: "아이뉴스24",

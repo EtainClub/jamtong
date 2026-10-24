@@ -39,6 +39,17 @@ import { SUPPLEMENTARY_BUDGET } from "./supplementary-budget";
 import { NK_MEDICAL_AID } from "./nk-medical-aid";
 import { NATIONAL_SECURITY_ACT_REPEAL } from "./national-security-act-repeal";
 import { FISHERMEN_REPATRIATION_2019 } from "./fishermen-repatriation-2019";
+import { SCHOOL_SPORTS_DAY } from "./school-sports-day";
+import { PRESIDENT_FIELD_VISITS } from "./president-field-visits";
+import { ITAEWON_MEMORIAL_FEE } from "./itaewon-memorial-fee";
+import { ENGLISH_CONVERSATION_INSTRUCTORS } from "./english-conversation-instructors";
+import { VETERANS_COLUMBARIUM } from "./veterans-columbarium";
+import { KOREA_CHINA_ECONOMIC_AGENDA } from "./korea-china-economic-agenda";
+import { DAYCARE_PRIORITY } from "./daycare-priority";
+import { CHARACTER_EDUCATION } from "./character-education";
+import { POPULATION_STRATEGY } from "./population-strategy";
+import { STOCK_STABILIZATION_FUND } from "./stock-stabilization-fund";
+import { PENSION_REFORM_2025 } from "./pension-reform-2025";
 import { policySchema, type Policy } from "./schema";
 import { SINGLE_STOCK_LEVERAGE_ETF } from "./single-stock-leverage-etf";
 import { TASKS_CHECK_2026 } from "./tasks-check-2026";
@@ -105,6 +116,17 @@ export const POLICIES: Policy[] = [
   NK_MEDICAL_AID,
   NATIONAL_SECURITY_ACT_REPEAL,
   FISHERMEN_REPATRIATION_2019,
+  SCHOOL_SPORTS_DAY,
+  PRESIDENT_FIELD_VISITS,
+  ITAEWON_MEMORIAL_FEE,
+  ENGLISH_CONVERSATION_INSTRUCTORS,
+  VETERANS_COLUMBARIUM,
+  KOREA_CHINA_ECONOMIC_AGENDA,
+  DAYCARE_PRIORITY,
+  CHARACTER_EDUCATION,
+  POPULATION_STRATEGY,
+  STOCK_STABILIZATION_FUND,
+  PENSION_REFORM_2025,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
