@@ -76,6 +76,13 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "근로복지공단", href: "https://www.comwel.or.kr" },
       },
     ],
+    shorts: [
+      {
+        id: "d1-s1",
+        title: "휜 팔로 버틴 낮과 밤",
+        youtubeId: "8sHmDOb_9Cc",
+      },
+    ],
   },
   {
     file: "02.md",
@@ -110,6 +117,13 @@ export const CHAPTERS: ChapterMeta[] = [
         title: "가족에게 미뤄 둔 말을 오늘 전한다",
         detail: "저자와 아버지는 마지막 순간에야 마음을 나눴습니다. 고맙다거나 미안하다는 말을 미뤄 둔 사람이 있다면 오늘 짧게라도 전해 봅니다.",
         horizon: "today",
+      },
+    ],
+    shorts: [
+      {
+        id: "d2-s1",
+        title: "합격증을 찢은 아버지, 마지막에 흘린 눈물",
+        youtubeId: "ENhFBkYySc4",
       },
     ],
   },
@@ -156,6 +170,13 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "이재명 보도 위키", href: "https://news.jamtong.kr" },
       },
     ],
+    shorts: [
+      {
+        id: "d3-s1",
+        title: "광주를 폭동으로 알았던 대학생의 선택",
+        youtubeId: "e3cN0w05S-g",
+      },
+    ],
   },
   {
     file: "04.md",
@@ -191,6 +212,13 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "저자는 공약 이행률을 정치인의 정직함을 재는 잣대로 봤습니다. 내가 사는 지역 단체장의 공약이 얼마나 이행됐는지 평가 자료를 찾아봅니다.",
         horizon: "week",
         link: { label: "한국매니페스토실천본부", href: "https://www.manifesto.or.kr" },
+      },
+    ],
+    shorts: [
+      {
+        id: "d4-s1",
+        title: "검사 대신 인권변호사를 고른 이유",
+        youtubeId: "GewDgHiwhho",
       },
     ],
   },
@@ -238,6 +266,13 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "지방재정365", href: "https://lofin.mois.go.kr" },
       },
     ],
+    shorts: [
+      {
+        id: "d5-s1",
+        title: "중앙 권력에 맞서 목숨을 건 11일",
+        youtubeId: "bBrwWPwyEtg",
+      },
+    ],
   },
   {
     file: "06.md",
@@ -273,6 +308,13 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "저자는 시민의 말을 듣는 것이 정치의 출발이라고 봤습니다. 동네에서 겪는 불편 하나를 국민신문고나 지자체 민원 창구에 직접 적어 봅니다.",
         horizon: "week",
         link: { label: "국민신문고", href: "https://www.epeople.go.kr" },
+      },
+    ],
+    shorts: [
+      {
+        id: "d6-s1",
+        title: "농성 시민에게 시장실 열쇠를 내준 이유",
+        youtubeId: "oZ2fC1pQK1U",
       },
     ],
   },
@@ -315,6 +357,13 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "미래가 불안할수록 쓸 수 있는 제도를 아는 것이 힘이 됩니다. 청소년·청년 정책을 근거와 함께 모아 둔 곳에서 나에게 맞는 것을 찾아봅니다.",
         horizon: "week",
         link: { label: "통통", href: "https://tt.jamtong.kr" },
+      },
+    ],
+    shorts: [
+      {
+        id: "d7-s1",
+        title: "완전한 성공은 없다는 시장의 조언",
+        youtubeId: "zLAa0t5k-DQ",
       },
     ],
   },
@@ -361,6 +410,13 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "중앙선거관리위원회 정책·공약마당", href: "https://policy.nec.go.kr" },
       },
     ],
+    shorts: [
+      {
+        id: "d8-s1",
+        title: "두 번 떨어진 사람이 배운 것",
+        youtubeId: "SzzOInYBX7M",
+      },
+    ],
   },
   {
     file: "09.md",
@@ -397,6 +453,13 @@ export const CHAPTERS: ChapterMeta[] = [
         horizon: "week",
       },
     ],
+    shorts: [
+      {
+        id: "d9-s1",
+        title: "꼬리로 몸통을 흔드는 법",
+        youtubeId: "gJj-6D-F6J8",
+      },
+    ],
   },
   {
     file: "10.md",
@@ -430,6 +493,13 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "색깔론처럼 자극적인 주장은 빠르게 퍼집니다. 퍼 나르기 전에 원래 기사가 무엇이고 언제 나왔는지 한 번 확인합니다.",
         horizon: "always",
         link: { label: "이재명 보도 위키", href: "https://news.jamtong.kr" },
+      },
+    ],
+    shorts: [
+      {
+        id: "d10-s1",
+        title: "사이다 정치, 맹물이 되지 않으려면",
+        youtubeId: "IoFRF15FuUU",
       },
     ],
   },
@@ -473,6 +543,13 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "정신건강 위기상담 1577-0199", href: "tel:15770199" },
       },
     ],
+    shorts: [
+      {
+        id: "d11-s1",
+        title: "강력한 공격이 오히려 추진력이 되는 물리학적 이유",
+        youtubeId: "TNoHbttaDuw",
+      },
+    ],
   },
   {
     file: "12.md",
@@ -514,6 +591,13 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "저자는 부패를 고발하는 작은 실천을 권했습니다. 공직자 부패나 공익 침해를 알게 됐을 때 신고할 수 있는 번호를 저장해 둡니다.",
         horizon: "week",
         link: { label: "국민권익위원회 부패·공익신고 1398", href: "tel:1398" },
+      },
+    ],
+    shorts: [
+      {
+        id: "d12-s1",
+        title: "하루 30분, 손가락으로 세상을 바꾸는 법",
+        youtubeId: "YKRWaqeu5sk",
       },
     ],
   },
@@ -561,6 +645,13 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "주민e직접", href: "https://www.juminegov.go.kr" },
       },
     ],
+    shorts: [
+      {
+        id: "d13-s1",
+        title: "10만 명의 서명이 47초 만에 무너진 날",
+        youtubeId: "E715iobdctA",
+      },
+    ],
   },
   {
     file: "14.md",
@@ -595,6 +686,13 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "책의 주장은 2017년의 구상입니다. 대통령이 된 뒤 상법 개정 같은 지배구조 개혁이 실제로 어디까지 왔는지 근거와 함께 확인합니다.",
         horizon: "week",
         link: { label: "주식시장 개선", href: "/achievement/stock-market" },
+      },
+    ],
+    shorts: [
+      {
+        id: "d14-s1",
+        title: "억강부약, 2017년 지배구조 개혁의 구상",
+        youtubeId: "fy8H9V2y5b0",
       },
     ],
   },
@@ -632,6 +730,13 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "저자는 선거에 쓴 돈이 당선 뒤의 행동을 좌우한다고 봤습니다. 관심 있는 정치인의 정치자금 수입·지출 공개 자료를 찾아 읽어 봅니다.",
         horizon: "week",
         link: { label: "중앙선거관리위원회", href: "https://www.nec.go.kr" },
+      },
+    ],
+    shorts: [
+      {
+        id: "d15-s1",
+        title: "10표 차 당선이 증명한 진짜 정치",
+        youtubeId: "LPUyvSVbpPk",
       },
     ],
   },
@@ -679,6 +784,13 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "지방재정365", href: "https://lofin.mois.go.kr" },
       },
     ],
+    shorts: [
+      {
+        id: "d16-s1",
+        title: "파산 직전의 도시, 빚 갚으며 복지를 늘린 방법",
+        youtubeId: "pm1UunoBlYc",
+      },
+    ],
   },
   {
     file: "17.md",
@@ -715,6 +827,13 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "고용노동부 고객상담센터 1350", href: "tel:1350" },
       },
     ],
+    shorts: [
+      {
+        id: "d17-s1",
+        title: "헌법에 적힌 행복의 조건",
+        youtubeId: "t25anA4HyQA",
+      },
+    ],
   },
   {
     file: "18.md",
@@ -749,6 +868,13 @@ export const CHAPTERS: ChapterMeta[] = [
         title: "오늘 만나는 한 사람에게 먼저 웃으며 인사한다",
         detail: "저자는 지도자의 미소가 국민의 웃음으로 이어진다고 했습니다. 거창한 일 대신 오늘 마주치는 이웃이나 동료에게 먼저 인사를 건넵니다.",
         horizon: "today",
+      },
+    ],
+    shorts: [
+      {
+        id: "d18-s1",
+        title: "한 사람이 쓸고 간 자리에 열 사람이 웃고 온다",
+        youtubeId: "XXAKtrNA8QQ",
       },
     ],
   },
@@ -795,6 +921,13 @@ export const CHAPTERS: ChapterMeta[] = [
         link: { label: "국민권익위원회 부패·공익신고 1398", href: "tel:1398" },
       },
     ],
+    shorts: [
+      {
+        id: "d19-s1",
+        title: "손 떼면 20억, 그리고 가스총",
+        youtubeId: "49KFAkMwgwo",
+      },
+    ],
   },
   {
     file: "20.md",
@@ -836,6 +969,13 @@ export const CHAPTERS: ChapterMeta[] = [
         detail: "저자는 과거를 현재와 대화하는 살아 있는 흐름이라고 했습니다. 이 장에 나온 사건을 공공 역사 자료에서 직접 찾아 읽어 봅니다.",
         horizon: "week",
         link: { label: "우리역사넷", href: "https://contents.history.go.kr" },
+      },
+    ],
+    shorts: [
+      {
+        id: "d20-s1",
+        title: "100년 전 위기와 2017년 자주국방의 구상",
+        youtubeId: "SQurItGUKFA",
       },
     ],
   },
@@ -885,6 +1025,13 @@ export const CHAPTERS: ChapterMeta[] = [
         title: "우리 동네 지역화폐를 한 번 써 본다",
         detail: "저자는 지역화폐가 골목상권으로 돈을 돌린다고 봤습니다. 내가 사는 지역의 지역사랑상품권을 받는 가게에서 한 번 써 봅니다.",
         horizon: "week",
+      },
+    ],
+    shorts: [
+      {
+        id: "d21-s1",
+        title: "기울어진 출발선을 맞추는 5조 원 복지 계산법",
+        youtubeId: "wPLfDnpkvik",
       },
     ],
   },
