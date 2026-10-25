@@ -1,4 +1,5 @@
 import { presidentFriend } from "./president-friend";
+import { regulationRationalization } from "./regulation-rationalization";
 import { riceFirst } from "./rice-first";
 import { firefighterSacrifice } from "./firefighter-sacrifice";
 import { keepDemocracy } from "./keep-democracy";
@@ -50,6 +51,7 @@ import { validateStatement, type Statement } from "./schema";
  * 없다 — 말한 날은 이미 지난 날이다. 그냥 최근이 위다.
  */
 export const STATEMENTS: Statement[] = [
+  regulationRationalization,
   riceFirst,
   firefighterSacrifice,
   keepDemocracy,
