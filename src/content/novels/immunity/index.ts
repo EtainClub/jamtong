@@ -10,6 +10,8 @@ import { EP09_BODY } from "./ep09";
 import { EP10_BODY } from "./ep10";
 import { EP11_BODY } from "./ep11";
 import { EP12_BODY } from "./ep12";
+import { EP13_BODY } from "./ep13";
+import { EP14_BODY } from "./ep14";
 
 /**
  * 정치소설 《면역》.
@@ -151,6 +153,22 @@ const KNOWN: NovelEpisode[] = [
     postedAt: "2026-10-22",
     xUrl: "https://x.com/etainclub/status/2113273718436999436",
     shortsId: "en_P_CR30RE",
+  },
+  {
+    no: 13,
+    title: "면역세포",
+    body: EP13_BODY,
+    postedAt: "2026-10-24",
+    xUrl: "https://x.com/etainclub/status/2113878481780220174",
+    shortsId: "e3AExigrwm0",
+  },
+  {
+    no: 14,
+    title: "관해",
+    body: EP14_BODY,
+    postedAt: "2026-10-25",
+    xUrl: "https://x.com/etainclub/status/2114353747451343312",
+    shortsId: "TOsLjhMWNTQ",
   },
 ];
 
