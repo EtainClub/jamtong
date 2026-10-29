@@ -1,3 +1,9 @@
+import { itaewon4th } from "./itaewon-4th";
+import { backAlley } from "./back-alley";
+import { beyondCamps } from "./beyond-camps";
+import { hybridPolicy } from "./hybrid-policy";
+import { farmlandSurvey } from "./farmland-survey";
+import { irresponsibleExtremism } from "./irresponsible-extremism";
 import { presidentFriend } from "./president-friend";
 import { regulationRationalization } from "./regulation-rationalization";
 import { riceFirst } from "./rice-first";
@@ -51,6 +57,12 @@ import { validateStatement, type Statement } from "./schema";
  * 없다 — 말한 날은 이미 지난 날이다. 그냥 최근이 위다.
  */
 export const STATEMENTS: Statement[] = [
+  itaewon4th,
+  backAlley,
+  beyondCamps,
+  hybridPolicy,
+  farmlandSurvey,
+  irresponsibleExtremism,
   regulationRationalization,
   riceFirst,
   firefighterSacrifice,
