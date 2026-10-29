@@ -10,17 +10,21 @@ import { z } from "zod";
  *
  * 설명은 각 사이트가 스스로 밝힌 소개를 옮긴다. 우리가 평가해서 적지 않는다.
  */
-export const linkKindSchema = z.enum(["official", "wiki", "community"]);
+export const linkKindSchema = z.enum(["official", "party", "guide", "wiki", "community"]);
 export type LinkKind = z.infer<typeof linkKindSchema>;
 
 export const KIND_LABEL: Record<LinkKind, string> = {
   official: "본인 채널",
+  party: "정당 운영",
+  guide: "정책 안내",
   wiki: "위키·아카이브",
   community: "커뮤니티",
 };
 
 export const KIND_NOTE: Record<LinkKind, string> = {
   official: "이재명 대통령 본인 또는 그 측이 운영한다고 밝힌 계정입니다.",
+  party: "정당이 운영한다고 밝힌 사이트입니다. 대통령 본인의 채널이 아니며, 운영하는 정당의 입장이 담깁니다.",
+  guide: "정부 정책·행사의 혜택과 조건을 모아 안내하는 사이트입니다. 정부 공식 사이트가 아니니 조건은 공식 안내에서 다시 확인하세요.",
   wiki: "업적·보도를 모아 정리하는 사이트입니다. 잼통과 별개로 운영됩니다.",
   community: "지지자들이 모이는 곳입니다. 공식 채널이 아니며 글은 각자의 것입니다.",
 };
@@ -76,6 +80,22 @@ const raw: z.input<typeof siteLinkSchema>[] = [
     kind: "official",
   },
   {
+    id: "minjoopolice",
+    title: "민주파출소",
+    url: "https://minjoopolice.com/",
+    description: "더불어민주당이 운영하는 허위조작정보신고센터입니다. 게시물과 뉴스 댓글의 허위조작 정보를 신고받습니다.",
+    kind: "party",
+  },
+  {
+    id: "newblue",
+    title: "NEW BLUE — 코그페 혜택, 한눈에",
+    url: "https://newblue.kr/",
+    description:
+      "2026 코리아 그랜드 페스티벌(10.29–11.15, 전국이 함께하는 소비축제)의 혜택별 기간과 조건을 모아 안내합니다. 혜택 검색과 내 주변 혜택 지도를 제공합니다.",
+    kind: "guide",
+    note: "운영 주체는 사이트에 적혀 있지 않습니다. 공식 안내는 koreagrandfestival.kr입니다.",
+  },
+  {
     id: "im-jamtong",
     title: "임통",
     url: "https://im.jamtong.kr",
@@ -110,7 +130,7 @@ export const SITE_LINKS: SiteLink[] = raw.map((item) => siteLinkSchema.parse(ite
 
 /** 성격별로 묶는다. 화면이 순서를 다시 정하지 않도록 여기서 정한다. */
 export const LINK_GROUPS: { kind: LinkKind; links: SiteLink[] }[] = (
-  ["official", "wiki", "community"] as const
+  ["official", "party", "guide", "wiki", "community"] as const
 ).map((kind) => ({ kind, links: SITE_LINKS.filter((l) => l.kind === kind) }));
 
 /** 화면에 도메인을 적기 위해. new URL()을 컴포넌트마다 되풀이하지 않는다. */
