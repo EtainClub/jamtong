@@ -71,6 +71,7 @@ import { TAX_ARREARS_TEAM } from "./tax-arrears-team";
 import { JUNGSUCHEONG_CHIEF } from "./jungsucheong-chief";
 import { FARMLAND_SURVEY_2026 } from "./farmland-survey-2026";
 import { BONGHWA_VIETNAM_VALLEY } from "./bonghwa-vietnam-valley";
+import { LIVELIHOOD_INDICATORS_2026 } from "./livelihood-indicators-2026";
 import { policySchema, type Policy } from "./schema";
 import { SINGLE_STOCK_LEVERAGE_ETF } from "./single-stock-leverage-etf";
 import { TASKS_CHECK_2026 } from "./tasks-check-2026";
@@ -169,6 +170,7 @@ export const POLICIES: Policy[] = [
   JUNGSUCHEONG_CHIEF,
   FARMLAND_SURVEY_2026,
   BONGHWA_VIETNAM_VALLEY,
+  LIVELIHOOD_INDICATORS_2026,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
