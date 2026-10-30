@@ -14,6 +14,7 @@ import type { PolicyInput } from "./schema";
  * ★ 2026-10-11 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #4·#7.
  *   2026-10-13 이슈 #24(1인당 부채)·#35(IMF 권고)를 더했다.
  *   2026-10-23 신통 이슈 #60(박수영 의원의 'GDP 대비 181%')을 더했다.
+ *   2026-10-30 잼통 Voice 이슈 #113('세금을 다 쓰고 빚만 늘린다')을 더했다.
  */
 export const NATIONAL_DEBT: PolicyInput = {
   slug: "national-debt",
@@ -23,8 +24,13 @@ export const NATIONAL_DEBT: PolicyInput = {
     "1인당 국가채무, IMF 2025년 연례협의 권고, 2024년 말 D1~D3와 연금 부채를 더한 'D4' 주장",
   ministries: ["재정경제부", "기획예산처"],
   categories: ["economy"],
-  asOf: "2026-10-23",
+  asOf: "2026-10-30",
   rumors: [
+    {
+      id: "rumor-spend-all",
+      text: "아이들의 미래를 말하면서 세금을 다 쓰고 빚만 늘린다",
+      claimIds: ["claim-2026-deficit-bond", "claim-2027-budget", "claim-2026-plan-debt", "claim-imf-2025"],
+    },
     {
       id: "rumor-110-every-year",
       text: "정부는 매년 110조 원씩 빚을 내겠다고 선언했다",

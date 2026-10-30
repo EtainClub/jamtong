@@ -11,6 +11,7 @@ import type { PolicyInput } from "./schema";
  * ★ '부정수급자가 많다'를 판단하려면 전체 수급 규모 대비 비율이 필요한데, 그 분모를
  *   확인하지 못했다. 그래서 많다·적다를 단정하지 않고 집계된 숫자만 적는다.
  * ★ 2026-10-11 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #3·#6.
+ *   2026-10-30 잼통 Voice 이슈 #113('표를 얻으려고 돈을 뿌린다')을 더했다.
  */
 export const CASH_SUPPORT_WELFARE_FRAUD: PolicyInput = {
   slug: "cash-support-welfare-fraud",
@@ -18,8 +19,13 @@ export const CASH_SUPPORT_WELFARE_FRAUD: PolicyInput = {
   scope: "민생회복 소비쿠폰의 대상·금액·재원, 생계급여의 근로 관련 조건, 생계급여·공공재정 부정수급 환수 규모",
   ministries: ["행정안전부", "보건복지부", "국민권익위원회"],
   categories: ["welfare", "economy"],
-  asOf: "2026-10-11",
+  asOf: "2026-10-30",
   rumors: [
+    {
+      id: "rumor-vote-buying",
+      text: "정말 어려운 사람은 도와야 하지만, 정부가 표를 얻으려고 돈을 너무 많이 뿌린다",
+      claimIds: ["claim-coupon-target", "claim-coupon-funding", "claim-coupon-debt"],
+    },
     {
       id: "rumor-tax-workers",
       text: "이재명 정부는 일하는 사람에게 세금을 걷어 일하지 않는 사람에게 배급(현금 지급)한다",
