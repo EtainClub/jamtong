@@ -50,6 +50,27 @@ import { CHARACTER_EDUCATION } from "./character-education";
 import { POPULATION_STRATEGY } from "./population-strategy";
 import { STOCK_STABILIZATION_FUND } from "./stock-stabilization-fund";
 import { PENSION_REFORM_2025 } from "./pension-reform-2025";
+import { MAY18_MERIT_LIST } from "./may18-merit-list";
+import { PRESIDENT_KOREAN_WAR_REMARKS } from "./president-korean-war-remarks";
+import { POTENTIAL_GROWTH_2026 } from "./potential-growth-2026";
+import { PAROLE_2026 } from "./parole-2026";
+import { MULTICULTURAL_REVIEW } from "./multicultural-review";
+import { FIREFIGHTER_FINANCE } from "./firefighter-finance";
+import { SHORT_SELLING_RULES } from "./short-selling-rules";
+import { CABINET_MEETING_BROADCAST } from "./cabinet-meeting-broadcast";
+import { NATIONAL_PROPOSAL } from "./national-proposal";
+import { FARM_INCOME_SUPPORT } from "./farm-income-support";
+import { PRESIDENT_SNS } from "./president-sns";
+import { CHIEF_JUSTICE_CONFLICT } from "./chief-justice-conflict";
+import { DISINFORMATION_RESPONSE } from "./disinformation-response";
+import { PRESIDENT_DISASTER_RESPONSE } from "./president-disaster-response";
+import { APPOINTMENTS_LAWYERS } from "./appointments-lawyers";
+import { BALLOT_SHORTAGE_2026 } from "./ballot-shortage-2026";
+import { ILLEGAL_SPORTS_BETTING } from "./illegal-sports-betting";
+import { TAX_ARREARS_TEAM } from "./tax-arrears-team";
+import { JUNGSUCHEONG_CHIEF } from "./jungsucheong-chief";
+import { FARMLAND_SURVEY_2026 } from "./farmland-survey-2026";
+import { BONGHWA_VIETNAM_VALLEY } from "./bonghwa-vietnam-valley";
 import { policySchema, type Policy } from "./schema";
 import { SINGLE_STOCK_LEVERAGE_ETF } from "./single-stock-leverage-etf";
 import { TASKS_CHECK_2026 } from "./tasks-check-2026";
@@ -127,6 +148,27 @@ export const POLICIES: Policy[] = [
   POPULATION_STRATEGY,
   STOCK_STABILIZATION_FUND,
   PENSION_REFORM_2025,
+  MAY18_MERIT_LIST,
+  PRESIDENT_KOREAN_WAR_REMARKS,
+  POTENTIAL_GROWTH_2026,
+  PAROLE_2026,
+  MULTICULTURAL_REVIEW,
+  FIREFIGHTER_FINANCE,
+  SHORT_SELLING_RULES,
+  CABINET_MEETING_BROADCAST,
+  NATIONAL_PROPOSAL,
+  FARM_INCOME_SUPPORT,
+  PRESIDENT_SNS,
+  CHIEF_JUSTICE_CONFLICT,
+  DISINFORMATION_RESPONSE,
+  PRESIDENT_DISASTER_RESPONSE,
+  APPOINTMENTS_LAWYERS,
+  BALLOT_SHORTAGE_2026,
+  ILLEGAL_SPORTS_BETTING,
+  TAX_ARREARS_TEAM,
+  JUNGSUCHEONG_CHIEF,
+  FARMLAND_SURVEY_2026,
+  BONGHWA_VIETNAM_VALLEY,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
