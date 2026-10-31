@@ -13,6 +13,7 @@ import type { PolicyInput } from "./schema";
  *   2026년 10월 1일 시행 시행령에는 아직 연동 요건이 남아 있다.
  * ★ 실제 불법 파업 단속·처벌 실적은 확인하지 못했다. 법 조문으로 확인한 것만 적는다.
  * ★ 2026-10-13 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #30·#32·#34.
+ * ★ 2026-10-31 보충 — 잼통 Voice 이슈 #154(시행령).
  */
 export const LABOR_UNION_POLICY: PolicyInput = {
   slug: "labor-union-policy",
@@ -22,7 +23,7 @@ export const LABOR_UNION_POLICY: PolicyInput = {
     "노동조합법 2·3조 개정(노란봉투법)의 손해배상 제한과 폭력 쟁의 금지 조항",
   ministries: ["고용노동부", "재정경제부"],
   categories: ["institution", "welfare"],
-  asOf: "2026-10-13",
+  asOf: "2026-10-31",
   rumors: [
     {
       id: "rumor-disclosure-what",
@@ -38,6 +39,11 @@ export const LABOR_UNION_POLICY: PolicyInput = {
       id: "rumor-no-sanction",
       text: "민주당 집권 정부가 노란봉투법을 통과시켰고, 불법 폭력 파업에 대해 국가가 아무런 제지도 하지 않는다",
       claimIds: ["claim-yellow-enacted", "claim-art3", "claim-art42", "claim-yellow-reading"],
+    },
+    {
+      id: "rumor-decree",
+      text: "노란봉투법을 시행령으로 누더기로 만들었다",
+      claimIds: ["claim-decree", "claim-decree-critique"],
     },
   ],
   claims: [
@@ -130,8 +136,28 @@ export const LABOR_UNION_POLICY: PolicyInput = {
       sourceIds: ["src-newdaily-20250611"],
       verified: false,
     },
+    {
+      id: "claim-decree",
+      text:
+        "노동조합법 시행령 개정안은 2026년 2월 24일 국무회의에서 의결돼 3월 10일 법과 함께 시행됐다. 교섭창구 단일화 틀은 유지하되 그 안에서 " +
+        "원·하청 교섭단위를 현장 여건에 맞게 분리할 수 있게 했고, 원청이 하청 노동자의 근로시간·작업 방식을 구조적으로 지배하면 교섭 의무를 지는 " +
+        "해석지침도 확정했다. 사용자성 판단을 돕는 '단체교섭 판단지원 위원회'도 둔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-seoul-20260224"],
+      verified: true,
+    },
+    {
+      id: "claim-decree-critique",
+      text:
+        "노동계는 시행령이 교섭창구 단일화를 그대로 둬 원청의 사용자 책임을 좁히고 하청 노동자의 교섭권을 제약할 수 있다고 반발했다. 김영훈 " +
+        "노동부 장관은 법이 현장에서 원활하게 작동하고 분쟁을 막기 위한 장치라고 설명했다.",
+      assertionType: "CLAIM",
+      assertedBy: "한국노총 등 노동계 / 고용노동부",
+      sourceIds: ["src-seoul-20260224"],
+      verified: true,
+    },
   ],
-  critiqueIds: ["claim-business-concern", "claim-linkage"],
+  critiqueIds: ["claim-business-concern", "claim-linkage", "claim-decree-critique"],
   timeline: [
     {
       id: "t-disclosure-notice",
@@ -230,6 +256,15 @@ export const LABOR_UNION_POLICY: PolicyInput = {
       publisher: "뉴데일리",
       url: "https://www.newdaily.co.kr/site/data/html/2025/06/11/2025061100367.html",
       publishedAt: "2025-06-11",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-seoul-20260224",
+      title: "노란봉투법 시행령 확정…노동계 반발 '교섭창구 단일화' 그대로",
+      publisher: "서울신문",
+      url: "https://m.seoul.co.kr/news/2026/02/24/20260224500083",
+      publishedAt: "2026-02-24",
       type: "press",
       license: "link-only",
     },

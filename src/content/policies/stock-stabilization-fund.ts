@@ -10,6 +10,7 @@ import type { PolicyInput } from "./schema";
  * ★ 2026년 10월 24일 현재 증안펀드는 가동되지 않았다. 정부는 "필요하면 할 수 있도록
  *   준비하고 있다"는 데까지만 밝혔다.
  * ★ 2026-10-24 처음 등록 — 잼통 Voice 이슈 #76.
+ * ★ 2026-10-31 보충 — 잼통 Voice 이슈 #196(코스닥 대책).
  */
 export const STOCK_STABILIZATION_FUND: PolicyInput = {
   slug: "stock-stabilization-fund",
@@ -18,12 +19,17 @@ export const STOCK_STABILIZATION_FUND: PolicyInput = {
     "2026년 10월 코스피 급락과 서킷브레이커, 금융당국 긴급 점검, 증안펀드의 구조·과거 가동 사례·2026년 검토 상황과 비판",
   ministries: ["금융위원회", "재정경제부"],
   categories: ["economy"],
-  asOf: "2026-10-24",
+  asOf: "2026-10-31",
   rumors: [
     {
       id: "rumor-fund",
       text: "증시가 이렇게 흔들릴 때 증권시장안정기금을 투입해야 한다",
       claimIds: ["claim-drop", "claim-fsc", "claim-ready", "claim-president", "claim-structure", "claim-history", "claim-not-yet"],
+    },
+    {
+      id: "rumor-kosdaq",
+      text: "코스닥 지수 흐름은 어떤가, 정부의 코스닥 대책은 무엇인가",
+      claimIds: ["claim-kosdaq-benchmark"],
     },
   ],
   claims: [
@@ -106,6 +112,16 @@ export const STOCK_STABILIZATION_FUND: PolicyInput = {
       sourceIds: ["src-investchosun-20261021", "src-etoday-20261022"],
       verified: true,
     },
+    {
+      id: "claim-kosdaq-benchmark",
+      text:
+        "정부는 2026년 1월 연기금 운용평가의 국내주식 기준수익률에 코스피만 쓰던 것을 바꿔 코스닥 지수를 5% 반영하고, 벤처 등 혁신성장 투자 " +
+        "가점을 1점에서 2점으로 올렸다. 당시 연기금의 코스닥 보유액은 약 5조 8천억 원(국내주식의 3.7%)이었다. 정부는 수익률에 도움이 안 되는 " +
+        "투자를 강제할 수는 없다고 했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-mtn-20260129-kosdaq"],
+      verified: true,
+    },
   ],
   critiqueIds: ["claim-critique"],
   timeline: [
@@ -145,6 +161,7 @@ export const STOCK_STABILIZATION_FUND: PolicyInput = {
   gaps: [
     "2026년에 증안펀드를 다시 조성한다면 규모·출자기관·가동 조건을 정부가 밝힌 적은 없다.",
     "금융위원회 공식 보도자료 원문은 대조하지 못했다. 발언은 보도로 확인했다.",
+    "2026년 10월 코스닥 지수의 월간 흐름과 코스닥 대책의 효과는 공식 자료로 정리하지 못했다.",
   ],
   sources: [
     {
@@ -180,6 +197,15 @@ export const STOCK_STABILIZATION_FUND: PolicyInput = {
       publisher: "이투데이",
       url: "https://www.etoday.co.kr/news/view/2638981",
       publishedAt: "2026-10-22",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-mtn-20260129-kosdaq",
+      title: "기금 여유자금도 벤처·코스닥에…3000스닥 도달 사활",
+      publisher: "MTN",
+      url: "https://news.mtn.co.kr/news-detail/2026012812510777139",
+      publishedAt: "2026-01-29",
       type: "press",
       license: "link-only",
     },

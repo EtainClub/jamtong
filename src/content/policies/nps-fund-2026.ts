@@ -18,6 +18,7 @@ import type { PolicyInput } from "./schema";
  *
  * ★ 평가액은 매일 바뀐다. 숫자마다 기준일을 붙인다.
  * ★ 2026-10-20 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #54·#55·#56.
+ * ★ 2026-10-31 보충 — 잼통 Voice 이슈 #148(회의록 공개 기준), #149(외환 운용), #193(국내주식 비중).
  */
 export const NPS_FUND_2026: PolicyInput = {
   slug: "nps-fund-2026",
@@ -27,7 +28,7 @@ export const NPS_FUND_2026: PolicyInput = {
     "2026년 6월 말 이후 보유주식 평가액 감소의 규모와 계산 범위",
   ministries: ["보건복지부", "재정경제부", "한국은행"],
   categories: ["economy"],
-  asOf: "2026-10-20",
+  asOf: "2026-10-31",
   rumors: [
     {
       id: "rumor-fx-defense",
@@ -43,6 +44,16 @@ export const NPS_FUND_2026: PolicyInput = {
       id: "rumor-182",
       text: "국민연금 182조 원이 증발했고 7월 이후 평가액이 35% 넘게 급감했다",
       claimIds: ["claim-182-scope", "claim-july-fund", "claim-factcheck", "claim-etf-link", "claim-etf-review"],
+    },
+    {
+      id: "rumor-minutes",
+      text: "국무회의는 공개하면서 국민연금 관련 회의록은 왜 2030년까지 비공개인가",
+      claimIds: ["claim-minutes"],
+    },
+    {
+      id: "rumor-pension-risk",
+      text: "정부가 국민연금 돈으로 원화 가치를 떠받치고 있어 미래에 받을 연금이 위험하다",
+      claimIds: ["claim-swap", "claim-hedge", "claim-fx-undisclosed"],
     },
   ],
   claims: [
@@ -214,6 +225,16 @@ export const NPS_FUND_2026: PolicyInput = {
         "리밸런싱이나 국내주식 비중 조정은 안건에 없었다.",
       assertionType: "FACT",
       sourceIds: ["src-etoday-nps-20261020"],
+      verified: true,
+    },
+    {
+      id: "claim-minutes",
+      text:
+        "국민연금법 제103조의2는 기금운용위원회 회의록을 1년 뒤 공개하는 것을 원칙으로 하되, 금융시장 안정에 영향을 줄 우려가 있는 안건은 " +
+        "위원회 의결로 4년 뒤 공개할 수 있게 한다. 국민연금은 국내주식 목표비중을 올린 5차 회의 회의록을 이 예외에 따라 4년 뒤(2030년) " +
+        "공개하기로 해, 찬반 내역과 논의 내용이 그때까지 공개되지 않는다.",
+      assertionType: "FACT",
+      sourceIds: ["src-thescoop-20260703"],
       verified: true,
     },
   ],
@@ -413,6 +434,15 @@ export const NPS_FUND_2026: PolicyInput = {
       publisher: "이투데이",
       url: "https://www.etoday.co.kr/news/view/2638041",
       publishedAt: "2026-10-20",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-thescoop-20260703",
+      title: "누가 국민연금 '국내 주식 비중 상향' 이끌었나…4년 후까지 모른다 [불장의 이면⑦]",
+      publisher: "더스쿠프",
+      url: "https://v.daum.net/v/20260703145700530",
+      publishedAt: "2026-07-03",
       type: "press",
       license: "link-only",
     },

@@ -12,6 +12,7 @@ import type { PolicyInput } from "./schema";
  *   청와대가 스스로 밝힌 범위(10월 10일 태릉 골프장 방문)까지다.
  * ★ 비무장지대 지뢰 사고는 policy:dmz-mine-2026, 소방 재정은 policy:firefighter-finance에 있다.
  * ★ 2026-10-30 처음 등록 — 잼통 Voice 이슈 #95, #96.
+ * ★ 2026-10-31 보충 — 잼통 Voice 이슈 #140(골프외교 TF).
  */
 export const PRESIDENT_DISASTER_RESPONSE: PolicyInput = {
   slug: "president-disaster-response",
@@ -20,7 +21,7 @@ export const PRESIDENT_DISASTER_RESPONSE: PolicyInput = {
     "2026년 7월 해군 승조원 실종일과 10월 대구 상가 천장 붕괴일의 대통령 골프 의혹과 청와대 해명, 부천 화재 순직 소방관 추모 경과, 무안 제주항공 참사 1주기와 서해수호의 날 참석",
   ministries: ["청와대", "국방부"],
   categories: ["disaster"],
-  asOf: "2026-10-30",
+  asOf: "2026-10-31",
   rumors: [
     {
       id: "rumor-golf-always",
@@ -41,6 +42,11 @@ export const PRESIDENT_DISASTER_RESPONSE: PolicyInput = {
       id: "rumor-muan-cheonan",
       text: "민주화 희생자 앞에서는 눈물을 보이면서 무안공항 참사와 천안함 희생자는 외면한다",
       claimIds: ["claim-muan", "claim-west-sea"],
+    },
+    {
+      id: "rumor-golf-tf",
+      text: "세금으로 골프 관련 TF를 꾸리는 것은 대통령답지 못한 일이다",
+      claimIds: ["claim-golf-tf"],
     },
   ],
   claims: [
@@ -140,6 +146,16 @@ export const PRESIDENT_DISASTER_RESPONSE: PolicyInput = {
       assertionType: "OPINION",
       sourceIds: ["src-heraldk-20251228", "src-newdaily-20260714"],
       verified: false,
+    },
+    {
+      id: "claim-golf-tf",
+      text:
+        "청와대는 10월 트럼프 대통령과의 골프 회동에 대비하는 '골프외교' 실무 TF를 꾸렸다. 권혁기 의전비서관이 팀장이고 외교부·대통령경호처·" +
+        "국가안보실 등이 참여한다. 트럼프 대통령이 한미 정상회담에서 비서실장에게 골프 일정을 잡으라고 지시한 데 따른 것이다. 별도 예산 편성은 " +
+        "보도되지 않았다.",
+      assertionType: "FACT",
+      sourceIds: ["src-ccdaily-2446051"],
+      verified: true,
     },
   ],
   critiqueIds: ["claim-daegu-defense", "claim-critique"],
@@ -261,6 +277,15 @@ export const PRESIDENT_DISASTER_RESPONSE: PolicyInput = {
       publisher: "자유아시아방송",
       url: "https://www.rfa.org/korean/in-focus/2026/03/26/south-korea-naval-ship-cheonan-16th/",
       publishedAt: "2026-03-26",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-ccdaily-2446051",
+      title: "靑, 트럼프와 '골프외교' 준비 착수…TF 가동",
+      publisher: "충청일보",
+      url: "https://www.ccdailynews.com/news/articleView.html?idxno=2446051",
+      publishedAt: "2026-10-13",
       type: "press",
       license: "link-only",
     },

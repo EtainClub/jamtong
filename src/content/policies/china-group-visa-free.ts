@@ -10,6 +10,7 @@ import type { PolicyInput } from "./schema";
  * ★ 중국 측도 한국인에게 무비자 입국을 허용하고 있다. 정부는 그 기간과 맞췄다고
  *   설명한다.
  * ★ 2026-10-20 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #50.
+ * ★ 2026-10-31 보충 — 잼통 Voice 이슈 #181. 외국인 범죄 통계는 policy:foreign-crime-drugs에 있다.
  */
 export const CHINA_GROUP_VISA_FREE: PolicyInput = {
   slug: "china-group-visa-free",
@@ -23,6 +24,11 @@ export const CHINA_GROUP_VISA_FREE: PolicyInput = {
       id: "rumor-discussing",
       text: "중국인 무비자 입국이 논의되고 있다",
       claimIds: ["claim-origin", "claim-start", "claim-conditions", "claim-extension", "claim-petition"],
+    },
+    {
+      id: "rumor-crime",
+      text: "중국인 관광객을 무분별하게 받아들여 범죄가 늘고 질서가 흔들린다",
+      claimIds: ["claim-conditions", "claim-safeguard", "claim-concerns", "claim-jeju"],
     },
   ],
   claims: [
