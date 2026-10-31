@@ -29,6 +29,7 @@ import {
 import { Timeline } from "@/features/timeline/Timeline";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareLinkButton } from "@/features/app/ShareLinkButton";
+import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 
 export function generateStaticParams() {
   return CARTELS.map((cartel) => ({ slug: cartel.slug }));
@@ -152,6 +153,24 @@ export default async function CartelDetailPage({
 
   return (
     <>
+      {/* 빈 표적은 noindex라 구조화 데이터도 내지 않는다. */}
+      {open && (
+        <>
+          <JsonLd
+            data={articleLd({
+              path: `/cartel/${cartel.slug}`,
+              headline: `${cartel.name} 카르텔`,
+              description: cartel.summary,
+            })}
+          />
+          <JsonLd
+            data={breadcrumbLd([
+              { name: "카르텔", path: "/cartel" },
+              { name: `${cartel.name} 카르텔`, path: `/cartel/${cartel.slug}` },
+            ])}
+          />
+        </>
+      )}
       <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-full max-w-[560px] items-center justify-between gap-2 px-4">
           <div className="flex min-w-0 items-center gap-1.5">

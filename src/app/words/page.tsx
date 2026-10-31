@@ -6,6 +6,7 @@ import { STATEMENTS } from "@/content/words";
 import { KIND_LABEL } from "@/content/words/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
+import { JsonLd, collectionPageLd } from "@/lib/seo/jsonld";
 import { BooksPanel } from "@/features/books/BooksPanel";
 import { CheerBoard } from "@/features/words/CheerBoard";
 import { SpeechCard, speechVideoId } from "@/features/words/SpeechCard";
@@ -32,6 +33,14 @@ export const metadata: Metadata = {
 export default function WordsPage() {
   return (
     <>
+      <JsonLd
+        data={collectionPageLd({
+          path: "/words",
+          name: "이재명 언행",
+          description: "이재명 대통령이 직접 공개적으로 한 말과 행동을 원문 그대로 모읍니다.",
+          items: STATEMENTS.map((s) => ({ name: s.title, path: `/words/${s.slug}` })),
+        })}
+      />
       <AppTopBar />
 
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-10 pt-6">

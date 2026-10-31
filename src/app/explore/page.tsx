@@ -24,6 +24,7 @@ import {
 } from "@/features/achievement/AchievementBrowser";
 import { CartelRing } from "@/features/cartel/CartelRing";
 import { InfographicSection } from "@/features/infographic/InfographicSection";
+import { JsonLd, collectionPageLd } from "@/lib/seo/jsonld";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 
@@ -63,6 +64,14 @@ export default function ExplorePage() {
 
   return (
     <>
+      <JsonLd
+        data={collectionPageLd({
+          path: "/explore",
+          name: "이재명 업적",
+          description: "이재명 대통령의 업적을 분야별로 모아 봅니다. 업적마다 무엇이 일어났고 무엇이 아직인지, 그 근거가 무엇인지 함께 있습니다.",
+          items: achievements.map((a) => ({ name: a.title, path: `/achievement/${a.slug}` })),
+        })}
+      />
       <AppTopBar />
 
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-10 pt-6">

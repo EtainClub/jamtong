@@ -44,7 +44,14 @@ const MAIN_HERO = "youth-future-savings";
  * 닿는 자리다.
  */
 export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+  /*
+   * alternates는 레이아웃 것을 통째로 덮는다. RSS 안내는 홈에서 찾으므로
+   * 여기에 다시 적는다.
+   */
+  alternates: {
+    canonical: "/",
+    types: { "application/rss+xml": [{ url: "/rss.xml", title: "이재명 업적 위키" }] },
+  },
 };
 
 export default function Home() {

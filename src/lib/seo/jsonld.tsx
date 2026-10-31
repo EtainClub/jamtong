@@ -1,4 +1,4 @@
-import { SITE_URL, abs } from "./site";
+import { SITE_BRAND, SITE_DESCRIPTION, SITE_NAME, SITE_URL, abs } from "./site";
 
 /**
  * 구조화 데이터 (schema.org).
@@ -12,8 +12,6 @@ import { SITE_URL, abs } from "./site";
  *   주장과 근거를 다루는 사이트라 얼핏 맞아 보이지만, 그 타입은 팩트체크
  *   기관의 판정을 싣는 자리다. 우리는 판정하지 않고 층을 갈라 보인다.
  */
-
-const SITE_NAME = "이재명 업적 위키";
 
 export function JsonLd({ data }: { data: object }) {
   return (
@@ -36,14 +34,15 @@ export function webSiteLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
-    alternateName: "잼통",
+    alternateName: SITE_BRAND,
     url: SITE_URL,
     inLanguage: "ko",
-    description:
-      "읽는 위키가 아니라 이해하는 위키. 업적·사건·맥락·근거를 시각적으로 탐색합니다.",
+    description: SITE_DESCRIPTION,
+    /* 이 사이트가 다루는 사람. 화면 전체가 이 사람에 관한 것이다. */
+    about: { "@type": "Person", name: "이재명" },
     publisher: {
       "@type": "Organization",
-      name: "잼통",
+      name: SITE_BRAND,
       url: SITE_URL,
       logo: abs("/images/jamtong-icon-512.png"),
     },
@@ -107,8 +106,45 @@ export function articleLd(input: ArticleLdInput) {
     ...(input.isPartOf ? { isPartOf: input.isPartOf } : {}),
     publisher: {
       "@type": "Organization",
-      name: "잼통",
+      name: SITE_BRAND,
       url: SITE_URL,
+    },
+  };
+}
+
+export interface ListItemInput {
+  name: string;
+  path: string;
+}
+
+/**
+ * 목록 화면. 무엇이 몇 개 실렸고 각각 어디 있는지를 검색엔진에 알린다.
+ * 화면에 실제로 늘어놓은 것만 넘긴다.
+ */
+export function collectionPageLd(input: {
+  path: string;
+  name: string;
+  description: string;
+  items: ListItemInput[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": abs(input.path),
+    url: abs(input.path),
+    name: input.name,
+    description: input.description,
+    inLanguage: "ko",
+    isPartOf: { "@type": "WebSite", name: SITE_NAME, url: SITE_URL },
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: input.items.length,
+      itemListElement: input.items.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+        url: abs(item.path),
+      })),
     },
   };
 }
