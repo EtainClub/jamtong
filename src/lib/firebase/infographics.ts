@@ -138,6 +138,40 @@ export function checkInfographicFile(file: File): string | null {
   return null;
 }
 
+/**
+ * 붙여 넣은 것에서 그림을 꺼낸다. 캡처 도구와 브라우저의 "이미지 복사"는
+ * 파일 이름 없이 image/png 하나를 클립보드에 올리므로 이름을 붙여 준다.
+ */
+export function imageFromTransfer(data: DataTransfer | null): File | null {
+  if (!data) return null;
+  for (const item of Array.from(data.items)) {
+    if (item.kind === "file" && item.type.startsWith("image/")) {
+      const file = item.getAsFile();
+      if (file) return named(file, file.type);
+    }
+  }
+  return null;
+}
+
+/**
+ * 클립보드를 직접 읽는다. 휴대폰에는 Ctrl+V가 없어서 단추로 부른다.
+ * 브라우저가 권한을 묻고, 거절하면 던진다.
+ */
+export async function readClipboardImage(): Promise<File | null> {
+  const items = await navigator.clipboard.read();
+  for (const item of items) {
+    const type = item.types.find((t) => t.startsWith("image/"));
+    if (type) return named(await item.getType(type), type);
+  }
+  return null;
+}
+
+function named(blob: Blob, type: string): File {
+  if (blob instanceof File && blob.name && blob.name !== "image.png") return blob;
+  const ext = type.split("/")[1] ?? "png";
+  return new File([blob], `clipboard-${Date.now()}.${ext}`, { type });
+}
+
 async function measure(file: File): Promise<{ width: number; height: number }> {
   const bitmap = await createImageBitmap(file);
   const size = { width: bitmap.width, height: bitmap.height };
