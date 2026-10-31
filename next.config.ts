@@ -42,6 +42,11 @@ function buildInfo() {
 const nextConfig: NextConfig = {
   env: buildInfo(),
 
+  /** 업적 인포그래픽은 Firebase Storage에 있다. 다운로드 주소가 이 호스트로 나온다. */
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "firebasestorage.googleapis.com" }],
+  },
+
   /**
    * /story/… 로 나간 링크를 살려 둔다.
    * 이름을 바꾼 것은 우리 사정이지 이미 공유된 주소의 사정이 아니다.

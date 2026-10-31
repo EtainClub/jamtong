@@ -1,15 +1,26 @@
 import { ACHIEVEMENTS } from "@/content/achievements";
-import { MILESTONES } from "@/content/milestones";
+import { ALL_CLAIMS, MILESTONES } from "@/content/milestones";
 
 import { collusion } from "./collusion";
 import { medical } from "./medical";
 import { telecom } from "./telecom";
 import { restArea } from "./rest-area";
 import { revolvingDoor } from "./revolving-door";
-import { construction } from "./construction";
 import { localEstablishment } from "./local-establishment";
+import { refinery } from "./refinery";
+import { finance } from "./finance";
+import { bureaucracy } from "./bureaucracy";
+import { education } from "./education";
+import { construction } from "./construction";
 import { PENDING_CARTELS } from "./pending";
-import { isOpen, validateCartel, type Cartel, type CartelEntry } from "./schema";
+import {
+  GOV_START,
+  isOpen,
+  validateCartel,
+  type Cartel,
+  type CartelEntry,
+} from "./schema";
+import type { DatePrecision, MilestoneStatus } from "@/content/schema";
 
 /**
  * 카르텔 레지스트리.
@@ -29,9 +40,13 @@ const REGISTERED: CartelEntry[] = [
   telecom,
   restArea,
   revolvingDoor,
-  construction,
   localEstablishment,
-  /* 정유사 · 금융 · 관료 · 언론 · 교육 — 아직 근거가 서지 않았다. */
+  refinery,
+  finance,
+  bureaucracy,
+  education,
+  construction,
+  /* 언론 — 이 정부의 조치로 근거가 서지 않았다. */
   ...PENDING_CARTELS,
 ];
 
@@ -57,6 +72,12 @@ export const EMPTY_CARTELS: Cartel[] = CARTELS.filter((c) => !isOpen(c));
 const known = {
   achievementSlugs: new Set(ACHIEVEMENTS.map((a) => a.slug)),
   milestoneIds: new Set(MILESTONES.map((m) => m.id)),
+  milestoneDates: new Map(MILESTONES.map((m) => [m.id, m.date])),
+  achievementClaimRefs: new Set(
+    ACHIEVEMENTS.flatMap((a) =>
+      a.claims.filter((c) => c.verified).map((c) => `${a.slug}#${c.id}`),
+    ),
+  ),
 };
 
 const errors: string[] = [];
@@ -70,5 +91,96 @@ if (errors.length > 0) {
   throw new Error(`카르텔 자료 검증 실패:\n${errors.join("\n")}`);
 }
 
-export { isOpen };
+/* ── 진행 정도 ──────────────────────────────────────────────────── */
+
+/**
+ * 표적 하나의 진행 정도.
+ *
+ * 카르텔은 한 번에 깨지지 않는다. 법이 통과되고, 시행되고, 첫 선발을 하고,
+ * 효과가 재지는 데까지 단계가 있다. 그래서 표적을 "깼다/못 깼다"로 칠하지
+ * 않고, 걸린 조치를 하나씩 세어 완료·추진 중·계획으로 나눈다. 공약 이행
+ * 현황과 같은 방식이다.
+ *
+ * 단위는 조치다 — 성과 카드 하나, 또는 업적에서 꺼낸 조치 하나. 업적 전체를
+ * 한 칸으로 세지 않는다.
+ */
+export interface ProgressItem {
+  id: string;
+  title: string;
+  status: MilestoneStatus;
+  date: string;
+  datePrecision: DatePrecision;
+  note?: string;
+  /** 근거 서랍을 열 claim. */
+  claimId: string;
+  claimSourceCount: number;
+  /** 업적에서 꺼낸 조치면 그 업적. */
+  achievement?: { slug: string; title: string };
+  highlight?: { value: string; label: string };
+}
+
+export interface ProgressCount {
+  done: number;
+  ongoing: number;
+  planned: number;
+  total: number;
+}
+
+const STATUS_ORDER: Record<MilestoneStatus, number> = { done: 0, ongoing: 1, planned: 2 };
+
+export function cartelProgress(cartel: Cartel): ProgressItem[] {
+  const fromMilestones = cartel.milestoneIds.flatMap((id): ProgressItem[] => {
+    const m = MILESTONES.find((x) => x.id === id);
+    if (!m) return [];
+    const claim = ALL_CLAIMS.find((c) => c.id === m.claimIds[0]);
+    return [
+      {
+        id: m.id,
+        title: m.title,
+        status: m.status,
+        date: m.date,
+        datePrecision: m.datePrecision,
+        note: m.summary,
+        claimId: m.claimIds[0],
+        claimSourceCount: claim?.sourceIds.length ?? 0,
+        highlight: m.highlight,
+      },
+    ];
+  });
+
+  const fromAchievements = cartel.measures.flatMap((measure): ProgressItem[] => {
+    const [slug, claimId] = measure.ref.split("#");
+    const a = ACHIEVEMENTS.find((x) => x.slug === slug);
+    const claim = a?.claims.find((c) => c.id === claimId);
+    if (!a || !claim) return [];
+    return [
+      {
+        id: measure.id,
+        title: measure.title,
+        status: measure.status,
+        date: measure.date,
+        datePrecision: measure.datePrecision,
+        note: measure.note,
+        claimId,
+        claimSourceCount: claim.sourceIds.length,
+        achievement: { slug: a.slug, title: a.title },
+      },
+    ];
+  });
+
+  return [...fromMilestones, ...fromAchievements].sort(
+    (a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.date.localeCompare(b.date),
+  );
+}
+
+export function countProgress(items: ProgressItem[]): ProgressCount {
+  return {
+    done: items.filter((i) => i.status === "done").length,
+    ongoing: items.filter((i) => i.status === "ongoing").length,
+    planned: items.filter((i) => i.status === "planned").length,
+    total: items.length,
+  };
+}
+
+export { GOV_START, isOpen };
 export type { Cartel, CartelEntry };

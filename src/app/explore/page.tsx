@@ -17,6 +17,7 @@ import {
   AchievementBrowser,
   type BrowserGroup,
 } from "@/features/achievement/AchievementBrowser";
+import { InfographicSection } from "@/features/infographic/InfographicSection";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 
@@ -90,6 +91,8 @@ export default function ExplorePage() {
             →
           </span>
         </Link>
+
+        <InfographicSection />
 
         <AchievementBrowser
           cards={ACHIEVEMENT_CARDS}

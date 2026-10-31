@@ -221,3 +221,159 @@ export const MED_QUOTA_FROZEN_2024: Source = {
     "10%인 351명을 단계적으로 감축했다 (…) 현재 전국 40개 의과대학 입학정원은 " +
     "2006년부터 현재까지 18년째 3058명으로 동결돼 있다",
 };
+
+/* ── 카르텔 보강 — 2026년 10월 31일 조사 ─────────────────────────── */
+
+export const X_LOCAL_PRESIDENT_2026: Source = {
+  id: "src-x-local-president-2026",
+  title: "이재명 대통령 X 게시글 — 토착비리 근절",
+  url: "https://x.com/Jaemyung_Lee/status/2116119998427222510",
+  publisher: "이재명 (X @Jaemyung_Lee)",
+  publishedAt: "2026-10-30",
+  type: "interview",
+  license: "quotable",
+  quote:
+    "토착비리는 자치와 분권의 토대를 무너뜨리는 범죄입니다. 지역사회의 고질적인 " +
+    "부패와 유착을 방치하면 지역 경쟁력은 물론 부실공사로 국민의 안전까지 훼손할 수 " +
+    "있습니다.",
+};
+
+export const NOCUT_LOCAL_2026: Source = {
+  id: "src-nocut-local-2026",
+  title: "경찰, 지방 '비리공직자' 1094명 송치…'재정비리' 가장 많아",
+  url: "https://nocutnews.co.kr/news/6598312",
+  publisher: "CBS노컷뉴스",
+  publishedAt: "2026-10-28",
+  type: "press",
+  license: "link-only",
+};
+
+export const YNA_LOCAL_2026: Source = {
+  id: "src-yna-local-2026",
+  title: "경찰, 토착비리 1차 단속 1천94명 송치…차명으로 계약 따고 납품 리베이트",
+  url: "https://www.koreancenter.or.kr/news/articleView.html?idxno=1430975",
+  publisher: "연합뉴스 (한민족센터 게재)",
+  publishedAt: "2026-10-28",
+  type: "press",
+  license: "link-only",
+};
+
+export const NEWSIS_SUGAR_2026: Source = {
+  id: "src-newsis-sugar-2026",
+  title: "설탕 담합에 과징금 4000억원 철퇴…결국 고개숙인 제당업계(종합)",
+  url: "https://www.newsis.com/view/NISX20260212_0003513626",
+  publisher: "뉴시스",
+  publishedAt: "2026-02-12",
+  type: "press",
+  license: "link-only",
+};
+
+export const MT_FLOUR_2026: Source = {
+  id: "src-mt-flour-2026",
+  title: "'밀가루 담합' 역대 최대 과징금…반복 담합에 칼 빼든 공정위",
+  url: "https://www.mt.co.kr/economy/2026/05/20/2026052013423274764",
+  publisher: "머니투데이",
+  publishedAt: "2026-05-20",
+  type: "press",
+  license: "link-only",
+};
+
+export const INSIGHT_STAY_2026: Source = {
+  id: "src-insight-stay-2026",
+  title: "1조 원대 ‘설탕·밀가루 담합’ 과징금 줄줄이 브레이크... 법원, ‘집행정지’ 신청 인용",
+  url: "https://www.insight.co.kr/news/574678",
+  publisher: "인사이트",
+  publishedAt: "2026-09-22",
+  type: "press",
+  license: "link-only",
+};
+
+export const SEGYE_REPEAT_2026: Source = {
+  id: "src-segye-repeat-2026",
+  title: "5년 내 2회 이상 담합 땐 등록취소·영업정지 처분",
+  url: "https://www.segye.com/newsView/20260928514755",
+  publisher: "세계일보",
+  publishedAt: "2026-09-28",
+  type: "press",
+  license: "link-only",
+};
+
+export const NEWSIS_REFINERY_2026: Source = {
+  id: "src-newsis-refinery-2026",
+  title: "\"단순 참고를 담합으로?\"…검찰 '유가 교란' 기소에 정유업계 \"당혹·과도\"",
+  url: "https://www.newsis.com/view/NISX20260706_0003697566",
+  publisher: "뉴시스",
+  publishedAt: "2026-07-06",
+  type: "press",
+  license: "link-only",
+};
+
+export const NOCUT_REFINERY_FTC_2026: Source = {
+  id: "src-nocut-refinery-ftc-2026",
+  title: "이란 전쟁 뒤 기름값 담합 혐의…정유사 2곳 공정위 심의",
+  url: "https://nocutnews.co.kr/news/6587936",
+  publisher: "CBS노컷뉴스",
+  publishedAt: "2026-10-07",
+  type: "press",
+  license: "link-only",
+};
+
+export const MT_LTV_2026: Source = {
+  id: "src-mt-ltv-2026",
+  title: "공정위, 'LTV 담합' 4대 시중은행에 '과징금 2720억원'",
+  url: "https://www.mt.co.kr/economy/2026/01/21/2026012108152230690",
+  publisher: "머니투데이",
+  publishedAt: "2026-01-21",
+  type: "press",
+  license: "link-only",
+};
+
+export const TF_KTB_2026: Source = {
+  id: "src-tf-ktb-2026",
+  title: "공정위, '76조' 국고채 입찰 담합 제재 착수…과징금 최대 15조",
+  url: "https://news.tf.co.kr/read/economy/2351265.htm",
+  publisher: "더팩트",
+  publishedAt: "2026-08-06",
+  type: "press",
+  license: "link-only",
+};
+
+export const HK_RAIL_2026: Source = {
+  id: "src-hk-rail-2026",
+  title: "퇴직자 DB 구축, 제3자 감시 도입…철도 전관예우 근본적 개선 추진",
+  url: "https://www.hankyung.com/article/202606294346i",
+  publisher: "한국경제",
+  publishedAt: "2026-06-29",
+  type: "press",
+  license: "link-only",
+};
+
+export const FTC_UNIFORM_2026: Source = {
+  id: "src-ftc-uniform-2026",
+  title: "3개 지역 교복 입찰 담합 제재",
+  url: "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156784962",
+  publisher: "공정거래위원회 (대한민국 정책브리핑 보도자료)",
+  publishedAt: "2026-10-13",
+  type: "official",
+  license: "link-only",
+};
+
+export const KYEONGGI_UNIFORM_2026: Source = {
+  id: "src-kyeonggi-uniform-2026",
+  title: "용인 교복업체 6곳서 입찰 짬짜미… 공정위, 과징금 7천200만원",
+  url: "https://www.kyeonggi.com/article/20261013580308",
+  publisher: "경기일보",
+  publishedAt: "2026-10-13",
+  type: "press",
+  license: "link-only",
+};
+
+export const KHAN_REMICON_2026: Source = {
+  id: "src-khan-remicon-2026",
+  title: "‘가격 담합’ 광양 레미콘 업체들, 과징금 22억",
+  url: "https://www.khan.co.kr/article/202602022110005",
+  publisher: "경향신문",
+  publishedAt: "2026-02-02",
+  type: "press",
+  license: "link-only",
+};

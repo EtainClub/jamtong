@@ -1,6 +1,23 @@
 import { z } from "zod";
 
-import { claimSchema, sourceSchema, type Claim, type Source } from "@/content/schema";
+import {
+  DatePrecision,
+  MilestoneStatus,
+  claimSchema,
+  sourceSchema,
+  type Claim,
+  type Source,
+} from "@/content/schema";
+
+/**
+ * 이재명 정부 출범일.
+ *
+ * 카르텔 화면은 이 정부가 한 일만 모은다. 성남시장·경기도지사 시절의 일은
+ * 업적에 있다. 같은 표적 아래 섞으면 "이 정부가 무엇을 깼는가"와 "이 사람이
+ * 예전에 무엇을 했는가"가 한 막대에 합쳐져, 진행 정도가 부풀려 읽힌다.
+ * 조치와 성과 카드의 날짜가 이보다 앞서면 빌드가 멈춘다.
+ */
+export const GOV_START = "2025-06-04";
 
 /**
  * 카르텔 — 업적을 가로질러 보는 두 번째 축.
@@ -57,6 +74,28 @@ export const cartelProblemSchema = z.object({
 });
 export type CartelProblem = z.infer<typeof cartelProblemSchema>;
 
+/**
+ * 업적이 근거를 들고 있는 조치 하나.
+ *
+ * 성과 카드는 제 상태를 들고 있어 그대로 센다. 업적은 여러 조치를 한데 담고
+ * 있어서(사법개혁 3법은 셋이 서로 다른 날 효력이 생긴다) 업적 하나를 한 칸으로
+ * 세면 진행 정도가 뭉개진다. 그래서 조치 단위로 꺼내 상태를 따로 단다.
+ *
+ * `ref`는 위키 앵커와 같은 문법 `<업적slug>#<claimId>`이고, 그 업적은 이
+ * 카르텔의 `achievementSlugs`에 있어야 한다.
+ */
+export const cartelMeasureSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  status: MilestoneStatus,
+  date: z.string(),
+  datePrecision: DatePrecision,
+  ref: z.string().regex(/^[a-z0-9-]+#[\w-]+$/, "조치 ref는 <업적slug>#<claimId>"),
+  /** 무엇이 됐고 무엇이 남았는지. 근거 claim에 있는 내용만 적는다. */
+  note: z.string().optional(),
+});
+export type CartelMeasure = z.infer<typeof cartelMeasureSchema>;
+
 export const cartelSchema = z.object({
   id: z.string(),
   slug: z.string().regex(/^[a-z0-9-]+$/, "카르텔 슬러그는 ascii 소문자와 하이픈만"),
@@ -69,6 +108,8 @@ export const cartelSchema = z.object({
   achievementSlugs: z.array(z.string()).default([]),
   /** 진행 중·계획. 성과 카드 id로 건다. 상태는 카드가 들고 있다. */
   milestoneIds: z.array(z.string()).default([]),
+  /** 업적이 근거를 들고 있는 조치. 진행 막대에 성과 카드와 함께 센다. */
+  measures: z.array(cartelMeasureSchema).default([]),
   /**
    * 아직 확인하지 못한 것.
    *
@@ -98,7 +139,8 @@ export function isOpen(cartel: Cartel): boolean {
   return (
     cartel.problems.length > 0 ||
     cartel.achievementSlugs.length > 0 ||
-    cartel.milestoneIds.length > 0
+    cartel.milestoneIds.length > 0 ||
+    cartel.measures.length > 0
   );
 }
 
@@ -111,7 +153,14 @@ export function isOpen(cartel: Cartel): boolean {
  */
 export function validateCartel(
   entry: CartelEntry,
-  known: { achievementSlugs: Set<string>; milestoneIds: Set<string> },
+  known: {
+    achievementSlugs: Set<string>;
+    milestoneIds: Set<string>;
+    /** 성과 카드 id → 날짜. 정부 출범 전 카드를 막는 데 쓴다. */
+    milestoneDates: Map<string, string>;
+    /** "<업적slug>#<claimId>" 꼴로 실재하는 검증된 claim. */
+    achievementClaimRefs: Set<string>;
+  },
 ): string[] {
   const errors: string[] = [];
   const { cartel } = entry;
@@ -171,6 +220,23 @@ export function validateCartel(
   for (const id of cartel.milestoneIds) {
     if (!known.milestoneIds.has(id)) {
       errors.push(`${where} → 존재하지 않는 성과 카드 "${id}"`);
+    }
+    const date = known.milestoneDates.get(id);
+    if (date && date < GOV_START) {
+      errors.push(`${where} → 성과 카드 "${id}"(${date})는 정부 출범(${GOV_START}) 전 일이다`);
+    }
+  }
+
+  for (const measure of cartel.measures) {
+    const owner = measure.ref.split("#")[0];
+    if (!cartel.achievementSlugs.includes(owner)) {
+      errors.push(`${where} 조치 "${measure.id}" → 업적 "${owner}"가 achievementSlugs에 없다`);
+    }
+    if (!known.achievementClaimRefs.has(measure.ref)) {
+      errors.push(`${where} 조치 "${measure.id}" → 없거나 검증되지 않은 근거 "${measure.ref}"`);
+    }
+    if (measure.date < GOV_START) {
+      errors.push(`${where} 조치 "${measure.id}"(${measure.date})는 정부 출범(${GOV_START}) 전 일이다`);
     }
   }
 

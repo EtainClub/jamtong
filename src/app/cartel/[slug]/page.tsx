@@ -2,7 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import { CARTELS, getCartelEntry, isOpen } from "@/content/cartels";
+import {
+  CARTELS,
+  cartelProgress,
+  countProgress,
+  getCartelEntry,
+  isOpen,
+} from "@/content/cartels";
 import { getAchievement } from "@/content/achievements";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import type { Claim, Source, TimelineEvent } from "@/content/schema";
@@ -12,10 +18,14 @@ import {
   AchievementCard,
   CartelSection,
   GapCard,
-  MilestoneCard,
   ProblemCard,
-  TargetStats,
 } from "@/features/cartel/CartelCards";
+import {
+  ProgressBar,
+  ProgressGuide,
+  ProgressItemCard,
+  ProgressLegend,
+} from "@/features/cartel/CartelProgress";
 import { Timeline } from "@/features/timeline/Timeline";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { ShareLinkButton } from "@/features/app/ShareLinkButton";
@@ -69,9 +79,10 @@ export async function generateMetadata({
  *   같은 표적을 여러 시기에 걸쳐 건드렸을 때 그 순서가 보여야 한다. 연표
  *   부품은 업적 쪽 것을 그대로 쓰고, 근거도 업적들의 것을 합쳐 넘긴다.
  *
- * ★ 계획을 성과 칸에 올리지 않는다.
- *   '지금까지'와 '진행 중·계획'을 나눈 자리가 이 페이지에서 가장 중요한 선이다.
- *   성과 카드가 들고 있는 done/ongoing/planned를 그대로 쓴다.
+ * ★ 진행 정도를 막대로 먼저 보인다.
+ *   카르텔은 한 번에 깨지지 않는다. 걸린 조치(성과 카드와 업적에서 꺼낸 조치)를
+ *   하나씩 세어 완료·추진 중·계획으로 나눈다. 공약 이행 현황과 같은 모양이다.
+ *   계획을 완료 칸에 올리지 않는 것이 이 페이지에서 가장 중요한 선이다.
  *
  * ★ 출처 각주는 아래로 내린다.
  *   무엇을 어디서 확인했는지는 반드시 있어야 하지만 첫 화면을 차지할 것은
@@ -102,8 +113,28 @@ export default async function CartelDetailPage({
     const found = MILESTONES.find((m) => m.id === id);
     return found ? [found] : [];
   });
-  const done = milestones.filter((m) => m.status === "done");
-  const upcoming = milestones.filter((m) => m.status !== "done");
+  const progress = cartelProgress(cartel);
+  const count = countProgress(progress);
+  const groups = [
+    {
+      id: "ct-done",
+      heading: "완료",
+      lede: "법이 시행됐거나, 제도가 실제로 시작됐거나, 제재 처분이 내려진 조치입니다.",
+      items: progress.filter((p) => p.status === "done"),
+    },
+    {
+      id: "ct-ongoing",
+      heading: "추진 중",
+      lede: "법 통과·합의·시범까지 왔지만 아직 효력이 없거나 일부만 시작된 조치입니다.",
+      items: progress.filter((p) => p.status === "ongoing"),
+    },
+    {
+      id: "ct-planned",
+      heading: "계획",
+      lede: "발표·의결까지입니다. 아직 결과가 아닙니다.",
+      items: progress.filter((p) => p.status === "planned"),
+    },
+  ].filter((g) => g.items.length > 0);
 
   /* 서랍은 이 페이지에 실제로 걸린 근거만 안다. */
   const claims: Claim[] = [
@@ -156,15 +187,26 @@ export default async function CartelDetailPage({
           * 표적의 현재 모습. 0을 지우지 않는다 — 담합은 성과가 0이고 계획이
           * 셋인데, 0을 감추면 계획만 남아 이미 된 일처럼 읽힌다.
           */}
-        {open && (
-          <TargetStats
-            items={[
-              { label: "업적", value: achievements.length },
-              { label: "완료", value: done.length },
-              { label: "진행·계획", value: upcoming.length },
-              { label: "확인 못 한 것", value: cartel.openQuestions.length },
-            ]}
-          />
+        {count.total > 0 && (
+          <section
+            aria-labelledby="ct-progress"
+            className="mt-5 rounded-card border border-stone bg-taupe px-4 py-4"
+          >
+            <h2 id="ct-progress" className="text-[15px] font-bold text-ink">
+              진행 현황
+            </h2>
+            <p className="mt-1 text-[12px] text-ash">
+              이 정부가 건 조치 <span className="tabular">{count.total}</span>개 기준 · 확인
+              못 한 것 <span className="tabular">{cartel.openQuestions.length}</span>개
+            </p>
+            <div className="mt-3">
+              <ProgressBar count={count} />
+            </div>
+            <div className="mt-2.5">
+              <ProgressLegend count={count} />
+            </div>
+            <ProgressGuide />
+          </section>
         )}
 
         <p className="mt-4 flex gap-2.5 rounded-card border border-stone bg-taupe/60 px-4 py-3 text-[12px] leading-relaxed text-graphite">
@@ -220,48 +262,32 @@ export default async function CartelDetailPage({
               </CartelSection>
             )}
 
-            {(achievements.length > 0 || done.length > 0) && (
+            {groups.map((group) => (
               <CartelSection
-                id="ct-done"
-                heading="지금까지"
-                count={achievements.length + done.length}
-                lede="일어난 일입니다. 앞으로 하겠다는 것은 아래에 따로 있습니다."
-              >
-                {achievements.length > 0 && (
-                  <ul className="space-y-2">
-                    {achievements.map((achievement) => (
-                      <AchievementCard key={achievement.slug} achievement={achievement} />
-                    ))}
-                  </ul>
-                )}
-                {done.length > 0 && (
-                  <ul className={`space-y-2 ${achievements.length > 0 ? "mt-2" : ""}`}>
-                    {done.map((item) => (
-                      <MilestoneCard
-                        key={item.id}
-                        item={item}
-                        claim={claims.find((c) => c.id === item.claimIds[0])}
-                      />
-                    ))}
-                  </ul>
-                )}
-              </CartelSection>
-            )}
-
-            {upcoming.length > 0 && (
-              <CartelSection
-                id="ct-upcoming"
-                heading="진행 중 · 계획"
-                count={upcoming.length}
-                lede="아직 결과가 아닙니다. 계획을 성과 칸에 올리지 않으려고 자리를 나눴습니다."
+                key={group.id}
+                id={group.id}
+                heading={group.heading}
+                count={group.items.length}
+                lede={group.lede}
               >
                 <ul className="space-y-2">
-                  {upcoming.map((item) => (
-                    <MilestoneCard
-                      key={item.id}
-                      item={item}
-                      claim={claims.find((c) => c.id === item.claimIds[0])}
-                    />
+                  {group.items.map((item) => (
+                    <ProgressItemCard key={item.id} item={item} />
+                  ))}
+                </ul>
+              </CartelSection>
+            ))}
+
+            {achievements.length > 0 && (
+              <CartelSection
+                id="ct-achievements"
+                heading="깊이 다룬 업적"
+                count={achievements.length}
+                lede="위 조치들의 배경과 근거를 업적 페이지에서 처음부터 봅니다."
+              >
+                <ul className="space-y-2">
+                  {achievements.map((achievement) => (
+                    <AchievementCard key={achievement.slug} achievement={achievement} />
                   ))}
                 </ul>
               </CartelSection>

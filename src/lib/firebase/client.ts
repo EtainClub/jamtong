@@ -3,6 +3,7 @@
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 /**
  * 파이어베이스 클라이언트.
@@ -53,4 +54,9 @@ export function firebaseAuth(): Auth | null {
 export function firebaseDb(): Firestore | null {
   const instance = app();
   return instance ? getFirestore(instance) : null;
+}
+
+export function firebaseStorage(): FirebaseStorage | null {
+  const instance = app();
+  return instance ? getStorage(instance) : null;
 }
