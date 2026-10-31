@@ -72,6 +72,58 @@ import { JUNGSUCHEONG_CHIEF } from "./jungsucheong-chief";
 import { FARMLAND_SURVEY_2026 } from "./farmland-survey-2026";
 import { BONGHWA_VIETNAM_VALLEY } from "./bonghwa-vietnam-valley";
 import { LIVELIHOOD_INDICATORS_2026 } from "./livelihood-indicators-2026";
+import { FOREIGN_WORKERS_REMARK } from "./foreign-workers-remark";
+import { FOREIGN_CRIME_DRUGS } from "./foreign-crime-drugs";
+import { AJOU_PEDIATRIC_EMERGENCY } from "./ajou-pediatric-emergency";
+import { VETERANS_HEARING_LOSS } from "./veterans-hearing-loss";
+import { BASE_RATE_2026 } from "./base-rate-2026";
+import { PRESIDENT_ASSETS_SALARY } from "./president-assets-salary";
+import { PRESIDENTIAL_OFFICE_BUDGET } from "./presidential-office-budget";
+import { WELFARE_OUTREACH } from "./welfare-outreach";
+import { RENTAL_CONVERSION } from "./rental-conversion";
+import { ARCTIC_ROUTE } from "./arctic-route";
+import { NK_DRONES } from "./nk-drones";
+import { SEOUL_HOUSING_SUPPLY } from "./seoul-housing-supply";
+import { BEREAVED_PUBLIC_SERVANTS } from "./bereaved-public-servants";
+import { PARTY_MERGER } from "./party-merger";
+import { OPCON_TRANSFER } from "./opcon-transfer";
+import { RETIREMENT_AGE } from "./retirement-age";
+import { MINIMUM_WAGE_2027 } from "./minimum-wage-2027";
+import { INCLUSIVE_WAGE_BAN } from "./inclusive-wage-ban";
+import { ANTI_DISCRIMINATION_LAW } from "./anti-discrimination-law";
+import { CONSTITUTION_AMENDMENT_2026 } from "./constitution-amendment-2026";
+import { BUDGET_2027 } from "./budget-2027";
+import { AUCTION_CAPITAL_GAINS } from "./auction-capital-gains";
+import { POLICE_AUDIT_2026 } from "./police-audit-2026";
+import { JOBS_WAGES_2026 } from "./jobs-wages-2026";
+import { OFFICIALS_ASSETS } from "./officials-assets";
+import { PUBLIC_RICE_RESERVE } from "./public-rice-reserve";
+import { PUBLIC_HOUSING_QUALITY } from "./public-housing-quality";
+import { REFINERY_CARTEL } from "./refinery-cartel";
+import { JEONG_YULSEONG } from "./jeong-yulseong";
+import { CAPITAL_TAXES } from "./capital-taxes";
+import { INSURRECTION_OFFICIALS_TF } from "./insurrection-officials-tf";
+import { LH_SPECULATION } from "./lh-speculation";
+import { APARTMENT_GUARDS } from "./apartment-guards";
+import { TRAFFIC_ENFORCEMENT } from "./traffic-enforcement";
+import { DAEJANG_RECOVERY } from "./daejang-recovery";
+import { SAEMANGEUM_AIRPORT } from "./saemangeum-airport";
+import { PRESIDENT_POWER_REMARKS } from "./president-power-remarks";
+import { CSAT_SMART_GLASSES } from "./csat-smart-glasses";
+import { JOINTSTEM_REVIEW } from "./jointstem-review";
+import { JOBLESS_INSURANCE_RELIEF } from "./jobless-insurance-relief";
+import { SECURITY_APPOINTMENTS } from "./security-appointments";
+import { DISABILITY_SUPPORT } from "./disability-support";
+import { ENEMY_CEMETERY_UNCLAIMED } from "./enemy-cemetery-unclaimed";
+import { MENTAL_ILLNESS_INDUSTRIAL } from "./mental-illness-industrial";
+import { SUICIDE_STATISTICS_2025 } from "./suicide-statistics-2025";
+import { SINGLE_PARENT_SUPPORT } from "./single-parent-support";
+import { JAPAN_AGREEMENTS_PARDONS } from "./japan-agreements-pardons";
+import { ODA_BUDGET } from "./oda-budget";
+import { CASH_RECEIPT_REPORT } from "./cash-receipt-report";
+import { DEMOCRACY_HISTORY_RECORDS } from "./democracy-history-records";
+import { OVERSEAS_TRIPS_2026 } from "./overseas-trips-2026";
+import { MOIS_MINISTER_2026 } from "./mois-minister-2026";
 import { policySchema, type Policy } from "./schema";
 import { SINGLE_STOCK_LEVERAGE_ETF } from "./single-stock-leverage-etf";
 import { TASKS_CHECK_2026 } from "./tasks-check-2026";
@@ -171,6 +223,58 @@ export const POLICIES: Policy[] = [
   FARMLAND_SURVEY_2026,
   BONGHWA_VIETNAM_VALLEY,
   LIVELIHOOD_INDICATORS_2026,
+  FOREIGN_WORKERS_REMARK,
+  FOREIGN_CRIME_DRUGS,
+  AJOU_PEDIATRIC_EMERGENCY,
+  VETERANS_HEARING_LOSS,
+  BASE_RATE_2026,
+  PRESIDENT_ASSETS_SALARY,
+  PRESIDENTIAL_OFFICE_BUDGET,
+  WELFARE_OUTREACH,
+  RENTAL_CONVERSION,
+  ARCTIC_ROUTE,
+  NK_DRONES,
+  SEOUL_HOUSING_SUPPLY,
+  BEREAVED_PUBLIC_SERVANTS,
+  PARTY_MERGER,
+  OPCON_TRANSFER,
+  RETIREMENT_AGE,
+  MINIMUM_WAGE_2027,
+  INCLUSIVE_WAGE_BAN,
+  ANTI_DISCRIMINATION_LAW,
+  CONSTITUTION_AMENDMENT_2026,
+  BUDGET_2027,
+  AUCTION_CAPITAL_GAINS,
+  POLICE_AUDIT_2026,
+  JOBS_WAGES_2026,
+  OFFICIALS_ASSETS,
+  PUBLIC_RICE_RESERVE,
+  PUBLIC_HOUSING_QUALITY,
+  REFINERY_CARTEL,
+  JEONG_YULSEONG,
+  CAPITAL_TAXES,
+  INSURRECTION_OFFICIALS_TF,
+  LH_SPECULATION,
+  APARTMENT_GUARDS,
+  TRAFFIC_ENFORCEMENT,
+  DAEJANG_RECOVERY,
+  SAEMANGEUM_AIRPORT,
+  PRESIDENT_POWER_REMARKS,
+  CSAT_SMART_GLASSES,
+  JOINTSTEM_REVIEW,
+  JOBLESS_INSURANCE_RELIEF,
+  SECURITY_APPOINTMENTS,
+  DISABILITY_SUPPORT,
+  ENEMY_CEMETERY_UNCLAIMED,
+  MENTAL_ILLNESS_INDUSTRIAL,
+  SUICIDE_STATISTICS_2025,
+  SINGLE_PARENT_SUPPORT,
+  JAPAN_AGREEMENTS_PARDONS,
+  ODA_BUDGET,
+  CASH_RECEIPT_REPORT,
+  DEMOCRACY_HISTORY_RECORDS,
+  OVERSEAS_TRIPS_2026,
+  MOIS_MINISTER_2026,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong

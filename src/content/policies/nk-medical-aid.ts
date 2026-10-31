@@ -11,6 +11,7 @@ import type { PolicyInput } from "./schema";
  *   승인이다. 사업 자체는 북한과 협의가 남은 잠정안이다.
  * ★ 장비 전용(생화학무기) 우려는 야당 의원의 주장이라 CLAIM으로 적는다.
  * ★ 2026-10-23 처음 등록 — 신통 factbot-gap 이슈 #59.
+ * ★ 2026-10-31 보충 — 잼통 Voice 이슈 #156(러시아·북한 송금 주장).
  */
 export const NK_MEDICAL_AID: PolicyInput = {
   slug: "nk-medical-aid",
@@ -25,6 +26,11 @@ export const NK_MEDICAL_AID: PolicyInput = {
       id: "rumor-93",
       text: "정부가 북한에 93억 원을 지원한다",
       claimIds: ["claim-plan", "claim-tentative", "claim-funding", "claim-sanctions", "claim-schedule", "claim-north-response"],
+    },
+    {
+      id: "rumor-russia-nk",
+      text: "대통령이 러시아와 북한에 돈을 보냈다",
+      claimIds: ["claim-plan", "claim-tentative", "claim-schedule"],
     },
   ],
   claims: [
@@ -135,6 +141,7 @@ export const NK_MEDICAL_AID: PolicyInput = {
   gaps: [
     "남북협력기금 집행 의결이 이뤄졌는지, 이뤄졌다면 언제 얼마로 의결됐는지 확인하지 못했다.",
     "2026년 10월 23일 기준 실제로 장비가 발송됐다는 보도는 찾지 못했다.",
+    "정부가 러시아에 자금을 보냈다는 기록은 찾지 못했다.",
   ],
   sources: [
     {

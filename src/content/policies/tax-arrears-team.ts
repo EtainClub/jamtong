@@ -10,6 +10,7 @@ import type { PolicyInput } from "./schema";
  *
  * ★ 대통령 글은 words:rice-first에 있다.
  * ★ 2026-10-30 처음 등록 — 잼통 Voice 이슈 #111.
+ * ★ 2026-10-31 보충 — 잼통 Voice 이슈 #137(고액 체납자 제재).
  */
 export const TAX_ARREARS_TEAM: PolicyInput = {
   slug: "tax-arrears-team",
@@ -18,7 +19,7 @@ export const TAX_ARREARS_TEAM: PolicyInput = {
     "2026년 8월 행정안전부와 지자체가 출범한 지방세입 체납관리단의 채용·운영 기간, 두 달 징수 실적과 인건비, 생계형 체납자 복지 연계 실적",
   ministries: ["행정안전부"],
   categories: ["welfare", "economy"],
-  asOf: "2026-10-30",
+  asOf: "2026-10-31",
   rumors: [
     {
       id: "rumor-permanent",
@@ -34,6 +35,11 @@ export const TAX_ARREARS_TEAM: PolicyInput = {
       id: "rumor-funding",
       text: "체납 세금을 다 걷어 국민 부담 없이 지원한다는데, 전액 징수와 사업비 충당의 근거가 무엇인가",
       claimIds: ["claim-results", "claim-cost"],
+    },
+    {
+      id: "rumor-passport",
+      text: "복지 사각지대를 없애되 체납자에게 여권 정지 같은 제재를 가해 재원을 마련하라",
+      claimIds: ["claim-sanctions-2026"],
     },
   ],
   claims: [
@@ -80,6 +86,15 @@ export const TAX_ARREARS_TEAM: PolicyInput = {
         "연결(67명)로 이었다. 긴급 쌀 지원은 이런 복지 연계 사례 가운데 하나로, 모든 국민에게 나눠 주는 배급이 아니다.",
       assertionType: "FACT",
       sourceIds: ["src-dailian-1702737", "src-gangdong-15417"],
+      verified: true,
+    },
+    {
+      id: "claim-sanctions-2026",
+      text:
+        "행정안전부는 4월 23일 '2026년 지방세외수입 체납징수 종합계획'을 지자체에 보내, 고액·상습 체납자 명단 공개와 관허사업 제한을 즉시 " +
+        "시행하고 분양권 압류에 나서며, 출국금지와 금융정보 조회 같은 더 강한 제재는 법제화를 추진하기로 했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-newsis-20260423"],
       verified: true,
     },
   ],
@@ -140,6 +155,15 @@ export const TAX_ARREARS_TEAM: PolicyInput = {
       url: "https://gangdong.go.kr/web/newportal/press/15417",
       type: "official",
       license: "public",
+    },
+    {
+      id: "src-newsis-20260423",
+      title: "고액·상습 지방세 체납자, 분양권도 압류…출국금지 추진",
+      publisher: "뉴시스",
+      url: "https://mobile.newsis.com/view/NISX20260423_0003602841",
+      publishedAt: "2026-04-23",
+      type: "press",
+      license: "link-only",
     },
   ],
 };
