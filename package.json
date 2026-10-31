@@ -17,6 +17,7 @@
     "policies:tongtong": "tsx scripts/import-tongtong.ts",
     "check:rules": "tsx --env-file=.env.local scripts/check-rules.ts",
     "grant-admin": "tsx scripts/grant-admin.ts",
+    "infographics:migrate": "tsx --env-file=.env.local scripts/migrate-infographics.ts",
     "brand": "tsx scripts/build-brand.ts",
     "release": "tsx scripts/release.ts"
   },

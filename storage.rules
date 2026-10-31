@@ -1,0 +1,45 @@
+rules_version = '2';
+
+/*
+ * 잼통 Storage 규칙.
+ *
+ * 지금 올리는 것은 업적 인포그래픽 하나다. 경로에 올린 사람의 uid가 들어
+ * 있어서, 문서를 읽지 않고 "제 것만 올리고 제 것만 지운다"를 판단한다.
+ *
+ * ★ 읽기는 열어 둔다.
+ *   실렸는지는 Firestore 문서의 status가 정한다. 승인 대기인 그림의 주소는
+ *   문서를 읽을 수 있는 사람(올린 사람과 운영자)에게만 건네지므로, 주소를
+ *   모르는 사람은 찾아갈 수 없다. 여기서 문서를 다시 읽어 막으면 그림 한
+ *   장마다 Firestore 읽기가 붙는다.
+ */
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid));
+    }
+
+    match /infographics/{uid}/{fileId} {
+      allow read: if true;
+
+      // 구글 계정을 연결한 사람만 올린다. Firestore 규칙의 hasGoogle()과 같다.
+      allow create: if request.auth != null
+        && 'google.com' in request.auth.token.firebase.identities
+        && request.auth.uid == uid
+        && request.resource.size < 8 * 1024 * 1024
+        && request.resource.contentType.matches('image/(png|jpeg|webp)');
+
+      // 한 번 올린 그림은 바뀌지 않는다. 내리고 다시 올린다.
+      allow update: if false;
+
+      allow delete: if request.auth != null
+        && (request.auth.uid == uid || isAdmin());
+    }
+
+    // 그 밖의 모든 것은 닫는다.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

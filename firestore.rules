@@ -11,12 +11,12 @@ rules_version = '2';
  *
  * 익명 계정도 uid를 가지므로 같은 규칙이 그대로 적용된다.
  *
- * ★ 예외가 셋 있다: feedback, cheerVideos, cheerNotes.
- *   셋 다 누구나 읽는다. 공개인 것이 기능이기 때문이다 — 남이 무엇을
- *   남겼는지 보이지 않으면 같은 말이 계속 쌓이고, 응원판은 아예 성립하지
- *   않는다. 그래서 여기만 경로로 가르지 못하고 필드와 모양을 일일이
- *   검사한다. 예외를 하나 두면 검사가 얼마나 늘어나는지를 이 파일이
- *   그대로 보여 준다.
+ * ★ 예외가 넷 있다: feedback, cheerVideos, cheerNotes, infographics.
+ *   앞의 셋은 누구나 읽고, 인포그래픽은 승인된 것만 누구나 읽는다.
+ *   공개인 것이 기능이기 때문이다 — 남이 무엇을 남겼는지 보이지 않으면
+ *   같은 말이 계속 쌓이고, 응원판은 아예 성립하지 않는다. 그래서 여기만
+ *   경로로 가르지 못하고 필드와 모양을 일일이 검사한다. 예외를 하나 두면
+ *   검사가 얼마나 늘어나는지를 이 파일이 그대로 보여 준다.
  */
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -229,6 +229,68 @@ service cloud.firestore {
         allow read: if request.auth != null && request.auth.uid == uid;
         allow create, delete: if request.auth != null && request.auth.uid == uid;
       }
+    }
+
+    /*
+     * 업적 인포그래픽 — 구글 계정을 연결한 사람이 올리고, 운영자가 승인한 것만 싣는다.
+     *
+     * ★ 새 그림은 늘 승인 대기로 시작한다.
+     *   업적 페이지는 근거가 붙은 것만 싣는 자리다. 올리자마자 보이면 확인하지
+     *   않은 숫자가 업적과 같은 층에 선다. status를 옮기는 것은 운영자뿐이다.
+     *
+     * ★ 승인 대기인 것은 올린 사람과 운영자만 읽는다.
+     *   목록 조회가 이 규칙을 통과하려면 쿼리가 status나 authorUid로 걸러야
+     *   한다. 화면은 셋 중 하나로만 묻는다 — 실린 것, 내 것, 대기열(운영자).
+     *
+     * ★ 올리는 것은 구글 계정을 연결한 사람뿐이다(hasGoogle).
+     *
+     * ★ 그림 경로는 올린 사람과 문서 id로 정해진다.
+     *   Storage 규칙이 경로의 uid로 주인을 가리므로, 문서가 남의 경로를
+     *   가리키지 못하게 여기서 맞춘다.
+     */
+    /*
+     * 구글 계정을 연결했는가. 익명 계정에서 연결한 경우에도 identities에
+     * google.com이 들어간다. 익명 계정은 브라우저를 지우면 사라지는
+     * 일회용이라, 내려야 할 그림을 올린 사람을 되짚을 수 없다.
+     */
+    function hasGoogle() {
+      return request.auth != null
+        && 'google.com' in request.auth.token.firebase.identities;
+    }
+
+    match /infographics/{id} {
+      allow read: if resource.data.status == 'approved'
+        || (request.auth != null && resource.data.authorUid == request.auth.uid)
+        || isAdmin();
+
+      allow create: if hasGoogle()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        // 그림만 있으면 된다. 제목과 설명은 비워 둘 수 있다.
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 80
+        && request.resource.data.alt is string
+        && request.resource.data.alt.size() <= 3000
+        // 등록자 이름은 고를 수 있다. 적었다면 30자까지.
+        && (request.resource.data.get('authorName', null) == null
+          || (request.resource.data.authorName is string
+            && request.resource.data.authorName.size() > 0
+            && request.resource.data.authorName.size() <= 30))
+        && request.resource.data.imagePath == 'infographics/' + request.auth.uid + '/' + id
+        && request.resource.data.imageUrl is string
+        && request.resource.data.imageUrl.size() <= 2000
+        && request.resource.data.width is int
+        && request.resource.data.width > 0
+        && request.resource.data.height is int
+        && request.resource.data.height > 0;
+
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'approvedAt'])
+        && request.resource.data.status in ['pending', 'approved'];
+
+      allow delete: if request.auth != null
+        && (resource.data.authorUid == request.auth.uid || isAdmin());
     }
 
     /*
