@@ -9,7 +9,12 @@ import {
   groupAchievements,
 } from "@/content/achievements";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
-import { EMPTY_CARTELS, OPEN_CARTELS } from "@/content/cartels";
+import {
+  EMPTY_CARTELS,
+  OPEN_CARTELS,
+  cartelProgress,
+  countProgress,
+} from "@/content/cartels";
 import { CATEGORY_LABEL, STATUS_LABEL, formatDate } from "@/content/labels";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
@@ -17,6 +22,7 @@ import {
   AchievementBrowser,
   type BrowserGroup,
 } from "@/features/achievement/AchievementBrowser";
+import { CartelRing } from "@/features/cartel/CartelRing";
 import { InfographicSection } from "@/features/infographic/InfographicSection";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
@@ -74,23 +80,30 @@ export default function ExplorePage() {
          *
          * 분야(외교·제도·복지…)는 "무엇에 관한 일인가"로 묶고, 카르텔은
          * "무엇을 겨냥한 일인가"로 묶는다. 축이 다르므로 분야 고르기 안에
-         * 끼워 넣지 않고 그 앞에 문을 하나 둔다.
+         * 끼워 넣지 않고 그 앞에 둔다. /cartel과 같은 표적 지도를 그대로 써서
+         * 여기서 바로 표적 하나로 들어간다.
          */}
-        <Link
-          href="/cartel"
-          className="mt-5 flex items-center justify-between gap-3 rounded-card border border-stone bg-taupe/60 px-4 py-3.5 transition-colors hover:border-graphite"
-        >
-          <span className="min-w-0">
-            <span className="text-[14px] font-bold text-ink">카르텔로 보기</span>
-            <span className="mt-0.5 block text-[12px] leading-relaxed text-smoke">
-              분야 대신 표적으로 묶어 봅니다. 들여다본 것 {OPEN_CARTELS.length}, 아직
-              정리하지 않은 것 {EMPTY_CARTELS.length}.
-            </span>
-          </span>
-          <span aria-hidden="true" className="shrink-0 text-smoke">
-            →
-          </span>
-        </Link>
+        <section aria-labelledby="ex-cartel" className="mt-5">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 id="ex-cartel" className="text-[15px] font-bold text-ink">
+              카르텔로 보기
+            </h2>
+            <Link href="/cartel" className="text-[12px] font-medium text-navy">
+              진행 현황 전체 →
+            </Link>
+          </div>
+          <p className="mt-1 text-[12px] leading-relaxed text-smoke">
+            분야 대신 표적으로 묶어 봅니다. 표적을 누르면 조치마다 어디까지 왔는지
+            봅니다. 이 묶음은 이 위키가 지은 것이고 정부의 분류가 아닙니다.
+          </p>
+          <CartelRing
+            open={OPEN_CARTELS}
+            empty={EMPTY_CARTELS}
+            counts={Object.fromEntries(
+              OPEN_CARTELS.map((c) => [c.slug, countProgress(cartelProgress(c))]),
+            )}
+          />
+        </section>
 
         <InfographicSection />
 
