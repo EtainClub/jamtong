@@ -15,6 +15,8 @@ import {
   approveInfographic,
   checkInfographicFile,
   deleteInfographic,
+  imageFromTransfer,
+  readClipboardImage,
   uploadInfographic,
   watchApprovedInfographics,
   watchMyInfographics,
@@ -237,17 +239,55 @@ function Uploader({
     setOpen(false);
   };
 
-  const pick = (next: File | null) => {
-    if (!next) return;
-    const problem = checkInfographicFile(next);
-    if (problem) {
-      onError(problem);
-      return;
+  const pick = useCallback(
+    (next: File | null) => {
+      if (!next) return;
+      const problem = checkInfographicFile(next);
+      if (problem) {
+        onError(problem);
+        return;
+      }
+      onDone();
+      setFile(next);
+      setPreview(URL.createObjectURL(next));
+    },
+    [onDone, onError],
+  );
+
+  /*
+   * 붙여 넣기. 캡처해서 바로 붙이는 것이 그림을 올리는 가장 흔한 길이다.
+   *
+   * 페이지 어디서 붙여도 받는다 — 폼이 닫혀 있으면 연다. 그림이 없는 붙여
+   * 넣기(제목 칸에 글자를 붙이는 것 등)는 건드리지 않는다. 구글 계정을
+   * 연결하기 전에 붙인 그림도 들고 있다가, 연결하면 그대로 보인다.
+   */
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const image = imageFromTransfer(e.clipboardData);
+      if (!image) return;
+      e.preventDefault();
+      setOpen(true);
+      setSent(false);
+      pick(image);
+    };
+    document.addEventListener("paste", onPaste);
+    return () => document.removeEventListener("paste", onPaste);
+  }, [pick]);
+
+  const pasteFromClipboard = async () => {
+    try {
+      const image = await readClipboardImage();
+      if (!image) {
+        onError("클립보드에 그림이 없습니다. 그림을 복사한 뒤 다시 눌러 주세요.");
+        return;
+      }
+      pick(image);
+    } catch {
+      onError("클립보드를 읽지 못했습니다. 브라우저에서 붙여넣기를 허용하거나 Ctrl+V(⌘V)로 붙여 주세요.");
     }
-    onDone();
-    setFile(next);
-    setPreview(URL.createObjectURL(next));
   };
+
+  const [dragging, setDragging] = useState(false);
 
   const connect = async (how: () => Promise<void>) => {
     setBusy(true);
@@ -315,6 +355,11 @@ function Uploader({
           인포그래픽은 구글 계정을 연결한 분만 올릴 수 있습니다. 올린 그림을
           확인하거나 내릴 때 올린 분을 알아볼 수 있어야 하기 때문입니다.
         </p>
+        {file && (
+          <p role="status" className="mt-2 text-[12px] font-semibold text-navy">
+            붙여 넣은 그림을 들고 있습니다. 연결하면 바로 이어서 올릴 수 있습니다.
+          </p>
+        )}
         {linkBlock === "already-in-use" ? (
           <>
             <p className="mt-3 text-[12px] leading-relaxed text-ash">
@@ -358,16 +403,59 @@ function Uploader({
         그림만 고르면 올릴 수 있습니다. 운영자가 확인한 뒤 실립니다.
       </p>
 
-      <label htmlFor="ig-file" className="mt-4 block text-[12px] font-semibold text-smoke">
-        그림 (PNG·JPG·WEBP, {FILE_MAX_MB}MB까지)
-      </label>
-      <input
-        id="ig-file"
-        type="file"
-        accept={FILE_TYPES.join(",")}
-        onChange={(e) => pick(e.target.files?.[0] ?? null)}
-        className="mt-2 block w-full text-[13px] text-smoke file:mr-3 file:rounded-full file:border file:border-stone file:bg-canvas file:px-3.5 file:py-1.5 file:text-[12px] file:font-semibold file:text-navy"
-      />
+      {/* 붙여 넣기·끌어 놓기·파일 고르기를 한 자리에서 받는다. */}
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          pick(e.dataTransfer.files[0] ?? null);
+        }}
+        className={`mt-4 rounded-card border-2 border-dashed px-4 py-5 text-center transition-colors ${
+          dragging ? "border-navy bg-navy-tint/40" : "border-stone bg-canvas"
+        }`}
+      >
+        <p className="text-[14px] font-semibold text-ink">
+          그림을 복사해서 붙여 넣으세요
+        </p>
+        <p className="mt-1 text-[12px] text-smoke">
+          <kbd className="rounded border border-stone px-1.5 py-0.5 font-sans text-[11px]">Ctrl</kbd>
+          {" + "}
+          <kbd className="rounded border border-stone px-1.5 py-0.5 font-sans text-[11px]">V</kbd>
+          {" · "}
+          <kbd className="rounded border border-stone px-1.5 py-0.5 font-sans text-[11px]">⌘</kbd>
+          {" + "}
+          <kbd className="rounded border border-stone px-1.5 py-0.5 font-sans text-[11px]">V</kbd>
+          {" "}또는 끌어다 놓기
+        </p>
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          <button
+            type="button"
+            onClick={pasteFromClipboard}
+            className="rounded-full bg-ink px-4 py-2 text-[12px] font-semibold text-eggshell"
+          >
+            클립보드에서 붙여넣기
+          </button>
+          <label
+            htmlFor="ig-file"
+            className="cursor-pointer rounded-full border border-stone px-4 py-2 text-[12px] font-semibold text-navy transition-colors hover:border-graphite"
+          >
+            파일 고르기
+          </label>
+          <input
+            id="ig-file"
+            type="file"
+            accept={FILE_TYPES.join(",")}
+            onChange={(e) => pick(e.target.files?.[0] ?? null)}
+            className="sr-only"
+          />
+        </div>
+        <p className="mt-2.5 text-[11px] text-ash">PNG·JPG·WEBP, {FILE_MAX_MB}MB까지</p>
+      </div>
       {preview && (
         // 올리기 전 미리보기는 blob 주소라 next/image가 다루지 않는다.
         // eslint-disable-next-line @next/next/no-img-element
