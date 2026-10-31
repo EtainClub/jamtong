@@ -22,6 +22,9 @@ import { cartelSchema, type CartelEntry, type CartelInput } from "./schema";
  *   보는 쪽이 있다는 사실을 빼면 이 표적이 무엇과 부딪치고 있는지가 사라진다.
  *   assertionType은 CLAIM이고 assertedBy는 대한의사협회다.
  *
+ * ★ 경기도 수술실 CCTV는 걸지 않는다.
+ *   경기도지사 시절의 일이다. 카르텔 화면은 이 정부가 한 일만 센다(GOV_START).
+ *
  * ★ 증원을 성과로 적지 않는다.
  *   성과 카드 셋 가운데 `done`은 법 시행 하나뿐이다. 3,342명은 2027~2031년에
  *   일어날 일이고, 490명은 선발이 끝나지 않았다. 사람이 지역에 실제로 남는지는
@@ -73,7 +76,6 @@ const raw: CartelInput = {
       tags: ["지역의사제", "10년간의 의무복무"],
     },
   ],
-  achievementSlugs: ["gyeonggi-or-cctv"],
   milestoneIds: ["ct-medical-law", "ct-medical-quota", "ct-medical-first"],
   openQuestions: [
     "지역의사가 실제로 그 지역에 남는지는 아직 아무도 모릅니다. 첫 선발이 2027학년도이고 10년 복무가 끝나는 것은 2040년대입니다. 지금 확인할 수 있는 것은 제도가 섰다는 데까지입니다.",

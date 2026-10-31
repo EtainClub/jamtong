@@ -1,0 +1,58 @@
+{
+  "generator": "Built-in image_gen tool",
+  "reference": "User-provided Korean cartoon; used as style and subject reference",
+  "hero": {
+    "file": "lee-breaking-cartel.webp",
+    "prompt": "Use case: illustration-story. Asset type: square central illustration for an existing Korean website cartel map. Reference image: user's attached cartoon is a STYLE AND SUBJECT reference only. Create a polished editorial cartoon of South Korean president Lee Jae-myung, recognizable short dark gray hair, rectangular glasses, navy suit, white shirt and blue tie, waist-up, raising a wooden hammer and smashing a dark stone ring and chains around him, energetic cyan blue cracks and flying small stone fragments. Friendly determined expression. Bold dark ink outlines, restrained blue/teal and warm brown colors, cel shading, crisp readable at 220 pixels. Centered square composition, complete hammer and face safely inside frame, transparent outer background. No words, no lettering, no labels, no flags, no watermark. This is a symbolic illustration, no other people."
+  },
+  "categories": [
+    {
+      "file": "collusion.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A cluster of a flour sack, a sugar packet, a small meat tray and two blank price tags. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "medical.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A small hospital building with a teal medical cross, and a stethoscope. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "telecom.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A smartphone with a teal screen beside a small cellular transmission tower with signal waves. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "rest-area.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A highway roadside rest stop building with teal canopy, a road receding beside it, and a small coffee cup. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "revolving-door.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A wooden judge's gavel beside a small courthouse with stone columns. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "construction.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A golden yellow construction hard hat in front of a small tower crane and unfinished building. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "local-establishment.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A folded teal and green regional map behind a town hall building and a small blank location marker. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "refinery.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A teal petrol pump beside a dark oil barrel and small refinery pipes. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "finance.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A classical bank building with navy roof beside small gold coin stacks. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "bureaucracy.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A stack of official blank papers beside a wood-handled red rubber stamp. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "media.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A folded newspaper with abstract unreadable lines beside a broadcast microphone. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    },
+    {
+      "file": "education.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual square website category spot illustration. Subject: A navy graduation cap with gold tassel resting on a stack of teal and cream textbooks. Style: polished Korean editorial cartoon, bold dark navy ink outlines, cel shading, slightly hand drawn, teal/navy/cream with warm golden accents. Small cohesive cluster of objects centered, generous transparent margin, large simple silhouettes readable at 48 pixels. Transparent background. This is a detailed miniature illustrated scene, not an emoji or thin line icon. No people, no lettering, no readable text, no company logos, no badge, no circular background, no watermark."
+    }
+  ]
+}

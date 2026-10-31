@@ -1,14 +1,8 @@
 import Link from "next/link";
 
-import type { Achievement, Claim, Milestone } from "@/content/schema";
+import type { Achievement, Claim } from "@/content/schema";
 import type { CartelProblem } from "@/content/cartels/schema";
-import {
-  ASSERTION_LABEL,
-  ASSERTION_STYLE,
-  STATUS_LABEL,
-  STATUS_STYLE,
-  formatDate,
-} from "@/content/labels";
+import { ASSERTION_LABEL, ASSERTION_STYLE } from "@/content/labels";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 
 /**
@@ -59,32 +53,6 @@ export function CartelSection({
       {lede && <p className="mt-1.5 text-[13px] leading-relaxed text-smoke">{lede}</p>}
       <div className="mt-4">{children}</div>
     </section>
-  );
-}
-
-/**
- * 표적의 현재 모습 한 줄.
- *
- * 0을 지우지 않는다. 담합은 성과가 0이고 계획이 셋인데, 0을 감추면 계획만
- * 남아 이미 무언가 된 것처럼 읽힌다. 비어 있는 칸이 이 표적에 대한 가장
- * 정확한 정보일 때가 있다.
- */
-export function TargetStats({ items }: { items: { label: string; value: number }[] }) {
-  return (
-    <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-stone bg-stone">
-      {items.map((item) => (
-        <div key={item.label} className="bg-taupe px-4 py-3">
-          <dt className="text-[11px] text-ash">{item.label}</dt>
-          <dd
-            className={`tabular mt-0.5 text-[17px] font-bold ${
-              item.value === 0 ? "text-ash" : "text-ink"
-            }`}
-          >
-            {item.value}
-          </dd>
-        </div>
-      ))}
-    </dl>
   );
 }
 
@@ -195,48 +163,6 @@ export function AchievementCard({ achievement }: { achievement: Achievement }) {
           {achievement.subtitle}
         </span>
       </Link>
-    </li>
-  );
-}
-
-/**
- * 성과 카드.
- *
- * 상태 칩을 왼쪽 맨 앞에 둔다. 「계획」이 제목 뒤에 작게 붙어 있으면 훑는
- * 사람은 제목만 읽고 이미 된 일로 받는다.
- */
-export function MilestoneCard({ item, claim }: { item: Milestone; claim?: Claim }) {
-  return (
-    <li className="rounded-card border border-stone bg-taupe px-4 py-3.5">
-      <div className="flex flex-wrap items-center gap-2">
-        <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ${
-            STATUS_STYLE[item.status]
-          }`}
-        >
-          {STATUS_LABEL[item.status]}
-        </span>
-        <span className="tabular text-[11px] text-ash">
-          {formatDate(item.date, item.datePrecision)}
-        </span>
-      </div>
-
-      <p className="mt-2 text-[14px] font-semibold leading-snug text-ink">{item.title}</p>
-
-      {item.highlight && (
-        <p className="mt-2 flex items-baseline gap-1.5">
-          <span className="tabular text-[20px] font-light leading-none text-navy">
-            {item.highlight.value}
-          </span>
-          <span className="text-[11px] text-smoke">{item.highlight.label}</span>
-        </p>
-      )}
-
-      {claim && (
-        <div className="mt-3">
-          <EvidenceButton claimId={claim.id} count={claim.sourceIds.length} />
-        </div>
-      )}
     </li>
   );
 }

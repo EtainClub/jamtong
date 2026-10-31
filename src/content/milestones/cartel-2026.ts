@@ -7,6 +7,20 @@ import {
 } from "@/content/schema";
 import {
   EX_RESTAREA_2026,
+  FTC_UNIFORM_2026,
+  HK_RAIL_2026,
+  INSIGHT_STAY_2026,
+  KHAN_REMICON_2026,
+  KYEONGGI_UNIFORM_2026,
+  MT_FLOUR_2026,
+  MT_LTV_2026,
+  NEWSIS_REFINERY_2026,
+  NEWSIS_SUGAR_2026,
+  NOCUT_LOCAL_2026,
+  NOCUT_REFINERY_FTC_2026,
+  SEGYE_REPEAT_2026,
+  TF_KTB_2026,
+  YNA_LOCAL_2026,
   FTC_BIDDING_2026,
   FTC_H2_2026,
   KOREA_MED_QUOTA_2026,
@@ -35,6 +49,13 @@ import {
  *   490명도 선발이 끝나지 않았다. 제도가 섰다는 것과 사람이 갔다는 것은
  *   다른 일이며, 후자는 10년 복무가 끝나는 2040년대에야 말할 수 있다.
  *
+ * ★ 2026년 10월 31일 보강 — 제재 처분과 수사가 더해졌다.
+ *   설탕·밀가루·LTV·레미콘·교복은 공정위가 **처분을 내린** 것이라 완료로 센다.
+ *   다만 처분은 소송에서 뒤집힐 수 있고, 설탕·밀가루는 일부 업체가 이미
+ *   집행정지를 받았다. 그 사실을 카드에 함께 적는다. 정유사 기소와 국고채·
+ *   정유사 심의는 결론이 나지 않았으므로 추진 중이다. 토착비리 2차 단속은
+ *   2026년 11월 1일 시작이라 이 글을 쓰는 날(10월 31일)에는 아직 계획이다.
+ *
  * ★ 1차 자료가 아닌 것이 섞여 있다.
  *   공정위 업무계획과 도로공사 발표의 원문을 찾지 못해 보도로 대신했다.
  *   의료 쪽은 법률 원문과 정책브리핑이 있고 첫 선발만 보도다.
@@ -51,6 +72,71 @@ const claim = (id: string, text: string, source: string | string[]): Claim =>
   });
 
 const claims: Claim[] = [
+  claim(
+    "ct-sugar",
+    "공정거래위원회는 2026년 2월 12일 CJ제일제당·삼양사·대한제당 등 설탕 제조·판매 3사가 2021년 2월부터 2025년 4월까지 8차례에 걸쳐 설탕 가격의 변경 폭과 시기를 합의했다며, 법 위반행위 금지명령과 가격변경 현황 보고명령 등 시정명령과 함께 과징금 총 4,083억 원을 부과한다고 밝혔다.",
+    NEWSIS_SUGAR_2026.id,
+  ),
+  claim(
+    "ct-flour",
+    "공정거래위원회는 2026년 5월 20일 대한제분·CJ제일제당·사조동아원·삼양사 등 제분사 7곳이 2019년 11월부터 2025년 10월까지 약 6년간 밀가루 가격을 담합했다며 과징금 6,710억 4,500만 원을 부과했다. 담합 사건 사상 최대 규모이며, 담합 이전 경쟁 수준으로 가격을 다시 정하도록 하는 가격 재결정 명령도 함께 내렸다. 같은 제분사들은 2006년에도 담합으로 제재를 받은 바 있다.",
+    MT_FLOUR_2026.id,
+  ),
+  claim(
+    "ct-cartel-stay",
+    "설탕·밀가루 담합 과징금 일부는 법원에서 집행이 멈췄다. 2026년 9월 서울고등법원 등은 삼양사·사조동아원·대한제분의 밀가루 담합 과징금 집행정지 신청을 인용했고, 삼양사와 대한제당의 설탕 담합 과징금도 집행이 정지됐다. 집행정지는 임시 조치이며 처분이 적법한지는 본안 소송에서 가려진다.",
+    INSIGHT_STAY_2026.id,
+  ),
+  claim(
+    "ct-ftc-repeat-bill",
+    "더불어민주당과 공정거래위원회는 2026년 9월 28일 당정협의회에서 반복담합 근절 입법 추진방안을 내놓았다. 17개 업종에서 5년 안에 두 번 이상 담합한 사업자에게 등록취소나 영업정지를 할 수 있게 하고, 가격 재결정 명령의 법적 근거를 마련하며, 담합 처분시효를 12년에서 최장 15년으로 늘리는 내용이다. 법안 제출 시점은 밝히지 않았다.",
+    SEGYE_REPEAT_2026.id,
+  ),
+  claim(
+    "ct-local-first",
+    "경찰청 국가수사본부는 2026년 3월부터 10월까지 1차 토착비리 특별단속을 벌여 785건, 2,288명을 단속하고 이 가운데 지방공직자 등 1,094명을 송치했다. 31명을 구속했고 범죄수익 약 40억 원을 기소 전 몰수·추징 보전했다. 유형별로는 재정비리가 1,114명으로 가장 많았고 권한남용 968명, 수의계약 불법행위 149명 순이었다. 신분별로는 공무원이 1,015명(44%)이었다.",
+    [NOCUT_LOCAL_2026.id, YNA_LOCAL_2026.id],
+  ),
+  claim(
+    "ct-local-second",
+    "경찰청 국가수사본부는 2026년 11월 1일부터 ‘지역 유착 5대 비리 특별단속’을 시작한다고 밝혔다. 단속 대상을 지방의회·지방자치단체·지방공기업 중심에서 법조·군·경찰·교정·세무·소방·교육 등 지역 공직사회 전반으로 넓히고, 직무비리·금품수수·알선비리·수의계약·재정비리·인사비리·조합비리를 단속한다.",
+    [YNA_LOCAL_2026.id, NOCUT_LOCAL_2026.id],
+  ),
+  claim(
+    "ct-refinery-indict",
+    "서울중앙지검 공정거래조사부는 2026년 7월 6일 HD현대오일뱅크·SK에너지·GS칼텍스·에쓰오일 등 정유사 4곳과 일부 임직원을 공정거래법 위반 등의 혐의로 기소했다. 미국과 이란 사이 전쟁 발발 직후 국내 석유제품 가격을 담합해 유가를 교란한 혐의이며, 가격 담합 혐의는 HD현대오일뱅크와 SK에너지에 적용됐다. 정유업계는 과도한 기소라는 입장이다.",
+    NEWSIS_REFINERY_2026.id,
+  ),
+  claim(
+    "ct-refinery-ftc",
+    "공정거래위원회 사무처는 2026년 10월 7일 SK에너지와 HD현대오일뱅크가 2022년 2월부터 2026년 3월까지 휘발유·경유·등유 판매가격 정보를 교환하고 가격을 담합한 혐의에 대한 심사보고서를 위원회에 제출해 심의 절차를 시작했다고 밝혔다. 관련 매출액은 약 44조 1천억 원이며, 심사관은 시정조치와 과징금을 부과해야 한다는 의견을 냈다.",
+    NOCUT_REFINERY_FTC_2026.id,
+  ),
+  claim(
+    "ct-bank-ltv",
+    "공정거래위원회는 2026년 1월 21일 KB국민·신한·하나·우리 등 4대 시중은행이 부동산 담보대출의 담보인정비율(LTV) 정보를 교환해 경쟁을 제한했다며 과징금 총 2,720억 원을 부과하기로 결정했다고 밝혔다. 경쟁제한적 정보교환을 금지하는 개정 공정거래법이 시행된 2021년 12월 이후의 행위를 제재 대상으로 삼았다.",
+    MT_LTV_2026.id,
+  ),
+  claim(
+    "ct-ktb-bid",
+    "공정거래위원회는 2026년 8월 6일 국고채 입찰 담합 사건의 심사보고서를 위원회에 제출하고 증권사 10곳과 은행 5곳 등 15개 국고채 전문딜러에게 송부했다고 밝혔다. 담합 혐의 대상 입찰 규모는 약 76조 2천억 원이며, 최종 판단은 전원회의 심의를 거쳐 내려진다.",
+    TF_KTB_2026.id,
+  ),
+  claim(
+    "ct-rail-revolving",
+    "국토교통부는 2026년 6월 29일 철도 전관 카르텔 근절 태스크포스 점검회의를 열었다. 국가철도공단은 퇴직자 관련 수의계약 금지 기간을 2년에서 3년으로 늘리고 종합심사제 내부위원 비율을 50%에서 30%로 줄였으며, 코레일은 4월 15일 재취업 업체에 감점을 주도록 계약업무처리 기준을 고쳐 6월 1일 발주에 적용했다. 에스알의 퇴직자 근무 자진신고 QR은 8월 시범 운영 예정이고, 철도기술연구원의 AI 이해충돌 모니터링 시스템은 11월까지 구축할 계획이다.",
+    HK_RAIL_2026.id,
+  ),
+  claim(
+    "ct-uniform",
+    "공정거래위원회는 2026년 10월 13일 용인 기흥·처인과 울산, 경북 영천의 19개 중·고교가 발주한 교복 구매 입찰 51건에서 담합한 업체 10곳에 시정명령과 함께 과징금 총 1억 200만 원을 부과한다고 밝혔다. 낙찰률은 예정가격의 평균 98.29%에 달했다. 공정위는 2010년 이후 교복 입찰 담합을 모두 52건 제재했다.",
+    [FTC_UNIFORM_2026.id, KYEONGGI_UNIFORM_2026.id],
+  ),
+  claim(
+    "ct-remicon",
+    "공정거래위원회는 2026년 2월 2일 광양 지역 레미콘 제조·판매업체 7곳이 2021년 5월부터 2023년 9월까지 레미콘 판매가격을 공동으로 결정하고 물량을 나눠 가진 행위에 시정명령과 과징금 22억 3,900만 원을 부과했다고 밝혔다. 이 기간 1㎥당 가격은 7만 2,400원에서 9만 1,200원으로 올랐다. 공정위는 건설 원·부자재 등 중간재 품목의 담합 감시를 강화하겠다고 밝혔다.",
+    KHAN_REMICON_2026.id,
+  ),
   claim(
     "ct-ftc-repeat",
     "공정거래위원회는 2026년 8월 4일 발표한 2026년 하반기 주요 업무 추진계획에서, 반복적으로 담합한 사업자에게 등록 취소나 일정 기간 영업정지 처분을 내릴 수 있는 근거를 마련하겠다고 밝혔다. 법 개정이 필요한 사항으로 아직 시행되지 않았다.",
@@ -100,16 +186,42 @@ const claims: Claim[] = [
 
 const raw: MilestoneInput[] = [
   {
-    id: "ct-ftc-repeat",
-    title: "반복 담합에 등록취소·영업정지 근거 마련",
+    id: "ct-sugar",
+    title: "설탕 담합 3사 과징금 4,083억 원",
     summary:
-      "여러 번 담합한 사업자를 시장에서 물러나게 할 수 있는 근거를 두겠다는 계획이다. 법을 고쳐야 하는 일이라 아직 시행되지 않았다.",
+      "공정위가 CJ제일제당·삼양사·대한제당에 시정명령과 과징금을 부과했다. 삼양사와 대한제당은 법원에서 과징금 집행정지를 받았고, 처분이 적법한지는 본안 소송에서 가려진다.",
+    categories: ["economy"],
+    audiences: ["소비자", "식품업체"],
+    status: "done",
+    date: "2026-02-12",
+    datePrecision: "day",
+    claimIds: ["ct-sugar", "ct-cartel-stay"],
+    highlight: { value: "4,083억 원", label: "설탕 3사 과징금" },
+  },
+  {
+    id: "ct-flour",
+    title: "밀가루 담합 7개사 과징금 6,710억 원·가격 재결정 명령",
+    summary:
+      "담합 사건 사상 최대 과징금이고, 담합 전 수준으로 값을 다시 정하라는 명령도 함께 내렸다. 같은 제분사들의 두 번째 적발이다. 일부 업체는 법원에서 집행정지를 받았다.",
+    categories: ["economy"],
+    audiences: ["소비자", "식품업체"],
+    status: "done",
+    date: "2026-05-20",
+    datePrecision: "day",
+    claimIds: ["ct-flour", "ct-cartel-stay"],
+    highlight: { value: "6,710억 원", label: "제분 7개사 과징금 (역대 최대)" },
+  },
+  {
+    id: "ct-ftc-repeat",
+    title: "반복 담합에 등록취소·영업정지 — 당정 입법 추진",
+    summary:
+      "8월 공정위 업무계획에 들어간 뒤, 9월 28일 당정이 17개 업종에서 5년 안에 두 번 담합하면 등록취소·영업정지를 할 수 있게 하는 입법 방안을 냈다. 법을 고쳐야 하는 일이라 아직 시행되지 않았다.",
     categories: ["economy"],
     audiences: ["담합 사업자"],
-    status: "planned",
-    date: "2026-08-04",
+    status: "ongoing",
+    date: "2026-09-28",
     datePrecision: "day",
-    claimIds: ["ct-ftc-repeat"],
+    claimIds: ["ct-ftc-repeat-bill", "ct-ftc-repeat"],
   },
   {
     id: "ct-ftc-structural",
@@ -161,6 +273,121 @@ const raw: MilestoneInput[] = [
     datePrecision: "day",
     claimIds: ["ct-telecom-senior"],
     highlight: { value: "연 590억 원", label: "140만 명 절감 추산" },
+  },
+  {
+    id: "ct-local-first",
+    title: "1차 토착비리 특별단속 — 1,094명 송치",
+    summary:
+      "경찰이 8개월 동안 지방행정기관 중심으로 단속해 마무리했다. 송치는 경찰 수사가 끝났다는 뜻이지 유죄가 확정됐다는 뜻이 아니다.",
+    categories: ["region"],
+    audiences: ["지역 주민"],
+    status: "done",
+    date: "2026-10-28",
+    datePrecision: "day",
+    claimIds: ["ct-local-first"],
+    highlight: { value: "1,094명", label: "송치 (구속 31명)" },
+  },
+  {
+    id: "ct-local-second",
+    title: "지역 유착 5대 비리 특별단속 — 지역 공직사회 전반으로",
+    summary:
+      "2차 단속이다. 대상을 법조·군·경찰·교정·세무·소방·교육으로 넓히고 인사비리와 재건축·재개발 조합비리를 더한다. 2026년 11월 1일 시작한다.",
+    categories: ["region"],
+    audiences: ["지역 주민"],
+    status: "planned",
+    date: "2026-11-01",
+    datePrecision: "day",
+    claimIds: ["ct-local-second"],
+  },
+  {
+    id: "ct-refinery-indict",
+    title: "검찰, 정유 4사 기소 — 전쟁 직후 유가 담합 혐의",
+    summary:
+      "기소까지 왔고 판결은 나오지 않았다. 정유업계는 혐의를 받아들이지 않고 있다.",
+    categories: ["economy"],
+    audiences: ["운전자", "주유소"],
+    status: "ongoing",
+    date: "2026-07-06",
+    datePrecision: "day",
+    claimIds: ["ct-refinery-indict"],
+  },
+  {
+    id: "ct-refinery-ftc",
+    title: "공정위, 정유사 2곳 기름값 담합 심의 시작",
+    summary:
+      "심사관이 과징금 부과 의견을 낸 단계다. 위원회가 결론을 내리지 않았다.",
+    categories: ["economy"],
+    audiences: ["운전자", "주유소"],
+    status: "ongoing",
+    date: "2026-10-07",
+    datePrecision: "day",
+    claimIds: ["ct-refinery-ftc"],
+    highlight: { value: "약 44조 원", label: "관련 매출액" },
+  },
+  {
+    id: "ct-bank-ltv",
+    title: "4대 은행 LTV 정보교환 담합 과징금 2,720억 원",
+    summary:
+      "대출 조건을 정하는 정보를 은행끼리 주고받아 경쟁을 줄였다고 본 처분이다. 은행들은 처분에 반발하며 법적 대응을 예고했다.",
+    categories: ["economy"],
+    audiences: ["대출 이용자"],
+    status: "done",
+    date: "2026-01-21",
+    datePrecision: "day",
+    claimIds: ["ct-bank-ltv"],
+    highlight: { value: "2,720억 원", label: "4대 은행 과징금" },
+  },
+  {
+    id: "ct-ktb-bid",
+    title: "국고채 입찰 담합 — 15개 전문딜러 제재 절차",
+    summary:
+      "심사보고서를 보낸 단계이고 전원회의 결론은 아직이다.",
+    categories: ["economy"],
+    audiences: ["국가 재정"],
+    status: "ongoing",
+    date: "2026-08-06",
+    datePrecision: "day",
+    claimIds: ["ct-ktb-bid"],
+    highlight: { value: "약 76조 원", label: "혐의 대상 입찰 규모" },
+  },
+  {
+    id: "ct-rail-revolving",
+    title: "철도 기관 전관 차단 — 퇴직자 수의계약 금지 3년으로",
+    summary:
+      "국가철도공단과 코레일은 계약 기준을 이미 고쳤고, 에스알과 철도기술연구원의 조치는 시범·구축 중이다. 기관마다 진행 정도가 달라 묶어서 추진 중으로 센다.",
+    categories: ["economy"],
+    audiences: ["철도 발주 기관"],
+    status: "ongoing",
+    date: "2026-06-29",
+    datePrecision: "day",
+    claimIds: ["ct-rail-revolving"],
+    highlight: { value: "2년 → 3년", label: "퇴직자 관련 수의계약 금지 기간" },
+  },
+  {
+    id: "ct-uniform",
+    title: "3개 지역 교복 입찰 담합 제재",
+    summary:
+      "세 지역 중·고교 열아홉 곳의 교복 구매 입찰이다. 금액은 작지만 학부모가 내는 값과 바로 이어진다.",
+    categories: ["education", "economy"],
+    audiences: ["학부모", "중·고등학생"],
+    status: "done",
+    date: "2026-10-13",
+    datePrecision: "day",
+    claimIds: ["ct-uniform"],
+    highlight: { value: "98.29%", label: "담합 입찰의 평균 낙찰률" },
+  },
+  {
+    id: "ct-remicon",
+    title: "광양 레미콘 7개사 가격·물량 담합 제재",
+    summary:
+      "건설 현장에 들어가는 레미콘 값을 함께 정하고 물량을 나눈 일이다. 한 지역 사건이며, 건설사 자체의 입찰담합 제재는 아니다.",
+    categories: ["economy"],
+    audiences: ["건설 현장"],
+    status: "done",
+    date: "2026-02-02",
+    datePrecision: "day",
+    claimIds: ["ct-remicon"],
+    highlight: { value: "22억 원", label: "과징금" },
   },
   {
     id: "ct-restarea-direct",
@@ -220,6 +447,20 @@ export const cartel2026: MilestoneCollection = {
   milestones: raw.map((item) => milestoneSchema.parse(item)),
   claims,
   sources: [
+    NEWSIS_SUGAR_2026,
+    MT_FLOUR_2026,
+    INSIGHT_STAY_2026,
+    SEGYE_REPEAT_2026,
+    NOCUT_LOCAL_2026,
+    YNA_LOCAL_2026,
+    NEWSIS_REFINERY_2026,
+    NOCUT_REFINERY_FTC_2026,
+    MT_LTV_2026,
+    TF_KTB_2026,
+    HK_RAIL_2026,
+    FTC_UNIFORM_2026,
+    KYEONGGI_UNIFORM_2026,
+    KHAN_REMICON_2026,
     FTC_H2_2026,
     FTC_BIDDING_2026,
     MSIT_QOS_2026,
