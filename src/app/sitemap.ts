@@ -55,6 +55,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/", 1],
     ["/explore", 0.9],
     ["/pledges", 0.8],
+    ["/cartel", 0.8],
     ["/tasks", 0.8],
     ["/words", 0.9],
     ["/wiki", 0.8],

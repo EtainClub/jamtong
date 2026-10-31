@@ -12,6 +12,7 @@ import { formatDate } from "@/content/labels";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { CartelRing } from "@/features/cartel/CartelRing";
+import { JsonLd, collectionPageLd } from "@/lib/seo/jsonld";
 import {
   ProgressBar,
   ProgressGuide,
@@ -67,6 +68,14 @@ export default function CartelPage() {
 
   return (
     <>
+      <JsonLd
+        data={collectionPageLd({
+          path: "/cartel",
+          name: "이재명 정부 카르텔 조치",
+          description: "이재명 정부가 2025년 6월부터 카르텔을 겨냥해 건 조치를 표적별로 모으고, 조치마다 완료·추진 중·계획을 근거와 함께 표시합니다.",
+          items: OPEN_CARTELS.map((c) => ({ name: `${c.name} 카르텔`, path: `/cartel/${c.slug}` })),
+        })}
+      />
       <AppTopBar />
 
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-10 pt-6">

@@ -84,3 +84,7 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: NAVER_SITE_VERIFICATION
+    value: fae9f8c2b7f41b920d7c5e324c097a37e6f3dfd4
+    availability:
+      - BUILD
