@@ -12,6 +12,7 @@ import { ShortsSection } from "@/features/achievement/ShortsSection";
 import { EvidenceStatus } from "@/features/achievement/EvidenceStatus";
 import { QuickCheck } from "@/features/achievement/QuickCheck";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
+import { withArchives } from "@/content/source-archive";
 import { ShareButton } from "@/features/achievement/ShareButton";
 import { SceneNav } from "@/features/achievement/SceneNav";
 import { BackButton } from "@/features/app/BackButton";
@@ -825,7 +826,10 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
         )}
 
         <div className="mt-10">
-          <CorrectionLink page={`/achievement/${achievement.slug}`} />
+          <CorrectionLink
+            page={`/achievement/${achievement.slug}`}
+            contentPaths={[`src/content/achievements/${achievement.slug}/`]}
+          />
         </div>
       </main>
 
@@ -838,7 +842,7 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
         claims={achievement.claims}
         suggestions={askSuggestions}
       />
-      <EvidenceDrawer claims={achievement.claims} sources={achievement.sources} />
+      <EvidenceDrawer claims={achievement.claims} sources={withArchives(achievement.sources)} />
     </>
   );
 }

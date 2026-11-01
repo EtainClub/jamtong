@@ -27,6 +27,7 @@ import { InfographicSection } from "@/features/infographic/InfographicSection";
 import { JsonLd, collectionPageLd } from "@/lib/seo/jsonld";
 import { EvidenceButton } from "@/features/evidence/EvidenceButton";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
+import { withArchives } from "@/content/source-archive";
 
 export const metadata: Metadata = {
   title: "업적",
@@ -174,7 +175,7 @@ export default function ExplorePage() {
       </main>
 
       <BottomNav />
-      <EvidenceDrawer claims={ALL_CLAIMS} sources={ALL_SOURCES} />
+      <EvidenceDrawer claims={ALL_CLAIMS} sources={withArchives(ALL_SOURCES)} />
     </>
   );
 }

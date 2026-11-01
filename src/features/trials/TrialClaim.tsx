@@ -1,5 +1,7 @@
 import type { Policy } from "@/content/policies/schema";
 import type { Side } from "@/content/policies/trials/easy";
+import { withArchive } from "@/content/source-archive";
+import { SourceCitation } from "@/features/evidence/SourceLinks";
 
 import { SIDE_STYLE } from "./TrialEasyCard";
 
@@ -40,21 +42,7 @@ export function TrialClaim({ policy, claimId }: { policy: Policy; claimId: strin
         <ul className="mt-1 space-y-0.5 text-[11px] leading-relaxed text-ash">
           {sources.map((source) => (
             <li key={source.id}>
-              {source.url ? (
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2 hover:text-smoke"
-                >
-                  {source.publisher} 『{source.title}』
-                </a>
-              ) : (
-                <>
-                  {source.publisher} 『{source.title}』
-                </>
-              )}
-              {source.publishedAt && <span className="tabular"> · {source.publishedAt}</span>}
+              <SourceCitation source={withArchive(source)} />
             </li>
           ))}
         </ul>

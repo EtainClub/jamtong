@@ -27,7 +27,9 @@ import {
   ProgressLegend,
 } from "@/features/cartel/CartelProgress";
 import { Timeline } from "@/features/timeline/Timeline";
+import { CorrectionLink } from "@/features/correction/CorrectionLink";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
+import { withArchives } from "@/content/source-archive";
 import { ShareLinkButton } from "@/features/app/ShareLinkButton";
 import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 
@@ -337,10 +339,16 @@ export default async function CartelDetailPage({
             <p className="mt-1.5 text-[12px] leading-relaxed text-ash">{cartel.sourceNote}</p>
           </section>
         )}
+
+        <CorrectionLink
+          page={`/cartel/${cartel.slug}`}
+          contentPaths={[`src/content/cartels/${cartel.slug}.ts`]}
+          className="mt-10"
+        />
       </main>
 
       <BottomNav />
-      <EvidenceDrawer claims={claims} sources={sources} />
+      <EvidenceDrawer claims={claims} sources={withArchives(sources)} />
     </>
   );
 }

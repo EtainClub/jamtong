@@ -194,7 +194,11 @@ export default async function StatementPage({
         )}
 
         <div className="mt-10">
-          <CorrectionLink page={`/words/${statement.slug}`} className="" />
+          <CorrectionLink
+            page={`/words/${statement.slug}`}
+            contentPaths={[`src/content/words/${statement.slug}.ts`]}
+            className=""
+          />
         </div>
       </main>
 

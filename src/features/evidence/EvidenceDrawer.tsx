@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Claim, Source } from "@/content/schema";
+import type { Claim } from "@/content/schema";
+import type { ArchivedSource } from "@/content/source-archive";
 import {
   ASSERTION_LABEL,
   ASSERTION_STYLE,
@@ -9,6 +10,7 @@ import {
   SOURCE_TYPE_TIER,
 } from "@/content/labels";
 import { useVisualState } from "@/lib/visual-state/store";
+import { SourceLinks } from "./SourceLinks";
 
 /**
  * 근거 Drawer (설계서 8장).
@@ -21,7 +23,8 @@ import { useVisualState } from "@/lib/visual-state/store";
 
 interface Props {
   claims: Claim[];
-  sources: Source[];
+  /** 서버에서 `withArchives`로 보존본과 확인 날짜를 붙여 보낸다. */
+  sources: ArchivedSource[];
 }
 
 export function EvidenceDrawer({ claims, sources }: Props) {
@@ -58,7 +61,7 @@ export function EvidenceDrawer({ claims, sources }: Props) {
 
   const claimSources = claim.sourceIds
     .map((id) => sources.find((s) => s.id === id))
-    .filter((s): s is Source => Boolean(s));
+    .filter((s): s is ArchivedSource => Boolean(s));
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -147,18 +150,9 @@ export function EvidenceDrawer({ claims, sources }: Props) {
                   </blockquote>
                 )}
 
-                {(source.url ?? source.archivedUrl) && (
-                  <a
-                    href={source.url ?? source.archivedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-navy hover:text-navy"
-                  >
-                    원문 보기
-                    <span aria-hidden="true">↗</span>
-                    <span className="sr-only">(새 창)</span>
-                  </a>
-                )}
+                <span className="mt-3 block">
+                  <SourceLinks source={source} />
+                </span>
               </li>
             ))}
           </ul>

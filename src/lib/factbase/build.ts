@@ -4,6 +4,7 @@ import { getPublishedAchievements } from "@/content/achievements";
 import { COLLECTIONS } from "@/content/milestones";
 import { POLICIES } from "@/content/policies";
 import type { Claim, Source } from "@/content/schema";
+import { withArchive } from "@/content/source-archive";
 import { STATEMENTS } from "@/content/words";
 
 /**
@@ -31,6 +32,12 @@ export interface FactSource {
   title: string;
   publisher: string;
   url?: string;
+  /** 인터넷 아카이브 보존본. 원문이 사라져도 이 주소로 근거를 연다. */
+  archivedUrl?: string;
+  /** 원문 링크를 마지막으로 확인한 날. */
+  checkedAt?: string;
+  /** 원문이 404·410을 돌려줬다. */
+  gone?: boolean;
   publishedAt?: string;
   license: Source["license"];
 }
@@ -57,12 +64,16 @@ export interface Factbase {
   entries: FactEntry[];
 }
 
-function toFactSource(source: Source): FactSource {
+function toFactSource(raw: Source): FactSource {
+  const source = withArchive(raw);
   return {
     id: source.id,
     title: source.title,
     publisher: source.publisher,
     url: source.url,
+    archivedUrl: source.archivedUrl,
+    checkedAt: source.checkedAt,
+    gone: source.gone,
     publishedAt: source.publishedAt,
     license: source.license,
   };
