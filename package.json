@@ -19,7 +19,8 @@
     "grant-admin": "tsx scripts/grant-admin.ts",
     "infographics:migrate": "tsx --env-file=.env.local scripts/migrate-infographics.ts",
     "brand": "tsx scripts/build-brand.ts",
-    "release": "tsx scripts/release.ts"
+    "release": "tsx scripts/release.ts",
+    "sources:archive": "tsx scripts/sources-archive.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.126.0",

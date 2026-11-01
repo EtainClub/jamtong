@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 
 import { track } from "@/lib/analytics";
 
+import { KakaoShareButton } from "./KakaoShareButton";
+
 /**
  * 지금 보고 있는 글 하나의 주소를 건넨다.
  *
@@ -64,26 +66,33 @@ export function ShareLinkButton({
   };
 
   return (
-    <button
-      type="button"
-      onClick={onShare}
-      aria-label={label.aria}
-      className={`inline-flex shrink-0 items-center gap-2 rounded-full border border-stone bg-taupe py-2 text-sm font-medium text-smoke transition-colors hover:border-graphite hover:text-navy ${
-        compact ? "px-3 sm:px-4" : "px-4"
-      }`}
-    >
-      <span aria-hidden="true">↗</span>
-      {/*
-       * 좁은 화면에서는 화살표만 남긴다 — 상단 바에 글자가 들어갈 자리가 좁다.
-       * 다만 복사한 뒤에는 접지 않는다. 시트가 없는 환경에서 조용히 복사만
-       * 되면 눌린 것인지 알 수 없고, 그 환경이 바로 이 좁은 화면이다.
-       */}
-      <span className={compact && !copied ? "hidden sm:inline" : undefined}>
-        {copied ? "링크를 복사했습니다" : label.text}
-      </span>
-      <span className="sr-only" aria-live="polite">
-        {copied ? label.copied : ""}
-      </span>
-    </button>
+    <span className="inline-flex shrink-0 items-center gap-1.5">
+      <KakaoShareButton
+        getUrl={() => `${window.location.origin}${pathname}`}
+        surface={surface}
+        compact={compact}
+      />
+      <button
+        type="button"
+        onClick={onShare}
+        aria-label={label.aria}
+        className={`inline-flex shrink-0 items-center gap-2 rounded-full border border-stone bg-taupe py-2 text-sm font-medium text-smoke transition-colors hover:border-graphite hover:text-navy ${
+          compact ? "px-3 sm:px-4" : "px-4"
+        }`}
+      >
+        <span aria-hidden="true">↗</span>
+        {/*
+         * 좁은 화면에서는 화살표만 남긴다 — 상단 바에 글자가 들어갈 자리가 좁다.
+         * 다만 복사한 뒤에는 접지 않는다. 시트가 없는 환경에서 조용히 복사만
+         * 되면 눌린 것인지 알 수 없고, 그 환경이 바로 이 좁은 화면이다.
+         */}
+        <span className={compact && !copied ? "hidden sm:inline" : undefined}>
+          {copied ? "링크를 복사했습니다" : label.text}
+        </span>
+        <span className="sr-only" aria-live="polite">
+          {copied ? label.copied : ""}
+        </span>
+      </button>
+    </span>
   );
 }

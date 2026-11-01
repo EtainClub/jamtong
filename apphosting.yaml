@@ -88,3 +88,11 @@ env:
     value: fae9f8c2b7f41b920d7c5e324c097a37e6f3dfd4
     availability:
       - BUILD
+  # 카카오톡 공유 단추. 카카오 개발자 콘솔 → 내 애플리케이션 → 앱 키의 "JavaScript 키".
+  # 비밀이 아니다(브라우저에 그대로 실린다). 대신 콘솔의 플랫폼 → Web에
+  # https://jamtong.kr 을 등록해 다른 도메인에서는 못 쓰게 막는다.
+  # 값을 넣기 전에는 주석으로 둔다 — 비어 있으면 단추가 보이지 않는다.
+  # - variable: NEXT_PUBLIC_KAKAO_JS_KEY
+  #   value: <JavaScript 키>
+  #   availability:
+  #     - BUILD

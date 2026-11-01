@@ -14,6 +14,8 @@ import { validateCheers } from "../src/content/cheers/schema";
 import { BOOKS } from "../src/content/books";
 import { validateBook } from "../src/content/books/schema";
 import { POLICIES } from "../src/content/policies";
+import { CORRECTIONS, validateCorrections } from "../src/content/corrections";
+import { archiveEntry } from "../src/content/source-archive";
 
 let failed = false;
 
@@ -160,6 +162,37 @@ for (const policy of POLICIES) {
     `✓ 정책 ${policy.slug} — claim ${policy.claims.length} (미검증 ${unverified}), ` +
       `도는 주장 ${policy.rumors.length}, 출처 ${policy.sources.length}`,
   );
+}
+
+/* 정정 기록. 날짜와 id만 기계로 본다 — 무엇을 고쳤는지는 사람이 적는다. */
+const correctionErrors = validateCorrections();
+if (correctionErrors.length > 0) {
+  failed = true;
+  for (const e of correctionErrors) console.error(`\n✗ ${e}`);
+} else {
+  console.log(`✓ 정정 기록 ${CORRECTIONS.length}건`);
+}
+
+/*
+ * 출처 보존. 막지 않고 알린다 — 아카이브가 늦게 잡는 것이 콘텐츠의 잘못은
+ * 아니다. 다만 끊긴 링크는 대체 출처를 찾을 일감이라 이름까지 적는다.
+ */
+{
+  const urls = [
+    ...ALL_SOURCES,
+    ...ACHIEVEMENTS.flatMap((a) => a.sources),
+    ...POLICIES.flatMap((p) => p.sources),
+  ]
+    .map((s) => s.url)
+    .filter((u): u is string => Boolean(u));
+  const unique = [...new Set(urls)];
+  const entries = unique.map((u) => [u, archiveEntry(u)] as const);
+  const unchecked = entries.filter(([, e]) => !e).length;
+  const archived = entries.filter(([, e]) => e?.archivedAt).length;
+  const gone = entries.filter(([, e]) => e?.status === "gone").map(([u]) => u);
+  console.log(`✓ 출처 보존본 ${archived}/${unique.length} (아직 점검 안 함 ${unchecked})`);
+  if (unchecked > 0) console.warn("  ⚠ pnpm sources:archive로 새 출처를 점검하세요");
+  for (const u of gone) console.warn(`  ⚠ 원문 링크 끊김: ${u}`);
 }
 
 if (failed) {

@@ -39,7 +39,13 @@ export default function CorrectionPage() {
 
         <ul className="mt-4 space-y-2 rounded-card border border-stone bg-taupe px-4 py-3 text-[12px] leading-relaxed text-ash">
           <li>· 접수한 것은 공개되지 않습니다. 운영자만 봅니다.</li>
-          <li>· 고친 내용은 해당 화면에 반영되고, 바뀐 자리는 저장소 기록에 남습니다.</li>
+          <li>
+            · 고친 내용은 해당 화면에 반영되고{" "}
+            <Link href="/corrections" className="font-semibold text-navy underline underline-offset-2">
+              정정 기록
+            </Link>
+            에 공개됩니다.
+          </li>
           <li>· 이름 없이 접수됩니다. 회신을 받으시려면 연락처를 적어 주세요.</li>
         </ul>
 

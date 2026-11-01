@@ -67,6 +67,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/apps", 0.4],
     ["/feedback", 0.3],
     ["/correction", 0.3],
+    ["/corrections", 0.4],
   ];
   for (const [path, priority] of fixed) {
     out.push({ url: abs(path), priority });

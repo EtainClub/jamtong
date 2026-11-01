@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { withArchive } from "@/content/source-archive";
+import { SourceCitation } from "@/features/evidence/SourceLinks";
 
 import type { ResolvedEvidence, ResolvedLine } from "@/content/pledges";
 
@@ -56,21 +58,7 @@ export function EvidenceDetails({ evidence }: { evidence: ResolvedEvidence }) {
       <ul className="mt-2 space-y-0.5 text-[11px] leading-relaxed text-ash">
         {evidence.sources.map((source) => (
           <li key={source.id}>
-            {source.url ? (
-              <a
-                href={source.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline underline-offset-2 hover:text-smoke"
-              >
-                {source.publisher} 『{source.title}』
-              </a>
-            ) : (
-              <>
-                {source.publisher} 『{source.title}』
-              </>
-            )}
-            {source.publishedAt && <span className="tabular"> · {source.publishedAt}</span>}
+            <SourceCitation source={withArchive(source)} />
           </li>
         ))}
       </ul>

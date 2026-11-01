@@ -10,6 +10,7 @@ import { PLEDGES, totalCount } from "@/content/pledges";
 import { TASKS, sumCounts } from "@/content/tasks";
 
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
+import { withArchives } from "@/content/source-archive";
 import { conceptCards } from "@/lib/wiki/load";
 import { JsonLd, webSiteLd } from "@/lib/seo/jsonld";
 
@@ -152,7 +153,7 @@ export default function Home() {
       </main>
 
       <BottomNav />
-      <EvidenceDrawer claims={ALL_CLAIMS} sources={ALL_SOURCES} />
+      <EvidenceDrawer claims={ALL_CLAIMS} sources={withArchives(ALL_SOURCES)} />
     </>
   );
 }
