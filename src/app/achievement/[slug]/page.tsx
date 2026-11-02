@@ -49,6 +49,69 @@ type LayoutConfig = {
 };
 
 const LAYOUTS: Record<string, LayoutConfig> = {
+  "inbound-tourism": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "문을 연 순서와 기록",
+          timelineLede: "비자 완화가 시행된 날과 관광객 기록이 발표된 날을 함께 봅니다.",
+          numbersHeading: "관광객과 지출의 숫자",
+          numbersLede: "문화체육관광부 발표입니다. 목표치는 전망이라 따로 표시했습니다.",
+          relationsHeading: "누가 오고, 어디서 썼나",
+          relationsLede: "정부의 비자 정책, 관광객, 업계, 비수도권 지역 사이에 무엇이 오갔는지 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "tr-record", label: "연간 최다 기록 경신" },
+      { claimId: "tr-q3", label: "1~9월 21.5% 증가" },
+    ],
+    askSuggestions: ["외국인 관광객이 정말 역대 최다인가요?", "중국 무비자는 누가 시작했나요?", "2,000만 명을 넘었나요?"],
+  },
+  "birth-rebound": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "반등이 이어진 순서",
+          timelineLede: "출생아가 늘기 시작한 때부터 정부 계획과 최신 통계까지 봅니다.",
+          numbersHeading: "출생 통계의 숫자",
+          numbersLede: "국가데이터처 인구동향을 전한 보도입니다. 증가 원인은 통계에 나오지 않습니다.",
+          relationsHeading: "통계와 정책은 누구를 향하나",
+          relationsLede: "정부 계획과 통계가 혼인·출산 가구와 어떻게 이어지는지 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "br-streak", label: "26개월 연속 증가" },
+      { claimId: "br-natural", label: "아직 자연감소" },
+    ],
+    askSuggestions: ["출생아가 정말 늘고 있나요?", "정부 정책 덕분인가요?", "인구는 늘고 있나요?"],
+  },
+  "export-surplus": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "숫자가 나온 순서",
+          timelineLede: "관세 협상부터 2분기 경상수지, 10월 수출 발표까지 시점을 함께 봅니다.",
+          numbersHeading: "흑자와 수출의 숫자",
+          numbersLede: "수출은 산업통상부 발표, 경상수지 국가 비교는 IMF 통계를 인용한 보도입니다.",
+          relationsHeading: "누가 흐름에 관여했나",
+          relationsLede: "수출 기업, 정부, 미국, AI 투자를 하는 빅테크 사이에 무엇이 오갔는지 봅니다.",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "es-q2-rank", label: "2분기 경상흑자 세계 2위" },
+      { claimId: "es-cum", label: "1~10월 누적 수출" },
+    ],
+    askSuggestions: ["경상수지 세계 2위는 어떤 기준인가요?", "수출 1조 달러를 넘었나요?", "정부가 한 일인가요?"],
+  },
   "housing-stabilization": {
     Layout: (props) => (
       <NarrativeLayout

@@ -1,5 +1,18 @@
 import type { Eli5Art } from "@/content/schema";
 import { SavingsApply, SavingsMatch } from "./YouthSavingsArt";
+import { EsChip, EsDeJp, EsJump, EsRank, EsTrillion } from "./ExportSurplusArt";
+import {
+  BrAug,
+  BrCum,
+  BrNatural,
+  BrStreak,
+  BrWhy,
+  TrNeighbors,
+  TrRecord,
+  TrRegion,
+  TrSpend,
+  TrVisa,
+} from "./TourismBirthArt";
 
 /**
  * 쉬운 설명 삽화.
@@ -3122,6 +3135,21 @@ function MxJet() {
 export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "ys-match": SavingsMatch,
   "ys-apply": SavingsApply,
+  "es-jump": EsJump,
+  "es-rank": EsRank,
+  "es-dejp": EsDeJp,
+  "es-trillion": EsTrillion,
+  "es-chip": EsChip,
+  "tr-record": TrRecord,
+  "tr-neighbors": TrNeighbors,
+  "tr-spend": TrSpend,
+  "tr-region": TrRegion,
+  "tr-visa": TrVisa,
+  "br-streak": BrStreak,
+  "br-aug": BrAug,
+  "br-cum": BrCum,
+  "br-natural": BrNatural,
+  "br-why": BrWhy,
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
   "compare-bars": CompareBars,

@@ -1929,6 +1929,119 @@ function AskVsSigned({ v, step }: { v: Extract<Visual, { kind: "ask-vs-signed" }
   );
 }
 
+/* ══════════════════════════════════════════════════════════════
+ * 14. 줄 세우기
+ *
+ * 같은 눈금 위에 막대를 큰 것부터 놓는다. 처음에는 앞에 세울 하나를 비워 두고
+ * 나머지만 채운다 — 비교 대상을 먼저 보아야 그 하나의 자리가 읽힌다. 마지막
+ * 단계에서 몇 개를 이어 붙인 합계 막대가 한 줄 더 나온다. 합계도 같은 눈금이다.
+ * ══════════════════════════════════════════════════════════════ */
+
+const RANK = { x0: 92, x1: 400, top: 34, pitch: 34, h: 20 };
+
+function RankBars({ v, step }: { v: Extract<Visual, { kind: "rank-bars" }>; step: number }) {
+  const members = v.sum ? v.bars.filter((b) => v.sum!.memberIds.includes(b.id)) : [];
+  const sumValue = members.reduce((acc, b) => acc + b.value, 0);
+  const max = Math.max(...v.bars.map((b) => b.value), sumValue);
+  const w = (value: number) => ((RANK.x1 - RANK.x0) * value) / max;
+  const fmt = (value: number) => Math.round(value).toLocaleString("ko-KR");
+  const focus = v.bars.find((b) => b.focus);
+  const focusOn = step >= 1;
+  const sumOn = step >= 2 && v.sum !== undefined;
+  const rows = v.bars.length + (v.sum ? 1 : 0);
+  const height = RANK.top + rows * RANK.pitch + 18;
+  const sumY = RANK.top + v.bars.length * RANK.pitch + 6;
+  const palette = ["var(--graphite)", "var(--ash)"];
+
+  return (
+    <div>
+      <svg viewBox={`0 0 480 ${height}`} className={svgClass} aria-hidden="true" focusable="false">
+        <text x={RANK.x0} y={20} fontSize={11} {...SUB} fill="var(--smoke)">
+          {v.periodLabel} · {v.unit}
+        </text>
+
+        {v.bars.map((b, i) => {
+          const y = RANK.top + i * RANK.pitch;
+          const isFocus = Boolean(b.focus);
+          const filled = !isFocus || focusOn;
+          return (
+            <g key={b.id}>
+              <text x={RANK.x0 - 10} y={y + RANK.h / 2 + 4} textAnchor="end" fontSize={12.5} {...LABEL}
+                    fill={isFocus ? "var(--navy)" : "var(--ink)"}>
+                {b.label}
+              </text>
+              {isFocus && (
+                <rect x={RANK.x0} y={y} width={w(b.value)} height={RANK.h} rx={4} fill="none"
+                      stroke="var(--navy)" strokeWidth={1.5} strokeDasharray="4 3" />
+              )}
+              <rect
+                x={RANK.x0}
+                y={y}
+                width={w(b.value)}
+                height={RANK.h}
+                rx={4}
+                fill={isFocus ? "var(--navy)" : "var(--stone)"}
+                style={{
+                  transform: `scaleX(${filled ? 1 : 0})`,
+                  transformBox: "fill-box",
+                  transformOrigin: "left center",
+                  transition: "transform 720ms var(--ease-out-expo)",
+                }}
+              />
+              <Layer on={filled}>
+                <text x={RANK.x0 + w(b.value) + 6} y={y + RANK.h / 2 + 4} fontSize={11.5} {...SUB}
+                      fill={isFocus ? "var(--navy)" : "var(--smoke)"} style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {fmt(b.value)}
+                </text>
+              </Layer>
+            </g>
+          );
+        })}
+
+        {v.sum && (
+          <Layer on={sumOn}>
+            <line x1={RANK.x0 - 70} x2={RANK.x1} y1={sumY - 8} y2={sumY - 8} stroke="var(--stone)" strokeDasharray="3 4" />
+            <text x={RANK.x0 - 10} y={sumY + RANK.h / 2 + 4} textAnchor="end" fontSize={12} {...LABEL} fill="var(--burgundy)">
+              {v.sum.label}
+            </text>
+            {members.map((b, i) => {
+              const offset = members.slice(0, i).reduce((acc, m) => acc + w(m.value), 0);
+              return (
+                <rect key={b.id} x={RANK.x0 + offset} y={sumY} width={w(b.value)} height={RANK.h}
+                      rx={4} fill={palette[i % palette.length]} opacity={0.75} />
+              );
+            })}
+            <text x={RANK.x0 + w(sumValue) + 6} y={sumY + RANK.h / 2 + 4} fontSize={11.5} {...SUB}
+                  fill="var(--burgundy)" style={{ fontVariantNumeric: "tabular-nums" }}>
+              {fmt(sumValue)}
+            </text>
+            {focus && (
+              <line x1={RANK.x0 + w(focus.value)} x2={RANK.x0 + w(focus.value)} y1={RANK.top - 6} y2={sumY + RANK.h + 6}
+                    stroke="var(--navy)" strokeWidth={1.5} strokeDasharray="4 4" />
+            )}
+          </Layer>
+        )}
+      </svg>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {focus && (
+          <Chip tone={focusOn ? "navy" : "neutral"}>
+            {focus.label} {fmt(focus.value)}
+            {v.unit}
+          </Chip>
+        )}
+        {v.sum && (
+          <Chip tone={sumOn ? "burgundy" : "neutral"}>
+            {v.sum.label} {fmt(sumValue)}
+            {v.unit}
+          </Chip>
+        )}
+      </div>
+      {v.note && <p className="mt-2 text-[12px] leading-relaxed text-ash">{v.note}</p>}
+    </div>
+  );
+}
+
 /** 종류 → 그림. 새 종류를 만들면 스키마에 한 갈래, 여기에 한 줄이다. */
 export function ExplainerVisualView({ visual, step }: { visual: Visual; step: number }) {
   switch (visual.kind) {
@@ -1958,5 +2071,7 @@ export function ExplainerVisualView({ visual, step }: { visual: Visual; step: nu
       return <ChannelOpen v={visual} step={step} />;
     case "ask-vs-signed":
       return <AskVsSigned v={visual} step={step} />;
+    case "rank-bars":
+      return <RankBars v={visual} step={step} />;
   }
 }

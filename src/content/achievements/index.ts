@@ -24,6 +24,9 @@ import { oilSupply } from "./oil-supply/achievement";
 import { mexicoVisit } from "./mexico-visit/achievement";
 import { youthFutureSavings } from "./youth-future-savings/achievement";
 import { housingStabilization } from "./housing-stabilization/achievement";
+import { exportSurplus } from "./export-surplus/achievement";
+import { inboundTourism } from "./inbound-tourism/achievement";
+import { birthRebound } from "./birth-rebound/achievement";
 
 /**
  * 업적 레지스트리.
@@ -32,6 +35,9 @@ import { housingStabilization } from "./housing-stabilization/achievement";
  * 검색·피드·정적 경로가 전부 이걸 본다.
  */
 export const ACHIEVEMENTS: Achievement[] = [
+  exportSurplus,
+  inboundTourism,
+  birthRebound,
   youthFutureSavings,
   arcticRoute,
   daejangdong,

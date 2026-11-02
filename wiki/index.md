@@ -42,6 +42,9 @@ raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온�
 - [[source/nuclear-submarine]] — 핵추진잠수함. 승인은 났고 연료는 협상 중.
 - [[source/resource-diplomacy]] — 핵심광물 공급망 외교. 74건 중 대부분이 MOU.
 - [[source/oil-supply]] — 원유 수입처 다변화. 중동산 71.5% → 62.8%.
+- [[source/export-surplus]] — 경상수지 세계 2위·수출 1조 달러. 2분기 36개국 중 2위, 1조 달러는 달성 전.
+- [[source/inbound-tourism]] — 외국인 관광객 역대 최다. 10월에 작년 1년치를 넘음, 2,300만 명은 전망.
+- [[source/birth-rebound]] — 출생아 26개월 연속 증가. 반등은 정부 출범 전 시작, 원인 미확정.
 - [[source/arctic-route]] — 북극항로. 거의 전부가 계획이다.
 
 ### 경기도지사

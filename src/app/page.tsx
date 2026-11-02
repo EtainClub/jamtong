@@ -23,6 +23,9 @@ import { JsonLd, webSiteLd } from "@/lib/seo/jsonld";
  */
 
 const HERO_IMAGES: Partial<Record<string, string>> = {
+  "export-surplus": "/images/heroes/export-surplus.webp",
+  "inbound-tourism": "/images/heroes/inbound-tourism.webp",
+  "birth-rebound": "/images/heroes/birth-rebound.webp",
   "housing-stabilization": "/images/achievements/housing-stabilization-hero.webp",
   "youth-future-savings": "/images/heroes/youth-future-savings.jpg",
   "arctic-route": "/images/heroes/arctic-route.jpg",
@@ -37,7 +40,7 @@ const HERO_IMAGES: Partial<Record<string, string>> = {
 };
 
 /** 히어로 첫 장에 세우는 메인 업적. */
-const MAIN_HERO = "youth-future-savings";
+const MAIN_HERO = "export-surplus";
 
 /*
  * 제목과 설명은 layout.tsx의 기본값을 그대로 쓴다. 홈에서 한 번 더 적으면
@@ -62,7 +65,7 @@ export default function Home() {
    * 넘기게 할 수 없고, 화면이 임의로 고르면 "왜 이것들인가"에 답할 수 없다.
    * 하나도 표시되지 않은 경우에만 앞에서 다섯을 세운다 — 첫 화면이 비면 안 된다.
    *
-   * 청년미래적금을 메인 업적으로 첫 장에 두고, 나머지는 최근 순으로 보여준다.
+   * 경상수지 세계 2위·수출 1조 달러를 메인 업적으로 첫 장에 두고, 나머지는 최근 순으로 보여준다.
    */
   const byNewest = published.slice().sort(byRecency);
   const featured = byNewest.filter((a) => a.featured);

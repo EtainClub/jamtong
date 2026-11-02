@@ -942,6 +942,27 @@ export const Eli5Art = z.enum([
   "mx-jet",
   "ys-match",
   "ys-apply",
+
+  // 경상수지 세계 2위·수출 1조 달러
+  "es-jump",
+  "es-rank",
+  "es-dejp",
+  "es-trillion",
+  "es-chip",
+
+  // 외국인 관광객 역대 최다
+  "tr-record",
+  "tr-neighbors",
+  "tr-spend",
+  "tr-region",
+  "tr-visa",
+
+  // 출생아 반등
+  "br-streak",
+  "br-aug",
+  "br-cum",
+  "br-natural",
+  "br-why",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 
@@ -1400,6 +1421,35 @@ export const explainerVisualSchema = z.discriminatedUnion("kind", [
   }),
 
   /**
+   * 같은 눈금 위에 나라(또는 대상)를 줄 세운다. 하나를 앞에 세우고, 필요하면
+   * 몇 개를 더한 막대를 한 줄 더 놓는다.
+   *
+   * 순위는 막대의 순서가 정한다 — 큰 것부터다. 화면이 따로 정렬하지 않으므로
+   * 순서가 어긋나면 검사가 막는다. 사이 순위를 비워 둔 채 "몇 위"를 말하지 않도록
+   * 순위 숫자는 그리지 않고, 순위는 껍데기의 글이 나른다.
+   */
+  z.object({
+    kind: z.literal("rank-bars"),
+    unit: z.string(),
+    /** 무엇을 비교하는지. "2026년 2분기 경상수지 흑자". */
+    periodLabel: z.string(),
+    bars: z
+      .array(
+        z.object({
+          id: z.string(),
+          label: z.string(),
+          value: z.number().positive(),
+          focus: z.boolean().optional(),
+        }),
+      )
+      .min(2)
+      .max(8),
+    /** 더해서 견줄 막대. 마지막 단계에 나온다. */
+    sum: z.object({ label: z.string(), memberIds: z.array(z.string()).min(2) }).optional(),
+    note: z.string().optional(),
+  }),
+
+  /**
    * 한 이름으로 묶여 전해진 것을, 문서로 맺은 것과 요청한 것으로 가른다.
    *
    * 요청은 합의가 아니다. 둘을 같은 칸에 두면 요청이 성과로 읽힌다.
@@ -1538,6 +1588,22 @@ const checkDocSort: VisualCheck<"doc-sort"> = (visual, at) => {
     .map((item) => `${at} → 문서 "${item.id}"가 없는 성격 "${item.typeId}"로 분류됐다`);
 };
 
+const checkRankBars: VisualCheck<"rank-bars"> = (visual, at) => {
+  const errors: string[] = [];
+  const focus = visual.bars.filter((b) => b.focus);
+  if (focus.length !== 1) errors.push(`${at} → 앞에 세운 막대(focus)가 ${focus.length}개다 (하나여야 한다)`);
+  if (!visual.bars.every((b, i, all) => i === 0 || all[i - 1].value >= b.value)) {
+    errors.push(`${at} → 막대가 큰 것부터 놓이지 않았다`);
+  }
+  if (visual.sum) {
+    const ids = new Set(visual.bars.map((b) => b.id));
+    for (const id of visual.sum.memberIds) {
+      if (!ids.has(id)) errors.push(`${at} → 합계에 없는 막대 "${id}"가 들어 있다`);
+    }
+  }
+  return errors;
+};
+
 const checkAskVsSigned: VisualCheck<"ask-vs-signed"> = (visual, at) => {
   const errors: string[] = [];
   if (!visual.items.some((i) => i.side === "signed")) errors.push(`${at} → 맺은 것이 없다`);
@@ -1565,6 +1631,8 @@ function checkVisual(visual: ExplainerVisual, at: string): string[] {
       return checkDocSort(visual, at);
     case "ask-vs-signed":
       return checkAskVsSigned(visual, at);
+    case "rank-bars":
+      return checkRankBars(visual, at);
     /* 한 레코드 안에서 어긋날 수 있는 것이 없는 종류들. */
     case "freight-gap":
     case "reserve-loop":
