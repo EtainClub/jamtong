@@ -5,7 +5,7 @@ import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import { findScene, validateMilestones } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
-import { HomeFeed, type HeroSlide, type LifeCard } from "@/features/home/HomeFeed";
+import { HomeFeed, type HeroSlide, type LifeCard, type WatchCard } from "@/features/home/HomeFeed";
 import { PLEDGES, totalCount } from "@/content/pledges";
 import { TASKS, sumCounts } from "@/content/tasks";
 
@@ -37,6 +37,26 @@ const HERO_IMAGES: Partial<Record<string, string>> = {
   "prosecution-reform": "/images/heroes/prosecution-reform.jpg",
   "seongnam-debt": "/images/heroes/seongnam-debt.jpg",
   "stock-market": "/images/heroes/stock-market.jpg",
+};
+
+/**
+ * 지금 국회에 걸려 있는 일 — 2027년 예산안.
+ *
+ * 숫자는 policy:budget-2027의 claim-total, 기한은 claim-speech-deadline과 같다.
+ * ★ 법정기한이 지나면 카드를 내리지 않는다는 실수를 막기 위해, 기한 다음 날부터는
+ *   빌드가 이 카드를 넘기지 않는다. 확정 예산이 나오면 문구를 바꿔 다시 올린다.
+ */
+const BUDGET_DEADLINE = "2026-12-02";
+const BUDGET_WATCH: WatchCard = {
+  tag: "국회 심의 중",
+  title: "2027년 예산안",
+  status: "정부안",
+  summary: "총지출 820조 9천억 원(올해보다 12.8% 증가). 국회 심의에서 바뀔 수 있습니다.",
+  deadlineLabel: "법정 처리 기한 12월 2일",
+  links: [
+    { href: "/wiki/policy/budget-2027", label: "예산안 팩트" },
+    { href: "/words/budget-speech-2027", label: "시정연설 원문" },
+  ],
 };
 
 /** 히어로 첫 장에 세우는 메인 업적. */
@@ -152,6 +172,7 @@ export default function Home() {
           claims={ALL_CLAIMS}
           pledges={{ count: totalCount(), pledges: PLEDGES.length }}
           tasks={sumCounts(TASKS)}
+          watch={new Date().toISOString().slice(0, 10) <= BUDGET_DEADLINE ? BUDGET_WATCH : undefined}
         />
       </main>
 
