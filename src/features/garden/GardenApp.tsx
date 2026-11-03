@@ -5,6 +5,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/firebase/auth";
 import { loadGarden, saveGarden } from "@/lib/firebase/garden";
 
+import styles from "./garden.module.css";
+import { GardenScenery } from "./GardenArt";
+import { gardenFeedback, setGardenSound } from "./feedback";
+
 import { Beds } from "./Beds";
 import { Dex } from "./Dex";
 import { FlowerBed } from "./FlowerBed";
@@ -26,12 +30,12 @@ import { usePlaza } from "./usePlaza";
 
 type Tab = "beds" | "shop" | "flowers" | "plaza" | "dex";
 
-const TABS: Array<{ id: Tab; label: string }> = [
-  { id: "beds", label: "텃밭" },
-  { id: "shop", label: "상점" },
-  { id: "flowers", label: "꽃밭" },
-  { id: "plaza", label: "광장" },
-  { id: "dex", label: "도감" },
+const TABS: Array<{ id: Tab; label: string; icon: string }> = [
+  { id: "beds", icon: "🌱", label: "텃밭" },
+  { id: "shop", icon: "🏡", label: "상점" },
+  { id: "flowers", icon: "🌸", label: "꽃밭" },
+  { id: "plaza", icon: "⛲", label: "광장" },
+  { id: "dex", icon: "📖", label: "도감" },
 ];
 
 const SAVE_DELAY = 2_000;
@@ -41,6 +45,7 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
   const data = useGarden((s) => s.data);
   const [now, setNow] = useState(() => Date.now());
   const [tab, setTab] = useState<Tab>("beds");
+  const [sound, setSound] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { ready, configured, ensureUser, user } = useAuth();
@@ -52,6 +57,11 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
     setToast(text);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2200);
+  }, []);
+
+  useEffect(() => () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setGardenSound(false);
   }, []);
 
   // 시계. 성장·상점·단비가 모두 이 값으로 그려진다.
@@ -150,28 +160,44 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
   const ripe = data.beds.filter((p) => p && p.ripeAt <= now).length;
 
   return (
-    <div className="garden -mx-4 min-h-[70vh] rounded-t-3xl px-4 pb-10 pt-4 text-ink">
-      <div className="flex items-center justify-between">
-        <p className="text-[22px] font-bold tabular-nums">
+    <div className={`${styles.game} garden -mx-4 min-h-[70vh] rounded-t-3xl px-4 pb-10 pt-4 text-ink`}>
+      <header className="garden-world-header">
+        <GardenScenery raining={isRaining(now)} />
+        <div className="garden-world-title"><span className="garden-eyebrow">JAMTONG GARDEN</span><h1>잼통 정원</h1><p>{data.nick}의 작은 초록 세상</p></div>
+        <button type="button" className="garden-sound" aria-pressed={sound} aria-label={`효과음 ${sound ? "끄기" : "켜기"}`} onClick={() => { setSound(!sound); setGardenSound(!sound); }}>{sound ? "♪ 켜짐" : "♪ 소리 켜기"}</button>
+      </header>
+      <div className="garden-hud flex items-center justify-between">
+        <p key={data.jam} className="garden-wallet text-[22px] font-bold tabular-nums">
           🍯 {data.jam.toLocaleString()}
           <span className="ml-1 text-[12px] font-medium text-smoke">잼</span>
         </p>
         <RainBadge now={now} />
       </div>
 
-      <div role="tablist" aria-label="정원" className="sticky top-14 z-30 -mx-4 mt-3 flex gap-1 bg-[var(--g-bg)]/95 px-4 py-2 backdrop-blur">
+      <div role="tablist" aria-label="정원" className="garden-nav sticky top-14 z-30 -mx-4 mt-3 flex gap-1 px-3 py-2">
         {TABS.map((t) => (
           <button
             key={t.id}
             role="tab"
             type="button"
+            id={`garden-tab-${t.id}`}
+            aria-controls={`garden-panel-${t.id}`}
+            tabIndex={tab === t.id ? 0 : -1}
             aria-selected={tab === t.id}
-            onClick={() => setTab(t.id)}
+            onKeyDown={(e) => {
+              const index = TABS.findIndex((item) => item.id === tab);
+              const next = e.key === "ArrowRight" ? (index + 1) % TABS.length : e.key === "ArrowLeft" ? (index + TABS.length - 1) % TABS.length : e.key === "Home" ? 0 : e.key === "End" ? TABS.length - 1 : -1;
+              if (next < 0) return;
+              e.preventDefault();
+              setTab(TABS[next].id);
+              document.getElementById(`garden-tab-${TABS[next].id}`)?.focus();
+            }}
+            onClick={() => { gardenFeedback("tap"); setTab(t.id); }}
             className={`relative flex-1 rounded-full py-2 text-[13px] font-semibold ${
               tab === t.id ? "bg-ink text-eggshell" : "bg-[var(--g-panel)] text-graphite"
             }`}
           >
-            {t.label}
+            <span aria-hidden="true" className="garden-nav-icon">{t.icon}</span>{t.label}
             {t.id === "beds" && ripe > 0 && (
               <span className="absolute -right-0.5 -top-1 rounded-full bg-[var(--g-jam)] px-1.5 text-[10px] text-white">{ripe}</span>
             )}
@@ -182,7 +208,7 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
         ))}
       </div>
 
-      <div className="mt-4">
+      <div key={tab} role="tabpanel" id={`garden-panel-${tab}`} aria-labelledby={`garden-tab-${tab}`} className={`garden-screen garden-screen-${tab} mt-4`}>
         {tab === "beds" && (
           <Beds
             data={data}

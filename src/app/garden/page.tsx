@@ -24,13 +24,7 @@ export default function GardenPage() {
       <AppTopBar />
 
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pt-6">
-        <h1 className="text-2xl font-light tracking-[-0.02em] text-ink">잼통 정원</h1>
-        <p className="mt-2 text-[13px] leading-relaxed text-smoke">
-          업적·정책·언행 씨앗을 심고 거둬 잼을 만들어요. 열매 속 쪽지에는 근거가 붙어 있어요.
-        </p>
-        <div className="mt-5">
-          <GardenApp catalog={catalog} />
-        </div>
+        <GardenApp catalog={catalog} />
       </main>
 
       <BottomNav />

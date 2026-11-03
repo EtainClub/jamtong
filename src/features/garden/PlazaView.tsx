@@ -6,6 +6,9 @@ import { useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 import { cellId } from "@/lib/firebase/plaza";
 
+import { GroundDetails, WeedArt } from "./GardenArt";
+import { gardenFeedback } from "./feedback";
+
 import { fruitIcon, hash, kstDay, PLAZA_CELLS, PLAZA_LABEL, PLAZA_SPEED, WEED, WEED_REWARD_PER_DAY, WEED_SEED_ODDS } from "./rules";
 import { useGarden } from "./store";
 import type { Plaza, Weed } from "./usePlaza";
@@ -54,6 +57,7 @@ export function PlazaView({
       say("광장에 닿지 못했어요. 잠시 뒤 다시 해 보세요");
       return false;
     }
+    gardenFeedback("pull");
     const at = Date.now();
     setBursts((b) => ({ ...b, [weed.cell]: at }));
     setTimeout(() => setBursts((b) => (b[weed.cell] === at ? omit(b, weed.cell) : b)), 900);
@@ -85,16 +89,22 @@ export function PlazaView({
         </p>
       </div>
 
-      <div className="garden-plaza mt-3 grid grid-cols-6 gap-1.5 rounded-3xl p-2.5">
+      <div className="garden-plaza mt-3 rounded-3xl">
+        <GroundDetails />
+        <div className="garden-field-sign" aria-hidden="true">TOWN GARDEN <span>우리 손으로 가꾸는 정원</span></div>
+        <div className="garden-plaza-grid grid grid-cols-6">
         {Array.from({ length: PLAZA_CELLS }, (_, i) => {
           const weed = weedByCell.get(cellId(i));
           return (
-            <div key={i} className="relative aspect-square rounded-xl bg-[var(--g-grass)]">
+            <div key={i} className="garden-meadow-cell relative aspect-square">
+              {!weed && <span className="garden-meadow-flower" aria-hidden="true">{i % 4 === 0 ? "✿" : "ˬ"}</span>}
               {weed && <WeedButton key={`${weed.cell}-${weed.since}`} weed={weed} onPulled={onPulled} />}
               {bursts[cellId(i)] && <Dirt key={bursts[cellId(i)]} />}
             </div>
           );
         })}
+        </div>
+        <p className="garden-field-hint">✋ 잡초를 톡톡 두드리거나 문질러 주세요</p>
       </div>
 
       <p className="mt-2 text-[11.5px] leading-relaxed text-smoke">
@@ -174,18 +184,24 @@ function WeedButton({ weed, onPulled }: { weed: Weed; onPulled: (weed: Weed) => 
   const [state, setState] = useState<"idle" | "pulling" | "gone">("idle");
   const [shake, setShake] = useState(0);
   const last = useRef<{ x: number; y: number; dist: number } | null>(null);
+  const rubCount = useRef(0);
+  const pulling = useRef(false);
 
   const rub = () => {
-    if (state !== "idle") return;
+    if (pulling.current || state !== "idle") return;
+    gardenFeedback("tap");
     setShake((s) => s + 1);
-    setRubs((r) => {
-      const next = r + 1;
-      if (next >= need) {
-        setState("pulling");
-        void onPulled(weed).then((ok) => setState(ok ? "gone" : "idle"));
-      }
-      return next;
-    });
+    const next = ++rubCount.current;
+    setRubs(next);
+    if (next >= need) {
+      // Keep the request out of a React updater (Strict Mode may invoke it twice).
+      pulling.current = true;
+      setState("pulling");
+      void onPulled(weed).then((ok) => {
+        pulling.current = ok;
+        setState(ok ? "gone" : "idle");
+      });
+    }
   };
 
   if (state === "gone") return null;
@@ -196,7 +212,7 @@ function WeedButton({ weed, onPulled }: { weed: Weed; onPulled: (weed: Weed) => 
   return (
     <button
       type="button"
-      aria-label={`${WEED[weed.stage].label} 뽑기 (${need - rubs}번 남음)`}
+      aria-label={`${WEED[weed.stage].label} 뽑기 (${Math.max(0, need - rubs)}번 남음)`}
       className="absolute inset-0 grid touch-none select-none place-items-center"
       onClick={(e) => {
         // 드래그로 이미 센 것은 다시 세지 않는다. 키보드·두드림만 여기서 센다.
@@ -215,50 +231,16 @@ function WeedButton({ weed, onPulled }: { weed: Weed; onPulled: (weed: Weed) => 
         if (Math.floor(l.dist / RUB_PX) > Math.floor((l.dist - d) / RUB_PX)) rub();
       }}
     >
-      <svg
-        key={shake}
-        viewBox="0 0 40 40"
-        className={`h-full w-full ${shake ? "garden-shake" : ""} ${state === "pulling" ? "garden-lift" : ""}`}
-        style={{ transform: `scale(${scale})` }}
-      >
-        <WeedShape variant={variant} tough={weed.stage === "tough"} />
-      </svg>
+      <span className="garden-weed-sway" style={{ animationDelay: `${-variant * .8}s`, width: "100%", height: "100%" }}>
+        <span key={shake} className={`garden-weed-body ${shake ? "garden-shake" : ""} ${state === "pulling" ? "garden-lift" : ""}`} style={{ transform: `scale(${scale})` }}>
+          <WeedArt variant={variant} tough={weed.stage === "tough"} />
+        </span>
+      </span>
       {rubs > 0 && (
         <span className="pointer-events-none absolute bottom-0.5 h-1 w-3/4 overflow-hidden rounded-full bg-black/20">
           <span className="block h-full bg-white" style={{ width: `${(rubs / need) * 100}%` }} />
         </span>
       )}
     </button>
-  );
-}
-
-function WeedShape({ variant, tough }: { variant: number; tough: boolean }) {
-  const fill = tough ? "var(--g-weed-dark)" : "var(--g-weed)";
-  if (variant === 0) {
-    return (
-      <g fill={fill}>
-        <path d="M20 36 C18 26 10 22 6 12 C14 16 18 22 20 30 Z" />
-        <path d="M20 36 C22 24 30 20 34 8 C26 14 22 22 20 30 Z" />
-        <path d="M20 36 C19 26 20 16 20 4 C22 16 22 26 21 36 Z" />
-      </g>
-    );
-  }
-  if (variant === 1) {
-    return (
-      <g fill={fill}>
-        <ellipse cx="13" cy="22" rx="5" ry="11" transform="rotate(-25 13 22)" />
-        <ellipse cx="27" cy="22" rx="5" ry="11" transform="rotate(25 27 22)" />
-        <ellipse cx="20" cy="17" rx="4.5" ry="12" />
-        {tough && <circle cx="20" cy="6" r="3" fill="var(--g-weed-flower)" />}
-      </g>
-    );
-  }
-  return (
-    <g fill={fill}>
-      <path d="M8 36 L14 10 L17 36 Z" />
-      <path d="M15 36 L21 4 L24 36 Z" />
-      <path d="M22 36 L30 12 L32 36 Z" />
-      {tough && <path d="M4 36 L9 20 L11 36 Z" />}
-    </g>
   );
 }

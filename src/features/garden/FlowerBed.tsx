@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { PlantArt } from "./GardenArt";
+import { gardenFeedback } from "./feedback";
+
 import type { Bloom } from "@/lib/firebase/blooms";
 
 import {
   BLOOM_CARE,
-  BLOOM_ICON,
   bloomBonus,
   bloomStage,
   CARE,
@@ -62,7 +64,7 @@ export function FlowerBed({
   const bonus = Math.round(bloomBonus(bloomedList.length) * 100);
 
   return (
-    <div>
+    <div className="garden-flowers">
       <h2 className="text-[15px] font-bold">꽃밭</h2>
       <p className="mt-1 text-[12px] leading-relaxed text-smoke">
         업적 열매를 거두면 가꿈 {CARE.harvest}, 그 쪽지의 근거를 열면 {CARE.shine}. 모두의 가꿈이 {BLOOM_CARE}에 닿으면
@@ -121,7 +123,7 @@ export function FlowerBed({
               disabled={nectarLeft.length === 0}
               onClick={() => {
                 const jam = takeNectar(nectarLeft.map((s) => s.id));
-                if (jam) say(`🍯 꽃꿀 +${jam}`);
+                if (jam) { gardenFeedback("reward"); say(`🍯 꽃꿀 +${jam}`); }
               }}
               className="rounded-full bg-[var(--g-jam)] px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-35"
             >
@@ -177,7 +179,7 @@ function FlowerRow({
   return (
     <li className={`rounded-2xl px-3.5 py-3 ${bloomed ? "garden-bloomed" : "bg-[var(--g-panel)]"}`}>
       <div className="flex items-center gap-3">
-        <span className={`text-[30px] leading-none ${stage === "bloom" ? "garden-bob" : ""}`}>{BLOOM_ICON[stage]}</span>
+        <span className={`garden-flower-display ${stage === "bloom" ? "garden-bob" : ""}`}><PlantArt species={species} flower={stage === "bloom"} progress={Math.min(.95, care / BLOOM_CARE)} /></span>
         <div className="min-w-0 flex-1">
           <Link href={species.href} className="block truncate text-[13.5px] font-semibold hover:underline">
             {species.title}
