@@ -76,6 +76,7 @@ export function useBlooms(uid: string | null): Blooms {
           ownerUid: "local",
           ownerNick: nick,
           ownerCare: mine,
+          hiddenNick: null,
         });
         writeLocal(next);
         setBlooms(next);

@@ -16,6 +16,8 @@ import { validateBook } from "../src/content/books/schema";
 import { POLICIES } from "../src/content/policies";
 import { CORRECTIONS, validateCorrections } from "../src/content/corrections";
 import { archiveEntry } from "../src/content/source-archive";
+import { ARRIVALS } from "../src/features/garden/arrivals";
+import { buildCatalog } from "../src/features/garden/catalog";
 
 let failed = false;
 
@@ -193,6 +195,21 @@ if (correctionErrors.length > 0) {
   console.log(`✓ 출처 보존본 ${archived}/${unique.length} (아직 점검 안 함 ${unchecked})`);
   if (unchecked > 0) console.warn("  ⚠ pnpm sources:archive로 새 출처를 점검하세요");
   for (const u of gone) console.warn(`  ⚠ 원문 링크 끊김: ${u}`);
+}
+
+/*
+ * 정원 품종 장부. 콘텐츠를 더하면 품종이 저절로 늘지만, 들어온 날은 장부에 적어야
+ * 신품종 장마가 열린다. 빠진 채로 배포하면 새 콘텐츠가 장마 없이 지나간다.
+ */
+{
+  const missing = buildCatalog().filter((s) => !(s.id in ARRIVALS)).map((s) => s.id);
+  if (missing.length > 0) {
+    failed = true;
+    console.error(`\n✗ 정원 품종 장부에 없는 품종 ${missing.length}개 — pnpm garden:arrivals를 돌리세요`);
+    for (const id of missing) console.error(`    ${id}`);
+  } else {
+    console.log(`✓ 정원 품종 장부 ${Object.keys(ARRIVALS).length}개`);
+  }
 }
 
 if (failed) {

@@ -3,7 +3,21 @@
 import { PlantArt } from "./GardenArt";
 import { gardenFeedback } from "./feedback";
 
-import { fruitIcon, formatLeft, PLOT_UPGRADES, SEED_PRICE, SHOP_ODDS, SHOP_SLOT, shopFor, shopSlot, TIER_LABEL } from "./rules";
+import {
+  fruitIcon,
+  formatLeft,
+  isNewVariety,
+  monsoonSpecies,
+  NEW_VARIETY_BONUS,
+  NEW_VARIETY_DAYS,
+  PLOT_UPGRADES,
+  SEED_PRICE,
+  SHOP_ODDS,
+  SHOP_SLOT,
+  shopFor,
+  shopSlot,
+  TIER_LABEL,
+} from "./rules";
 import { useGarden, type GardenData } from "./store";
 import type { Species } from "./types";
 
@@ -26,7 +40,9 @@ export function Shop({
 }) {
   const { buy, upgrade } = useGarden.getState();
   const slot = shopSlot(now);
-  const items = shopFor(slot, catalog);
+  // 장마 여부는 슬롯 시작 시각으로 본다. 슬롯 안에서 진열이 바뀌지 않게, 모두가 같게.
+  const monsoon = monsoonSpecies(slot * SHOP_SLOT, catalog);
+  const items = shopFor(slot, catalog, monsoon);
   const bought = data.shop.slot === slot ? data.shop.bought : {};
   const restock = (slot + 1) * SHOP_SLOT - now;
   const nextPlot = PLOT_UPGRADES.find((u) => u.plots > data.beds.length);
@@ -37,6 +53,12 @@ export function Shop({
         <h2 className="text-[15px] font-bold">씨앗 상점</h2>
         <p className="text-[12px] tabular-nums text-smoke">새 진열까지 {formatLeft(restock)}</p>
       </div>
+
+      {monsoon.length > 0 && (
+        <p className="garden-monsoon mt-3 rounded-2xl px-3.5 py-2.5 text-[12.5px] font-semibold leading-relaxed text-white">
+          🌦 신품종 장마 — 오늘 들어온 {monsoon.length}품종이 앞 칸에 꼭 나와요
+        </p>
+      )}
 
       <ul className="mt-3 space-y-2">
         {items.map((item) => {
@@ -54,7 +76,12 @@ export function Shop({
             >
               <span className="garden-seed-packet"><PlantArt species={species} /></span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13.5px] font-semibold">{species.title}</p>
+                <p className="truncate text-[13.5px] font-semibold">
+                  {isNewVariety(species, now) && (
+                    <span className="garden-chip garden-chip-new mr-1 rounded-full px-1.5 py-0.5 align-[1px] text-[10px]">신품종</span>
+                  )}
+                  {species.title}
+                </p>
                 <p className="text-[11.5px] text-smoke">
                   {TIER_LABEL[species.tier]} · 남은 {left}개
                 </p>
@@ -74,7 +101,9 @@ export function Shop({
 
       <p className="mt-3 text-[11.5px] leading-relaxed text-smoke">
         진열 확률 (칸마다):{" "}
-        {SHOP_ODDS.map((o) => `${TIER_LABEL[o.tier]} ${Math.round(o.p * 100)}%`).join(" · ")}. 잼은 정원 안에서만
+        {SHOP_ODDS.map((o) => `${TIER_LABEL[o.tier]} ${Math.round(o.p * 100)}%`).join(" · ")}. 신품종 장마(품종이 들어온
+        날 19:00–20:00)에는 그날 들어온 품종이 앞 3칸에 먼저 나와요. 신품종 열매는 들어온 날부터 {NEW_VARIETY_DAYS}일
+        동안 잼이 {Math.round(NEW_VARIETY_BONUS * 100)}% 더 나와요. 잼은 정원 안에서만
         쓰이고, 돈으로 사거나 다른 사람과 주고받을 수 없습니다.
       </p>
 

@@ -659,10 +659,22 @@ async function bloomChecks(uid: string, adminDb: Awaited<ReturnType<typeof openA
     await adminDb.doc(`admins/${uid2}`).set({ grantedAt: new Date().toISOString(), probe: true });
     try {
       await expectDenied("운영자가 남의 정원 이름 바꾸기", () => updateDoc(bloomRef(db2), { ownerNick: "바꿈" }));
-      await expectAllowed("운영자가 남의 정원 이름 지우기", () => updateDoc(bloomRef(db2), { ownerNick: null }));
+      await expectDenied("운영자가 숨긴 이름을 남기지 않고 지우기", () => updateDoc(bloomRef(db2), { ownerNick: null }));
+      await expectDenied("운영자가 다른 이름을 숨긴 이름으로 적기", () =>
+        updateDoc(bloomRef(db2), { ownerNick: null, hiddenNick: "엉뚱한 이름" }),
+      );
+      await expectAllowed("운영자가 남의 정원 이름 숨기기", () =>
+        updateDoc(bloomRef(db2), { ownerNick: null, hiddenNick: "점검용" }),
+      );
     } finally {
       await adminDb.doc(`admins/${uid2}`).delete();
     }
+
+    console.log("  (숨긴 뒤 — 정원지기 본인)");
+    await expectDenied("숨긴 이름을 다시 걸기", () => updateDoc(bloomRef(), { ownerNick: "점검용" }));
+    await expectDenied("숨긴 이름 기록 지우기", () => updateDoc(bloomRef(), { hiddenNick: null }));
+    await expectAllowed("새 이름으로 다시 걸기", () => updateDoc(bloomRef(), { ownerNick: "새 이름" }));
+    await expectDenied("남(두 번째 사람)이 정원지기 이름 바꾸기", () => updateDoc(bloomRef(db2), { ownerNick: "남의 손" }));
   } finally {
     await clean();
     ok("점검용 꽃 치우기");

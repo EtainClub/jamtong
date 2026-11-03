@@ -1,6 +1,6 @@
 "use client";
 
-import { collection, doc, onSnapshot, runTransaction, serverTimestamp, Timestamp } from "firebase/firestore";
+import { collection, doc, onSnapshot, runTransaction, serverTimestamp, Timestamp, updateDoc } from "firebase/firestore";
 
 import { firebaseDb } from "./client";
 
@@ -29,6 +29,8 @@ export interface Bloom {
   ownerUid: string | null;
   ownerNick: string | null;
   ownerCare: number;
+  /** 운영자가 숨긴 이름. 이 이름으로는 다시 걸리지 않는다. */
+  hiddenNick: string | null;
 }
 
 const DAY = 24 * 3_600_000;
@@ -47,6 +49,7 @@ export function watchBlooms(onChange: (blooms: Map<string, Bloom>) => void): () 
         ownerUid: d.get("ownerUid") ?? null,
         ownerNick: d.get("ownerNick") ?? null,
         ownerCare: d.get("ownerCare") ?? 0,
+        hiddenNick: d.get("hiddenNick") ?? null,
       });
     });
     onChange(out);
@@ -86,13 +89,16 @@ export async function giveCare(
       const ownerUid = (b.get("ownerUid") as string | null | undefined) ?? null;
       const ownerCare = (b.get("ownerCare") as number | undefined) ?? 0;
       const takes = ownerUid === uid || mine > ownerCare;
+      const hiddenNick = (b.get("hiddenNick") as string | null | undefined) ?? null;
 
       tx.set(bloomRef, {
         care,
         bloomedAt: wasBloomed ? b.get("bloomedAt") : care >= bloomAt ? serverTimestamp() : null,
         ownerUid: takes ? uid : ownerUid,
-        ownerNick: takes ? nick : ((b.get("ownerNick") as string | null | undefined) ?? null),
+        // 운영자가 숨긴 이름이면 다시 걸지 않는다. 이름을 바꾸면 다음 가꿈부터 걸린다.
+        ownerNick: takes ? (nick === hiddenNick ? null : nick) : ((b.get("ownerNick") as string | null | undefined) ?? null),
         ownerCare: takes ? mine : ownerCare,
+        ...(hiddenNick === null ? {} : { hiddenNick }),
       });
 
       return { ok: true, mine, becameOwner: takes && ownerUid !== uid, bloomedNow: !wasBloomed && care >= bloomAt };
@@ -101,4 +107,14 @@ export async function giveCare(
     console.error("[blooms] 가꿈을 주지 못했다", error);
     return { ok: false, reason: "error" };
   }
+}
+
+/**
+ * 운영자가 부적절한 정원 이름을 숨긴다. 명패에는 "이름 숨김"으로 남고, 숨긴 이름은
+ * hiddenNick에 남아 같은 이름으로 다시 걸리지 않는다. 규칙이 운영자만 허락한다.
+ */
+export async function hideOwnerNick(speciesId: string, nick: string): Promise<void> {
+  const db = firebaseDb();
+  if (!db) throw new Error("파이어베이스가 설정되지 않았다");
+  await updateDoc(doc(db, "blooms", speciesId), { ownerNick: null, hiddenNick: nick });
 }

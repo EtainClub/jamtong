@@ -4,6 +4,7 @@ import { POLICIES } from "@/content/policies";
 import type { Claim, Source } from "@/content/schema";
 import { STATEMENTS } from "@/content/words";
 
+import { arrivedOn } from "./arrivals";
 import { hash } from "./rules";
 import type { Note, NoteKind, Species, Tier } from "./types";
 
@@ -86,6 +87,7 @@ export function buildCatalog(): Species[] {
       href: `/achievement/${a.slug}`,
       notes: [...facts, ...counters],
       seed: hash(a.slug),
+      arrivedOn: arrivedOn(`a:${a.slug}`),
     });
   }
 
@@ -107,6 +109,7 @@ export function buildCatalog(): Species[] {
       href: `/wiki/policy/${p.slug}`,
       notes: [...facts, ...critiques],
       seed: hash(p.slug),
+      arrivedOn: arrivedOn(`p:${p.slug}`),
     });
   }
 
@@ -136,6 +139,7 @@ export function buildCatalog(): Species[] {
       href: `/words/${w.slug}`,
       notes,
       seed: hash(w.slug),
+      arrivedOn: arrivedOn(`w:${w.slug}`),
     });
   }
 

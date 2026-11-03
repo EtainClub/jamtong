@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { track } from "@/lib/analytics";
 import { useAuth } from "@/lib/firebase/auth";
 import { loadGarden, saveGarden } from "@/lib/firebase/garden";
 
@@ -14,7 +15,7 @@ import { Dex } from "./Dex";
 import { FlowerBed } from "./FlowerBed";
 import { Toast } from "./parts";
 import { PlazaView } from "./PlazaView";
-import { bloomBonus, caresFor, formatLeft, isRaining, nextRain } from "./rules";
+import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, nextMeteor, nextMonsoon, nextRain } from "./rules";
 import { Shop } from "./Shop";
 import { useGarden, type GardenData } from "./store";
 import type { Species } from "./types";
@@ -140,6 +141,16 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
   // 계정과 맞추기 전에는 그리지 않는다. 그새 심은 것이 계정 정원에 덮여 사라지지 않게.
   const syncing = configured && (!ready || (uid !== null && syncedFor !== uid));
 
+  // 연 것을 한 번 센다. 계정과 맞춘 뒤라야 "익은 밭"이 이 사람의 진짜 정원 기준이다.
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || !hasData || syncing) return;
+    opened.current = true;
+    const beds = useGarden.getState().data?.beds ?? [];
+    const at = Date.now();
+    track("garden_open", { ripe: beds.filter((p) => p && p.ripeAt <= at).length });
+  }, [hasData, syncing]);
+
   // 선물 씨앗은 계정과 맞춘 뒤에 준다(품종마다 한 번). 먼저 주면 계정 정원에 덮여 사라진다.
   useEffect(() => {
     const id = gift.current;
@@ -171,7 +182,7 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
           🍯 {data.jam.toLocaleString()}
           <span className="ml-1 text-[12px] font-medium text-smoke">잼</span>
         </p>
-        <RainBadge now={now} />
+        <WeatherBadge now={now} catalog={catalog} />
       </div>
 
       <div role="tablist" aria-label="정원" className="garden-nav sticky top-14 z-30 -mx-4 mt-3 flex gap-1 px-3 py-2">
@@ -234,23 +245,54 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
   );
 }
 
-function RainBadge({ now }: { now: number }) {
-  const w = nextRain(now);
+/**
+ * 날씨 알림. 지금 오는 것이 있으면 그것을(여럿이면 모두), 없으면 가장 가까운 것 하나를 보인다.
+ * 정해진 시각이라 "그때 들어가자"가 된다(§3.6).
+ */
+function WeatherBadge({ now, catalog }: { now: number; catalog: Species[] }) {
+  const rain = nextRain(now);
+  const meteor = nextMeteor(now);
+  const monsoon = nextMonsoon(now, catalog);
+
+  const active: Array<{ key: string; text: string; className: string }> = [];
+  if (isMeteor(now)) {
+    active.push({ key: "meteor", text: `🌠 별똥별 · 반짝 변이 · ${formatLeft(meteor.end - now)}`, className: "garden-meteor" });
+  }
+  if (monsoon && monsoon.start <= now) {
+    active.push({
+      key: "monsoon",
+      text: `🌦 신품종 장마 · 상점에 새 씨앗 · ${formatLeft(monsoon.end - now)}`,
+      className: "garden-monsoon",
+    });
+  }
   if (isRaining(now)) {
+    active.push({ key: "rain", text: `🌧 단비 · 성장 ×2 · ${formatLeft(rain.end - now)}`, className: "garden-rain" });
+  }
+  if (active.length > 0) {
     return (
-      <p className="garden-rain rounded-full px-3 py-1 text-[12px] font-semibold text-white">
-        🌧 단비 · 성장 ×2 · {formatLeft(w.end - now)}
-      </p>
+      <div className="flex flex-col items-end gap-1">
+        {active.map((a) => (
+          <p key={a.key} className={`${a.className} rounded-full px-3 py-1 text-[12px] font-semibold text-white`}>
+            {a.text}
+          </p>
+        ))}
+      </div>
     );
   }
-  const at = new Date(w.start).toLocaleTimeString("ko-KR", {
+
+  const upcoming = [
+    { label: "단비", start: rain.start },
+    { label: "별똥별", start: meteor.start },
+    ...(monsoon ? [{ label: "신품종 장마", start: monsoon.start }] : []),
+  ].sort((a, b) => a.start - b.start)[0];
+  const at = new Date(upcoming.start).toLocaleTimeString("ko-KR", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "Asia/Seoul",
   });
   return (
     <p className="rounded-full bg-[var(--g-panel)] px-3 py-1 text-[12px] text-graphite">
-      다음 단비 {at} · {formatLeft(w.start - now)} 뒤
+      다음 {upcoming.label} {at} · {formatLeft(upcoming.start - now)} 뒤
     </p>
   );
 }

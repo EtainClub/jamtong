@@ -35,9 +35,14 @@ export interface Species {
   notes: Note[];
   /** 품종마다 고정된 수. 성장 시간·열매 모양·값을 정한다. */
   seed: number;
+  /**
+   * 정원에 들어온 날(한국 날짜 YYYY-MM-DD). 신품종 장마와 신품종 보너스가 이 날로 정해진다.
+   * 정원을 열기 전부터 있던 품종은 비어 있다. 장부는 arrivals.json.
+   */
+  arrivedOn?: string;
 }
 
-export type Mutation = "golden" | "moist" | "shine" | "blessed" | "rainbow";
+export type Mutation = "golden" | "moist" | "sparkle" | "shine" | "blessed" | "rainbow";
 
 export interface Plant {
   /** 심을 때 만든 무작위 id. 변이 판정의 씨앗이라 새로고침해도 결과가 같다. */
