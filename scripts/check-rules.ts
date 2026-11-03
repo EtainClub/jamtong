@@ -495,6 +495,7 @@ async function gardenChecks(uid: string) {
   await expectAllowed("제 정원 지우기", () => deleteDoc(doc(db, "users", uid, "garden", "state")));
 
   await plazaChecks(uid, adminDb);
+  await raidChecks(uid, adminDb);
   await bloomChecks(uid, adminDb);
 }
 
@@ -570,6 +571,67 @@ async function plazaChecks(uid: string, adminDb: Awaited<ReturnType<typeof openA
     await adminDb.doc(`plazaDays/${day}/gardeners/${uid}`).delete();
     await adminDb.doc(`plazaDays/${day}`).delete();
     ok("점검용 광장 쓰기 되돌리기");
+  }
+}
+
+/*
+ * 거대 잡초. 문서 id가 오늘 날짜 번호라 진짜 오늘의 레이드를 쓴다. 그래서 통과 검사는
+ * 관리자 키가 있고 진행 중인 레이드(참여자 있음)가 없을 때만 하고, 끝나면 원래대로 되돌린다.
+ */
+async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAdmin>>) {
+  console.log("\n정원 — 거대 잡초");
+  const today = Math.floor((Date.now() + 9 * 3_600_000) / 86_400_000);
+  const raidRef = (day = today) => doc(db, "plazaRaids", String(day));
+  const mineRef = doc(db, "plazaRaids", String(today), "fighters", uid);
+  const fresh = (hp: number) => ({ hp, hits: 0, fighters: 0, spawnedAt: serverTimestamp(), defeatedAt: null });
+  const strike = (hits: number, fighters: number, mine: number, defeated = false) => {
+    const batch = writeBatch(db);
+    batch.set(mineRef, { hits: mine, lastAt: serverTimestamp() });
+    batch.update(raidRef(), { hits, fighters, defeatedAt: defeated ? serverTimestamp() : null });
+    return batch.commit();
+  };
+  const wait = () => new Promise((r) => setTimeout(r, 1_200));
+
+  await expectDenied("어제 번호로 세우기", () => setDoc(raidRef(today - 1), fresh(20)));
+  await expectDenied("체력 500으로 세우기", () => setDoc(raidRef(), fresh(500)));
+  await expectDenied("맞은 수 5로 세우기", () => setDoc(raidRef(), { ...fresh(20), hits: 5 }));
+
+  if (!adminDb) {
+    console.log("  거대 잡초 통과 검사는 건너뛴다 (sa.json 없음)");
+    return;
+  }
+  const live = adminDb.doc(`plazaRaids/${today}`);
+  const before = await live.get();
+  if (before.exists && !before.get("defeatedAt") && (before.get("fighters") ?? 0) > 0) {
+    console.log("  거대 잡초 통과 검사는 건너뛴다 (진행 중인 레이드가 있다)");
+    return;
+  }
+
+  try {
+    await live.delete();
+    await expectAllowed("오늘 번호로 체력 20 세우기", () => setDoc(raidRef(), fresh(20)));
+    await expectDenied("내 표식 없이 합계만 +1", () => updateDoc(raidRef(), { hits: 1 }));
+    await expectDenied("합계는 두고 내 표식만 +1", () => setDoc(mineRef, { hits: 1, lastAt: serverTimestamp() }));
+    await expectDenied("한 번에 +2", () => strike(2, 1, 2));
+    await expectAllowed("한 방 (합계·참여·내 표식 함께)", () => strike(1, 1, 1));
+    await expectDenied("1초 안에 또 한 방", () => strike(2, 1, 2));
+    await wait();
+    await expectDenied("이미 센 참여자를 또 세기", () => strike(2, 2, 2));
+    await expectAllowed("1초 뒤 한 방", () => strike(2, 1, 2));
+
+    // 쓰러뜨리기 직전까지 관리자가 올려 둔다.
+    await live.update({ hits: 19 });
+    await wait();
+    await expectDenied("마지막 한 방에 쓰러진 시각을 안 찍기", () => strike(20, 1, 3));
+    await expectAllowed("마지막 한 방에 쓰러진 시각 찍기", () => strike(20, 1, 3, true));
+    await wait();
+    await expectDenied("쓰러진 뒤 한 방", () => strike(21, 1, 4));
+    await expectDenied("거대 잡초 지우기", () => deleteDoc(raidRef()));
+  } finally {
+    await adminDb.doc(`plazaRaids/${today}/fighters/${uid}`).delete();
+    if (before.exists) await live.set(before.data()!);
+    else await live.delete();
+    ok("점검용 거대 잡초 되돌리기");
   }
 }
 

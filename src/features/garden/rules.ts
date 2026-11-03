@@ -430,6 +430,43 @@ export function regrowMinutes(gardenersToday: number, roll: number): number {
   return Math.round(Math.min(240, Math.max(20, base * (0.6 + 0.8 * roll))));
 }
 
+// ── 거대 잡초 (레이드) ──────────────────────────────────────────────
+
+/**
+ * 거대 잡초의 체력(때릴 수). 광장이 무성해질 때 그날 온 정원지기 수로 정한다.
+ * 혼자서도 2~3분이면 잡을 수 있고, 사람이 많으면 다 같이 때려야 한다.
+ * Firestore 규칙이 [20, 300] 밖의 값을 막는다.
+ */
+export function raidHp(gardenersToday: number): number {
+  return Math.min(300, Math.max(20, Math.round(12 + Math.max(0, gardenersToday) * 8)));
+}
+
+/** 문지르기 이만큼이 한 방이다. */
+export const RAID_RUBS_PER_STRIKE = 4;
+/** 한 사람이 한 방을 보내는 간격. 규칙은 1초를 지키고, 화면은 여유를 둔다. */
+export const RAID_STRIKE_GAP = 1_200;
+
+/** 쓰러뜨리면 참여한 사람이 받는 희귀 씨앗 상자. 확률을 공개한다. */
+export const RAID_BOX = { jam: 50, odds: [{ tier: "flagship" as Tier, p: 0.8 }, { tier: "perennial" as Tier, p: 0.2 }] };
+
+/** 상자를 연다. 같은 날·같은 사람이면 같은 씨앗이다 — 새로고침으로 다시 굴리지 못하게. */
+export function openRaidBox(seed: string, catalog: Species[]): Species | undefined {
+  const roll = rng(hash(`raid:${seed}`));
+  let r = roll();
+  let tier: Tier = "flagship";
+  for (const o of RAID_BOX.odds) {
+    if (r < o.p) {
+      tier = o.tier;
+      break;
+    }
+    r -= o.p;
+  }
+  const pool = catalog.filter((s) => s.tier === tier);
+  const fallback = catalog.filter((s) => s.tier === "flagship" || s.tier === "perennial");
+  const from = pool.length ? pool : fallback;
+  return from.length ? from[Math.floor(roll() * from.length)] : undefined;
+}
+
 // ── 꽃밭: 업적을 함께 피우고, 가장 많이 가꾼 사람이 정원지기가 된다 ─────
 
 /**

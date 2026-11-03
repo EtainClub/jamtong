@@ -10,6 +10,8 @@ import {
   NECTAR,
   NICK_MAX,
   kstDay,
+  openRaidBox,
+  RAID_BOX,
   PLAZA_SPEED,
   PLOT_UPGRADES,
   pickNote,
@@ -62,6 +64,8 @@ export interface GardenData {
   nick: string;
   /** 오늘 꽃꿀을 받은 업적. */
   nectar: { day: string; taken: string[] };
+  /** 희귀 씨앗 상자를 받은 거대 잡초(한국 날짜 번호). */
+  raids: number[];
   /**
    * 이 정원을 마지막으로 맞춘 계정. 없으면 아직 어느 계정과도 맞춘 적 없는
    * 이 기기만의 정원이다. updatedAt만으로 고르면 새 기기에서 갓 만든 빈 정원이
@@ -106,6 +110,7 @@ function fresh(catalog: Species[]): GardenData {
     careToday: { day: 0, given: {} },
     nick: defaultNick(String(Date.now()) + Math.random()),
     nectar: { day: "", taken: [] },
+    raids: [],
     updatedAt: Date.now(),
   };
 }
@@ -118,6 +123,7 @@ function normalize(data: GardenData): GardenData {
     careToday: data.careToday ?? { day: 0, given: {} },
     nick: data.nick || defaultNick(String(data.updatedAt)),
     nectar: data.nectar ?? { day: "", taken: [] },
+    raids: data.raids ?? [],
   };
 }
 
@@ -184,6 +190,8 @@ interface GardenState {
   recordCare: (speciesId: string, delta: number, mine?: number) => void;
   rename: (nick: string) => void;
   takeNectar: (speciesIds: string[]) => number;
+  /** 거대 잡초의 희귀 씨앗 상자를 연다. 날마다 한 번. 이미 받았으면 null. */
+  claimRaid: (day: number, seed: string, catalog: Species[]) => { species?: Species; jam: number } | null;
 }
 
 export const useGarden = create<GardenState>((set, get) => {
@@ -403,6 +411,20 @@ export const useGarden = create<GardenState>((set, get) => {
       const jam = fresh.length * NECTAR;
       commit({ ...d, jam: d.jam + jam, nectar: { day: today, taken: [...taken, ...fresh] } });
       return jam;
+    },
+
+    claimRaid: (day, seed, catalog) => {
+      const d = get().data;
+      if (!d || d.raids.includes(day)) return null;
+      const species = openRaidBox(seed, catalog);
+      commit({
+        ...d,
+        jam: d.jam + RAID_BOX.jam,
+        seeds: species ? give(d.seeds, species.id) : d.seeds,
+        // 오래된 날은 버린다. 문서가 끝없이 커지지 않게.
+        raids: [...d.raids, day].slice(-60),
+      });
+      return { species, jam: RAID_BOX.jam };
     },
 
     gift: (species) => {
