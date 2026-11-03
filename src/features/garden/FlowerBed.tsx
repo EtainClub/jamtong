@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PlantArt } from "./GardenArt";
 import { gardenFeedback } from "./feedback";
 
-import type { Bloom } from "@/lib/firebase/blooms";
+import { hideOwnerNick, type Bloom } from "@/lib/firebase/blooms";
+import { checkAdmin } from "@/lib/firebase/feedback";
 
 import {
   BLOOM_CARE,
@@ -51,6 +52,29 @@ export function FlowerBed({
 }) {
   const { rename, takeNectar } = useGarden.getState();
   const [draft, setDraft] = useState<string | null>(null);
+  // 운영자면 명패마다 "이름 숨기기"가 보인다. 판정은 규칙이 다시 한다.
+  const [adminUid, setAdminUid] = useState<string | null>(null);
+  useEffect(() => {
+    if (!uid) return;
+    let alive = true;
+    void checkAdmin(uid).then((is) => {
+      if (alive && is) setAdminUid(uid);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [uid]);
+  const admin = uid !== null && adminUid === uid;
+  const hide = async (species: Species, nick: string) => {
+    if (!window.confirm(`「${species.title}」 명패의 이름 "${nick}"을 숨길까요?`)) return;
+    try {
+      await hideOwnerNick(species.id, nick);
+      say("이름을 숨겼어요");
+    } catch (error) {
+      console.error("[blooms] 이름을 숨기지 못했다", error);
+      say("이름을 숨기지 못했어요");
+    }
+  };
 
   const achievements = catalog.filter(caresFor);
   const isMine = (b?: Bloom) => Boolean(b && (b.ownerUid === uid || b.ownerUid === "local"));
@@ -137,7 +161,7 @@ export function FlowerBed({
         <h3 className="text-[13px] font-bold">꽃이 필요한 업적 {growing.length}</h3>
         <ul className="mt-2 space-y-2">
           {growing.map((s) => (
-            <FlowerRow key={s.id} species={s} bloom={blooms.get(s.id)} data={data} mine={isMine(blooms.get(s.id))} now={now} />
+            <FlowerRow key={s.id} species={s} bloom={blooms.get(s.id)} data={data} mine={isMine(blooms.get(s.id))} now={now} onHide={admin ? hide : undefined} />
           ))}
         </ul>
       </section>
@@ -147,7 +171,7 @@ export function FlowerBed({
           <h3 className="text-[13px] font-bold">만개한 업적 {bloomedList.length}</h3>
           <ul className="mt-2 space-y-2">
             {bloomedList.map((s) => (
-              <FlowerRow key={s.id} species={s} bloom={blooms.get(s.id)} data={data} mine={isMine(blooms.get(s.id))} now={now} />
+              <FlowerRow key={s.id} species={s} bloom={blooms.get(s.id)} data={data} mine={isMine(blooms.get(s.id))} now={now} onHide={admin ? hide : undefined} />
             ))}
           </ul>
         </section>
@@ -162,13 +186,17 @@ function FlowerRow({
   data,
   mine,
   now,
+  onHide,
 }: {
   species: Species;
   bloom: Bloom | undefined;
   data: GardenData;
   mine: boolean;
   now: number;
+  /** 운영자에게만 넘긴다. */
+  onHide?: (species: Species, nick: string) => void;
 }) {
+  const nick = bloom?.ownerNick ?? null;
   const care = bloom?.care ?? 0;
   const bloomed = Boolean(bloom?.bloomedAt);
   const stage = bloomStage(care, bloomed);
@@ -204,6 +232,20 @@ function FlowerRow({
         {` · 오늘 ${todayGiven}/${CARE_PER_DAY}`}
         {seeds > 0 ? ` · 씨앗 ×${seeds}` : ""}
       </p>
+      {mine && bloom?.hiddenNick && !nick && (
+        <p className="mt-1 text-[11px] text-[var(--g-jam)]">
+          운영자가 정원 이름을 숨겼어요. 위에서 이름을 바꾸면 다음 가꿈 때 다시 걸려요.
+        </p>
+      )}
+      {onHide && nick && (
+        <button
+          type="button"
+          onClick={() => onHide(species, nick)}
+          className="mt-1.5 rounded-full border border-stone px-2.5 py-1 text-[11px] text-graphite hover:border-graphite"
+        >
+          운영자 · 이름 숨기기
+        </button>
+      )}
     </li>
   );
 }

@@ -125,7 +125,9 @@ service cloud.firestore {
      *   3. 만개 시각은 합계가 30을 넘는 커밋에서 한 번만 찍히고 다시 바뀌지 않는다.
      *   4. 정원지기는 나로만 바뀌고, 그때 값은 내 가꿈이며, 지금 정원지기보다 많아야 한다.
      *      이미 내가 정원지기면 값만 따라 오른다.
-     * 운영자는 정원 이름이 부적절하면 지울 수 있다(ownerNick → null).
+     * 운영자는 정원 이름이 부적절하면 지울 수 있다(ownerNick → null). 지운 이름은
+     * hiddenNick에 남고, 그 이름으로는 다시 걸 수 없다 — 다음 가꿈에서 같은 이름이
+     * 되살아나지 않게. 정원지기는 이름을 바꾸면 다시 걸 수 있다.
      */
     function kstDayNumber() {
       return math.floor((request.time.toMillis() + 32400000) / 86400000);
@@ -136,14 +138,17 @@ service cloud.firestore {
 
       allow create, update: if request.auth != null
         && speciesId.matches('^a:[a-z0-9-]+$')
-        && request.resource.data.keys().hasOnly(['care', 'bloomedAt', 'ownerUid', 'ownerNick', 'ownerCare'])
+        && request.resource.data.keys().hasOnly(['care', 'bloomedAt', 'ownerUid', 'ownerNick', 'ownerCare', 'hiddenNick'])
+        && request.resource.data.get('hiddenNick', null) == (resource == null ? null : resource.data.get('hiddenNick', null))
         && bloomCareDelta(speciesId)
         && bloomStamp()
         && bloomOwner(speciesId);
 
       allow update: if isAdmin()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ownerNick'])
-        && request.resource.data.ownerNick == null;
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ownerNick', 'hiddenNick'])
+        && resource.data.ownerNick is string
+        && request.resource.data.ownerNick == null
+        && request.resource.data.hiddenNick == resource.data.ownerNick;
 
       allow delete: if false;
 
@@ -200,9 +205,11 @@ service cloud.firestore {
         && d.ownerCare == resource.data.ownerCare;
       let mine = d.ownerUid == request.auth.uid
         && d.ownerCare == myCareAfter(speciesId)
-        && d.ownerNick is string
-        && d.ownerNick.size() >= 1
-        && d.ownerNick.size() <= 12
+        && (d.ownerNick == null
+          || (d.ownerNick is string
+            && d.ownerNick.size() >= 1
+            && d.ownerNick.size() <= 12
+            && d.ownerNick != d.get('hiddenNick', null)))
         && (resource == null
           || resource.data.ownerUid == request.auth.uid
           || d.ownerCare > resource.data.ownerCare);
