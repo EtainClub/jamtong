@@ -11,6 +11,7 @@ import { Section } from "@/features/achievement/Section";
 import { ShortsSection } from "@/features/achievement/ShortsSection";
 import { EvidenceStatus } from "@/features/achievement/EvidenceStatus";
 import { QuickCheck } from "@/features/achievement/QuickCheck";
+import { SeedGiftLink } from "@/features/garden/SeedGiftLink";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { withArchives } from "@/content/source-archive";
 import { ShareButton } from "@/features/achievement/ShareButton";
@@ -886,6 +887,12 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
           <Section scene="outlook" heading={outlook.heading} lede={outlook.lede}>
             <OutlookFork outlook={outlook.outlook} claims={achievement.claims} />
           </Section>
+        )}
+
+        {achievement.publishStatus === "published" && (
+          <div className="mt-10">
+            <SeedGiftLink speciesId={`a:${achievement.slug}`} title={achievement.title} />
+          </div>
         )}
 
         <div className="mt-10">
