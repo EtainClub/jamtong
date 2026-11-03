@@ -5,7 +5,7 @@
  * 누구나 원하는 만큼 올릴 수 있는 숫자가 된다.
  */
 import { readFileSync } from "node:fs";
-import { initializeApp } from "firebase/app";
+import { initializeApp, type FirebaseOptions } from "firebase/app";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import {
   addDoc,
@@ -19,18 +19,20 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
   updateDoc,
   writeBatch,
 } from "firebase/firestore";
 
-const app = initializeApp({
+const config: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
-});
+};
+const app = initializeApp(config);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
@@ -166,6 +168,7 @@ async function main() {
   await cheerChecks(uid);
   await correctionChecks(uid);
   await adminChecks(uid);
+  await gardenChecks(uid);
 
 
   console.log(failed ? "\n점검 실패." : "\n점검 통과.");
@@ -452,6 +455,220 @@ async function cheerChecks(uid: string) {
   await deleteDoc(doc(db, "cheerVideos", videoId));
   ok("점검용 응원 지우기 — 통과했다");
 }
+
+/** 서비스 계정 키(sa.json)가 있으면 관리자 Firestore를 연다. 없으면 null. */
+async function openAdmin() {
+  try {
+    readFileSync("sa.json", "utf8");
+    const appMod = await import("firebase-admin/app");
+    const admin = await import("firebase-admin/firestore");
+    if (!appMod.getApps().some((a) => a.name === "probe-admin")) {
+      appMod.initializeApp({ credential: appMod.cert("sa.json") }, "probe-admin");
+    }
+    return admin.getFirestore(appMod.getApp("probe-admin"));
+  } catch {
+    return null;
+  }
+}
+
+/*
+ * 정원 쪽 검사 (docs/garden-game.md §3.8·§3.9, firestore.rules의 garden·plaza*·blooms).
+ *
+ * 광장 칸은 c00..c23 진짜 칸밖에 없어서, 통과해야 하는 쓰기를 하면 실제 광장의
+ * 잡초가 한 포기 뽑힌다. 그래서 통과 검사는 관리자 키가 있을 때만 하고, 끝나면
+ * 그 칸을 원래대로 되돌린다. 기록판은 지난 날짜(1999-01-01)에 써서 오늘 기록판을
+ * 건드리지 않는다.
+ *
+ * 꽃밭은 품종표에 없는 업적 id(a:zz-rules-probe)로 한다. 화면은 품종표에 있는
+ * 업적만 그리고 세므로, 검사하는 동안 점검용 꽃이 보이거나 보너스가 되지 않는다.
+ * blooms는 지울 수 없는 규칙이라 치우기도 관리자 키로 한다.
+ */
+async function gardenChecks(uid: string) {
+  const adminDb = await openAdmin();
+
+  console.log("\n정원 — 개인");
+  const state = (beds: number) => ({ v: 1, jam: 50, beds: Array(beds).fill(null), basket: [], notes: [], updatedAt: Date.now() });
+  await expectDenied("남의 정원에 쓰기", () => setDoc(doc(db, "users", "somebody-else", "garden", "state"), state(6)));
+  await expectDenied("state 말고 다른 문서에 쓰기", () => setDoc(doc(db, "users", uid, "garden", "other"), state(6)));
+  await expectDenied("밭 13칸으로 쓰기", () => setDoc(doc(db, "users", uid, "garden", "state"), state(13)));
+  await expectAllowed("제 정원 쓰기", () => setDoc(doc(db, "users", uid, "garden", "state"), state(12)));
+  await expectAllowed("제 정원 지우기", () => deleteDoc(doc(db, "users", uid, "garden", "state")));
+
+  await plazaChecks(uid, adminDb);
+  await bloomChecks(uid, adminDb);
+}
+
+async function plazaChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAdmin>>) {
+  console.log("\n정원 — 광장");
+  const MIN = 60_000;
+  const day = "1999-01-01";
+  const cellRef = (id: string) => doc(db, "plazaCells", id);
+  const dayRef = doc(db, "plazaDays", day);
+  const markRef = doc(db, "plazaDays", day, "gardeners", uid);
+
+  await expectDenied("없는 칸(c24) 뽑기", () =>
+    setDoc(cellRef("c24"), { gen: 1, pulledAt: serverTimestamp(), regrowAt: Timestamp.fromMillis(Date.now() + 30 * MIN) }),
+  );
+  await expectDenied("칸은 두고 기록판만 +1", () => setDoc(dayRef, { pulls: 1, gardeners: 0, lastCell: "c00" }));
+
+  if (!adminDb) {
+    console.log("  광장 통과 검사는 건너뛴다 (sa.json 없음)");
+    return;
+  }
+
+  // 지금 잡초가 나 있는 칸 둘을 고른다. 문서가 없으면 처음부터 나 있는 칸이다.
+  const snaps = await adminDb.getAll(
+    ...Array.from({ length: 24 }, (_, i) => adminDb.collection("plazaCells").doc(`c${String(i).padStart(2, "0")}`)),
+  );
+  const weedy = snaps.filter((s) => !s.exists || (s.get("regrowAt")?.toMillis() ?? 0) <= Date.now() - MIN);
+  if (weedy.length < 2) {
+    console.log("  광장 통과 검사는 건너뛴다 (잡초가 난 칸이 둘 미만)");
+    return;
+  }
+  const [a, b] = weedy;
+  const genOf = (s: (typeof snaps)[number]) => ((s.get("gen") as number | undefined) ?? 0) + 1;
+  const pull = (s: (typeof snaps)[number], minutes: number) => ({
+    gen: genOf(s),
+    pulledAt: serverTimestamp(),
+    regrowAt: Timestamp.fromMillis(Date.now() + minutes * MIN),
+  });
+
+  try {
+    await expectDenied(`${a.id} 뽑고 300분 뒤에 다시 나게 하기`, () => setDoc(cellRef(a.id), pull(a, 300)));
+    await expectDenied(`${a.id} 뽑으며 gen 건너뛰기`, () => setDoc(cellRef(a.id), { ...pull(a, 30), gen: genOf(a) + 5 }));
+
+    await expectAllowed(`${a.id} 뽑기 (칸·기록판·표식 한 번에)`, () => {
+      const batch = writeBatch(db);
+      batch.set(cellRef(a.id), pull(a, 30));
+      batch.set(dayRef, { pulls: 1, gardeners: 1, lastCell: a.id });
+      batch.set(markRef, { at: serverTimestamp() });
+      return batch.commit();
+    });
+
+    await expectDenied(`방금 뽑은 ${a.id} 다시 뽑기`, () =>
+      setDoc(cellRef(a.id), { gen: genOf(a) + 1, pulledAt: serverTimestamp(), regrowAt: Timestamp.fromMillis(Date.now() + 30 * MIN) }),
+    );
+    await expectDenied(`${b.id} 뽑으며 기록판 +2`, () => {
+      const batch = writeBatch(db);
+      batch.set(cellRef(b.id), pull(b, 30));
+      batch.set(dayRef, { pulls: 3, gardeners: 1, lastCell: b.id });
+      return batch.commit();
+    });
+    await expectDenied(`${b.id} 뽑으며 이미 센 정원지기 +1`, () => {
+      const batch = writeBatch(db);
+      batch.set(cellRef(b.id), pull(b, 30));
+      batch.set(dayRef, { pulls: 2, gardeners: 2, lastCell: b.id });
+      return batch.commit();
+    });
+    await expectDenied("광장 칸 지우기", () => deleteDoc(cellRef(a.id)));
+  } finally {
+    // 뽑은 칸을 원래대로 돌리고, 지난 날짜 기록판을 치운다.
+    for (const s of [a, b]) {
+      if (s.exists) await s.ref.set(s.data()!);
+      else await s.ref.delete();
+    }
+    await adminDb.doc(`plazaDays/${day}/gardeners/${uid}`).delete();
+    await adminDb.doc(`plazaDays/${day}`).delete();
+    ok("점검용 광장 쓰기 되돌리기");
+  }
+}
+
+async function bloomChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAdmin>>) {
+  console.log("\n정원 — 꽃밭");
+  const species = "a:zz-rules-probe";
+  const bloomRef = (d = db) => doc(d, "blooms", species);
+  const keeperRef = (d = db, who = uid) => doc(d, "blooms", species, "keepers", who);
+  const today = Math.floor((Date.now() + 9 * 3_600_000) / 86_400_000);
+  const keeper = (care: number, dayCare: number) => ({ care, day: today, dayCare, updatedAt: serverTimestamp() });
+  const bloom = (care: number, ownerUid: string, ownerCare: number, ownerNick = "점검용", bloomedAt: unknown = null) => ({
+    care,
+    bloomedAt,
+    ownerUid,
+    ownerNick,
+    ownerCare,
+  });
+  const both = (d: typeof db, who: string, k: object, b: object) => {
+    const batch = writeBatch(d);
+    batch.set(keeperRef(d, who), k);
+    batch.set(bloomRef(d), b);
+    return batch.commit();
+  };
+
+  await expectDenied("가꿈 +3", () => both(db, uid, keeper(3, 3), bloom(3, uid, 3)));
+  await expectDenied("내 가꿈 없이 합계만 +1", () => setDoc(bloomRef(), bloom(1, uid, 0)));
+  await expectDenied("처음부터 만개 시각 찍기", () => both(db, uid, keeper(2, 2), bloom(2, uid, 2, "점검용", serverTimestamp())));
+  await expectDenied("정원 이름 13자", () => both(db, uid, keeper(2, 2), bloom(2, uid, 2, "가".repeat(13))));
+  await expectDenied("남을 정원지기로 올리기", () => both(db, uid, keeper(2, 2), bloom(2, "somebody-else", 2)));
+
+  if (!adminDb) {
+    console.log("  꽃밭 통과 검사는 건너뛴다 (sa.json 없음 — blooms는 지울 수 없어 치우지 못한다)");
+    return;
+  }
+
+  // 두 번째 사람. 정원지기 다툼을 보려면 둘이 있어야 한다.
+  const app2 = initializeApp(config, "probe-2");
+  const db2 = getFirestore(app2);
+  const uid2 = (await signInAnonymously(getAuth(app2))).user.uid;
+
+  const clean = async () => {
+    for (const who of [uid, uid2]) await adminDb.doc(`blooms/${species}/keepers/${who}`).delete();
+    await adminDb.doc(`blooms/${species}`).delete();
+  };
+  await clean();
+
+  try {
+    await expectAllowed("가꿈 +2, 정원지기가 되기", () => both(db, uid, keeper(2, 2), bloom(2, uid, 2)));
+    await expectDenied("내 가꿈 +2에 합계 +7", () => both(db, uid, keeper(4, 4), bloom(9, uid, 4)));
+    await expectDenied("정원지기 값을 내 가꿈보다 크게", () => both(db, uid, keeper(4, 4), bloom(4, uid, 40)));
+
+    let mine = 2;
+    let total = 2;
+    let fine = true;
+    while (mine < 12) {
+      mine += 2;
+      total += 2;
+      try {
+        await both(db, uid, keeper(mine, mine), bloom(total, uid, mine));
+      } catch (e) {
+        fine = false;
+        bad(`하루 12까지 채우기 — ${mine}에서 막혔다: ${e instanceof Error ? e.message : String(e)}`);
+        break;
+      }
+    }
+    if (fine) ok("하루 12까지 채우기 — 통과했다");
+    await expectDenied("하루 12를 넘겨 +1", () => both(db, uid, keeper(13, 13), bloom(total + 1, uid, 13)));
+
+    console.log("  (두 번째 사람)");
+    await expectDenied("가꿈 2로 정원지기(12) 빼앗기", () => both(db2, uid2, keeper(2, 2), bloom(total + 2, uid2, 2)));
+    await expectAllowed("가꿈 +2, 정원지기는 그대로", () => both(db2, uid2, keeper(2, 2), bloom(total + 2, uid, 12)));
+    await expectDenied("남의 가꿈 읽기", () => getDocs(query(collection(db2, "blooms", species, "keepers"), limit(5))));
+
+    // 만개 직전까지 관리자가 합계를 올려 둔다. 한 사람은 하루 12까지라 규칙으로는 못 닿는다.
+    await adminDb.doc(`blooms/${species}`).update({ care: 28 });
+    await expectDenied("합계 30이 되는데 만개 시각을 안 찍기", () => both(db2, uid2, keeper(4, 4), bloom(30, uid, 12)));
+    await expectAllowed("합계 30에서 만개 시각 찍기", () =>
+      both(db2, uid2, keeper(4, 4), bloom(30, uid, 12, "점검용", serverTimestamp())),
+    );
+    await expectDenied("만개 시각 다시 찍기", () =>
+      both(db2, uid2, keeper(6, 6), bloom(32, uid, 12, "점검용", serverTimestamp())),
+    );
+    await expectDenied("꽃 지우기", () => deleteDoc(bloomRef()));
+
+    console.log("  (운영자 — 두 번째 사람을 잠깐 올렸다 내린다)");
+    await expectDenied("일반 사용자가 남의 정원 이름 지우기", () => updateDoc(bloomRef(db2), { ownerNick: null }));
+    await adminDb.doc(`admins/${uid2}`).set({ grantedAt: new Date().toISOString(), probe: true });
+    try {
+      await expectDenied("운영자가 남의 정원 이름 바꾸기", () => updateDoc(bloomRef(db2), { ownerNick: "바꿈" }));
+      await expectAllowed("운영자가 남의 정원 이름 지우기", () => updateDoc(bloomRef(db2), { ownerNick: null }));
+    } finally {
+      await adminDb.doc(`admins/${uid2}`).delete();
+    }
+  } finally {
+    await clean();
+    ok("점검용 꽃 치우기");
+  }
+}
+
 main().catch((e) => {
   console.error("점검 중 오류:", e);
   process.exit(1);

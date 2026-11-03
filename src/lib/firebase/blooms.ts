@@ -97,7 +97,8 @@ export async function giveCare(
 
       return { ok: true, mine, becameOwner: takes && ownerUid !== uid, bloomedNow: !wasBloomed && care >= bloomAt };
     });
-  } catch {
+  } catch (error) {
+    console.error("[blooms] 가꿈을 주지 못했다", error);
     return { ok: false, reason: "error" };
   }
 }

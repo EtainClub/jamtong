@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { PlantArt } from "./GardenArt";
 import { MutationChips, NoteCard } from "./parts";
-import { fruitIcon, MUTATION, MUTATION_ORDER, TIER_LABEL } from "./rules";
+import { MUTATION, MUTATION_ORDER, TIER_LABEL } from "./rules";
 import type { GardenData } from "./store";
 import type { Species, Tier } from "./types";
 
@@ -24,7 +25,7 @@ export function Dex({ data, catalog }: { data: GardenData; catalog: Species[] })
   const list = catalog.filter((s) => s.tier === tier);
 
   return (
-    <div>
+    <div className="garden-dex">
       <h2 className="text-[15px] font-bold">도감</h2>
       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
         <div className="rounded-2xl bg-[var(--g-panel)] py-3">
@@ -83,7 +84,7 @@ export function Dex({ data, catalog }: { data: GardenData; catalog: Species[] })
                 onClick={() => setOpen(open === s.id ? null : s.id)}
                 className="flex w-full items-center gap-3 px-3.5 py-3 text-left"
               >
-                <span className={`text-[26px] leading-none ${seen ? "" : "opacity-25 grayscale"}`}>{fruitIcon(s)}</span>
+                <span className={`garden-dex-art ${seen ? "" : "opacity-25 grayscale"}`}><PlantArt species={s} /></span>
                 <span className="min-w-0 flex-1">
                   <span className={`block truncate text-[13.5px] font-semibold ${seen ? "" : "text-ash"}`}>
                     {seen ? s.title : "???"}

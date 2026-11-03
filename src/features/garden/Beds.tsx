@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { track } from "@/lib/analytics";
 
+import { GroundDetails, PlantArt } from "./GardenArt";
+import { gardenFeedback } from "./feedback";
 import { MutationChips, NoteCard } from "./parts";
 import { CARE, caresFor, fruitIcon, fruitValue, formatLeft, growMinutes, kstDay, MINUTE, SHINE_PER_DAY, TIER_LABEL } from "./rules";
 import { useGarden, type GardenData } from "./store";
@@ -40,6 +42,7 @@ export function Beds({
 }) {
   const { plant, harvest, dig, sell, shine } = useGarden.getState();
   const [picking, setPicking] = useState<number | null>(null);
+  const [harvested, setHarvested] = useState<Record<number, number>>({});
   const [selected, setSelected] = useState<number | null>(null);
 
   const ripe = data.beds
@@ -52,6 +55,9 @@ export function Beds({
     if (!species) return;
     const fruit = harvest(i, species, plaza);
     if (fruit) {
+      gardenFeedback("harvest");
+      setHarvested((old) => ({ ...old, [i]: Date.now() }));
+      if (!fruit.mutations.length) say(`${fruitIcon(species)} 수확! 바구니에 담았어요`);
       track("garden_harvest", { tier: species.tier, mutations: fruit.mutations.length });
       if (fruit.mutations.length) say(`${fruitIcon(species)} 변이! ${fruit.mutations.length}개`);
       if (caresFor(species)) void tend(species, CARE.harvest);
@@ -61,7 +67,8 @@ export function Beds({
   /** 업적을 가꾼다. 만개나 정원지기 소식이 있으면 그것을, 없으면 조용히 센다. */
   const tend = async (species: Species, delta: number) => {
     const out = await care(species.id, delta);
-    if (out.bloomedNow) say(`🌸 「${species.title}」 만개!`);
+    if (out.failed) say(`꽃밭에 닿지 못해 「${species.title}」 가꿈이 기록되지 않았어요`);
+    else if (out.bloomedNow) say(`🌸 「${species.title}」 만개!`);
     else if (out.becameOwner) say(`👑 「${species.title}」의 정원지기가 되었어요`);
     else if (out.given) say(`🌷 「${species.title}」 가꿈 +${out.given}`);
   };
@@ -91,22 +98,26 @@ export function Beds({
         )}
       </div>
 
-      <ul className="mt-3 grid grid-cols-3 gap-2.5">
+      <div className="garden-field mt-3">
+        <GroundDetails />
+        <div className="garden-field-sign" aria-hidden="true">MY GARDEN <span>심고 · 키우고 · 수확해요</span></div>
+        <ul className="garden-plots grid grid-cols-3 gap-3">
         {data.beds.map((p, i) => {
           const species = p ? byId.get(p.speciesId) : undefined;
           if (!p || !species) {
             return (
-              <li key={i}>
+              <li key={i} className="relative">
                 <button
                   type="button"
-                  onClick={() => setPicking(i)}
+                  onClick={() => { gardenFeedback("tap"); setPicking(i); }}
                   className="garden-soil grid aspect-square w-full place-items-center rounded-2xl text-[13px] font-medium text-[var(--g-soil-ink)]"
                 >
-                  <span>
+                  <span className="garden-empty-plot">
                     <span className="block text-2xl leading-none">＋</span>
-                    심기
+                    씨앗 심기
                   </span>
                 </button>
+                {harvested[i] && <span key={harvested[i]} className="garden-harvest-float" aria-hidden="true">✦ 수확!</span>}
               </li>
             );
           }
@@ -115,20 +126,17 @@ export function Beds({
           const progress = Math.min(1, Math.max(0, 1 - left / span));
           const isRipe = left <= 0;
           return (
-            <li key={i}>
+            <li key={i} className="relative">
               <button
                 type="button"
                 onClick={() => (isRipe ? onHarvest(i) : setSelected(selected === i ? null : i))}
                 aria-label={`${species.title} ${isRipe ? "수확하기" : `${formatLeft(left)} 남음`}`}
-                className={`garden-soil relative grid aspect-square w-full place-items-center overflow-hidden rounded-2xl ${
+                className={`garden-soil ${isRipe ? "garden-ripe" : ""} relative grid aspect-square w-full place-items-center overflow-hidden rounded-2xl ${
                   selected === i ? "ring-2 ring-[var(--g-leaf)]" : ""
                 }`}
               >
-                <span
-                  className={isRipe ? "garden-bob text-[34px]" : "text-[26px]"}
-                  style={isRipe ? undefined : { transform: `scale(${0.55 + progress * 0.45})` }}
-                >
-                  {isRipe ? fruitIcon(species) : progress < 0.5 ? "🌱" : "🌿"}
+                <span key={p.id} className={`garden-crop ${isRipe ? "garden-crop-ripe" : ""}`} style={{ width: `${65 + progress * 35}%` }}>
+                  <PlantArt species={species} progress={progress} />
                 </span>
                 <span className="absolute inset-x-1.5 bottom-1.5 truncate rounded-md bg-black/35 px-1 text-[10.5px] font-semibold text-white">
                   {isRipe ? "수확!" : formatLeft(left)}
@@ -140,10 +148,13 @@ export function Beds({
                   />
                 )}
               </button>
+              {harvested[i] && <span key={harvested[i]} className="garden-harvest-float" aria-hidden="true">✦ 수확!</span>}
             </li>
           );
         })}
-      </ul>
+        </ul>
+        <p className="garden-field-hint">{ripe.length ? `✦ ${ripe.length}칸이 다 자랐어요! 열매를 눌러 수확하세요` : data.beds.some((bed) => bed === null) ? "빈 흙밭을 눌러 씨앗을 심어 보세요" : "쑥쑥 자라는 중 · 작물을 누르면 자세히 볼 수 있어요"}</p>
+      </div>
 
       {selected !== null && data.beds[selected] && (
         <BedDetail
@@ -164,6 +175,8 @@ export function Beds({
           onClose={() => setPicking(null)}
           onPick={(species) => {
             plant(picking, species, plaza);
+            gardenFeedback("plant");
+            say("🌱 씨앗을 심었어요. 쑥쑥 자라라!");
             setPicking(null);
           }}
           empty={catalog.length === 0}
@@ -184,6 +197,7 @@ export function Beds({
                   byId,
                   bonus,
                 );
+                gardenFeedback("reward");
                 say(`🍯 잼 +${jam}`);
               }}
               className="rounded-full bg-[var(--g-jam)] px-3.5 py-1.5 text-[13px] font-semibold text-white"
@@ -220,7 +234,7 @@ export function Beds({
                     </div>
                     <button
                       type="button"
-                      onClick={() => say(`🍯 잼 +${sell([f.id], byId, bonus)}`)}
+                      onClick={() => { gardenFeedback("reward"); say(`🍯 잼 +${sell([f.id], byId, bonus)}`); }}
                       className="shrink-0 rounded-full bg-[var(--g-jam)] px-3 py-1.5 text-[12.5px] font-semibold text-white"
                     >
                       잼 {fruitValue(f, species, bonus)}
@@ -292,8 +306,15 @@ function SeedSheet({
   onClose: () => void;
   empty: boolean;
 }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const element = dialog.current;
+    element?.showModal();
+    return () => element?.close();
+  }, []);
+
   return (
-    <div role="dialog" aria-label="심을 씨앗 고르기" className="fixed inset-0 z-50 flex items-end bg-black/40" onClick={onClose}>
+    <dialog ref={dialog} aria-label="심을 씨앗 고르기" className="garden-seed-dialog fixed inset-0 z-50 m-0 h-dvh max-h-none w-full max-w-none items-end border-0 bg-transparent p-0 text-inherit open:flex" onClick={onClose} onCancel={onClose}>
       <div
         className="mx-auto max-h-[70vh] w-full max-w-[560px] overflow-y-auto rounded-t-3xl bg-[var(--g-bg)] p-4 pb-8"
         onClick={(e) => e.stopPropagation()}
@@ -315,7 +336,7 @@ function SeedSheet({
                   onClick={() => onPick(species)}
                   className="flex w-full items-center gap-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3 text-left"
                 >
-                  <span className="text-2xl">{fruitIcon(species)}</span>
+                  <span className="garden-seed-packet shrink-0"><PlantArt species={species} /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13.5px] font-semibold">{species.title}</span>
                     <span className="text-[11.5px] text-smoke">
@@ -329,6 +350,6 @@ function SeedSheet({
           </ul>
         )}
       </div>
-    </div>
+    </dialog>
   );
 }

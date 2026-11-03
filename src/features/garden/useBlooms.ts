@@ -17,13 +17,14 @@ import { useGarden } from "./store";
 
 export interface CareOutcome {
   given: number;
+  /** 서버에 쓰지 못했다(네트워크·규칙). 오늘 몫을 다 쓴 것과 구별한다. */
+  failed?: boolean;
   bloomedNow: boolean;
   becameOwner: boolean;
 }
 
 export interface Blooms {
   blooms: Map<string, Bloom>;
-  bloomed: number;
   care: (speciesId: string, delta: number) => Promise<CareOutcome>;
 }
 
@@ -82,16 +83,15 @@ export function useBlooms(uid: string | null): Blooms {
         return { given: room, bloomedNow: !prev?.bloomedAt && total >= BLOOM_CARE, becameOwner: !prev };
       }
 
-      if (!uid) return NOTHING;
+      if (!uid) return { ...NOTHING, failed: true };
       const result = await giveCare(uid, speciesId, room, nick, BLOOM_CARE, CARE_PER_DAY);
       // capped는 다른 기기에서 오늘 몫을 다 쓴 경우다. 조용히 넘어간다.
-      if (!result.ok) return NOTHING;
+      if (!result.ok) return result.reason === "capped" ? NOTHING : { ...NOTHING, failed: true };
       garden.recordCare(speciesId, room, result.mine);
       return { given: room, bloomedNow: result.bloomedNow, becameOwner: result.becameOwner };
     },
     [blooms, uid],
   );
 
-  const bloomed = [...blooms.values()].filter((b) => b.bloomedAt).length;
-  return { blooms, bloomed, care };
+  return { blooms, care };
 }

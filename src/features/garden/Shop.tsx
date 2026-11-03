@@ -1,5 +1,8 @@
 "use client";
 
+import { PlantArt } from "./GardenArt";
+import { gardenFeedback } from "./feedback";
+
 import { fruitIcon, formatLeft, PLOT_UPGRADES, SEED_PRICE, SHOP_ODDS, SHOP_SLOT, shopFor, shopSlot, TIER_LABEL } from "./rules";
 import { useGarden, type GardenData } from "./store";
 import type { Species } from "./types";
@@ -29,7 +32,7 @@ export function Shop({
   const nextPlot = PLOT_UPGRADES.find((u) => u.plots > data.beds.length);
 
   return (
-    <div>
+    <div className="garden-shop">
       <div className="flex items-baseline justify-between">
         <h2 className="text-[15px] font-bold">씨앗 상점</h2>
         <p className="text-[12px] tabular-nums text-smoke">새 진열까지 {formatLeft(restock)}</p>
@@ -49,7 +52,7 @@ export function Shop({
                 rare ? "ring-2 ring-[var(--g-jam)]" : ""
               }`}
             >
-              <span className="text-[28px] leading-none">{fruitIcon(species)}</span>
+              <span className="garden-seed-packet"><PlantArt species={species} /></span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[13.5px] font-semibold">{species.title}</p>
                 <p className="text-[11.5px] text-smoke">
@@ -59,7 +62,7 @@ export function Shop({
               <button
                 type="button"
                 disabled={left <= 0 || data.jam < price}
-                onClick={() => buy(species, slot, item.stock) && say(`${fruitIcon(species)} 씨앗을 샀어요`)}
+                onClick={() => { if (buy(species, slot, item.stock)) { gardenFeedback("reward"); say(`${fruitIcon(species)} 씨앗을 샀어요`); } }}
                 className="shrink-0 rounded-full bg-[var(--g-jam)] px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-35"
               >
                 {left <= 0 ? "품절" : `🍯 ${price}`}
@@ -87,7 +90,7 @@ export function Shop({
           <button
             type="button"
             disabled={data.jam < nextPlot.price}
-            onClick={() => upgrade() && say("🪴 텃밭이 넓어졌어요")}
+            onClick={() => { if (upgrade()) { gardenFeedback("reward"); say("🪴 텃밭이 넓어졌어요"); } }}
             className="shrink-0 rounded-full bg-[var(--g-jam)] px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-35"
           >
             🍯 {nextPlot.price}
