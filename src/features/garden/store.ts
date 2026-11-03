@@ -62,8 +62,17 @@ export interface GardenData {
   nick: string;
   /** 오늘 꽃꿀을 받은 업적. */
   nectar: { day: string; taken: string[] };
+  /**
+   * 이 정원을 마지막으로 맞춘 계정. 없으면 아직 어느 계정과도 맞춘 적 없는
+   * 이 기기만의 정원이다. updatedAt만으로 고르면 새 기기에서 갓 만든 빈 정원이
+   * "더 새것"이 되어 계정에 쌓인 정원을 덮는다 — 그래서 주인부터 본다.
+   */
+  owner?: string;
   updatedAt: number;
 }
+
+/** 계정과 맞춘 결과. local이면 이 기기의 정원을 계정에 올려야 한다. */
+export type LinkResult = "remote" | "local";
 
 const STORAGE_KEY = "jamtong-garden-v1";
 
@@ -154,8 +163,12 @@ interface GardenState {
   data: GardenData | null;
   /** 첫 렌더 뒤에 부른다. localStorage는 서버 렌더에 없다. */
   boot: (catalog: Species[]) => void;
-  /** Firestore에서 받은 것이 더 새것이면 바꾼다. */
-  adopt: (remote: GardenData) => void;
+  /**
+   * 계정의 정원(remote)과 맞춘다. 이 기기의 정원이 그 계정 것이고 더 새것일 때만
+   * 이 기기 것을 남기고, 아니면 계정 것을 받는다. 계정에 정원이 없으면 이 기기
+   * 것이 그 계정의 정원이 된다.
+   */
+  link: (uid: string, remote: GardenData | null) => LinkResult;
   plant: (bed: number, species: Species, plaza: PlazaLevel) => void;
   harvest: (bed: number, species: Species, plaza: PlazaLevel) => Fruit | null;
   dig: (bed: number) => void;
@@ -196,14 +209,17 @@ export const useGarden = create<GardenState>((set, get) => {
       set({ data });
     },
 
-    adopt: (remote) => {
+    link: (owner, remote) => {
       const local = get().data;
-      if (remote?.v !== 1) return;
-      if (!local || remote.updatedAt > local.updatedAt) {
-        const data = normalize(remote);
-        writeLocal(data);
-        set({ data });
-      }
+      const usable = remote?.v === 1 ? remote : null;
+      const keepLocal = !usable || (local?.owner === owner && local.updatedAt >= usable.updatedAt);
+      const base = keepLocal || !usable ? local : normalize(usable);
+      if (!base) return "local";
+      // 주인 표시는 내용이 바뀐 것이 아니므로 updatedAt을 건드리지 않는다.
+      const data = { ...base, owner };
+      writeLocal(data);
+      set({ data });
+      return keepLocal ? "local" : "remote";
     },
 
     plant: (bed, species, plaza) => {

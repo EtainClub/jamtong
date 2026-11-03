@@ -45,9 +45,13 @@ export function PlazaView({
   const [bursts, setBursts] = useState<Record<string, number>>({});
 
   const onPulled = async (weed: Weed) => {
-    const ok = await plaza.pull(weed.cell);
-    if (!ok) {
+    const result = await plaza.pull(weed.cell);
+    if (result === "gone") {
       say("누가 먼저 뽑았어요 🙌");
+      return false;
+    }
+    if (result === "error") {
+      say("광장에 닿지 못했어요. 잠시 뒤 다시 해 보세요");
       return false;
     }
     const at = Date.now();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "@/lib/firebase/auth";
 import { loadGarden, saveGarden } from "@/lib/firebase/garden";
@@ -10,7 +10,7 @@ import { Dex } from "./Dex";
 import { FlowerBed } from "./FlowerBed";
 import { Toast } from "./parts";
 import { PlazaView } from "./PlazaView";
-import { bloomBonus, formatLeft, isRaining, nextRain } from "./rules";
+import { bloomBonus, caresFor, formatLeft, isRaining, nextRain } from "./rules";
 import { Shop } from "./Shop";
 import { useGarden, type GardenData } from "./store";
 import type { Species } from "./types";
@@ -48,11 +48,11 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
   const plaza = usePlaza(uid, now);
   const flowers = useBlooms(uid);
 
-  const say = (text: string) => {
+  const say = useCallback((text: string) => {
     setToast(text);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2200);
-  };
+  }, []);
 
   // 시계. 성장·상점·단비가 모두 이 값으로 그려진다.
   useEffect(() => {
@@ -60,20 +60,16 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
     return () => clearInterval(id);
   }, []);
 
-  // 정원을 연다. 원본 페이지의 "씨앗 받기"로 왔으면 씨앗도 준다(품종마다 한 번).
+  // 정원을 연다. 원본 페이지의 "씨앗 받기"로 왔으면 그 품종을 기억해 둔다.
+  const gift = useRef<string | null>(null);
   useEffect(() => {
     useGarden.getState().boot(catalog);
     const url = new URL(window.location.href);
-    const gift = url.searchParams.get("gift");
-    if (!gift) return;
+    const id = url.searchParams.get("gift");
+    if (!id) return;
     url.searchParams.delete("gift");
     window.history.replaceState(null, "", url.pathname + url.search);
-    const species = catalog.find((s) => s.id === gift);
-    if (!species) return;
-    const given = useGarden.getState().gift(species);
-    // 알림은 첫 그림이 나간 뒤에 띄운다.
-    const t = setTimeout(() => say(given ? `🌱 「${species.title}」 씨앗을 받았어요` : "이 씨앗은 이미 받았어요"), 0);
-    return () => clearTimeout(t);
+    gift.current = id;
   }, [catalog]);
 
   // 계정. 광장에 흔적을 남기고 정원을 기기 사이로 옮기려면 있어야 한다.
@@ -82,27 +78,46 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
     void ensureUser();
   }, [ready, configured, ensureUser]);
 
-  // 동기화. 원격을 한 번 읽어 더 새것이면 받고, 그 뒤로는 바뀔 때마다 늦춰서 쓴다.
-  // 읽기 전에 쓰면 다른 기기에서 키운 정원을 이 기기의 옛것으로 덮는다.
+  // 동기화. 계정의 정원을 한 번 읽어 맞추고(store.link), 그 뒤로는 바뀔 때마다 늦춰서 쓴다.
+  // 읽기 전에 쓰면 다른 기기에서 키운 정원을 이 기기의 빈 정원으로 덮는다.
+  // 읽지 못했으면 쓰지도 않는다 — 계정 쪽 정원이 무엇인지 모르는 채로 덮게 된다.
+  const [syncedFor, setSyncedFor] = useState<string | null>(null);
+  const hasData = Boolean(data);
   useEffect(() => {
-    if (!uid || !data) return;
+    if (!uid || !hasData) return;
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let unsubscribe: (() => void) | null = null;
+    let warned = false;
+
+    const save = (snapshot: GardenData) =>
+      saveGarden(uid, snapshot).catch((error) => {
+        console.error("[garden] 정원을 계정에 저장하지 못했다", error);
+        if (!warned && alive) say("정원을 계정에 저장하지 못했어요. 이 기기에는 남아 있어요");
+        warned = true;
+      });
+
     void (async () => {
+      let remote: GardenData | null;
       try {
-        const remote = await loadGarden<GardenData>(uid);
+        remote = await loadGarden<GardenData>(uid);
+      } catch (error) {
+        console.error("[garden] 계정의 정원을 읽지 못했다", error);
         if (!alive) return;
-        if (remote) useGarden.getState().adopt(remote);
-      } catch {
-        // 읽지 못하면 이 기기의 정원으로 계속 논다.
+        setSyncedFor(uid);
+        say("계정의 정원을 불러오지 못했어요. 이번에는 이 기기에만 저장돼요");
+        return;
       }
       if (!alive) return;
+      const result = useGarden.getState().link(uid, remote);
+      setSyncedFor(uid);
+      const now = useGarden.getState().data;
+      if (result === "local" && now) void save(now);
       unsubscribe = useGarden.subscribe((s) => {
         if (!s.data) return;
         if (timer) clearTimeout(timer);
         const snapshot = s.data;
-        timer = setTimeout(() => void saveGarden(uid, snapshot).catch(() => {}), SAVE_DELAY);
+        timer = setTimeout(() => void save(snapshot), SAVE_DELAY);
       });
     })();
     return () => {
@@ -110,14 +125,28 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
       unsubscribe?.();
       if (timer) clearTimeout(timer);
     };
-    // 계정이 바뀔 때와 정원이 처음 생길 때만 다시 건다.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uid, Boolean(data)]);
+  }, [uid, hasData, say]);
 
-  if (!data) {
+  // 계정과 맞추기 전에는 그리지 않는다. 그새 심은 것이 계정 정원에 덮여 사라지지 않게.
+  const syncing = configured && (!ready || (uid !== null && syncedFor !== uid));
+
+  // 선물 씨앗은 계정과 맞춘 뒤에 준다(품종마다 한 번). 먼저 주면 계정 정원에 덮여 사라진다.
+  useEffect(() => {
+    const id = gift.current;
+    if (!id || !hasData || syncing) return;
+    gift.current = null;
+    const species = catalog.find((s) => s.id === id);
+    if (!species) return;
+    const given = useGarden.getState().gift(species);
+    say(given ? `🌱 「${species.title}」 씨앗을 받았어요` : "이 씨앗은 이미 받았어요");
+  }, [hasData, syncing, catalog, say]);
+
+  if (!data || syncing) {
     return <p className="py-16 text-center text-[13px] text-smoke">정원을 여는 중…</p>;
   }
 
+  // 품종표에 있는 업적만 센다. 콘텐츠에서 빠진 업적이나 규칙 점검용 문서는 보너스가 되지 않는다.
+  const bloomed = catalog.filter((s) => caresFor(s) && flowers.blooms.get(s.id)?.bloomedAt).length;
   const ripe = data.beds.filter((p) => p && p.ripeAt <= now).length;
 
   return (
@@ -161,7 +190,7 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
             byId={byId}
             now={now}
             plaza={plaza.level}
-            bonus={bloomBonus(flowers.bloomed)}
+            bonus={bloomBonus(bloomed)}
             care={flowers.care}
             say={say}
           />

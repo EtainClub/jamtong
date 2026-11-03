@@ -40,6 +40,8 @@ export interface PlazaDay {
   gardeners: number;
 }
 
+export type PullResult = "ok" | "gone" | "error";
+
 export function cellId(i: number): string {
   return `c${String(i).padStart(2, "0")}`;
 }
@@ -71,7 +73,7 @@ export function watchPlaza(
 }
 
 /**
- * 한 칸을 뽑는다. 이미 누가 뽑았으면 "gone".
+ * 한 칸을 뽑는다. 이미 누가 뽑았으면 "gone", 그 밖의 실패는 "error".
  * 칸·기록판·정원지기 표식을 한 트랜잭션으로 쓴다 — 규칙이 셋의 짝을 본다.
  */
 export async function pullWeed(
@@ -79,9 +81,9 @@ export async function pullWeed(
   day: string,
   cell: string,
   regrowMinutes: number,
-): Promise<"ok" | "gone"> {
+): Promise<PullResult> {
   const db = firebaseDb();
-  if (!db) return "gone";
+  if (!db) return "error";
 
   const cellRef = doc(db, "plazaCells", cell);
   const dayRef = doc(db, "plazaDays", day);
@@ -106,8 +108,11 @@ export async function pullWeed(
       if (!g.exists()) tx.set(gardenerRef, { at: serverTimestamp() });
       return "ok" as const;
     });
-  } catch {
-    // 규칙에 막힌 것은 대개 시계가 어긋나 아직 안 난 잡초를 뽑으려 한 경우다.
-    return "gone";
+  } catch (error) {
+    // 규칙에 막힌 것은 대개 그새 누가 뽑았거나, 시계가 어긋나 아직 안 난 잡초를
+    // 뽑으려 한 경우다. 그 밖의 실패(네트워크 등)는 "누가 먼저"로 덮지 않는다.
+    if ((error as { code?: string }).code === "permission-denied") return "gone";
+    console.error("[plaza] 잡초를 뽑지 못했다", error);
+    return "error";
   }
 }

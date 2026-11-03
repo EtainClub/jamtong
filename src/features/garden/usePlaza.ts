@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { firebaseConfigured } from "@/lib/firebase/client";
-import { cellId, pullWeed, watchPlaza, type PlazaCell, type PlazaDay } from "@/lib/firebase/plaza";
+import { cellId, pullWeed, watchPlaza, type PlazaCell, type PlazaDay, type PullResult } from "@/lib/firebase/plaza";
 
 import { kstDay, PLAZA_CELLS, plazaLevel, regrowMinutes, weedStage, type WeedStage } from "./rules";
 import type { PlazaLevel } from "./types";
@@ -26,8 +26,8 @@ export interface Plaza {
   weeds: Weed[];
   level: PlazaLevel;
   today: PlazaDay;
-  /** 뽑았으면 true. 그새 누가 먼저 뽑았으면 false. */
-  pull: (cell: string) => Promise<boolean>;
+  /** ok=뽑았다, gone=그새 누가 먼저 뽑았다, error=그 밖의 실패(계정 없음·네트워크). */
+  pull: (cell: string) => Promise<PullResult>;
   shared: boolean;
 }
 
@@ -78,7 +78,7 @@ export function usePlaza(uid: string | null, now: number): Plaza {
   }, [cells, now]);
 
   const pull = useCallback(
-    async (cell: string) => {
+    async (cell: string): Promise<PullResult> => {
       const minutes = regrowMinutes(Math.max(1, today.gardeners), Math.random());
       if (!firebaseConfigured) {
         const next = new Map(cells);
@@ -86,11 +86,10 @@ export function usePlaza(uid: string | null, now: number): Plaza {
         writeLocalCells(next);
         setCells(next);
         setToday((t) => ({ pulls: t.pulls + 1, gardeners: Math.max(1, t.gardeners) }));
-        return true;
+        return "ok";
       }
-      if (!uid) return false;
-      const result = await pullWeed(uid, day, cell, minutes);
-      return result === "ok";
+      if (!uid) return "error";
+      return pullWeed(uid, day, cell, minutes);
     },
     [cells, day, today.gardeners, uid],
   );

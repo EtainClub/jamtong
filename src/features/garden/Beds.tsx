@@ -61,7 +61,8 @@ export function Beds({
   /** 업적을 가꾼다. 만개나 정원지기 소식이 있으면 그것을, 없으면 조용히 센다. */
   const tend = async (species: Species, delta: number) => {
     const out = await care(species.id, delta);
-    if (out.bloomedNow) say(`🌸 「${species.title}」 만개!`);
+    if (out.failed) say(`꽃밭에 닿지 못해 「${species.title}」 가꿈이 기록되지 않았어요`);
+    else if (out.bloomedNow) say(`🌸 「${species.title}」 만개!`);
     else if (out.becameOwner) say(`👑 「${species.title}」의 정원지기가 되었어요`);
     else if (out.given) say(`🌷 「${species.title}」 가꿈 +${out.given}`);
   };
