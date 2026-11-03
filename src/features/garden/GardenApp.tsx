@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { track } from "@/lib/analytics";
 import { useAuth } from "@/lib/firebase/auth";
 import { loadGarden, saveGarden } from "@/lib/firebase/garden";
 
@@ -139,6 +140,16 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
 
   // 계정과 맞추기 전에는 그리지 않는다. 그새 심은 것이 계정 정원에 덮여 사라지지 않게.
   const syncing = configured && (!ready || (uid !== null && syncedFor !== uid));
+
+  // 연 것을 한 번 센다. 계정과 맞춘 뒤라야 "익은 밭"이 이 사람의 진짜 정원 기준이다.
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || !hasData || syncing) return;
+    opened.current = true;
+    const beds = useGarden.getState().data?.beds ?? [];
+    const at = Date.now();
+    track("garden_open", { ripe: beds.filter((p) => p && p.ripeAt <= at).length });
+  }, [hasData, syncing]);
 
   // 선물 씨앗은 계정과 맞춘 뒤에 준다(품종마다 한 번). 먼저 주면 계정 정원에 덮여 사라진다.
   useEffect(() => {

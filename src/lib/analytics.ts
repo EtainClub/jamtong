@@ -44,6 +44,12 @@ export type AnalyticsEvent =
   | "agent_question"
   /** 답이 화면을 움직였다. */
   | "agent_action"
+  /**
+   * 정원을 열었다(계정과 맞춘 뒤 한 번). ripe=열자마자 거둘 수 있던 밭 수.
+   * 거두거나 뽑지 않고 둘러만 본 방문도 세야 재방문(D1·D7)과 "익을 때 맞춰 오는가"가
+   * 보인다 (docs/garden-game.md §3.11).
+   */
+  | "garden_open"
   /** 정원에서 열매를 거뒀다. tier, mutations(변이 수). */
   | "garden_harvest"
   /** 광장 잡초를 뽑았다. stage. */
