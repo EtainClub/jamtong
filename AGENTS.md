@@ -88,7 +88,7 @@ claim마다 `policy:<slug>#<claimId>` 앵커로 나간다.
    대응 claim이 없는 소문은 싣지 않는다.
 3. 확인하지 못한 것은 `gaps`에 적는다. 1차 자료와 대조한 claim만 `verified: true`.
 4. `src/content/policies/index.ts`의 `POLICIES`에 더한다.
-5. `pnpm validate && pnpm wiki:lint`.
+5. `pnpm garden:arrivals && pnpm validate && pnpm wiki:lint`.
 
 ### 통통에서 가져온 청소년·청년 정책
 
@@ -97,6 +97,12 @@ claim마다 `policy:<slug>#<claimId>` 앵커로 나간다.
 가져온다. 스냅샷을 손으로 고치지 않는다. 출처 id에는 `tt-<항목>--`가 붙고, 통통의
 비판(counterpoints)은 `critiqueIds`로 "비판과 한계"에 묶인다. 잼통에서만 쓰는 도는 주장과
 기한(`validUntil`) 지난 claim 빼기는 `src/content/policies/tongtong.ts`에 있다.
+
+## 정원 품종 장부
+
+업적·정책·언행을 더하면 정원(`/garden`)의 품종이 저절로 는다. 들어온 날은
+`pnpm garden:arrivals`로 `src/features/garden/arrivals.json`에 적는다 — 그날 19시에
+신품종 장마가 열린다. 빠뜨리면 `pnpm validate`가 실패한다. 날짜를 손으로 고치지 않는다.
 
 ## Ingest
 

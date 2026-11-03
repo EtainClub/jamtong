@@ -9,15 +9,22 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  baseJam,
   BLOOM_CARE,
   bloomBonus,
   bloomStage,
   defaultNick,
+  fruitValue,
   HOUR,
+  isMeteor,
+  isNewVariety,
   isRaining,
   kstDay,
   kstDayNumber,
   MINUTE,
+  monsoonSpecies,
+  nextMeteor,
+  nextMonsoon,
   NICK_MAX,
   nextRain,
   plazaLevel,
@@ -190,4 +197,87 @@ test("지어 주는 정원 이름은 규칙의 12자 안이다", () => {
     assert.ok(nick.length >= 1 && nick.length <= NICK_MAX, nick);
   }
   assert.equal(HOUR, 60 * MINUTE);
+});
+
+test("별똥별은 수·토 21:00에 5분 온다", () => {
+  // 2026-11-04는 수요일, 11-07은 토요일.
+  assert.equal(isMeteor(kst("2026-11-04T21:00:00")), true);
+  assert.equal(isMeteor(kst("2026-11-04T21:04:59")), true);
+  assert.equal(isMeteor(kst("2026-11-04T21:05:00")), false);
+  assert.equal(isMeteor(kst("2026-11-05T21:02:00")), false);
+  assert.equal(nextMeteor(kst("2026-11-03T12:00:00")).start, kst("2026-11-04T21:00:00"));
+  assert.equal(nextMeteor(kst("2026-11-04T21:05:00")).start, kst("2026-11-07T21:00:00"));
+  assert.equal(nextMeteor(kst("2026-11-07T22:00:00")).start, kst("2026-11-11T21:00:00"));
+});
+
+test("반짝은 별똥별이 지나는 동안 자란 열매에만, 대략 5%로 붙는다", () => {
+  let hits = 0;
+  const n = 4000;
+  for (let i = 0; i < n; i++) {
+    const during: Plant = {
+      id: `m${i}`,
+      speciesId: "a:f0",
+      plantedAt: kst("2026-11-04T20:00:00"),
+      ripeAt: kst("2026-11-05T01:00:00"),
+      speed: 1,
+      harvests: 0,
+    };
+    if (rollMutations(during, "normal").includes("sparkle")) hits++;
+    const dry = { ...during, plantedAt: kst("2026-11-05T01:00:00"), ripeAt: kst("2026-11-05T05:00:00") };
+    assert.ok(!rollMutations(dry, "normal").includes("sparkle"));
+  }
+  assert.ok(Math.abs(hits / n - 0.05) < 0.015, `반짝 ${hits}/${n}`);
+});
+
+const fresh = (id: string, tier: Tier, arrivedOn: string): Species => ({ ...species(id, tier, hash32(id)), arrivedOn });
+function hash32(text: string): number {
+  let h = 0;
+  for (const c of text) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return h;
+}
+
+test("신품종은 들어온 날부터 30일 동안이다", () => {
+  const s = fresh("a:new", "flagship", "2026-11-03");
+  assert.equal(isNewVariety(s, kst("2026-11-02T23:59:59")), false);
+  assert.equal(isNewVariety(s, kst("2026-11-03T00:00:00")), true);
+  assert.equal(isNewVariety(s, kst("2026-12-02T23:59:59")), true);
+  assert.equal(isNewVariety(s, kst("2026-12-03T00:00:00")), false);
+  assert.equal(isNewVariety(species("a:old", "flagship", 1), kst("2026-11-03T12:00:00")), false);
+});
+
+test("신품종 열매는 잼이 20% 더 나온다", () => {
+  const s = fresh("a:new", "flagship", "2026-11-03");
+  const fruit = { id: "f", speciesId: s.id, noteId: "", mutations: [], harvestedAt: kst("2026-11-10T12:00:00") };
+  assert.equal(fruitValue(fruit, s), Math.round(baseJam(s) * 1.2));
+  assert.equal(fruitValue({ ...fruit, harvestedAt: kst("2026-12-10T12:00:00") }, s), baseJam(s));
+});
+
+test("신품종 장마는 들어온 날 19:00–20:00이고, 그날 품종만 고른다", () => {
+  const catalog = [...CATALOG, fresh("w:today", "sprout", "2026-11-05"), fresh("p:other", "common", "2026-11-09")];
+  assert.deepEqual(monsoonSpecies(kst("2026-11-05T18:59:59"), catalog), []);
+  assert.deepEqual(
+    monsoonSpecies(kst("2026-11-05T19:00:00"), catalog).map((s) => s.id),
+    ["w:today"],
+  );
+  assert.deepEqual(monsoonSpecies(kst("2026-11-05T20:00:00"), catalog), []);
+  assert.equal(nextMonsoon(kst("2026-11-05T19:30:00"), catalog)?.start, kst("2026-11-05T19:00:00"));
+  assert.equal(nextMonsoon(kst("2026-11-05T20:00:00"), catalog)?.start, kst("2026-11-09T19:00:00"));
+  assert.equal(nextMonsoon(kst("2026-11-09T20:00:00"), catalog), null);
+});
+
+test("장마 상점: 신품종이 앞 칸에 서고, 장마가 아니면 진열은 예전과 같다", () => {
+  const featured = [fresh("a:n1", "flagship", "2026-11-05"), fresh("w:n2", "sprout", "2026-11-05")];
+  const catalog = [...CATALOG, ...featured];
+  const items = shopFor(777, catalog, featured);
+  assert.equal(items.length, 6);
+  assert.deepEqual(new Set(items.slice(0, 2).map((i) => i.speciesId)), new Set(["a:n1", "w:n2"]));
+  assert.equal(new Set(items.map((i) => i.speciesId)).size, 6);
+  assert.deepEqual(shopFor(777, catalog), shopFor(777, catalog, []));
+  // 품종이 셋보다 많으면 슬롯마다 돌려 가며 세운다.
+  const many = Array.from({ length: 7 }, (_, i) => fresh(`p:m${i}`, "common", "2026-11-05"));
+  const seen = new Set<string>();
+  for (let slot = 0; slot < 7; slot++) {
+    for (const item of shopFor(slot, [...CATALOG, ...many], many).slice(0, 3)) seen.add(item.speciesId);
+  }
+  assert.equal(seen.size, 7);
 });

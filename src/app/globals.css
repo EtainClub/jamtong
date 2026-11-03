@@ -313,6 +313,10 @@ body {
 .garden-chip-moist { background: #cfe6fa; color: #134a7a; }
 .garden-chip-shine { background: #fff1c2; color: #7a5a00; box-shadow: inset 0 0 0 1px #e8c860; }
 .garden-chip-blessed { background: #d4f0c4; color: #1f5a14; }
+.garden-chip-sparkle { background: #2b2d6e; color: #fff6c9; box-shadow: inset 0 0 0 1px #8a8fe8; }
+.garden-chip-new { background: #e0f2ec; color: #12573f; }
+.garden-meteor { background: linear-gradient(90deg, #2b2d6e, #5b4aa8); }
+.garden-monsoon { background: linear-gradient(90deg, #2f7a6a, #4f9a7a); }
 .garden-chip-rainbow {
   background: linear-gradient(90deg, #f87171, #fbbf24, #4ade80, #60a5fa, #c084fc);
   color: #fff;

@@ -163,17 +163,102 @@ export function ripeTime(start: number, minutes: number, speed: number): number 
   return t + remaining / speed;
 }
 
+// ── 날씨: 별똥별 ────────────────────────────────────────────────────
+
+/**
+ * 수·토 21:00(한국 시각)에 5분. 이 동안 자란 열매에 반짝 변이가 붙을 수 있다.
+ * 성장 속도는 바꾸지 않는다. 22시 전이다 — 그 뒤에는 이벤트를 열지 않는다(§3.6).
+ */
+const METEOR_WEEKDAYS = [3, 6]; // 0=일요일
+const METEOR_START = 21 * HOUR;
+const METEOR_LENGTH = 5 * MINUTE;
+
+/** t가 끝나기 전인 가장 가까운 별똥별 창. */
+export function nextMeteor(t: number): { start: number; end: number } {
+  const day = kstMidnight(t);
+  for (let i = 0; i <= 7; i++) {
+    const base = day + i * 24 * HOUR;
+    const weekday = new Date(base + KST).getUTCDay();
+    const start = base + METEOR_START;
+    if (METEOR_WEEKDAYS.includes(weekday) && start + METEOR_LENGTH > t) {
+      return { start, end: start + METEOR_LENGTH };
+    }
+  }
+  // 닿지 않는다. 여드레 안에 반드시 있다.
+  return { start: day + 8 * 24 * HOUR, end: day + 8 * 24 * HOUR + METEOR_LENGTH };
+}
+
+export function isMeteor(t: number): boolean {
+  const w = nextMeteor(t);
+  return w.start <= t && t < w.end;
+}
+
+function overlapsMeteor(from: number, to: number): boolean {
+  return nextMeteor(from).start < to;
+}
+
+// ── 신품종 ──────────────────────────────────────────────────────────
+
+/** 들어온 날부터 30일 동안 신품종이다. 그 열매는 잼이 20% 더 나온다. */
+export const NEW_VARIETY_DAYS = 30;
+export const NEW_VARIETY_BONUS = 0.2;
+
+function dayNumberOf(day: string): number {
+  return kstDayNumber(Date.parse(`${day}T00:00:00+09:00`));
+}
+
+export function isNewVariety(species: Species, t: number): boolean {
+  if (!species.arrivedOn) return false;
+  const age = kstDayNumber(t) - dayNumberOf(species.arrivedOn);
+  return age >= 0 && age < NEW_VARIETY_DAYS;
+}
+
+/**
+ * 신품종 장마 — 품종이 들어온 날 19:00–20:00(한국 시각).
+ * 이 동안 그날 들어온 품종이 상점에 꼭 나온다. 콘텐츠 배포를 모두가 같은 때에 모이는
+ * 이벤트로 바꾼다(§3.6). 단비(19:30)와 겹친다 — 새 씨앗을 심으면 바로 단비를 맞는다.
+ */
+const MONSOON_START = 19 * HOUR;
+const MONSOON_LENGTH = HOUR;
+
+export function monsoonWindow(day: string): { start: number; end: number } {
+  const start = Date.parse(`${day}T00:00:00+09:00`) + MONSOON_START;
+  return { start, end: start + MONSOON_LENGTH };
+}
+
+/** 지금 장마 중이면 그날 들어온 품종. 아니면 빈 배열. */
+export function monsoonSpecies(t: number, catalog: Species[]): Species[] {
+  const today = kstDay(t);
+  const w = monsoonWindow(today);
+  if (t < w.start || t >= w.end) return [];
+  return catalog.filter((s) => s.arrivedOn === today);
+}
+
+/** 아직 끝나지 않은 가장 가까운 장마. 들어올 품종이 없으면 null. */
+export function nextMonsoon(
+  t: number,
+  catalog: Species[],
+): { start: number; end: number; species: Species[] } | null {
+  const days = [...new Set(catalog.map((s) => s.arrivedOn).filter((d): d is string => Boolean(d)))].sort();
+  for (const day of days) {
+    const w = monsoonWindow(day);
+    if (w.end > t) return { ...w, species: catalog.filter((s) => s.arrivedOn === day) };
+  }
+  return null;
+}
+
 // ── 변이 ────────────────────────────────────────────────────────────
 
 export const MUTATION: Record<Mutation, { label: string; multiplier: number; odds: string; hint: string }> = {
   golden: { label: "황금", multiplier: 10, odds: "1%", hint: "언제나 낮은 확률로" },
   moist: { label: "촉촉", multiplier: 2, odds: "30%", hint: "단비를 맞으며 자란 열매" },
+  sparkle: { label: "반짝", multiplier: 5, odds: "5%", hint: "별똥별이 지나는 동안 자란 열매" },
   shine: { label: "원본 광택", multiplier: 1.5, odds: "확정", hint: "쪽지의 근거를 열었다" },
   blessed: { label: "광장의 축복", multiplier: 2, odds: "15%", hint: "광장이 깨끗할 때 수확" },
   rainbow: { label: "무지개", multiplier: 2, odds: "확정", hint: "변이 셋 이상이 겹쳤다" },
 };
 
-export const MUTATION_ORDER: Mutation[] = ["golden", "moist", "shine", "blessed", "rainbow"];
+export const MUTATION_ORDER: Mutation[] = ["golden", "moist", "sparkle", "shine", "blessed", "rainbow"];
 
 /** 변이 셋 이상이 겹치면 무지개가 붙는다. 무지개 자신은 세지 않는다. */
 export function withRainbow(mutations: Mutation[]): Mutation[] {
@@ -190,13 +275,17 @@ export function rollMutations(plant: Plant, plaza: PlazaLevel): Mutation[] {
   if (wet && overlapsRain(plant.plantedAt, plant.ripeAt)) out.push("moist");
   const blessed = roll() < 0.15;
   if (blessed && plaza === "clean") out.push("blessed");
+  // 새 굴림은 맨 뒤에 붙인다. 앞에 끼우면 이미 심은 포기의 황금·촉촉·축복이 바뀐다.
+  const sparkle = roll() < 0.05;
+  if (sparkle && overlapsMeteor(plant.plantedAt, plant.ripeAt)) out.push("sparkle");
   return withRainbow(out);
 }
 
-/** bonus는 꽃밭 보너스(만개한 업적 수에서 나온다). */
+/** bonus는 꽃밭 보너스(만개한 업적 수에서 나온다). 신품종 보너스는 거둔 때로 정해진다. */
 export function fruitValue(fruit: Fruit, species: Species, bonus = 0): number {
   const multiplier = fruit.mutations.reduce((m, k) => m * MUTATION[k].multiplier, 1);
-  return Math.round(baseJam(species) * multiplier * (1 + bonus));
+  const fresh = isNewVariety(species, fruit.harvestedAt) ? NEW_VARIETY_BONUS : 0;
+  return Math.round(baseJam(species) * multiplier * (1 + bonus + fresh));
 }
 
 /** 원본 광택은 하루 다섯 번까지. 게임이 근거 열람 지표를 부풀리지 않게. */
@@ -247,13 +336,27 @@ export function shopSlot(t: number): number {
   return Math.floor(t / SHOP_SLOT);
 }
 
-export function shopFor(slot: number, catalog: Species[]): ShopItem[] {
+/** 장마 때 상점에 꼭 세우는 신품종 수. 나머지 칸은 평소처럼 굴린다. */
+const MONSOON_SHELF = 3;
+
+/**
+ * featured는 신품종 장마의 품종이다. 앞 칸에 먼저 세우고(재고 +1), 남은 칸을 평소
+ * 확률로 채운다. 장마가 아니면 비어 있고 진열은 예전과 같다.
+ */
+export function shopFor(slot: number, catalog: Species[], featured: Species[] = []): ShopItem[] {
   const roll = rng(Math.imul(slot, 2654435761) >>> 0);
   const byTier = new Map<Tier, Species[]>();
   for (const s of catalog) byTier.set(s.tier, [...(byTier.get(s.tier) ?? []), s]);
 
   const items: ShopItem[] = [];
   const taken = new Set<string>();
+  // 장마 품종이 많으면 슬롯마다 돌려 가며 세운다. 모두가 같은 진열을 본다.
+  for (let i = 0; i < Math.min(MONSOON_SHELF, featured.length); i++) {
+    const species = featured[(slot * MONSOON_SHELF + i) % featured.length];
+    if (taken.has(species.id)) continue;
+    taken.add(species.id);
+    items.push({ speciesId: species.id, stock: STOCK[species.tier][1] + 1 });
+  }
   for (let i = 0; i < SHOP_SIZE * 3 && items.length < SHOP_SIZE; i++) {
     let r = roll();
     let tier: Tier = "sprout";

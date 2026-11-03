@@ -15,7 +15,7 @@ import { Dex } from "./Dex";
 import { FlowerBed } from "./FlowerBed";
 import { Toast } from "./parts";
 import { PlazaView } from "./PlazaView";
-import { bloomBonus, caresFor, formatLeft, isRaining, nextRain } from "./rules";
+import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, nextMeteor, nextMonsoon, nextRain } from "./rules";
 import { Shop } from "./Shop";
 import { useGarden, type GardenData } from "./store";
 import type { Species } from "./types";
@@ -182,7 +182,7 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
           🍯 {data.jam.toLocaleString()}
           <span className="ml-1 text-[12px] font-medium text-smoke">잼</span>
         </p>
-        <RainBadge now={now} />
+        <WeatherBadge now={now} catalog={catalog} />
       </div>
 
       <div role="tablist" aria-label="정원" className="garden-nav sticky top-14 z-30 -mx-4 mt-3 flex gap-1 px-3 py-2">
@@ -245,23 +245,54 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
   );
 }
 
-function RainBadge({ now }: { now: number }) {
-  const w = nextRain(now);
+/**
+ * 날씨 알림. 지금 오는 것이 있으면 그것을(여럿이면 모두), 없으면 가장 가까운 것 하나를 보인다.
+ * 정해진 시각이라 "그때 들어가자"가 된다(§3.6).
+ */
+function WeatherBadge({ now, catalog }: { now: number; catalog: Species[] }) {
+  const rain = nextRain(now);
+  const meteor = nextMeteor(now);
+  const monsoon = nextMonsoon(now, catalog);
+
+  const active: Array<{ key: string; text: string; className: string }> = [];
+  if (isMeteor(now)) {
+    active.push({ key: "meteor", text: `🌠 별똥별 · 반짝 변이 · ${formatLeft(meteor.end - now)}`, className: "garden-meteor" });
+  }
+  if (monsoon && monsoon.start <= now) {
+    active.push({
+      key: "monsoon",
+      text: `🌦 신품종 장마 · 상점에 새 씨앗 · ${formatLeft(monsoon.end - now)}`,
+      className: "garden-monsoon",
+    });
+  }
   if (isRaining(now)) {
+    active.push({ key: "rain", text: `🌧 단비 · 성장 ×2 · ${formatLeft(rain.end - now)}`, className: "garden-rain" });
+  }
+  if (active.length > 0) {
     return (
-      <p className="garden-rain rounded-full px-3 py-1 text-[12px] font-semibold text-white">
-        🌧 단비 · 성장 ×2 · {formatLeft(w.end - now)}
-      </p>
+      <div className="flex flex-col items-end gap-1">
+        {active.map((a) => (
+          <p key={a.key} className={`${a.className} rounded-full px-3 py-1 text-[12px] font-semibold text-white`}>
+            {a.text}
+          </p>
+        ))}
+      </div>
     );
   }
-  const at = new Date(w.start).toLocaleTimeString("ko-KR", {
+
+  const upcoming = [
+    { label: "단비", start: rain.start },
+    { label: "별똥별", start: meteor.start },
+    ...(monsoon ? [{ label: "신품종 장마", start: monsoon.start }] : []),
+  ].sort((a, b) => a.start - b.start)[0];
+  const at = new Date(upcoming.start).toLocaleTimeString("ko-KR", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "Asia/Seoul",
   });
   return (
     <p className="rounded-full bg-[var(--g-panel)] px-3 py-1 text-[12px] text-graphite">
-      다음 단비 {at} · {formatLeft(w.start - now)} 뒤
+      다음 {upcoming.label} {at} · {formatLeft(upcoming.start - now)} 뒤
     </p>
   );
 }
