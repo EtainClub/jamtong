@@ -12,6 +12,7 @@ import { KIND_LABEL, search, type SearchEntry } from "@/content/search";
 import type { WikiConceptCard } from "@/lib/wiki/load";
 import type { StatusCount } from "@/content/pledges";
 import { PledgeBar, PledgeLegend } from "@/features/pledges/PledgeProgress";
+import { GardenHomeCard } from "@/features/garden/GardenHomeCard";
 import { loadSelection, saveSelection } from "@/features/app/rememberSelection";
 
 /** 홈 업적 줄에서 마지막으로 연 업적. 돌아왔을 때 그 카드를 파랗게 남긴다. */
@@ -82,6 +83,7 @@ export function HomeFeed({
   claims,
   pledges,
   tasks,
+  watch,
 }: {
   slides: HeroSlide[];
   /** 생활에서 달라진 것. 비어 있으면 묶음을 내보내지 않는다. */
@@ -98,6 +100,8 @@ export function HomeFeed({
   pledges: { count: StatusCount; pledges: number };
   /** 국정과제 주요내용의 이행 집계. */
   tasks: StatusCount;
+  /** 지금 국회에 걸려 있는 일. 기한이 지나면 page.tsx가 넘기지 않는다. */
+  watch?: WatchCard;
 }) {
   const [tab, setTab] = useState("all");
   const [query, setQuery] = useState("");
@@ -258,6 +262,11 @@ export function HomeFeed({
           <li>
             <TasksHomeCard count={tasks} />
           </li>
+          {watch && (
+            <li className="col-span-2">
+              <WatchHomeCard watch={watch} />
+            </li>
+          )}
         </ul>
       </section>
 
@@ -346,6 +355,8 @@ export function HomeFeed({
           ))}
         </ul>
       </section>
+
+      <GardenHomeCard />
 
       {/*
        * 자매 앱. 업적 다음 갈래로 가는 문이라 위키 바로 아래에 둔다. 앱 이름을
@@ -700,6 +711,49 @@ function PledgeHomeCard({ count, total }: { count: StatusCount; total: number })
         </div>
       </div>
     </Link>
+  );
+}
+
+/**
+ * 지금 국회에 걸려 있는 일. 정부안이라 "한 일"이 아니고, 기한이 있다.
+ *
+ * 링크가 둘이다 — 숫자를 정리한 정책 팩트와 대통령이 직접 한 말(원문).
+ * 카드 전체를 하나의 링크로 만들면 둘 중 하나를 고를 수 없다.
+ */
+export interface WatchCard {
+  tag: string;
+  title: string;
+  status: string;
+  summary: string;
+  deadlineLabel: string;
+  links: { href: string; label: string }[];
+}
+
+function WatchHomeCard({ watch }: { watch: WatchCard }) {
+  return (
+    <div className="rounded-card border border-pending/40 bg-pending-tint/40 p-3.5">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-[10px] font-bold text-navy">{watch.tag}</span>
+        <span className="rounded-full border border-pending/40 px-2 py-0.5 text-[10px] font-bold text-pending">
+          {watch.status}
+        </span>
+      </div>
+      <h3 className="mt-1.5 text-[15px] font-bold leading-snug text-ink">{watch.title}</h3>
+      <p className="mt-1 text-[11px] leading-relaxed text-smoke">{watch.summary}</p>
+      <p className="mt-1 text-[11px] font-semibold text-ink">{watch.deadlineLabel}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {watch.links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="inline-flex items-center gap-1 rounded-full border border-stone bg-canvas px-3 py-1.5 text-[12px] font-semibold text-ink transition-colors hover:border-graphite"
+          >
+            {link.label}
+            <span aria-hidden="true">→</span>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }
 
