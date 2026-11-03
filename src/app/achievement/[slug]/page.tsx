@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ACHIEVEMENTS, getAchievement } from "@/content/achievements";
+import { statementsFor } from "@/content/words";
+import { KIND_LABEL } from "@/content/words/schema";
 import { findScene, validateAchievement, type Achievement } from "@/content/schema";
 
 import { AchievementHero } from "@/features/achievement/AchievementHero";
@@ -749,6 +751,7 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
   const scenes = scenesFor(achievement);
   const outlook = findScene(achievement, "outlook");
   const reactions = findScene(achievement, "reactions");
+  const words = statementsFor(achievement.slug);
 
   /*
    * ⑦ 쇼츠. 업적마다 따로 붙이면 빠뜨리는 곳이 생기므로 여기서 한 번에 건다.
@@ -887,6 +890,38 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
           <Section scene="outlook" heading={outlook.heading} lede={outlook.lede}>
             <OutlookFork outlook={outlook.outlook} claims={achievement.claims} />
           </Section>
+        )}
+
+        {/*
+         * 대통령이 이 일을 두고 한 말. 업적 본문과 섞지 않고 끝에 따로 둔다 —
+         * 본인의 말은 근거가 아니라 원문이고, 대개 앞으로 하겠다는 말이 섞여 있다.
+         */}
+        {words.length > 0 && (
+          <section aria-labelledby="related-words" className="mx-auto mt-10 max-w-[560px] px-5">
+            <h2 id="related-words" className="text-[13px] font-bold text-ink">
+              대통령이 이 일을 두고 한 말
+            </h2>
+            <p className="mt-1 text-[12px] leading-relaxed text-ash">
+              원문 그대로 실었습니다. 계획이나 본인의 평가가 섞여 있을 수 있습니다.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {words.map((statement) => (
+                <li key={statement.id}>
+                  <Link
+                    href={`/words/${statement.slug}`}
+                    className="block rounded-card border border-stone px-4 py-3 transition-colors hover:border-graphite"
+                  >
+                    <span className="text-[11px] font-semibold text-navy">
+                      {KIND_LABEL[statement.kind]} · {statement.displayDate}
+                    </span>
+                    <span className="mt-0.5 block text-[14px] font-bold leading-snug text-ink">
+                      {statement.title}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
         {achievement.publishStatus === "published" && (

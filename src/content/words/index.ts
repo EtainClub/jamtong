@@ -1,3 +1,4 @@
+import { budgetSpeech2027 } from "./budget-speech-2027";
 import { itaewon4th } from "./itaewon-4th";
 import { backAlley } from "./back-alley";
 import { beyondCamps } from "./beyond-camps";
@@ -57,6 +58,7 @@ import { validateStatement, type Statement } from "./schema";
  * 없다 — 말한 날은 이미 지난 날이다. 그냥 최근이 위다.
  */
 export const STATEMENTS: Statement[] = [
+  budgetSpeech2027,
   itaewon4th,
   backAlley,
   beyondCamps,
@@ -126,4 +128,14 @@ const errors = STATEMENTS.flatMap((s) =>
 );
 if (errors.length > 0) {
   throw new Error(`언행 자료 검증 실패:\n${errors.join("\n")}`);
+}
+
+/**
+ * 이 업적과 맞물린다고 적힌 언행. 최근 순(STATEMENTS의 순서)이다.
+ *
+ * 언행 쪽에만 relatedAchievements를 적는다. 업적 쪽에 따로 적으면 두 곳이
+ * 갈라진다 — 업적 페이지는 여기서 거꾸로 찾는다.
+ */
+export function statementsFor(achievementSlug: string): Statement[] {
+  return STATEMENTS.filter((statement) => statement.relatedAchievements.includes(achievementSlug));
 }

@@ -78,6 +78,7 @@ raw source 한 건 = 페이지 한 장. 업적과 대통령 언행만 들어온�
 
 ### 언행 — 제도와 사건
 
+- [[source/words-budget-speech-2027]] — 2027년 예산안 시정연설 2026-11-02. 대부분 정부안의 계획, 공적자금 상환은 내년.
 - [[source/words-bundang-house]] — 「돈 때문에 산 것도…」 2026-02-27.
 - [[source/words-national-interest]] — 「존중해야 존중받는다」 2026-04-12.
 - [[source/words-sewol-mockery]] — 「제발 사실이 아니길…」 2026-05-23. 미확인 사안.

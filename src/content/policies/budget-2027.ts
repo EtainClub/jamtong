@@ -10,6 +10,8 @@ import type { PolicyInput } from "./schema";
  * ★ 예산안은 국회 심의로 바뀐다. 정부안 기준이다.
  * ★ 출산·아동 지원액은 policy:child-benefits-total에 있다.
  * ★ 2026-10-31 처음 등록 — 잼통 Voice 이슈 #132, #145, #163.
+ * ★ 2026-11-03 시정연설(11.2)의 재정 수치를 더했다. 정부 설명이므로 CLAIM이다.
+ *   연설 원문은 언행 `words:budget-speech-2027`에 있다.
  */
 export const BUDGET_2027: PolicyInput = {
   slug: "budget-2027",
@@ -18,7 +20,7 @@ export const BUDGET_2027: PolicyInput = {
     "2026년 9월 1일 정부가 낸 2027년 예산안의 총지출·세입, 미래대응기금, 청년 공공임대·청년미래적금·우리아이자립펀드, 정부 R&D 예산",
   ministries: ["기획예산처", "과학기술정보통신부"],
   categories: ["economy", "welfare"],
-  asOf: "2026-10-31",
+  asOf: "2026-11-03",
   rumors: [
     {
       id: "rumor-generations",
@@ -83,6 +85,37 @@ export const BUDGET_2027: PolicyInput = {
       sourceIds: ["src-kasfo-happy-dorm"],
       verified: true,
     },
+    {
+      id: "claim-speech-restructure",
+      text:
+        "이재명 대통령은 2026년 11월 2일 국회 시정연설에서 모든 재정사업을 제로베이스에서 재검토해 2,100여 개 기존 사업 폐지를 " +
+        "포함한 6,476개 사업, 총 107조 2천억 원을 구조조정했고, 혼인·출산 세액공제 등 17개 조세지출 1조 9천억 원을 재정지원으로 " +
+        "돌렸으며, 지방우대 사업을 61개로 늘렸다고 밝혔다.",
+      assertionType: "CLAIM",
+      assertedBy: "이재명 대통령",
+      sourceIds: ["src-president-speech-20261102"],
+      verified: true,
+    },
+    {
+      id: "claim-speech-fiscal",
+      text:
+        "같은 연설에서 대통령은 GDP 대비 관리재정수지가 2026년 -3.9%에서 2027년 -0.1%로 20년 만에 가장 양호해지고, GDP 대비 " +
+        "국가채무 비율은 51.6%에서 48.3%로 낮아진다고 밝혔다. 국채는 발행하지만 대부분 기존 국채 상환에 써 순증가분이 거의 없다고 " +
+        "설명했다. 정부안 기준 전망이며, 기획예산처 원자료와는 대조하지 않았다.",
+      assertionType: "CLAIM",
+      assertedBy: "이재명 대통령",
+      sourceIds: ["src-president-speech-20261102"],
+      verified: true,
+    },
+    {
+      id: "claim-speech-deadline",
+      text:
+        "대통령은 예산안과 부수법안이 법정기한인 12월 2일까지 확정되도록 국회의 협력을 요청하고, 심의 과정에서 여야 의견을 듣고 " +
+        "더 나은 대안을 반영하겠다고 했다. 예산안은 국회 심의로 바뀔 수 있다.",
+      assertionType: "FACT",
+      sourceIds: ["src-president-speech-20261102"],
+      verified: true,
+    },
   ],
   critiqueIds: [],
   timeline: [
@@ -94,6 +127,14 @@ export const BUDGET_2027: PolicyInput = {
       summary: "총지출 820조 9천억 원.",
       claimIds: ["claim-total", "claim-fund", "claim-youth", "claim-rnd"],
     },
+    {
+      id: "t-speech",
+      date: "2026-11-02",
+      datePrecision: "day",
+      title: "대통령 국회 시정연설",
+      summary: "구조조정 107조 2천억 원, 국가채무 비율 48.3% 전망을 밝히고 12월 2일까지 처리를 요청했다.",
+      claimIds: ["claim-speech-restructure", "claim-speech-fiscal", "claim-speech-deadline"],
+    },
   ],
   gaps: [
     "연령·세대별 예산 배분을 집계한 정부 자료는 찾지 못했다.",
@@ -101,6 +142,15 @@ export const BUDGET_2027: PolicyInput = {
     "국회 심의 과정의 증감은 12월 확정 뒤 반영해야 한다.",
   ],
   sources: [
+    {
+      id: "src-president-speech-20261102",
+      title: "11/2(월) 2027년 예산안 시정연설",
+      publisher: "청와대",
+      url: "https://www.president.go.kr/speeches/TBnRP9k3",
+      publishedAt: "2026-11-02",
+      type: "official",
+      license: "public",
+    },
     {
       id: "src-mtn-20260901",
       title: "정부, 내년 821조 슈퍼예산 편성…반도체 세수로 162조 '미래대응기금'",
