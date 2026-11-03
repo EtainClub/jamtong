@@ -27,7 +27,10 @@ import {
   nextMonsoon,
   NICK_MAX,
   nextRain,
+  openRaidBox,
   plazaLevel,
+  RAID_BOX,
+  raidHp,
   regrowMinutes,
   ripeTime,
   rollMutations,
@@ -280,4 +283,26 @@ test("장마 상점: 신품종이 앞 칸에 서고, 장마가 아니면 진열�
     for (const item of shopFor(slot, [...CATALOG, ...many], many).slice(0, 3)) seen.add(item.speciesId);
   }
   assert.equal(seen.size, 7);
+});
+
+test("거대 잡초 체력은 Firestore 규칙의 [20, 300] 안의 정수다", () => {
+  for (const people of [0, 1, 2, 10, 36, 1000]) {
+    const hp = raidHp(people);
+    assert.ok(Number.isInteger(hp) && hp >= 20 && hp <= 300, `${people}명: ${hp}`);
+  }
+  assert.ok(raidHp(10) > raidHp(1));
+});
+
+test("희귀 씨앗 상자: 같은 날·같은 사람이면 같은 씨앗, 공개 확률에 가깝다", () => {
+  assert.equal(openRaidBox("20395:u1", CATALOG)?.id, openRaidBox("20395:u1", CATALOG)?.id);
+  let perennial = 0;
+  const n = 4000;
+  for (let i = 0; i < n; i++) {
+    const s = openRaidBox(`d:${i}`, CATALOG)!;
+    assert.ok(s.tier === "flagship" || s.tier === "perennial");
+    if (s.tier === "perennial") perennial++;
+  }
+  const p = RAID_BOX.odds.find((o) => o.tier === "perennial")!.p;
+  assert.ok(Math.abs(perennial / n - p) < 0.03, `다년생 ${perennial}/${n}`);
+  assert.equal(openRaidBox("x", []), undefined);
 });

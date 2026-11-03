@@ -216,6 +216,66 @@ service cloud.firestore {
       return unchanged || mine;
     }
 
+    /*
+     * 거대 잡초 — 광장이 무성해지면 나타나는 레이드 (docs/garden-game.md §3.8).
+     *
+     * plazaRaids/{한국 날짜 번호}   하루에 한 마리. 체력(hp)·맞은 수(hits)·참여 인원(fighters).
+     *   └ fighters/{uid}            한 사람이 때린 수. 본인만 읽는다.
+     *
+     * 규칙이 지키는 것.
+     *   1. 오늘 번호로만, 체력 [20, 300]으로, 맞은 수 0에서 태어난다.
+     *   2. 한 번 칠 때마다 합계와 내 수가 같은 커밋에서 1씩 오른다. 체력을 넘지 않는다.
+     *   3. 한 사람은 1초에 한 번만 친다 — 손으로 만든 요청으로 혼자 몰아 잡지 못하게.
+     *   4. 쓰러진 시각은 마지막 한 방에서 한 번만 찍히고, 쓰러진 뒤에는 칠 수 없다.
+     *   5. 참여 인원은 내 표식이 처음 생기는 커밋에서만 오른다.
+     * 광장이 정말 무성한지는 규칙이 보지 못한다(칸 24개를 다 읽어야 한다). 그 반칙은
+     * 거대 잡초가 하루 한 번 일찍 나오는 것뿐이라 감당한다.
+     */
+    match /plazaRaids/{day} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && day.matches('^[0-9]{5}$')
+        && int(day) == kstDayNumber()
+        && request.resource.data.keys().hasOnly(['hp', 'hits', 'fighters', 'spawnedAt', 'defeatedAt'])
+        && request.resource.data.hp is int
+        && request.resource.data.hp >= 20
+        && request.resource.data.hp <= 300
+        && request.resource.data.hits == 0
+        && request.resource.data.fighters == 0
+        && request.resource.data.spawnedAt == request.time
+        && request.resource.data.defeatedAt == null;
+
+      allow update: if request.auth != null
+        && resource.data.defeatedAt == null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hits', 'fighters', 'defeatedAt'])
+        && request.resource.data.hits == resource.data.hits + 1
+        && request.resource.data.hits <= resource.data.hp
+        && request.resource.data.defeatedAt == (request.resource.data.hits == resource.data.hp ? request.time : null)
+        && getAfter(raidFighter(day)).data.lastAt == request.time
+        && request.resource.data.fighters == resource.data.fighters + (exists(raidFighter(day)) ? 0 : 1);
+
+      allow delete: if false;
+
+      match /fighters/{uid} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['hits', 'lastAt'])
+          && request.resource.data.lastAt == request.time
+          && request.resource.data.hits == (resource == null ? 0 : resource.data.hits) + 1
+          && (resource == null || request.time > resource.data.lastAt + duration.value(1, 's'))
+          && get(/databases/$(database)/documents/plazaRaids/$(day)).data.defeatedAt == null
+          && getAfter(/databases/$(database)/documents/plazaRaids/$(day)).data.hits
+            == get(/databases/$(database)/documents/plazaRaids/$(day)).data.hits + 1;
+        allow delete: if false;
+      }
+    }
+
+    function raidFighter(day) {
+      return /databases/$(database)/documents/plazaRaids/$(day)/fighters/$(request.auth.uid);
+    }
+
     match /plazaDays/{day} {
       allow read: if true;
       allow create, update: if request.auth != null

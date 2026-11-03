@@ -236,7 +236,7 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
         {tab === "flowers" && (
           <FlowerBed data={data} catalog={catalog} blooms={flowers.blooms} uid={uid} now={now} say={say} />
         )}
-        {tab === "plaza" && <PlazaView plaza={plaza} catalog={catalog} byId={byId} now={now} say={say} />}
+        {tab === "plaza" && <PlazaView plaza={plaza} catalog={catalog} byId={byId} uid={uid} now={now} say={say} />}
         {tab === "dex" && <Dex data={data} catalog={catalog} />}
       </div>
 

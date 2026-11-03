@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { track } from "@/lib/analytics";
 import { cellId } from "@/lib/firebase/plaza";
@@ -9,9 +9,24 @@ import { cellId } from "@/lib/firebase/plaza";
 import { GroundDetails, WeedArt } from "./GardenArt";
 import { gardenFeedback } from "./feedback";
 
-import { fruitIcon, hash, kstDay, PLAZA_CELLS, PLAZA_LABEL, PLAZA_SPEED, WEED, WEED_REWARD_PER_DAY, WEED_SEED_ODDS } from "./rules";
+import {
+  fruitIcon,
+  hash,
+  kstDay,
+  PLAZA_CELLS,
+  PLAZA_LABEL,
+  PLAZA_SPEED,
+  RAID_BOX,
+  RAID_RUBS_PER_STRIKE,
+  TIER_LABEL,
+  WEED,
+  WEED_REWARD_PER_DAY,
+  WEED_SEED_ODDS,
+} from "./rules";
 import { useGarden } from "./store";
 import type { Plaza, Weed } from "./usePlaza";
+import { useRaid, type RaidState } from "./useRaid";
+import type { StrikeResult } from "@/lib/firebase/raid";
 import type { Species } from "./types";
 
 /**
@@ -31,15 +46,28 @@ export function PlazaView({
   plaza,
   catalog,
   byId,
+  uid,
   now,
   say,
 }: {
   plaza: Plaza;
   catalog: Species[];
   byId: Map<string, Species>;
+  uid: string | null;
   now: number;
   say: (text: string) => void;
 }) {
+  const onStrike = useCallback(
+    (result: StrikeResult) => {
+      if (result === "defeated") {
+        gardenFeedback("reward");
+        say("🏆 거대 잡초를 쓰러뜨렸어요! 상자를 열어 보세요");
+      } else if (result === "over") say("거대 잡초가 이미 쓰러졌어요");
+      else if (result === "error") say("광장에 닿지 못했어요. 잠시 뒤 다시 해 보세요");
+    },
+    [say],
+  );
+  const raid = useRaid(uid, now, plaza.level, plaza.today.gardeners, onStrike);
   const weedByCell = new Map(plaza.weeds.map((w) => [w.cell, w]));
   const featured = pickFeatured(catalog, kstDay(now));
   const need = Math.max(0, plaza.weeds.length - CLEAN_MAX);
@@ -88,6 +116,8 @@ export function PlazaView({
           {" "}새로 심는 씨앗부터 적용돼요.
         </p>
       </div>
+
+      <RaidPanel raid={raid} catalog={catalog} byId={byId} uid={uid} say={say} />
 
       <div className="garden-plaza mt-3 rounded-3xl">
         <GroundDetails />
@@ -183,7 +213,6 @@ function WeedButton({ weed, onPulled }: { weed: Weed; onPulled: (weed: Weed) => 
   const [rubs, setRubs] = useState(0);
   const [state, setState] = useState<"idle" | "pulling" | "gone">("idle");
   const [shake, setShake] = useState(0);
-  const last = useRef<{ x: number; y: number; dist: number } | null>(null);
   const rubCount = useRef(0);
   const pulling = useRef(false);
 
@@ -204,6 +233,8 @@ function WeedButton({ weed, onPulled }: { weed: Weed; onPulled: (weed: Weed) => 
     }
   };
 
+  const gesture = useRub(rub);
+
   if (state === "gone") return null;
 
   const variant = hash(weed.cell + weed.since) % 3;
@@ -214,22 +245,7 @@ function WeedButton({ weed, onPulled }: { weed: Weed; onPulled: (weed: Weed) => 
       type="button"
       aria-label={`${WEED[weed.stage].label} 뽑기 (${Math.max(0, need - rubs)}번 남음)`}
       className="absolute inset-0 grid touch-none select-none place-items-center"
-      onClick={(e) => {
-        // 드래그로 이미 센 것은 다시 세지 않는다. 키보드·두드림만 여기서 센다.
-        if (e.detail === 0 || !last.current || last.current.dist < RUB_PX) rub();
-      }}
-      onPointerDown={(e) => {
-        last.current = { x: e.clientX, y: e.clientY, dist: 0 };
-      }}
-      onPointerMove={(e) => {
-        const l = last.current;
-        if (!l || e.buttons === 0) return;
-        const d = Math.hypot(e.clientX - l.x, e.clientY - l.y);
-        l.x = e.clientX;
-        l.y = e.clientY;
-        l.dist += d;
-        if (Math.floor(l.dist / RUB_PX) > Math.floor((l.dist - d) / RUB_PX)) rub();
-      }}
+      {...gesture}
     >
       <span className="garden-weed-sway" style={{ animationDelay: `${-variant * .8}s`, width: "100%", height: "100%" }}>
         <span key={shake} className={`garden-weed-body ${shake ? "garden-shake" : ""} ${state === "pulling" ? "garden-lift" : ""}`} style={{ transform: `scale(${scale})` }}>
@@ -242,5 +258,133 @@ function WeedButton({ weed, onPulled }: { weed: Weed; onPulled: (weed: Weed) => 
         </span>
       )}
     </button>
+  );
+}
+
+/**
+ * 문지르기·두드리기. 손가락으로 문지른 거리 RUB_PX마다 한 번, 두드림·키보드도 한 번.
+ * 드래그로 이미 센 것은 뒤따르는 click에서 다시 세지 않는다.
+ */
+function useRub(rub: () => void) {
+  const last = useRef<{ x: number; y: number; dist: number } | null>(null);
+  return {
+    onClick: (e: React.MouseEvent) => {
+      if (e.detail === 0 || !last.current || last.current.dist < RUB_PX) rub();
+    },
+    onPointerDown: (e: React.PointerEvent) => {
+      last.current = { x: e.clientX, y: e.clientY, dist: 0 };
+    },
+    onPointerMove: (e: React.PointerEvent) => {
+      const l = last.current;
+      if (!l || e.buttons === 0) return;
+      const d = Math.hypot(e.clientX - l.x, e.clientY - l.y);
+      l.x = e.clientX;
+      l.y = e.clientY;
+      l.dist += d;
+      if (Math.floor(l.dist / RUB_PX) > Math.floor((l.dist - d) / RUB_PX)) rub();
+    },
+  };
+}
+
+/**
+ * 거대 잡초. 광장이 무성해지면 하루 한 번 나타나고, 다 같이 때려 쓰러뜨린다.
+ * 쓰러뜨리면 한 번이라도 때린 사람 모두가 희귀 씨앗 상자를 받는다.
+ */
+function RaidPanel({
+  raid,
+  catalog,
+  byId,
+  uid,
+  say,
+}: {
+  raid: RaidState;
+  catalog: Species[];
+  byId: Map<string, Species>;
+  uid: string | null;
+  say: (text: string) => void;
+}) {
+  const r = raid.raid;
+  const claimed = useGarden((st) => st.data?.raids.includes(raid.day) ?? false);
+  const [shake, setShake] = useState(0);
+  const rubs = useRef(0);
+  const [partial, setPartial] = useState(0);
+
+  const rub = () => {
+    if (!r || r.defeatedAt) return;
+    gardenFeedback("tap");
+    setShake((n) => n + 1);
+    rubs.current += 1;
+    if (rubs.current >= RAID_RUBS_PER_STRIKE) {
+      rubs.current = 0;
+      raid.strike();
+    }
+    setPartial(rubs.current);
+  };
+  const gesture = useRub(rub);
+
+  if (!r) return null;
+
+  const left = Math.max(0, r.hp - r.hits);
+  const odds = RAID_BOX.odds.map((o) => `${TIER_LABEL[o.tier]} ${Math.round(o.p * 100)}%`).join(" · ");
+
+  if (r.defeatedAt) {
+    return (
+      <section aria-labelledby="raid" className="garden-raid-done mt-3 rounded-2xl px-4 py-3.5">
+        <h3 id="raid" className="text-[14px] font-bold">🏆 오늘의 거대 잡초를 쓰러뜨렸어요</h3>
+        <p className="mt-0.5 text-[12px] opacity-85">
+          {r.fighters.toLocaleString()}명이 함께 {r.hp.toLocaleString()}번 때렸어요{raid.mine ? ` · 나는 ${raid.mine}번` : ""}.
+        </p>
+        {raid.mine > 0 && !claimed && (
+          <button
+            type="button"
+            onClick={() => {
+              const got = useGarden.getState().claimRaid(raid.day, `${raid.day}:${uid ?? "local"}`, catalog);
+              if (!got) return;
+              gardenFeedback("reward");
+              say(`🎁 희귀 씨앗 상자 · 🍯 +${got.jam}${got.species ? ` · 🌱 ${byId.get(got.species.id)?.title ?? "씨앗"}` : ""}`);
+            }}
+            className="mt-2 rounded-full bg-[var(--g-jam)] px-3.5 py-1.5 text-[12.5px] font-semibold text-white"
+          >
+            🎁 희귀 씨앗 상자 열기
+          </button>
+        )}
+        {raid.mine > 0 && claimed && <p className="mt-1.5 text-[12px] font-semibold">상자를 받았어요. 내일 또 만나요.</p>}
+        {raid.mine === 0 && <p className="mt-1.5 text-[12px]">이번에는 함께하지 못했어요. 광장이 다시 무성해지면 내일 또 나타나요.</p>}
+      </section>
+    );
+  }
+
+  return (
+    <section aria-labelledby="raid" className="garden-raid mt-3 rounded-2xl px-4 py-3.5 text-white">
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 id="raid" className="text-[14px] font-bold">🌿 거대 잡초가 나타났어요</h3>
+        <p className="text-[11.5px] tabular-nums opacity-90">함께 {r.fighters.toLocaleString()}명 · 나 {raid.mine}번</p>
+      </div>
+      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-black/30" role="progressbar" aria-label="거대 잡초 체력" aria-valuemin={0} aria-valuemax={r.hp} aria-valuenow={left}>
+        <div className="h-full bg-[#e9d24a] transition-[width]" style={{ width: `${(left / r.hp) * 100}%` }} />
+      </div>
+      <p className="mt-1 text-[11.5px] tabular-nums opacity-90">체력 {left}/{r.hp}</p>
+
+      <button
+        type="button"
+        aria-label={`거대 잡초 때리기 (체력 ${left} 남음)`}
+        className="relative mx-auto mt-2 grid h-36 w-36 touch-none select-none place-items-center"
+        {...gesture}
+      >
+        <span key={shake} className={`garden-weed-body ${shake ? "garden-shake" : ""}`} style={{ transform: "scale(1.9)" }}>
+          <WeedArt variant={2} tough />
+        </span>
+        {(partial > 0 || raid.queued > 0) && (
+          <span className="pointer-events-none absolute bottom-1 h-1.5 w-2/3 overflow-hidden rounded-full bg-black/30">
+            <span className="block h-full bg-white" style={{ width: `${(partial / RAID_RUBS_PER_STRIKE) * 100}%` }} />
+          </span>
+        )}
+      </button>
+
+      <p className="mt-1 text-[11.5px] leading-relaxed opacity-90">
+        {RAID_RUBS_PER_STRIKE}번 문지르면 한 방, 한 사람은 1초에 한 방까지. 쓰러뜨리면 한 번이라도 때린 모두가 희귀
+        씨앗 상자를 받아요 ({odds}, 잼 {RAID_BOX.jam}).
+      </p>
+    </section>
   );
 }
