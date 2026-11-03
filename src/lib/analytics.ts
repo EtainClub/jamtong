@@ -32,14 +32,22 @@ export type AnalyticsEvent =
    *          | novel(소설 시리즈) | episode(그 안의 한 편)
    */
   | "share_create"
-  /** 주장 옆의 근거를 열었다. 이 사이트에서 가장 중요한 한 번이다. */
+  /**
+   * 주장 옆의 근거를 열었다. 이 사이트에서 가장 중요한 한 번이다.
+   * 정원 쪽지에서 열면 source: garden이 붙는다 — 게임이 원래 지표를
+   * 부풀리지 않았는지 따로 볼 수 있게 (docs/garden-game.md §3.11).
+   */
   | "evidence_open"
   /** 연표를 직접 움직였다. 스크롤로 흘러간 것은 세지 않는다. */
   | "timeline_seek"
   /** 물었다. surface: guide(화면 안내) | wiki(위키에 묻기) */
   | "agent_question"
   /** 답이 화면을 움직였다. */
-  | "agent_action";
+  | "agent_action"
+  /** 정원에서 열매를 거뒀다. tier, mutations(변이 수). */
+  | "garden_harvest"
+  /** 광장 잡초를 뽑았다. stage. */
+  | "plaza_pull";
 
 type Params = Record<string, string | number | boolean>;
 

@@ -259,3 +259,114 @@ body {
     color: #000;
   }
 }
+
+/*
+ * 정원 (docs/garden-game.md).
+ *
+ * "UI는 무채색" 규칙의 두 번째 예외다. 정원은 정보 페이지가 아니라 게임
+ * 레이어이고, 흙과 잎이 회색이면 놀이가 되지 않는다. 그래서 색을 .garden
+ * 상자 안에서만 정의한다 — 밖으로 새면 그 색이 자료처럼 읽힌다.
+ * 정원 안의 쪽지만은 사이트 색(navy/burgundy)을 따른다. 쪽지는 자료다.
+ */
+.garden {
+  --g-bg: #f4f7ec;
+  --g-panel: #e8eedb;
+  --g-soil: #8b6a4a;
+  --g-soil-dark: #6f5238;
+  --g-soil-ink: #f6ead9;
+  --g-leaf: #3f8a3a;
+  --g-grass: #a9cf7f;
+  --g-weed: #5b7b2a;
+  --g-weed-dark: #3d5419;
+  --g-weed-flower: #e9d24a;
+  --g-jam: #c2410c;
+  background: var(--g-bg);
+}
+
+.garden-soil {
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.08) 0 8%, transparent 9%),
+    radial-gradient(circle at 70% 65%, rgba(0, 0, 0, 0.08) 0 7%, transparent 8%),
+    linear-gradient(180deg, var(--g-soil), var(--g-soil-dark));
+}
+
+.garden-plaza {
+  background: linear-gradient(180deg, #c7e19f, #9cc46b);
+}
+
+.garden-level-clean { background: #d9efc8; color: #1f4d1a; }
+.garden-level-normal { background: #efe8c8; color: #5a4a12; }
+.garden-level-overgrown { background: #e3d6c3; color: #4a3417; }
+
+.garden-vines {
+  background:
+    repeating-linear-gradient(115deg, rgba(0, 0, 0, 0.12) 0 6px, transparent 6px 18px),
+    linear-gradient(180deg, var(--g-weed), var(--g-weed-dark));
+}
+
+.garden-rain {
+  background: linear-gradient(90deg, #3b82c4, #5aa0d8);
+}
+
+/* 변이 칩. 황금은 금색, 무지개는 무지개 — 보자마자 알아야 한다. */
+.garden-chip-golden { background: #f3c623; color: #4a3500; }
+.garden-chip-moist { background: #cfe6fa; color: #134a7a; }
+.garden-chip-shine { background: #fff1c2; color: #7a5a00; box-shadow: inset 0 0 0 1px #e8c860; }
+.garden-chip-blessed { background: #d4f0c4; color: #1f5a14; }
+.garden-chip-rainbow {
+  background: linear-gradient(90deg, #f87171, #fbbf24, #4ade80, #60a5fa, #c084fc);
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes garden-bob {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-4px) rotate(3deg); }
+}
+.garden-bob { display: inline-block; animation: garden-bob 1.4s ease-in-out infinite; }
+
+@keyframes garden-pop {
+  0% { opacity: 0; transform: translateY(6px) scale(0.96); }
+  100% { opacity: 1; transform: none; }
+}
+.garden-pop { animation: garden-pop 0.22s var(--ease-out-expo); }
+
+@keyframes garden-shake {
+  0%, 100% { rotate: 0deg; }
+  25% { rotate: -9deg; }
+  75% { rotate: 9deg; }
+}
+.garden-shake { transform-origin: 50% 90%; animation: garden-shake 0.18s ease-in-out; }
+
+@keyframes garden-lift {
+  to { translate: 0 -40%; opacity: 0; }
+}
+.garden-lift { animation: garden-lift 0.35s ease-in forwards; }
+
+/* 흙 튀기기. 여섯 알이 저마다 다른 방향으로. */
+.garden-dirt {
+  position: absolute;
+  left: 50%;
+  top: 70%;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--g-soil);
+  animation: garden-dirt 0.6s ease-out forwards;
+}
+.garden-dirt-0 { --dx: -18px; --dy: -22px; }
+.garden-dirt-1 { --dx: 16px; --dy: -26px; }
+.garden-dirt-2 { --dx: -26px; --dy: -6px; }
+.garden-dirt-3 { --dx: 24px; --dy: -8px; }
+.garden-dirt-4 { --dx: -8px; --dy: -30px; }
+.garden-dirt-5 { --dx: 8px; --dy: -14px; }
+@keyframes garden-dirt {
+  0% { transform: translate(-50%, -50%); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 18px)); opacity: 0; }
+}
+
+/* 만개한 업적. 꽃밭 목록에서 한눈에 갈리게. */
+.garden .garden-bloomed {
+  background: linear-gradient(135deg, #fde2ec, #fbeef3 60%, #f4f7ec);
+  box-shadow: inset 0 0 0 1px #f5b8cc;
+}
