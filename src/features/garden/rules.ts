@@ -451,7 +451,12 @@ export const RAID_BOX = { jam: 50, odds: [{ tier: "flagship" as Tier, p: 0.8 }, 
 
 /** 상자를 연다. 같은 날·같은 사람이면 같은 씨앗이다 — 새로고침으로 다시 굴리지 못하게. */
 export function openRaidBox(seed: string, catalog: Species[]): Species | undefined {
-  const roll = rng(hash(`raid:${seed}`));
+  return openBox(`raid:${seed}`, catalog);
+}
+
+/** 희귀 씨앗 상자(업적 80%, 다년생 20%). key가 같으면 같은 씨앗이다. */
+function openBox(key: string, catalog: Species[]): Species | undefined {
+  const roll = rng(hash(key));
   let r = roll();
   let tier: Tier = "flagship";
   for (const o of RAID_BOX.odds) {
@@ -465,6 +470,114 @@ export function openRaidBox(seed: string, catalog: Species[]): Species | undefin
   const fallback = catalog.filter((s) => s.tier === "flagship" || s.tier === "perennial");
   const from = pool.length ? pool : fallback;
   return from.length ? from[Math.floor(roll() * from.length)] : undefined;
+}
+
+// ── 시든 잎 ─────────────────────────────────────────────────────────
+
+/**
+ * 시든 잎은 원문 링크가 열리지 않았던 출처다. 광장 한쪽에 가끔 떨어져 있고,
+ * 눌러서 링크가 열리는지 확인하면 그 결과가 운영자에게 간다(§3.8).
+ *
+ * ★ 가끔이어야 한다. 두 시간에 한 장, 하루 세 장까지. 잡초 뽑기의 손맛을
+ *   밀어내지 않고, 확인이 일이 되지 않게.
+ * ★ 보상은 잡초의 세 배. 링크를 열어 보는 수고가 손해가 아니게.
+ * ★ "모르겠어요"에도 같은 보상을 준다. 답에 따라 보상이 달라지면 아무 답이나
+ *   누르게 된다 — 이 확인은 정직해야 쓸모가 있다.
+ */
+export const LEAF_SLOT = 2 * HOUR;
+export const LEAF_PER_DAY = 3;
+export const LEAF_JAM = WEED.grown.jam * 3;
+
+export type LeafVerdict = "opens" | "fails" | "unsure";
+
+export function leafId(url: string): string {
+  return `l${hash(url).toString(36)}`;
+}
+
+export function leafSlot(t: number): number {
+  return Math.floor((t + KST) / LEAF_SLOT);
+}
+
+/**
+ * 지금 광장에 떨어진 잎. 이미 확인한 잎은 빼고, 두 시간 슬롯마다 하나를 고른다.
+ * 이번 슬롯에 이미 하나 확인했거나 오늘 몫을 다 썼으면 없다.
+ */
+export function pickLeaf<T extends { id: string }>(
+  leaves: T[],
+  seen: { checked: string[]; slot: number; day: string; count: number },
+  t: number,
+): T | undefined {
+  const slot = leafSlot(t);
+  const today = kstDay(t);
+  if (seen.slot === slot) return undefined;
+  if (seen.day === today && seen.count >= LEAF_PER_DAY) return undefined;
+  const done = new Set(seen.checked);
+  const pool = leaves.filter((l) => !done.has(l.id)).sort((a, b) => (a.id < b.id ? -1 : 1));
+  return pool.length ? pool[hash(`leaf:${slot}`) % pool.length] : undefined;
+}
+
+/** 잎이 떨어질 칸. 잡초가 없는 칸을 고른다. 다 덮였으면 없다 — 뽑으면 보인다. */
+export function leafCell(id: string, slot: number, weedy: Set<number>, cells = PLAZA_CELLS): number | undefined {
+  const start = hash(`${id}:${slot}`) % cells;
+  for (let i = 0; i < cells; i++) {
+    const c = (start + i) % cells;
+    if (!weedy.has(c)) return c;
+  }
+  return undefined;
+}
+
+// ── 탐정 온실 ───────────────────────────────────────────────────────
+
+/**
+ * 탐정 온실은 고르고 싶은 사람만 들어가는 구역이다(§3.13, §4). SNS에서 도는 주장
+ * (정책의 `rumors`) 하나를 보여 주고, 그 말에 답하는 내용을 카드 셋 중에서 찾게 한다.
+ *
+ * ★ 사람이 소문을 참·거짓으로 판정하지 않는다. 답은 콘텐츠가 이미 정해 두었다
+ *   (rumor.claimIds). 온실은 그 답을 찾아 읽게 하는 놀이다 — 사용자 입력은 아무 데도
+ *   쓰이지 않는다.
+ * ★ 틀려도 잃는 것은 없다. 처음에 맞히면 잼을 조금 더 줄 뿐이다.
+ * ★ 하루 세 사건. 온실이 정원의 몸체를 밀어내지 않게.
+ * ★ 사건 셋을 풀 때마다 온실 상자(희귀 씨앗)를 준다. 온실에서만 나오는 보상이다.
+ */
+export const CASE_PER_DAY = 3;
+export const CASE_JAM = { first: 20, later: 10 } as const;
+export const CASE_BOX_EVERY = 3;
+
+export interface CaseLedger {
+  /** 푼 사건 id. */
+  solved: string[];
+  /** 한 번이라도 틀린 사건 id. 새로고침으로 "처음에 맞힘"을 다시 받지 못하게. */
+  missed: string[];
+  /** 오늘(한국 날짜)과 오늘 푼 사건. */
+  day: string;
+  today: string[];
+}
+
+/**
+ * 오늘의 사건. 어제까지 푼 것을 뺀 사건들 중에서 날짜로 정한 순서의 앞 셋이다.
+ * 오늘 푼 사건은 빼지 않는다 — 하나를 풀었다고 나머지 둘이 바뀌면 안 된다.
+ * 아직 안 푼 사람끼리는 같은 사건을 본다.
+ */
+export function todaysCases<T extends { id: string }>(cases: T[], ledger: CaseLedger, t: number): T[] {
+  const day = kstDay(t);
+  const today = new Set(ledger.day === day ? ledger.today : []);
+  const before = new Set(ledger.solved.filter((id) => !today.has(id)));
+  return cases
+    .filter((c) => !before.has(c.id))
+    .map((c) => ({ c, k: hash(`case:${day}:${c.id}`) }))
+    .sort((a, b) => a.k - b.k || (a.c.id < b.c.id ? -1 : 1))
+    .slice(0, CASE_PER_DAY)
+    .map(({ c }) => c);
+}
+
+/** 사건을 푼 보상. n은 이 사건까지 푼 수 — 셋째마다 온실 상자가 열린다. */
+export function caseReward(firstTry: boolean, n: number): { jam: number; box: boolean } {
+  return { jam: firstTry ? CASE_JAM.first : CASE_JAM.later, box: n > 0 && n % CASE_BOX_EVERY === 0 };
+}
+
+/** 온실 상자. 사건 id로 굴린다 — 같은 사건이면 같은 씨앗이다. */
+export function openCaseBox(caseId: string, catalog: Species[]): Species | undefined {
+  return openBox(`case:${caseId}`, catalog);
 }
 
 // ── 꽃밭: 업적을 함께 피우고, 가장 많이 가꾼 사람이 정원지기가 된다 ─────

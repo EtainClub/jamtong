@@ -7,12 +7,16 @@ import { track } from "@/lib/analytics";
 import { cellId } from "@/lib/firebase/plaza";
 
 import { GroundDetails, WeedArt } from "./GardenArt";
+import { LeafButton, LeafSheet } from "./LeafCheck";
 import { gardenFeedback } from "./feedback";
 
 import {
   fruitIcon,
   hash,
   kstDay,
+  leafCell,
+  leafSlot,
+  pickLeaf,
   PLAZA_CELLS,
   PLAZA_LABEL,
   PLAZA_SPEED,
@@ -27,7 +31,7 @@ import { useGarden } from "./store";
 import type { Plaza, Weed } from "./usePlaza";
 import { useRaid, type RaidState } from "./useRaid";
 import type { StrikeResult } from "@/lib/firebase/raid";
-import type { Species } from "./types";
+import type { Leaf, Species } from "./types";
 
 /**
  * 광장. 모두가 함께 쓰는 정원이고, 모두에게 버프를 준다.
@@ -46,6 +50,7 @@ export function PlazaView({
   plaza,
   catalog,
   byId,
+  leaves,
   uid,
   now,
   say,
@@ -53,6 +58,7 @@ export function PlazaView({
   plaza: Plaza;
   catalog: Species[];
   byId: Map<string, Species>;
+  leaves: Leaf[];
   uid: string | null;
   now: number;
   say: (text: string) => void;
@@ -69,6 +75,13 @@ export function PlazaView({
   );
   const raid = useRaid(uid, now, plaza.level, plaza.today.gardeners, onStrike);
   const weedByCell = new Map(plaza.weeds.map((w) => [w.cell, w]));
+  // 시든 잎. 두 시간에 한 장, 잡초가 없는 칸에 떨어진다. 다 덮였으면 뽑아야 보인다.
+  const leafLedger = useGarden((s) => s.data?.leaves);
+  const leaf = leafLedger ? pickLeaf(leaves, leafLedger, now) : undefined;
+  const leafAt = leaf
+    ? leafCell(leaf.id, leafSlot(now), new Set(plaza.weeds.map((w) => w.index)))
+    : undefined;
+  const [leafOpen, setLeafOpen] = useState(false);
   const featured = pickFeatured(catalog, kstDay(now));
   const need = Math.max(0, plaza.weeds.length - CLEAN_MAX);
   const buff = Math.round((PLAZA_SPEED[plaza.level] - 1) * 100);
@@ -127,15 +140,20 @@ export function PlazaView({
           const weed = weedByCell.get(cellId(i));
           return (
             <div key={i} className="garden-meadow-cell relative aspect-square">
-              {!weed && <span className="garden-meadow-flower" aria-hidden="true">{i % 4 === 0 ? "✿" : "ˬ"}</span>}
+              {!weed && i !== leafAt && <span className="garden-meadow-flower" aria-hidden="true">{i % 4 === 0 ? "✿" : "ˬ"}</span>}
+              {!weed && i === leafAt && <LeafButton onOpen={() => setLeafOpen(true)} />}
               {weed && <WeedButton key={`${weed.cell}-${weed.since}`} weed={weed} onPulled={onPulled} />}
               {bursts[cellId(i)] && <Dirt key={bursts[cellId(i)]} />}
             </div>
           );
         })}
         </div>
-        <p className="garden-field-hint">✋ 잡초를 톡톡 두드리거나 문질러 주세요</p>
+        <p className="garden-field-hint">
+          {leafAt !== undefined ? "🍂 시든 잎이 떨어져 있어요. 주워 보세요" : "✋ 잡초를 톡톡 두드리거나 문질러 주세요"}
+        </p>
       </div>
+
+      {leafOpen && leaf && <LeafSheet leaf={leaf} uid={uid} onClose={() => setLeafOpen(false)} say={say} />}
 
       <p className="mt-2 text-[11.5px] leading-relaxed text-smoke">
         잡초를 문지르거나 여러 번 두드려 뽑아요. 어린 잡초 {WEED.young.rubs}번, 잡초 {WEED.grown.rubs}번, 질긴 잡초{" "}

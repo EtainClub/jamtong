@@ -27,9 +27,14 @@ import {
   WEED_SEED_ODDS,
   withRainbow,
   fruitValue,
+  LEAF_JAM,
+  leafSlot,
+  caseReward,
+  openCaseBox,
+  type CaseLedger,
   type WeedStage,
 } from "./rules";
-import type { Fruit, Mutation, Plant, PlazaLevel, Species } from "./types";
+import type { Case, Fruit, Mutation, Plant, PlazaLevel, Species } from "./types";
 
 /**
  * 개인 정원의 상태.
@@ -66,6 +71,13 @@ export interface GardenData {
   nectar: { day: string; taken: string[] };
   /** 희귀 씨앗 상자를 받은 거대 잡초(한국 날짜 번호). */
   raids: number[];
+  /**
+   * 시든 잎. 확인한 잎 id, 마지막으로 확인한 두 시간 슬롯, 오늘 확인한 수.
+   * 잎이 "가끔" 떨어지게 하는 장부다(rules.ts의 pickLeaf).
+   */
+  leaves: { checked: string[]; slot: number; day: string; count: number };
+  /** 탐정 온실. 푼 사건, 틀린 적 있는 사건, 오늘 푼 사건(rules.ts의 todaysCases). */
+  cases: CaseLedger;
   /**
    * 이 정원을 마지막으로 맞춘 계정. 없으면 아직 어느 계정과도 맞춘 적 없는
    * 이 기기만의 정원이다. updatedAt만으로 고르면 새 기기에서 갓 만든 빈 정원이
@@ -111,6 +123,8 @@ function fresh(catalog: Species[]): GardenData {
     nick: defaultNick(String(Date.now()) + Math.random()),
     nectar: { day: "", taken: [] },
     raids: [],
+    leaves: { checked: [], slot: 0, day: "", count: 0 },
+    cases: { solved: [], missed: [], day: "", today: [] },
     updatedAt: Date.now(),
   };
 }
@@ -124,6 +138,8 @@ function normalize(data: GardenData): GardenData {
     nick: data.nick || defaultNick(String(data.updatedAt)),
     nectar: data.nectar ?? { day: "", taken: [] },
     raids: data.raids ?? [],
+    leaves: data.leaves ?? { checked: [], slot: 0, day: "", count: 0 },
+    cases: data.cases ?? { solved: [], missed: [], day: "", today: [] },
   };
 }
 
@@ -183,7 +199,15 @@ interface GardenState {
   buy: (species: Species, slot: number, stock: number) => boolean;
   upgrade: () => boolean;
   weed: (stage: WeedStage, catalog: Species[]) => WeedReward;
+  /** 시든 잎을 확인했다. 받은 잼(이미 확인한 잎이면 0). */
+  leaf: (id: string, rewarded: boolean) => number;
   gift: (species: Species) => boolean;
+  /** 온실 사건에서 답이 아닌 보기를 골랐다. 그 사건은 "처음에 맞힘"을 잃는다. */
+  missCase: (caseId: string) => void;
+  /**
+   * 온실 사건을 풀었다. 그 정책의 씨앗과 잼, 셋째마다 온실 상자. 이미 푼 사건이면 null.
+   */
+  solveCase: (c: Case, catalog: Species[]) => { jam: number; seed?: Species; box?: Species; firstTry: boolean } | null;
   /** 오늘 상한 안에서 줄 수 있는 가꿈. 0이면 오늘은 다 줬다. */
   careRoom: (speciesId: string, delta: number) => number;
   /** 가꿈을 준 뒤 사본을 맞춘다. mine은 서버가 돌려준 내 합계(없으면 더한다). */
@@ -374,6 +398,21 @@ export const useGarden = create<GardenState>((set, get) => {
       return { jam, seed, capped: false };
     },
 
+    leaf: (id, rewarded) => {
+      const d = get().data;
+      if (!d || d.leaves.checked.includes(id)) return 0;
+      const now = Date.now();
+      const today = kstDay(now);
+      const count = d.leaves.day === today ? d.leaves.count : 0;
+      const jam = rewarded ? LEAF_JAM : 0;
+      commit({
+        ...d,
+        jam: d.jam + jam,
+        leaves: { checked: [...d.leaves.checked, id], slot: leafSlot(now), day: today, count: count + 1 },
+      });
+      return jam;
+    },
+
     careRoom: (speciesId, delta) => {
       const d = get().data;
       if (!d) return 0;
@@ -425,6 +464,37 @@ export const useGarden = create<GardenState>((set, get) => {
         raids: [...d.raids, day].slice(-60),
       });
       return { species, jam: RAID_BOX.jam };
+    },
+
+    missCase: (caseId) => {
+      const d = get().data;
+      if (!d || d.cases.missed.includes(caseId) || d.cases.solved.includes(caseId)) return;
+      commit({ ...d, cases: { ...d.cases, missed: [...d.cases.missed, caseId] } });
+    },
+
+    solveCase: (c, catalog) => {
+      const d = get().data;
+      if (!d || d.cases.solved.includes(c.id)) return null;
+      const firstTry = !d.cases.missed.includes(c.id);
+      const n = d.cases.solved.length + 1;
+      const reward = caseReward(firstTry, n);
+      const seed = catalog.find((s) => s.id === c.speciesId);
+      const box = reward.box ? openCaseBox(c.id, catalog) : undefined;
+      let seeds = seed ? give(d.seeds, seed.id) : d.seeds;
+      if (box) seeds = give(seeds, box.id);
+      const today = kstDay(Date.now());
+      commit({
+        ...d,
+        jam: d.jam + reward.jam,
+        seeds,
+        cases: {
+          solved: [...d.cases.solved, c.id],
+          missed: d.cases.missed.filter((id) => id !== c.id),
+          day: today,
+          today: [...(d.cases.day === today ? d.cases.today : []), c.id],
+        },
+      });
+      return { jam: reward.jam, seed, box, firstTry };
     },
 
     gift: (species) => {

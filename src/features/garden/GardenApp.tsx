@@ -13,12 +13,13 @@ import { gardenFeedback, setGardenSound } from "./feedback";
 import { Beds } from "./Beds";
 import { Dex } from "./Dex";
 import { FlowerBed } from "./FlowerBed";
+import { Greenhouse } from "./Greenhouse";
 import { Toast } from "./parts";
 import { PlazaView } from "./PlazaView";
 import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, nextMeteor, nextMonsoon, nextRain } from "./rules";
 import { Shop } from "./Shop";
 import { useGarden, type GardenData } from "./store";
-import type { Species } from "./types";
+import type { Leaf, Species } from "./types";
 import { useBlooms } from "./useBlooms";
 import { usePlaza } from "./usePlaza";
 
@@ -29,19 +30,20 @@ import { usePlaza } from "./usePlaza";
  * 쌓이고, 계정이 있으면 Firestore로 따라간다. 광장은 모두가 함께 본다.
  */
 
-type Tab = "beds" | "shop" | "flowers" | "plaza" | "dex";
+type Tab = "beds" | "shop" | "flowers" | "plaza" | "greenhouse" | "dex";
 
 const TABS: Array<{ id: Tab; label: string; icon: string }> = [
   { id: "beds", icon: "🌱", label: "텃밭" },
   { id: "shop", icon: "🏡", label: "상점" },
   { id: "flowers", icon: "🌸", label: "꽃밭" },
   { id: "plaza", icon: "⛲", label: "광장" },
+  { id: "greenhouse", icon: "🔍", label: "온실" },
   { id: "dex", icon: "📖", label: "도감" },
 ];
 
 const SAVE_DELAY = 2_000;
 
-export function GardenApp({ catalog }: { catalog: Species[] }) {
+export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Leaf[] }) {
   const byId = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
   const data = useGarden((s) => s.data);
   const [now, setNow] = useState(() => Date.now());
@@ -236,7 +238,8 @@ export function GardenApp({ catalog }: { catalog: Species[] }) {
         {tab === "flowers" && (
           <FlowerBed data={data} catalog={catalog} blooms={flowers.blooms} uid={uid} now={now} say={say} />
         )}
-        {tab === "plaza" && <PlazaView plaza={plaza} catalog={catalog} byId={byId} uid={uid} now={now} say={say} />}
+        {tab === "plaza" && <PlazaView plaza={plaza} catalog={catalog} byId={byId} leaves={leaves} uid={uid} now={now} say={say} />}
+        {tab === "greenhouse" && <Greenhouse data={data} catalog={catalog} now={now} say={say} />}
         {tab === "dex" && <Dex data={data} catalog={catalog} />}
       </div>
 

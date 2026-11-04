@@ -10,6 +10,12 @@ import { test } from "node:test";
 
 import {
   baseJam,
+  CASE_BOX_EVERY,
+  CASE_JAM,
+  CASE_PER_DAY,
+  caseReward,
+  openCaseBox,
+  todaysCases,
   BLOOM_CARE,
   bloomBonus,
   bloomStage,
@@ -21,6 +27,11 @@ import {
   isRaining,
   kstDay,
   kstDayNumber,
+  LEAF_PER_DAY,
+  LEAF_SLOT,
+  leafCell,
+  leafId,
+  leafSlot,
   MINUTE,
   monsoonSpecies,
   nextMeteor,
@@ -28,6 +39,7 @@ import {
   NICK_MAX,
   nextRain,
   openRaidBox,
+  pickLeaf,
   plazaLevel,
   RAID_BOX,
   raidHp,
@@ -305,4 +317,79 @@ test("희귀 씨앗 상자: 같은 날·같은 사람이면 같은 씨앗, 공�
   const p = RAID_BOX.odds.find((o) => o.tier === "perennial")!.p;
   assert.ok(Math.abs(perennial / n - p) < 0.03, `다년생 ${perennial}/${n}`);
   assert.equal(openRaidBox("x", []), undefined);
+});
+
+test("시든 잎 id는 Firestore 규칙의 ^l[0-9a-z]{1,8}$ 모양이다", () => {
+  for (const url of ["https://a.example/1", "http://snvision.seongnam.go.kr/7256", "x"]) {
+    assert.match(leafId(url), /^l[0-9a-z]{1,8}$/);
+  }
+  assert.equal(leafId("https://a.example/1"), leafId("https://a.example/1"));
+});
+
+test("시든 잎은 두 시간에 한 장, 하루 세 장까지, 확인한 잎은 다시 안 나온다", () => {
+  const leaves = Array.from({ length: 5 }, (_, i) => ({ id: `l${i}` }));
+  const t = Date.parse("2026-11-04T10:00:00+09:00");
+  const empty = { checked: [] as string[], slot: 0, day: "", count: 0 };
+
+  const first = pickLeaf(leaves, empty, t);
+  assert.ok(first);
+  // 같은 슬롯 안에서는 같은 잎이다 — 새로고침해도 바뀌지 않는다.
+  assert.equal(pickLeaf(leaves, empty, t + 30 * MINUTE)?.id, first.id);
+  // 이번 슬롯에 하나 확인했으면 다음 슬롯까지 없다.
+  const after = { checked: [first.id], slot: leafSlot(t), day: kstDay(t), count: 1 };
+  assert.equal(pickLeaf(leaves, after, t + 10 * MINUTE), undefined);
+  const next = pickLeaf(leaves, after, t + LEAF_SLOT);
+  assert.ok(next && next.id !== first.id);
+  // 오늘 몫을 다 쓰면 없다. 다음 날에는 다시 나온다.
+  const full = { checked: [first.id], slot: 0, day: kstDay(t), count: LEAF_PER_DAY };
+  assert.equal(pickLeaf(leaves, full, t + LEAF_SLOT), undefined);
+  assert.ok(pickLeaf(leaves, full, t + 24 * HOUR));
+  // 다 확인했으면 없다.
+  assert.equal(pickLeaf(leaves, { ...empty, checked: leaves.map((l) => l.id) }, t), undefined);
+});
+
+test("시든 잎은 잡초가 없는 칸에만 떨어진다", () => {
+  const weedy = new Set(Array.from({ length: 24 }, (_, i) => i).filter((i) => i !== 17));
+  assert.equal(leafCell("l1", 3, weedy), 17);
+  assert.equal(leafCell("l1", 3, new Set(Array.from({ length: 24 }, (_, i) => i))), undefined);
+  const free = leafCell("l1", 3, new Set());
+  assert.ok(free !== undefined && free >= 0 && free < 24);
+});
+
+test("온실 사건은 하루 셋이고, 하나를 풀어도 오늘의 나머지는 그대로다", () => {
+  const cases = Array.from({ length: 8 }, (_, i) => ({ id: `p${i}#r` }));
+  const t = Date.parse("2026-11-04T10:00:00+09:00");
+  const empty = { solved: [] as string[], missed: [] as string[], day: "", today: [] as string[] };
+
+  const today = todaysCases(cases, empty, t);
+  assert.equal(today.length, CASE_PER_DAY);
+  // 오늘 하나를 풀어도 오늘의 셋은 같다.
+  const one = { ...empty, solved: [today[0].id], day: kstDay(t), today: [today[0].id] };
+  assert.deepEqual(
+    todaysCases(cases, one, t + HOUR).map((c) => c.id),
+    today.map((c) => c.id),
+  );
+  // 다음 날에는 어제 푼 것이 빠진다.
+  const tomorrow = todaysCases(cases, one, t + 24 * HOUR);
+  assert.equal(tomorrow.length, CASE_PER_DAY);
+  assert.ok(!tomorrow.some((c) => c.id === today[0].id));
+  // 다 풀었으면 없다.
+  assert.equal(todaysCases(cases, { ...empty, solved: cases.map((c) => c.id) }, t).length, 0);
+});
+
+test("온실 보상: 처음에 맞히면 더 주고, 셋째마다 상자", () => {
+  assert.equal(caseReward(true, 1).jam, CASE_JAM.first);
+  assert.equal(caseReward(false, 1).jam, CASE_JAM.later);
+  assert.equal(caseReward(true, 1).box, false);
+  assert.equal(caseReward(false, CASE_BOX_EVERY).box, true);
+  assert.equal(caseReward(true, CASE_BOX_EVERY * 2).box, true);
+
+  const catalog = [
+    { id: "a:x", tier: "flagship" },
+    { id: "a:y", tier: "perennial" },
+    { id: "w:z", tier: "sprout" },
+  ] as unknown as Parameters<typeof openCaseBox>[1];
+  const box = openCaseBox("p0#r", catalog);
+  assert.ok(box && (box.tier === "flagship" || box.tier === "perennial"));
+  assert.equal(openCaseBox("p0#r", catalog)?.id, box.id);
 });

@@ -11,8 +11,8 @@ rules_version = '2';
  *
  * 익명 계정도 uid를 가지므로 같은 규칙이 그대로 적용된다.
  *
- * ★ 예외가 다섯 있다: feedback, cheerVideos, cheerNotes, infographics, 광장(plaza*).
- *   앞의 셋과 광장은 누구나 읽고, 인포그래픽은 승인된 것만 누구나 읽는다.
+ * ★ 예외가 여럿 있다: feedback, cheerVideos, cheerNotes, infographics, 정원의 공유 상태(plaza*·blooms·leafChecks).
+ *   앞의 셋과 정원의 공유 상태는 누구나 읽고, 인포그래픽은 승인된 것만 누구나 읽는다.
  *   공개인 것이 기능이기 때문이다 — 남이 무엇을 남겼는지 보이지 않으면
  *   같은 말이 계속 쌓이고, 응원판은 아예 성립하지 않는다. 그래서 여기만
  *   경로로 가르지 못하고 필드와 모양을 일일이 검사한다. 예외를 하나 두면
@@ -231,6 +231,48 @@ service cloud.firestore {
      * 광장이 정말 무성한지는 규칙이 보지 못한다(칸 24개를 다 읽어야 한다). 그 반칙은
      * 거대 잡초가 하루 한 번 일찍 나오는 것뿐이라 감당한다.
      */
+    /*
+     * 시든 잎 확인 (docs/garden-game.md §3.8) — 원문 링크가 열리는지 사람이 본 결과.
+     *
+     * 운영자 큐다. 숫자 둘(opens·fails)만 모으고 누구나 읽는다. 누가 답했는지는
+     * votes/{uid}에 있고 본인만 읽는다.
+     *
+     * 한 사람은 잎 하나에 한 번 답한다. 숫자는 그 답이 이 커밋에서 처음 생길 때만,
+     * 그 답 쪽으로만 한 칸 오른다. url은 적지 않는다 — 규칙이 id와 url의 짝을 볼 수
+     * 없어서, 적게 두면 아무 url이나 적힌다.
+     */
+    match /leafChecks/{leafId} {
+      allow read: if true;
+
+      allow create, update: if request.auth != null
+        && leafId.matches('^l[0-9a-z]{1,8}$')
+        && request.resource.data.keys().hasOnly(['opens', 'fails', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+        && !exists(/databases/$(database)/documents/leafChecks/$(leafId)/votes/$(request.auth.uid))
+        && existsAfter(/databases/$(database)/documents/leafChecks/$(leafId)/votes/$(request.auth.uid))
+        && leafDelta(getAfter(/databases/$(database)/documents/leafChecks/$(leafId)/votes/$(request.auth.uid)).data.verdict);
+
+      allow delete: if false;
+
+      match /votes/{uid} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow create: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['verdict', 'at'])
+          && request.resource.data.verdict in ['opens', 'fails']
+          && request.resource.data.at == request.time;
+        allow update, delete: if false;
+      }
+    }
+
+    function leafDelta(verdict) {
+      let opens = resource == null ? 0 : resource.data.opens;
+      let fails = resource == null ? 0 : resource.data.fails;
+      return verdict == 'opens'
+        ? request.resource.data.opens == opens + 1 && request.resource.data.fails == fails
+        : request.resource.data.fails == fails + 1 && request.resource.data.opens == opens;
+    }
+
     match /plazaRaids/{day} {
       allow read: if true;
 
