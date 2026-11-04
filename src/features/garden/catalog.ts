@@ -68,7 +68,7 @@ function spansYears(dates: string[]): boolean {
 }
 
 export function buildCatalog(): Species[] {
-  const species: Species[] = [];
+  const species: Array<Omit<Species, "region" | "links">> = [];
 
   for (const a of ACHIEVEMENTS) {
     if (a.publishStatus !== "published") continue;
@@ -144,7 +144,69 @@ export function buildCatalog(): Species[] {
     });
   }
 
-  return species;
+  return withMap(species);
+}
+
+/** 한 품종이 보여 줄 이웃의 최대 수. 분야가 넓으면 수십 개가 이어져 지도가 아니라 목록이 된다. */
+const LINK_LIMIT = 6;
+
+/** 해시 순으로 고른다. 콘텐츠 순서의 앞쪽만 늘 이웃이 되지 않게, 그러나 빌드마다 같게. */
+function pick(ids: string[], self: string, n: number): string[] {
+  return ids
+    .filter((id) => id !== self)
+    .sort((x, y) => hash(`${self}>${x}`) - hash(`${self}>${y}`))
+    .slice(0, n);
+}
+
+/**
+ * 도감 지도 — 구역과 이웃을 붙인다 (docs/garden-game.md §4, A안의 안개 지도).
+ *
+ * 이웃은 콘텐츠에 이미 적힌 연결뿐이다.
+ *   언행 → 그 언행의 관련 업적(relatedAchievements)
+ *   업적 → 그 업적을 다룬 언행, 같은 분야의 업적, 같은 분야의 정책
+ *   정책 → 같은 분야의 업적
+ * "같은 분야"는 느슨한 연결이라, 분야 이웃은 LINK_LIMIT까지만 고른다.
+ */
+function withMap(species: Array<Omit<Species, "region" | "links">>): Species[] {
+  const known = new Set(species.map((s) => s.id));
+  const achievements = ACHIEVEMENTS.filter((a) => known.has(`a:${a.slug}`));
+  const categoriesOf = new Map<string, string[]>();
+  for (const a of achievements) categoriesOf.set(`a:${a.slug}`, a.categories);
+  for (const p of POLICIES) categoriesOf.set(`p:${p.slug}`, p.categories);
+
+  const inCategory = (prefix: "a:" | "p:", categories: string[]) =>
+    [...categoriesOf.entries()]
+      .filter(([id, cats]) => id.startsWith(prefix) && cats.some((c) => categories.includes(c)))
+      .map(([id]) => id);
+
+  const wordsFor = new Map<string, string[]>();
+  for (const w of STATEMENTS) {
+    for (const slug of w.relatedAchievements) {
+      const id = `a:${slug}`;
+      if (known.has(id)) wordsFor.set(id, [...(wordsFor.get(id) ?? []), `w:${w.slug}`]);
+    }
+  }
+  const relatedOf = new Map(
+    STATEMENTS.map((w) => [`w:${w.slug}`, w.relatedAchievements.map((slug) => `a:${slug}`).filter((id) => known.has(id))]),
+  );
+
+  return species.map((s) => {
+    if (s.id.startsWith("w:")) {
+      const related = relatedOf.get(s.id) ?? [];
+      const region = related.length ? (categoriesOf.get(related[0])?.[0] ?? "words") : "words";
+      return { ...s, region, links: related };
+    }
+    const categories = categoriesOf.get(s.id) ?? [];
+    if (s.id.startsWith("a:")) {
+      const links = [
+        ...(wordsFor.get(s.id) ?? []),
+        ...pick(inCategory("a:", categories), s.id, 3),
+        ...pick(inCategory("p:", categories), s.id, 3),
+      ];
+      return { ...s, region: categories[0] ?? "words", links: [...new Set(links)].slice(0, LINK_LIMIT + 4) };
+    }
+    return { ...s, region: categories[0] ?? "words", links: pick(inCategory("a:", categories), s.id, LINK_LIMIT) };
+  });
 }
 
 /**

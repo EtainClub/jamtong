@@ -40,6 +40,13 @@ export interface Species {
    * 정원을 열기 전부터 있던 품종은 비어 있다. 장부는 arrivals.json.
    */
   arrivedOn?: string;
+  /** 도감 지도의 구역. 업적·정책은 첫 분야, 언행은 관련 업적의 분야, 없으면 "words". */
+  region: string;
+  /**
+   * 이어진 품종(도감 지도의 이웃). 콘텐츠에 적힌 연결로만 만든다 —
+   * 언행의 관련 업적, 같은 분야의 업적·정책. 정원이 연결을 지어내지 않는다.
+   */
+  links: string[];
 }
 
 export type Mutation = "golden" | "moist" | "sparkle" | "shine" | "blessed" | "rainbow";

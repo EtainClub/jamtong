@@ -25,8 +25,9 @@ export function publicSnapshot(data: GardenData): PublicGarden {
   };
 }
 
+/** 자랑 링크. /g/<id>는 미리보기 카드를 보여 주고 사람을 /garden?visit=<id>로 보낸다. */
 export function gardenLink(id: string): string {
-  return `${window.location.origin}/garden?visit=${id}`;
+  return `${window.location.origin}/g/${id}`;
 }
 
 /** 공개를 켠 동안 바뀔 때마다 늦춰 올린다. 너무 자주 쓰지 않게 길게 늦춘다. */

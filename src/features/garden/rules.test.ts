@@ -66,6 +66,8 @@ const species = (id: string, tier: Tier, seed: number): Species => ({
   href: `/${id}`,
   notes: [],
   seed,
+  region: "economy",
+  links: [],
 });
 
 const CATALOG: Species[] = [
@@ -411,4 +413,36 @@ test("물 주기: 자라는 중인 포기의 남은 시간만 줄인다", () => 
 test("공개 id는 규칙의 모양이고 uid처럼 길지 않다", () => {
   for (let i = 0; i < 200; i++) assert.match(makePublicId(), PUBLIC_ID_RE);
   assert.ok(!PUBLIC_ID_RE.test("abcdefghijklmnopqrstuvwxyz12"));
+});
+
+test("도감 지도: 거둔 품종의 이웃만 실루엣이 된다", async () => {
+  const { mapCells } = await import("./rules");
+  const a = { ...species("a:x", "flagship", 1), links: ["p:y", "w:z"] };
+  const b = { ...species("p:y", "common", 2), links: ["a:x"] };
+  const c = { ...species("w:z", "sprout", 3), links: [] };
+  const d = { ...species("w:far", "sprout", 4), links: [] };
+  const cells = mapCells([a, b, c, d], new Set(["a:x"]));
+  assert.equal(cells.get("a:x"), "seen");
+  assert.equal(cells.get("p:y"), "trail");
+  assert.equal(cells.get("w:z"), "trail");
+  assert.equal(cells.get("w:far"), "fog");
+  assert.equal(mapCells([a, b, c, d], new Set()).get("p:y"), "fog");
+});
+
+test("지도 구역 이름은 업적 분야 이름과 같다", async () => {
+  const { REGION_LABEL } = await import("./rules");
+  const { GROUP_LABEL } = await import("@/content/achievements");
+  for (const [key, label] of Object.entries(GROUP_LABEL)) assert.equal(REGION_LABEL[key], label, key);
+});
+
+test("실제 품종표: 이웃은 모두 품종표 안에 있고 자기 자신이 아니다", async () => {
+  const { buildCatalog } = await import("./catalog");
+  const catalog = buildCatalog();
+  const ids = new Set(catalog.map((s) => s.id));
+  for (const s of catalog) {
+    for (const id of s.links) {
+      assert.ok(ids.has(id), `${s.id} → ${id}`);
+      assert.notEqual(id, s.id);
+    }
+  }
 });

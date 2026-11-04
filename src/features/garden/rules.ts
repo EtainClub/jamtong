@@ -580,6 +580,42 @@ export function openCaseBox(caseId: string, catalog: Species[]): Species | undef
   return openBox(`case:${caseId}`, catalog);
 }
 
+// ── 도감 지도 ───────────────────────────────────────────────────────
+
+/**
+ * 지도의 구역 이름. 업적 분야 이름(GROUP_LABEL)과 같아야 한다 — rules.test.ts가 본다.
+ * 화면에서 @/content/achievements를 불러오면 업적 전체가 번들에 실려서 여기 따로 둔다.
+ */
+export const REGION_LABEL: Record<string, string> = {
+  economy: "재정·경제",
+  welfare: "민생·복지",
+  institution: "제도·행정",
+  diplomacy: "외교·안보",
+  region: "지역·인프라",
+  disaster: "재난 대응",
+  words: "언행",
+};
+export const REGION_ORDER = ["economy", "welfare", "institution", "diplomacy", "region", "disaster", "words"];
+
+/** 이어진 품종의 원본을 읽으면 그 씨앗을 준다. 품종마다 한 번, 하루 이만큼. */
+export const TRAIL_PER_DAY = 3;
+
+export type MapCell = "seen" | "trail" | "fog";
+
+/**
+ * 지도의 칸 상태. 거둔 품종은 밝고(seen), 거둔 품종에서 이어진 품종은 실루엣(trail)이며,
+ * 나머지는 안개(fog)다. 링크를 따라가야 새 칸이 열린다(§4).
+ */
+export function mapCells(catalog: Species[], seen: ReadonlySet<string>): Map<string, MapCell> {
+  const out = new Map<string, MapCell>();
+  for (const s of catalog) out.set(s.id, seen.has(s.id) ? "seen" : "fog");
+  for (const s of catalog) {
+    if (!seen.has(s.id)) continue;
+    for (const id of s.links) if (out.get(id) === "fog") out.set(id, "trail");
+  }
+  return out;
+}
+
 // ── 정원 놀러 가기 ──────────────────────────────────────────────────
 
 /** 하루에 줄 수 있는 물, 받아서 쓰는 물. 둘 다 한국 날짜로 끊는다. */

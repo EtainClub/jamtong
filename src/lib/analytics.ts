@@ -54,6 +54,8 @@ export type AnalyticsEvent =
   | "garden_visit"
   /** 친구 정원에 물을 줬다. */
   | "garden_water"
+  /** 도감 지도에서 이어진 품종의 원본을 열었다. given=씨앗을 받았는지. */
+  | "dex_trail"
   /** 정원에서 열매를 거뒀다. tier, mutations(변이 수). */
   | "garden_harvest"
   /** 광장 잡초를 뽑았다. stage. */

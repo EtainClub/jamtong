@@ -11,6 +11,7 @@ import {
   NICK_MAX,
   kstDay,
   newPublicId,
+  TRAIL_PER_DAY,
   openRaidBox,
   RAID_BOX,
   WATER_PER_DAY,
@@ -83,6 +84,8 @@ export interface GardenData {
   cases: CaseLedger;
   /** 정원 공개. id는 처음 켤 때 한 번 만들고, 껐다 켜도 같은 링크를 쓴다. */
   share: { id: string | null; on: boolean };
+  /** 도감 지도에서 원본을 읽고 씨앗을 받은 품종, 그리고 오늘 받은 수. */
+  trails: { taken: string[]; day: string; count: number };
   /** 오늘(한국 날짜 번호) 물을 준 정원(공개 id)과, 받아서 쓴 물(방문자 uid). */
   waters: { day: number; given: string[]; received: string[] };
   /**
@@ -134,6 +137,7 @@ function fresh(catalog: Species[]): GardenData {
     cases: { solved: [], missed: [], day: "", today: [] },
     share: { id: null, on: false },
     waters: { day: 0, given: [], received: [] },
+    trails: { taken: [], day: "", count: 0 },
     updatedAt: Date.now(),
   };
 }
@@ -151,6 +155,7 @@ function normalize(data: GardenData): GardenData {
     cases: data.cases ?? { solved: [], missed: [], day: "", today: [] },
     share: data.share ?? { id: null, on: false },
     waters: data.waters ?? { day: 0, given: [], received: [] },
+    trails: data.trails ?? { taken: [], day: "", count: 0 },
   };
 }
 
@@ -227,6 +232,11 @@ interface GardenState {
   takeNectar: (speciesIds: string[]) => number;
   /** 거대 잡초의 희귀 씨앗 상자를 연다. 날마다 한 번. 이미 받았으면 null. */
   claimRaid: (day: number, seed: string, catalog: Species[]) => { species?: Species; jam: number } | null;
+  /**
+   * 도감 지도에서 이어진 품종의 원본을 열었다. 처음이고 오늘 몫이 남았으면 씨앗을 준다.
+   * 돌려주는 값: given=씨앗을 줬다, taken=이미 받은 품종, capped=오늘 몫을 다 썼다.
+   */
+  trail: (species: Species) => "given" | "taken" | "capped";
   /** 정원 공개를 켜고 끈다. 켤 때 공개 id가 없으면 만든다. */
   setShare: (on: boolean) => string | null;
   /** 오늘 이 정원에 물을 줄 수 있는가. 남은 횟수(0이면 못 준다). */
@@ -469,6 +479,21 @@ export const useGarden = create<GardenState>((set, get) => {
       const jam = fresh.length * NECTAR;
       commit({ ...d, jam: d.jam + jam, nectar: { day: today, taken: [...taken, ...fresh] } });
       return jam;
+    },
+
+    trail: (species) => {
+      const d = get().data;
+      if (!d) return "capped";
+      if (d.trails.taken.includes(species.id)) return "taken";
+      const today = kstDay(Date.now());
+      const count = d.trails.day === today ? d.trails.count : 0;
+      if (count >= TRAIL_PER_DAY) return "capped";
+      commit({
+        ...d,
+        seeds: give(d.seeds, species.id),
+        trails: { taken: [...d.trails.taken, species.id], day: today, count: count + 1 },
+      });
+      return "given";
     },
 
     setShare: (on) => {
