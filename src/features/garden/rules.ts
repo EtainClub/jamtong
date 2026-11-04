@@ -64,7 +64,7 @@ export const TIER_LABEL: Record<Tier, string> = {
 };
 
 /** 첫 열매까지 걸리는 시간(분)의 범위. 품종마다 이 안에서 고정된다. */
-const GROW_MIN: Record<Tier, [number, number]> = {
+export const GROW_MIN: Record<Tier, [number, number]> = {
   sprout: [5, 15],
   common: [30, 120],
   flagship: [240, 480],
@@ -72,7 +72,7 @@ const GROW_MIN: Record<Tier, [number, number]> = {
 };
 
 /** 다년생이 다시 열리는 데 걸리는 시간(분). 아침저녁으로 들르게 한다. */
-const REGROW_MIN: [number, number] = [300, 420];
+export const REGROW_MIN: [number, number] = [300, 420];
 
 export const SEED_PRICE: Record<Tier, number> = {
   sprout: 10,
@@ -81,7 +81,7 @@ export const SEED_PRICE: Record<Tier, number> = {
   perennial: 600,
 };
 
-const JAM_VALUE: Record<Tier, [number, number]> = {
+export const JAM_VALUE: Record<Tier, [number, number]> = {
   sprout: [14, 22],
   common: [60, 95],
   flagship: [380, 520],
@@ -113,9 +113,9 @@ export function fruitIcon(species: Species): string {
 // ── 날씨: 단비 ──────────────────────────────────────────────────────
 
 /** 매일 12:30, 19:30(한국 시각)에 10분. 정해진 시각이라 "점심 때 들어가자"가 된다. */
-const RAIN_STARTS = [12 * HOUR + 30 * MINUTE, 19 * HOUR + 30 * MINUTE];
-const RAIN_LENGTH = 10 * MINUTE;
-const RAIN_SPEED = 2;
+export const RAIN_STARTS = [12 * HOUR + 30 * MINUTE, 19 * HOUR + 30 * MINUTE];
+export const RAIN_LENGTH = 10 * MINUTE;
+export const RAIN_SPEED = 2;
 
 /** t가 끝나기 전인 가장 가까운 단비 창. */
 export function nextRain(t: number): { start: number; end: number } {
@@ -169,9 +169,9 @@ export function ripeTime(start: number, minutes: number, speed: number): number 
  * 수·토 21:00(한국 시각)에 5분. 이 동안 자란 열매에 반짝 변이가 붙을 수 있다.
  * 성장 속도는 바꾸지 않는다. 22시 전이다 — 그 뒤에는 이벤트를 열지 않는다(§3.6).
  */
-const METEOR_WEEKDAYS = [3, 6]; // 0=일요일
-const METEOR_START = 21 * HOUR;
-const METEOR_LENGTH = 5 * MINUTE;
+export const METEOR_WEEKDAYS = [3, 6]; // 0=일요일
+export const METEOR_START = 21 * HOUR;
+export const METEOR_LENGTH = 5 * MINUTE;
 
 /** t가 끝나기 전인 가장 가까운 별똥별 창. */
 export function nextMeteor(t: number): { start: number; end: number } {
@@ -218,8 +218,8 @@ export function isNewVariety(species: Species, t: number): boolean {
  * 이 동안 그날 들어온 품종이 상점에 꼭 나온다. 콘텐츠 배포를 모두가 같은 때에 모이는
  * 이벤트로 바꾼다(§3.6). 단비(19:30)와 겹친다 — 새 씨앗을 심으면 바로 단비를 맞는다.
  */
-const MONSOON_START = 19 * HOUR;
-const MONSOON_LENGTH = HOUR;
+export const MONSOON_START = 19 * HOUR;
+export const MONSOON_LENGTH = HOUR;
 
 export function monsoonWindow(day: string): { start: number; end: number } {
   const start = Date.parse(`${day}T00:00:00+09:00`) + MONSOON_START;
@@ -310,7 +310,7 @@ export const PLOT_UPGRADES = [
 
 /** 15분마다 진열이 바뀐다. 모두가 같은 진열을 본다. */
 export const SHOP_SLOT = 15 * MINUTE;
-const SHOP_SIZE = 6;
+export const SHOP_SIZE = 6;
 
 /** 칸마다 등급이 나올 확률. 화면에 그대로 공개한다. */
 export const SHOP_ODDS: Array<{ tier: Tier; p: number }> = [
@@ -689,8 +689,10 @@ export const BLOOM_ICON: Record<BloomStage, string> = {
 };
 
 /** 만개한 업적 하나마다 모두의 잼이 2% 더 나온다. 40%까지. */
+export const BLOOM_BONUS = { each: 0.02, max: 0.4 } as const;
+
 export function bloomBonus(bloomed: number): number {
-  return Math.min(0.4, bloomed * 0.02);
+  return Math.min(BLOOM_BONUS.max, bloomed * BLOOM_BONUS.each);
 }
 
 /** 정원지기가 만개한 업적마다 하루 한 번 받는 꽃꿀. */

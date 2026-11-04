@@ -35,7 +35,31 @@
 .game :global(.garden-sound) { position: absolute; z-index: 2; right: 12px; bottom: 12px; background: #fff7dfed; border: 1px solid #729763; border-radius: 12px; padding: 7px 10px; font-size: 11px; font-weight: 700; color: #385531; box-shadow: 0 3px 0 #48643c33; }
 .game :global(.garden-hud) { position: relative; gap: 8px; margin-top: -8px; padding: 12px 0 0; z-index: 2; }
 .game :global(.garden-wallet) { background: #fff5cc; border: 2px solid #e2bc63; border-radius: 14px; padding: 5px 11px; box-shadow: 0 3px 0 #be994c; font-size: 20px; color: #765026; animation: wallet-pop .3s ease-out; }
-.game :global(.garden-hud > p:last-child) { font-size: 10px; padding: 8px; border: 1px solid #d5dfbd; border-radius: 12px; max-width: 52%; text-align: right; }
+.game :global(.garden-weather) { max-width: 52%; text-align: right; }
+.game :global(.garden-weather-next) { font-size: 10px; padding: 8px; border: 1px solid #d5dfbd; border-radius: 12px; }
+.game :global(.garden-help) { position: absolute; z-index: 2; right: 12px; top: 12px; background: #fff7dfed; border: 1px solid #729763; border-radius: 12px; padding: 7px 10px; font-size: 11px; font-weight: 800; color: #385531; box-shadow: 0 3px 0 #48643c33; }
+.game :global(.garden-coach) { position: relative; background: #fffbe6; border: 2px solid #9cc37c; box-shadow: 0 4px 0 #7fa761; color: #344b32; animation: screen-enter .26s ease-out; }
+.game :global(.garden-coach-eyebrow) { font-size: 10.5px; font-weight: 800; letter-spacing: .04em; color: #4d8c50; }
+.game :global(.garden-coach-dots) { display: flex; gap: 4px; }
+.game :global(.garden-coach-dots li) { flex: 1; height: 5px; border-radius: 3px; background: #e2e6cc; }
+.game :global(.garden-coach-dots li.is-done) { background: #4d8c50; }
+.game :global(.garden-coach-dots li.is-now) { background: #e2bc63; }
+.game :global(.garden-coach-go) { border: 1px solid #39753d; border-radius: 10px; background: #4d8c50; color: #fffde9; padding: 6px 12px; font-size: 12.5px; font-weight: 700; box-shadow: 0 3px 0 #2e6637; }
+.game :global(.garden-coach-go.is-quiet) { background: #fffcf0; color: #4d6a43; border-color: #c7d2b5; box-shadow: 0 3px 0 #c4ccab; }
+.game :global(.garden-tip) { background: #f3f8e6; border: 1px dashed #9cc37c; color: #344b32; }
+.game :global(.garden-guide) { color: #344b32; }
+.game :global(.garden-guide-head) { border-bottom: 1px solid #dfdfc7; }
+.game :global(.garden-guide-toc button) { flex-shrink: 0; border: 1px solid #c7d2b5; border-radius: 999px; background: #fffcf0; padding: 4px 10px; font-size: 12px; font-weight: 600; color: #4d6a43; }
+.game :global(.garden-guide-section) { scroll-margin-top: 96px; padding-top: 18px; font-size: 13px; line-height: 1.65; }
+.game :global(.garden-guide-section h3) { margin-bottom: 6px; font-size: 15px; font-weight: 800; color: #3d5c37; }
+.game :global(.garden-guide-section p + p), .game :global(.garden-guide-section p + ul), .game :global(.garden-guide-section table + ul), .game :global(.garden-guide-section p + table) { margin-top: 6px; }
+.game :global(.garden-guide-section ul) { list-style: disc; padding-left: 18px; }
+.game :global(.garden-guide-section li + li) { margin-top: 3px; }
+.game :global(.garden-guide-section table) { width: 100%; border-collapse: collapse; font-size: 12.5px; background: #fffaf0; border-radius: 12px; overflow: hidden; }
+.game :global(.garden-guide-section th), .game :global(.garden-guide-section td) { padding: 6px 8px; border-bottom: 1px solid #ebe7cf; text-align: left; vertical-align: top; }
+.game :global(.garden-guide-section thead th) { font-size: 11px; color: #69725d; background: #f3f0dc; }
+.game :global(.garden-guide-section tbody th small) { display: block; font-size: 10.5px; font-weight: 500; color: #69725d; }
+.game :global(.garden-guide-loop), .game :global(.garden-guide-odds) { border-radius: 12px; background: #fffaf0; border: 1px solid #dfdfc7; padding: 8px 10px; font-weight: 700; }
 .game :global(.garden-nav) { background: #edf0dcf5; backdrop-filter: blur(12px); border-bottom: 1px solid #cdd6b1; }
 .game :global(.garden-nav button) { border: 1px solid #c7d2b5; border-radius: 12px; background: #fffcf0; color: #607151; box-shadow: 0 3px 0 #c4ccab; padding: 7px 1px; font-size: 11px; }
 .game :global(.garden-nav button[aria-selected=true]) { background: #4d8c50; border-color: #39753d; color: #fffde9; box-shadow: 0 3px 0 #2e6637, inset 0 1px #ffffff50; }
@@ -108,7 +132,7 @@
 @keyframes rain-fall { to { transform: translate(-30px, 220px); } }
 @media (max-width: 370px) {
   .game :global(.garden-hud) { flex-wrap: wrap; }
-  .game :global(.garden-hud > p:last-child) { max-width: 100%; }
+  .game :global(.garden-weather) { max-width: 100%; }
   .game :global(.garden-field) { padding-inline: 10px; }
   .game :global(.garden-field-hint) { font-size: 9px; }
   .game :global(.garden-meadow-cell) { min-height: 44px; }

@@ -56,6 +56,8 @@ export type AnalyticsEvent =
   | "garden_water"
   /** 도감 지도에서 이어진 품종의 원본을 열었다. given=씨앗을 받았는지. */
   | "dex_trail"
+  /** 정원 첫 한 바퀴 코치의 단계에 닿았다. step, skipped(건너뛰었으면 true). 어디서 멈추는지 본다. */
+  | "garden_coach"
   /** 정원에서 열매를 거뒀다. tier, mutations(변이 수). */
   | "garden_harvest"
   /** 광장 잡초를 뽑았다. stage. */
