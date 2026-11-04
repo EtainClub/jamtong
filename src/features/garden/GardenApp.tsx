@@ -16,8 +16,11 @@ import { FlowerBed } from "./FlowerBed";
 import { Greenhouse } from "./Greenhouse";
 import { Toast } from "./parts";
 import { PlazaView } from "./PlazaView";
-import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, nextMeteor, nextMonsoon, nextRain } from "./rules";
+import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, nextMeteor, nextMonsoon, nextRain, PUBLIC_ID } from "./rules";
+import { ShareCard } from "./ShareCard";
+import { useShare } from "./share";
 import { Shop } from "./Shop";
+import { VisitView } from "./VisitView";
 import { useGarden, type GardenData } from "./store";
 import type { Leaf, Species } from "./types";
 import { useBlooms } from "./useBlooms";
@@ -49,6 +52,20 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
   const [now, setNow] = useState(() => Date.now());
   const [tab, setTab] = useState<Tab>("beds");
   const [sound, setSound] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  // 친구 정원 링크(/garden?visit=<공개id>)로 왔으면 그 정원부터 보인다.
+  // 첫 렌더는 데이터가 없어 "여는 중"만 그리므로, 서버 렌더와 어긋나지 않는다.
+  const [visit, setVisit] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const id = new URL(window.location.href).searchParams.get("visit");
+    return id && PUBLIC_ID.test(id) ? id : null;
+  });
+  const leaveVisit = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("visit");
+    window.history.replaceState(null, "", url.pathname + url.search);
+    setVisit(null);
+  }, []);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { ready, configured, ensureUser, user } = useAuth();
@@ -164,6 +181,8 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
     say(given ? `🌱 「${species.title}」 씨앗을 받았어요` : "이 씨앗은 이미 받았어요");
   }, [hasData, syncing, catalog, say]);
 
+  useShare(uid, !syncing, now, say);
+
   if (!data || syncing) {
     return <p className="py-16 text-center text-[13px] text-smoke">정원을 여는 중…</p>;
   }
@@ -178,6 +197,11 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
         <GardenScenery raining={isRaining(now)} />
         <div className="garden-world-title"><span className="garden-eyebrow">JAMTONG GARDEN</span><h1>잼통 정원</h1><p>{data.nick}의 작은 초록 세상</p></div>
         <button type="button" className="garden-sound" aria-pressed={sound} aria-label={`효과음 ${sound ? "끄기" : "켜기"}`} onClick={() => { setSound(!sound); setGardenSound(!sound); }}>{sound ? "♪ 켜짐" : "♪ 소리 켜기"}</button>
+        {!visit && (
+          <button type="button" className="garden-share-toggle" aria-expanded={showShare} aria-controls="garden-share-card" onClick={() => { gardenFeedback("tap"); setShowShare(!showShare); }}>
+            🔗 {data.share.on ? "공개 중" : "자랑하기"}
+          </button>
+        )}
       </header>
       <div className="garden-hud flex items-center justify-between">
         <p key={data.jam} className="garden-wallet text-[22px] font-bold tabular-nums">
@@ -187,6 +211,18 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
         <WeatherBadge now={now} catalog={catalog} />
       </div>
 
+      {showShare && !visit && (
+        <div id="garden-share-card">
+          <ShareCard data={data} now={now} say={say} />
+        </div>
+      )}
+
+      {visit ? (
+        <div className="mt-4">
+          <VisitView gid={visit} uid={uid} byId={byId} now={now} say={say} onLeave={leaveVisit} />
+        </div>
+      ) : (
+      <>
       <div role="tablist" aria-label="정원" className="garden-nav sticky top-14 z-30 -mx-4 mt-3 flex gap-1 px-3 py-2">
         {TABS.map((t) => (
           <button
@@ -242,6 +278,8 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
         {tab === "greenhouse" && <Greenhouse data={data} catalog={catalog} now={now} say={say} />}
         {tab === "dex" && <Dex data={data} catalog={catalog} />}
       </div>
+      </>
+      )}
 
       <Toast text={toast} />
     </div>

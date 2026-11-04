@@ -273,6 +273,69 @@ service cloud.firestore {
         : request.resource.data.fails == fails + 1 && request.resource.data.opens == opens;
     }
 
+    /*
+     * 공개 정원과 놀러 가기 (docs/garden-game.md §3.10).
+     *
+     * gardens/{공개id}           주인이 직접 켠 정원의 모습. 누구나 읽는다.
+     *                            정원 이름·텃밭·도감 수만 담는다. 본명은 없다.
+     *   └ waters/{방문자 uid}    그 정원에 물을 준 날. 주인과 그 방문자만 읽는다.
+     *
+     * 공개 id는 uid가 아니다 — 링크가 돌아도 계정을 되짚지 못하게. ownerUid는 규칙이
+     * "주인인가"를 보려고 남긴다(blooms와 같다).
+     *
+     * 규칙이 지키는 것.
+     *   1. 정원 문서는 주인만 쓰고 지운다. 주인은 바뀌지 않는다. 운영자는 지울 수 있다.
+     *   2. 물은 남의 정원에만, 한 사람이 한 정원에 하루(한국 날짜) 한 번.
+     * 텃밭 목록 안의 값은 규칙이 하나하나 보지 못한다. 화면은 품종표에 있는 id만 그린다.
+     */
+    match /gardens/{gid} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && gid.matches('^g[0-9a-z]{8,12}$')
+        && request.resource.data.ownerUid == request.auth.uid
+        && publicGarden();
+
+      allow update: if request.auth != null
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && publicGarden();
+
+      allow delete: if (request.auth != null && resource.data.ownerUid == request.auth.uid) || isAdmin();
+
+      match /waters/{uid} {
+        allow read: if request.auth != null
+          && (request.auth.uid == uid
+            || get(/databases/$(database)/documents/gardens/$(gid)).data.ownerUid == request.auth.uid);
+        allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['day', 'at', 'nick'])
+          && request.resource.data.day == kstDayNumber()
+          && request.resource.data.at == request.time
+          && request.resource.data.nick is string
+          && request.resource.data.nick.size() >= 1
+          && request.resource.data.nick.size() <= 12
+          && (resource == null || resource.data.day < kstDayNumber())
+          && exists(/databases/$(database)/documents/gardens/$(gid))
+          && get(/databases/$(database)/documents/gardens/$(gid)).data.ownerUid != request.auth.uid;
+        allow delete: if false;
+      }
+    }
+
+    function publicGarden() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['ownerUid', 'nick', 'beds', 'dex', 'golden', 'rainbow', 'updatedAt'])
+        && d.nick is string
+        && d.nick.size() >= 1
+        && d.nick.size() <= 12
+        && d.beds is list
+        && d.beds.size() <= 12
+        && d.dex is int && d.dex >= 0 && d.dex <= 5000
+        && d.golden is int && d.golden >= 0 && d.golden <= 5000
+        && d.rainbow is int && d.rainbow >= 0 && d.rainbow <= 5000
+        && d.updatedAt == request.time;
+    }
+
     match /plazaRaids/{day} {
       allow read: if true;
 

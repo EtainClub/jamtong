@@ -31,6 +31,7 @@
 .game :global(.cloud-one) { top: 40px; right: 12px; }
 .game :global(.cloud-two) { top: 18px; left: 43%; scale: .65; animation-delay: -4s; }
 .game :global(.garden-butterfly) { position: absolute; right: 25%; bottom: 28px; color: #ffe3a2; font-size: 20px; animation: flutter 5s ease-in-out infinite; }
+.game :global(.garden-share-toggle) { position: absolute; z-index: 2; left: 12px; bottom: 12px; background: #fff7dfed; border: 1px solid #729763; border-radius: 12px; padding: 7px 10px; font-size: 11px; font-weight: 700; color: #385531; box-shadow: 0 3px 0 #48643c33; }
 .game :global(.garden-sound) { position: absolute; z-index: 2; right: 12px; bottom: 12px; background: #fff7dfed; border: 1px solid #729763; border-radius: 12px; padding: 7px 10px; font-size: 11px; font-weight: 700; color: #385531; box-shadow: 0 3px 0 #48643c33; }
 .game :global(.garden-hud) { position: relative; gap: 8px; margin-top: -8px; padding: 12px 0 0; z-index: 2; }
 .game :global(.garden-wallet) { background: #fff5cc; border: 2px solid #e2bc63; border-radius: 14px; padding: 5px 11px; box-shadow: 0 3px 0 #be994c; font-size: 20px; color: #765026; animation: wallet-pop .3s ease-out; }
