@@ -38,6 +38,7 @@ import {
   type CaseLedger,
   type WeedStage,
 } from "./rules";
+import { initialCoach, type CoachData, type CoachMark, type TipTab } from "./coach";
 import type { Case, Fruit, Mutation, Plant, PlazaLevel, Species } from "./types";
 
 /**
@@ -88,6 +89,8 @@ export interface GardenData {
   trails: { taken: string[]; day: string; count: number };
   /** 오늘(한국 날짜 번호) 물을 준 정원(공개 id)과, 받아서 쓴 물(방문자 uid). */
   waters: { day: number; given: string[]; received: string[] };
+  /** 첫 한 바퀴 코치와 탭 첫 방문 팁(coach.ts). 기기를 옮겨도 다시 뜨지 않게 정원과 함께 간다. */
+  coach: CoachData;
   /**
    * 이 정원을 마지막으로 맞춘 계정. 없으면 아직 어느 계정과도 맞춘 적 없는
    * 이 기기만의 정원이다. updatedAt만으로 고르면 새 기기에서 갓 만든 빈 정원이
@@ -138,6 +141,7 @@ function fresh(catalog: Species[]): GardenData {
     share: { id: null, on: false },
     waters: { day: 0, given: [], received: [] },
     trails: { taken: [], day: "", count: 0 },
+    coach: initialCoach({}),
     updatedAt: Date.now(),
   };
 }
@@ -156,6 +160,7 @@ function normalize(data: GardenData): GardenData {
     share: data.share ?? { id: null, on: false },
     waters: data.waters ?? { day: 0, given: [], received: [] },
     trails: data.trails ?? { taken: [], day: "", count: 0 },
+    coach: data.coach ?? initialCoach(data.dex ?? {}),
   };
 }
 
@@ -245,6 +250,14 @@ interface GardenState {
   gaveWater: (gid: string) => void;
   /** 받은 물을 쓴다. 오늘 처음 보는 방문자만, 하루 WATER_PER_DAY까지. 쓴 방문자를 돌려준다. */
   receiveWaters: <T extends { uid: string }>(visitors: T[]) => T[];
+  /** 코치를 끈다(마쳤거나 건너뛰었다). */
+  endCoach: () => void;
+  /** 탭 첫 방문 팁을 닫았다. */
+  seeTip: (tab: TipTab) => void;
+}
+
+function marked(coach: CoachData, mark: CoachMark): CoachData {
+  return coach.marks.includes(mark) ? coach : { ...coach, marks: [...coach.marks, mark] };
 }
 
 export const useGarden = create<GardenState>((set, get) => {
@@ -373,7 +386,12 @@ export const useGarden = create<GardenState>((set, get) => {
         const species = catalog.get(f.speciesId);
         if (ids.has(f.id) && species) jam += fruitValue(f, species, bonus);
       }
-      commit({ ...d, jam: d.jam + jam, basket: d.basket.filter((f) => !ids.has(f.id)) });
+      commit({
+        ...d,
+        jam: d.jam + jam,
+        basket: d.basket.filter((f) => !ids.has(f.id)),
+        coach: jam > 0 ? marked(d.coach, "sold") : d.coach,
+      });
       return jam;
     },
 
@@ -388,6 +406,7 @@ export const useGarden = create<GardenState>((set, get) => {
         jam: d.jam - price,
         seeds: give(d.seeds, species.id),
         shop: { slot, bought: { ...bought, [species.id]: (bought[species.id] ?? 0) + 1 } },
+        coach: marked(d.coach, "bought"),
       });
       return true;
     },
@@ -586,6 +605,18 @@ export const useGarden = create<GardenState>((set, get) => {
       if (!d || d.gifts.includes(species.id)) return false;
       commit({ ...d, seeds: give(d.seeds, species.id), gifts: [...d.gifts, species.id] });
       return true;
+    },
+
+    endCoach: () => {
+      const d = get().data;
+      if (!d || d.coach.off) return;
+      commit({ ...d, coach: { ...d.coach, off: true } });
+    },
+
+    seeTip: (tab) => {
+      const d = get().data;
+      if (!d || d.coach.tips.includes(tab)) return;
+      commit({ ...d, coach: { ...d.coach, tips: [...d.coach.tips, tab] } });
     },
   };
 });

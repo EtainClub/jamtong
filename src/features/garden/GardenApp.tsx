@@ -11,6 +11,9 @@ import { GardenScenery } from "./GardenArt";
 import { gardenFeedback, setGardenSound } from "./feedback";
 
 import { Beds } from "./Beds";
+import { CoachQuest, TabTip } from "./GardenCoach";
+import { coachStep } from "./coach";
+import { GardenGuide } from "./GardenGuide";
 import { Dex } from "./Dex";
 import { FlowerBed } from "./FlowerBed";
 import { Greenhouse } from "./Greenhouse";
@@ -53,6 +56,12 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
   const [tab, setTab] = useState<Tab>("beds");
   const [sound, setSound] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  /** 열린 안내의 절. null이면 닫힘. */
+  const [guide, setGuide] = useState<string | null>(null);
+  const openGuide = useCallback((section = "loop") => {
+    gardenFeedback("tap");
+    setGuide(section);
+  }, []);
   // 친구 정원 링크(/garden?visit=<공개id>)로 왔으면 그 정원부터 보인다.
   // 첫 렌더는 데이터가 없어 "여는 중"만 그리므로, 서버 렌더와 어긋나지 않는다.
   const [visit, setVisit] = useState<string | null>(() => {
@@ -196,6 +205,7 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
       <header className="garden-world-header">
         <GardenScenery raining={isRaining(now)} />
         <div className="garden-world-title"><span className="garden-eyebrow">JAMTONG GARDEN</span><h1>잼통 정원</h1><p>{data.nick}의 작은 초록 세상</p></div>
+        <button type="button" className="garden-help" aria-haspopup="dialog" onClick={() => openGuide()}>? 안내</button>
         <button type="button" className="garden-sound" aria-pressed={sound} aria-label={`효과음 ${sound ? "끄기" : "켜기"}`} onClick={() => { setSound(!sound); setGardenSound(!sound); }}>{sound ? "♪ 켜짐" : "♪ 소리 켜기"}</button>
         {!visit && (
           <button type="button" className="garden-share-toggle" aria-expanded={showShare} aria-controls="garden-share-card" onClick={() => { gardenFeedback("tap"); setShowShare(!showShare); }}>
@@ -208,7 +218,7 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
           🍯 {data.jam.toLocaleString()}
           <span className="ml-1 text-[12px] font-medium text-smoke">잼</span>
         </p>
-        <WeatherBadge now={now} catalog={catalog} />
+        <WeatherBadge now={now} catalog={catalog} onOpen={() => openGuide("weather")} />
       </div>
 
       {showShare && !visit && (
@@ -257,7 +267,13 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
         ))}
       </div>
 
+      {(tab === "beds" || tab === "shop") && (
+        <CoachQuest data={data} now={now} tab={tab} onGo={setTab} onGuide={() => openGuide()} />
+      )}
+
       <div key={tab} role="tabpanel" id={`garden-panel-${tab}`} aria-labelledby={`garden-tab-${tab}`} className={`garden-screen garden-screen-${tab} mt-4`}>
+        {/* 상점은 퀘스트 카드가 이미 설명하고 있으면 팁을 미룬다. 둘이 겹쳐 쌓이지 않게. */}
+        {!(tab === "shop" && coachStep(data, now)) && <TabTip tab={tab} data={data} onGuide={openGuide} />}
         {tab === "beds" && (
           <Beds
             data={data}
@@ -281,6 +297,7 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
       </>
       )}
 
+      {guide && <GardenGuide section={guide} onClose={() => setGuide(null)} />}
       <Toast text={toast} />
     </div>
   );
@@ -290,7 +307,7 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
  * 날씨 알림. 지금 오는 것이 있으면 그것을(여럿이면 모두), 없으면 가장 가까운 것 하나를 보인다.
  * 정해진 시각이라 "그때 들어가자"가 된다(§3.6).
  */
-function WeatherBadge({ now, catalog }: { now: number; catalog: Species[] }) {
+function WeatherBadge({ now, catalog, onOpen }: { now: number; catalog: Species[]; onOpen: () => void }) {
   const rain = nextRain(now);
   const meteor = nextMeteor(now);
   const monsoon = nextMonsoon(now, catalog);
@@ -311,13 +328,13 @@ function WeatherBadge({ now, catalog }: { now: number; catalog: Species[] }) {
   }
   if (active.length > 0) {
     return (
-      <div className="flex flex-col items-end gap-1">
+      <button type="button" onClick={onOpen} aria-label={`${active.map((a) => a.text).join(", ")} · 날씨 안내 보기`} className="garden-weather flex flex-col items-end gap-1">
         {active.map((a) => (
-          <p key={a.key} className={`${a.className} rounded-full px-3 py-1 text-[12px] font-semibold text-white`}>
+          <span key={a.key} className={`${a.className} rounded-full px-3 py-1 text-[12px] font-semibold text-white`}>
             {a.text}
-          </p>
+          </span>
         ))}
-      </div>
+      </button>
     );
   }
 
@@ -332,8 +349,8 @@ function WeatherBadge({ now, catalog }: { now: number; catalog: Species[] }) {
     timeZone: "Asia/Seoul",
   });
   return (
-    <p className="rounded-full bg-[var(--g-panel)] px-3 py-1 text-[12px] text-graphite">
-      다음 {upcoming.label} {at} · {formatLeft(upcoming.start - now)} 뒤
-    </p>
+    <button type="button" onClick={onOpen} className="garden-weather garden-weather-next rounded-full bg-[var(--g-panel)] px-3 py-1 text-[12px] text-graphite">
+      다음 {upcoming.label} {at} · {formatLeft(upcoming.start - now)} 뒤 <span aria-hidden="true">ⓘ</span>
+    </button>
   );
 }
