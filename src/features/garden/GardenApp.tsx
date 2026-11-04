@@ -276,7 +276,7 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
         )}
         {tab === "plaza" && <PlazaView plaza={plaza} catalog={catalog} byId={byId} leaves={leaves} uid={uid} now={now} say={say} />}
         {tab === "greenhouse" && <Greenhouse data={data} catalog={catalog} now={now} say={say} />}
-        {tab === "dex" && <Dex data={data} catalog={catalog} />}
+        {tab === "dex" && <Dex data={data} catalog={catalog} now={now} say={say} />}
       </div>
       </>
       )}

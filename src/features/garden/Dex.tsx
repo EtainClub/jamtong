@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { DexMap } from "./DexMap";
 import { PlantArt } from "./GardenArt";
 import { MutationChips, NoteCard } from "./parts";
 import { MUTATION, MUTATION_ORDER, TIER_LABEL } from "./rules";
@@ -17,7 +18,18 @@ import type { Species, Tier } from "./types";
  */
 const TIERS: Tier[] = ["sprout", "common", "flagship", "perennial"];
 
-export function Dex({ data, catalog }: { data: GardenData; catalog: Species[] }) {
+export function Dex({
+  data,
+  catalog,
+  now,
+  say,
+}: {
+  data: GardenData;
+  catalog: Species[];
+  now: number;
+  say: (text: string) => void;
+}) {
+  const [view, setView] = useState<"list" | "map">("list");
   const [tier, setTier] = useState<Tier>("flagship");
   const [open, setOpen] = useState<string | null>(null);
   const grown = Object.keys(data.dex).length;
@@ -55,6 +67,28 @@ export function Dex({ data, catalog }: { data: GardenData; catalog: Species[] })
         </ul>
       </div>
 
+      <div className="mt-4 flex gap-1.5" role="group" aria-label="도감 보기">
+        {(["list", "map"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            aria-pressed={view === v}
+            onClick={() => setView(v)}
+            className={`flex-1 rounded-full py-1.5 text-[12.5px] font-semibold ${
+              view === v ? "bg-[var(--g-leaf)] text-white" : "bg-[var(--g-panel)] text-graphite"
+            }`}
+          >
+            {v === "list" ? "📖 목록" : "🗺 이어진 지도"}
+          </button>
+        ))}
+      </div>
+
+      {view === "map" ? (
+        <div className="mt-3">
+          <DexMap data={data} catalog={catalog} now={now} say={say} />
+        </div>
+      ) : (
+      <>
       <div role="tablist" className="mt-4 flex gap-1.5">
         {TIERS.map((t) => (
           <button
@@ -115,6 +149,8 @@ export function Dex({ data, catalog }: { data: GardenData; catalog: Species[] })
           );
         })}
       </ul>
+      </>
+      )}
     </div>
   );
 }
