@@ -124,6 +124,13 @@ import { CASH_RECEIPT_REPORT } from "./cash-receipt-report";
 import { DEMOCRACY_HISTORY_RECORDS } from "./democracy-history-records";
 import { OVERSEAS_TRIPS_2026 } from "./overseas-trips-2026";
 import { MOIS_MINISTER_2026 } from "./mois-minister-2026";
+import { LOCAL_UNSOLD_HOUSING } from "./local-unsold-housing";
+import { REAL_ESTATE_CRIME_CRACKDOWN } from "./real-estate-crime-crackdown";
+import { HOME_PRICE_DROP_PLAN } from "./home-price-drop-plan";
+import { CORPORATE_RENTAL_HOUSING } from "./corporate-rental-housing";
+import { HOUSING_SUPPLY_BILLS } from "./housing-supply-bills";
+import { MULTI_CHILD_HOUSING } from "./multi-child-housing";
+import { CAPITAL_AREA_HOUSING_SITES } from "./capital-area-housing-sites";
 import { policySchema, type Policy } from "./schema";
 import { SINGLE_STOCK_LEVERAGE_ETF } from "./single-stock-leverage-etf";
 import { TASKS_CHECK_2026 } from "./tasks-check-2026";
@@ -275,6 +282,13 @@ export const POLICIES: Policy[] = [
   DEMOCRACY_HISTORY_RECORDS,
   OVERSEAS_TRIPS_2026,
   MOIS_MINISTER_2026,
+  LOCAL_UNSOLD_HOUSING,
+  REAL_ESTATE_CRIME_CRACKDOWN,
+  HOME_PRICE_DROP_PLAN,
+  CORPORATE_RENTAL_HOUSING,
+  HOUSING_SUPPLY_BILLS,
+  MULTI_CHILD_HOUSING,
+  CAPITAL_AREA_HOUSING_SITES,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
