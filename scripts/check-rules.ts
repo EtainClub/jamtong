@@ -497,6 +497,7 @@ async function gardenChecks(uid: string) {
   await plazaChecks(uid, adminDb);
   await raidChecks(uid, adminDb);
   await bloomChecks(uid, adminDb);
+  await leafChecks(uid, adminDb);
 }
 
 async function plazaChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAdmin>>) {
@@ -740,6 +741,52 @@ async function bloomChecks(uid: string, adminDb: Awaited<ReturnType<typeof openA
   } finally {
     await clean();
     ok("점검용 꽃 치우기");
+  }
+}
+
+/*
+ * 시든 잎 확인. 진짜 잎이 아닌 id(lzzprobe)로 한다 — 빌드 목록에 없으니 운영자 스크립트에도
+ * 화면에도 나오지 않는다. leafChecks는 지울 수 없어 통과 검사는 관리자 키가 있을 때만 하고
+ * 끝나면 치운다.
+ */
+async function leafChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAdmin>>) {
+  console.log("\n정원 — 시든 잎");
+  const id = "lzzprobe";
+  const leafRef = doc(db, "leafChecks", id);
+  const voteRef = doc(db, "leafChecks", id, "votes", uid);
+  const both = (verdict: string, opens: number, fails: number) => {
+    const batch = writeBatch(db);
+    batch.set(voteRef, { verdict, at: serverTimestamp() });
+    batch.set(leafRef, { opens, fails, updatedAt: serverTimestamp() });
+    return batch.commit();
+  };
+
+  await expectDenied("답 없이 숫자만 +1", () => setDoc(leafRef, { opens: 1, fails: 0, updatedAt: serverTimestamp() }));
+  await expectDenied("'열려요'라 답하고 '안 열려요'를 +1", () => both("opens", 0, 1));
+  await expectDenied("한 번 답하고 +2", () => both("fails", 0, 2));
+  await expectDenied("모르는 답(maybe)", () => both("maybe", 0, 0));
+  await expectDenied("url 적기", () => {
+    const batch = writeBatch(db);
+    batch.set(voteRef, { verdict: "fails", at: serverTimestamp() });
+    batch.set(leafRef, { opens: 0, fails: 1, updatedAt: serverTimestamp(), url: "https://evil.example" });
+    return batch.commit();
+  });
+  await expectDenied("잎 모양이 아닌 id", () => setDoc(doc(db, "leafChecks", "zz-probe"), { opens: 0, fails: 0, updatedAt: serverTimestamp() }));
+
+  if (!adminDb) {
+    console.log("  시든 잎 통과 검사는 건너뛴다 (sa.json 없음 — leafChecks는 지울 수 없어 치우지 못한다)");
+    return;
+  }
+
+  try {
+    await expectAllowed("'안 열려요' 답하기 (답·숫자 한 번에)", () => both("fails", 0, 1));
+    await expectDenied("같은 잎에 다시 답하기", () => both("opens", 1, 1));
+    await expectDenied("남의 답 읽기", () => getDocs(query(collection(db, "leafChecks", id, "votes"), limit(5))));
+    await expectDenied("잎 지우기", () => deleteDoc(leafRef));
+  } finally {
+    await adminDb.doc(`leafChecks/${id}/votes/${uid}`).delete();
+    await adminDb.doc(`leafChecks/${id}`).delete();
+    ok("점검용 잎 치우기");
   }
 }
 

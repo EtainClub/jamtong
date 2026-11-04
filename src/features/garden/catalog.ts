@@ -2,11 +2,12 @@
 import { ACHIEVEMENTS } from "@/content/achievements";
 import { POLICIES } from "@/content/policies";
 import type { Claim, Source } from "@/content/schema";
+import { archiveEntry } from "@/content/source-archive";
 import { STATEMENTS } from "@/content/words";
 
 import { arrivedOn } from "./arrivals";
-import { hash } from "./rules";
-import type { Note, NoteKind, Species, Tier } from "./types";
+import { hash, leafId } from "./rules";
+import type { Case, CaseOption, Leaf, Note, NoteKind, Species, Tier } from "./types";
 
 /**
  * 정원의 품종 목록 — 콘텐츠에서 빌드 때 만든다.
@@ -144,4 +145,94 @@ export function buildCatalog(): Species[] {
   }
 
   return species;
+}
+
+/**
+ * 시든 잎 목록 — 원문 링크가 열리지 않았던 출처. 빌드 때 링크 확인 표에서 만든다.
+ *
+ * ★ 원문 링크만 본다. 보존본이 있어도 원문이 안 열리면 잎이다 — 운영자가 링크를
+ *   바꿀지 보존본으로 돌릴지 정할 일이다.
+ * ★ 표가 "blocked"(사이트가 기계 확인을 막음)라고 적은 것도 잎이다. 사람에게는
+ *   열릴 가능성이 크고, 그래서 사람이 확인할 가치가 있다. 화면은 상태를 말하지
+ *   않고 "열리나요?"만 묻는다 — 답을 미리 알려 주면 확인이 아니다.
+ * ★ 같은 출처를 여러 콘텐츠가 쓰면 처음 만난 하나만 맥락으로 단다.
+ */
+export function buildLeaves(): Leaf[] {
+  const leaves = new Map<string, Leaf>();
+  const add = (url: string | undefined, title: string, speciesTitle: string, href: string) => {
+    if (!url || leaves.has(url)) return;
+    const status = archiveEntry(url)?.status;
+    if (!status || status === "ok") return;
+    leaves.set(url, { id: leafId(url), url, title: clip(title), speciesTitle, href });
+  };
+
+  for (const a of ACHIEVEMENTS) {
+    if (a.publishStatus !== "published") continue;
+    for (const s of a.sources) add(s.url, `${s.publisher} · ${s.title}`, a.title, `/achievement/${a.slug}`);
+  }
+  for (const p of POLICIES) {
+    for (const s of p.sources) add(s.url, `${s.publisher} · ${s.title}`, p.title, `/wiki/policy/${p.slug}`);
+  }
+  for (const w of STATEMENTS) add(w.url, `${w.channel} · ${w.title}`, w.title, `/words/${w.slug}`);
+
+  return [...leaves.values()];
+}
+
+/**
+ * 탐정 온실의 사건 — 정책의 "도는 주장"마다 하나. 빌드 때 보기까지 정해 둔다.
+ *
+ * ★ 답은 콘텐츠가 정한 것이다. 소문에 대응한다고 적힌 claim(rumor.claimIds) 하나가
+ *   답이고, 다른 것을 답으로 삼지 않는다.
+ * ★ 오답 보기는 **다른 정책**의 claim이다. 같은 정책의 다른 claim은 그 소문에 일부
+ *   답할 수도 있어서, "틀렸다"고 하면 거짓말이 될 수 있다. 다른 정책의 claim이면
+ *   "이건 「…」 이야기예요"라고 사실대로 말할 수 있다.
+ * ★ 너무 쉽지 않게 같은 분야(categories)의 정책에서 고른다. 없으면 아무 정책에서.
+ * ★ 보기 순서와 고르는 claim은 사건 id로 정한다. 빌드마다 바뀌지 않는다.
+ */
+export function buildCases(): Case[] {
+  const option = (p: (typeof POLICIES)[number], claim: Claim, answer: boolean): CaseOption => ({
+    note: claimNote(`policy:${p.slug}`, claim, p.sources, p.critiqueIds.includes(claim.id) ? "CRITIQUE" : undefined),
+    policyTitle: p.title,
+    href: `/wiki/policy/${p.slug}`,
+    answer,
+  });
+
+  const cases: Case[] = [];
+  for (const p of POLICIES) {
+    const others = POLICIES.filter((o) => o.slug !== p.slug);
+    const near = others.filter((o) => o.categories.some((c) => p.categories.includes(c)));
+    for (const r of p.rumors) {
+      const id = `${p.slug}#${r.id}`;
+      const h = hash(id);
+      const answers = r.claimIds
+        .map((cid) => p.claims.find((c) => c.id === cid))
+        .filter((c): c is Claim => Boolean(c));
+      if (answers.length === 0) continue;
+      const right = option(p, answers[h % answers.length], true);
+
+      const wrong: CaseOption[] = [];
+      const pools = [near, others];
+      for (const pool of pools) {
+        for (let i = 0; wrong.length < 2 && i < pool.length; i++) {
+          const o = pool[(h + i * 7919) % pool.length];
+          if (wrong.some((w) => w.href === `/wiki/policy/${o.slug}`) || o.claims.length === 0) continue;
+          wrong.push(option(o, o.claims[hash(`${id}:${o.slug}`) % o.claims.length], false));
+        }
+      }
+      if (wrong.length < 2) continue;
+
+      const options = [right, ...wrong];
+      const at = h % options.length;
+      [options[0], options[at]] = [options[at], options[0]];
+      cases.push({
+        id,
+        rumor: clip(r.text),
+        policyTitle: p.title,
+        speciesId: `p:${p.slug}`,
+        href: `/wiki/policy/${p.slug}`,
+        options,
+      });
+    }
+  }
+  return cases;
 }

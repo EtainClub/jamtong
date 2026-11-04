@@ -14,6 +14,7 @@
     "seo:check": "node --test scripts/seo-check.test.mjs",
     "garden:test": "tsx --test src/features/garden/rules.test.ts",
     "garden:arrivals": "tsx scripts/garden-arrivals.ts",
+    "garden:leaves": "tsx scripts/garden-leaves.ts",
     "wiki:ingest": "tsx scripts/wiki-ingest.ts",
     "wiki:lint": "tsx scripts/wiki-lint.ts",
     "policies:tongtong": "tsx scripts/import-tongtong.ts",

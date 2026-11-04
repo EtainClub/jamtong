@@ -53,7 +53,11 @@ export type AnalyticsEvent =
   /** 정원에서 열매를 거뒀다. tier, mutations(변이 수). */
   | "garden_harvest"
   /** 광장 잡초를 뽑았다. stage. */
-  | "plaza_pull";
+  | "plaza_pull"
+  /** 시든 잎(출처 링크)이 열리는지 답했다. verdict: opens | fails | unsure. */
+  | "leaf_check"
+  /** 탐정 온실의 사건을 풀었다. first_try: 처음 고른 보기가 답이었는가. */
+  | "case_solve";
 
 type Params = Record<string, string | number | boolean>;
 
