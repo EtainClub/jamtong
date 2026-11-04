@@ -580,6 +580,31 @@ export function openCaseBox(caseId: string, catalog: Species[]): Species | undef
   return openBox(`case:${caseId}`, catalog);
 }
 
+// ── 정원 놀러 가기 ──────────────────────────────────────────────────
+
+/** 하루에 줄 수 있는 물, 받아서 쓰는 물. 둘 다 한국 날짜로 끊는다. */
+export const WATER_PER_DAY = 5;
+/** 물 한 번이 자라는 중인 포기마다 줄여 주는 남은 시간의 몫. */
+export const WATER_CUT = 0.1;
+
+/**
+ * 물을 준다. 아직 익지 않은 포기의 남은 시간을 WATER_CUT만큼 줄인다.
+ * 단비 창은 다시 계산하지 않는다 — 남은 시간이 조금 짧아질 뿐이라 차이가 작다.
+ */
+export function waterBeds(beds: Array<Plant | null>, now: number): Array<Plant | null> {
+  return beds.map((p) =>
+    p && p.ripeAt > now ? { ...p, ripeAt: Math.round(now + (p.ripeAt - now) * (1 - WATER_CUT)) } : p,
+  );
+}
+
+/** 공개 id. uid가 아니다 — 링크가 돌아도 계정을 되짚지 못하게. 규칙: ^g[0-9a-z]{8,12}$ */
+export function newPublicId(random: () => number = Math.random): string {
+  const chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+  return `g${Array.from({ length: 10 }, () => chars[Math.floor(random() * chars.length)]).join("")}`;
+}
+
+export const PUBLIC_ID = /^g[0-9a-z]{8,12}$/;
+
 // ── 꽃밭: 업적을 함께 피우고, 가장 많이 가꾼 사람이 정원지기가 된다 ─────
 
 /**

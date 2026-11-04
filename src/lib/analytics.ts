@@ -29,7 +29,7 @@ export type AnalyticsEvent =
   /**
    * 지금 이 화면의 링크를 만들었다.
    * surface: achievement | words | book(자서전 한 권) | chapter(그 안의 장)
-   *          | novel(소설 시리즈) | episode(그 안의 한 편)
+   *          | novel(소설 시리즈) | episode(그 안의 한 편) | garden(내 정원)
    */
   | "share_create"
   /**
@@ -50,6 +50,10 @@ export type AnalyticsEvent =
    * 보인다 (docs/garden-game.md §3.11).
    */
   | "garden_open"
+  /** 공개 정원 링크로 들어왔다. mine=내 정원이었는지. */
+  | "garden_visit"
+  /** 친구 정원에 물을 줬다. */
+  | "garden_water"
   /** 정원에서 열매를 거뒀다. tier, mutations(변이 수). */
   | "garden_harvest"
   /** 광장 잡초를 뽑았다. stage. */

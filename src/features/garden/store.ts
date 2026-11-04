@@ -10,8 +10,11 @@ import {
   NECTAR,
   NICK_MAX,
   kstDay,
+  newPublicId,
   openRaidBox,
   RAID_BOX,
+  WATER_PER_DAY,
+  waterBeds,
   PLAZA_SPEED,
   PLOT_UPGRADES,
   pickNote,
@@ -78,6 +81,10 @@ export interface GardenData {
   leaves: { checked: string[]; slot: number; day: string; count: number };
   /** 탐정 온실. 푼 사건, 틀린 적 있는 사건, 오늘 푼 사건(rules.ts의 todaysCases). */
   cases: CaseLedger;
+  /** 정원 공개. id는 처음 켤 때 한 번 만들고, 껐다 켜도 같은 링크를 쓴다. */
+  share: { id: string | null; on: boolean };
+  /** 오늘(한국 날짜 번호) 물을 준 정원(공개 id)과, 받아서 쓴 물(방문자 uid). */
+  waters: { day: number; given: string[]; received: string[] };
   /**
    * 이 정원을 마지막으로 맞춘 계정. 없으면 아직 어느 계정과도 맞춘 적 없는
    * 이 기기만의 정원이다. updatedAt만으로 고르면 새 기기에서 갓 만든 빈 정원이
@@ -125,6 +132,8 @@ function fresh(catalog: Species[]): GardenData {
     raids: [],
     leaves: { checked: [], slot: 0, day: "", count: 0 },
     cases: { solved: [], missed: [], day: "", today: [] },
+    share: { id: null, on: false },
+    waters: { day: 0, given: [], received: [] },
     updatedAt: Date.now(),
   };
 }
@@ -140,6 +149,8 @@ function normalize(data: GardenData): GardenData {
     raids: data.raids ?? [],
     leaves: data.leaves ?? { checked: [], slot: 0, day: "", count: 0 },
     cases: data.cases ?? { solved: [], missed: [], day: "", today: [] },
+    share: data.share ?? { id: null, on: false },
+    waters: data.waters ?? { day: 0, given: [], received: [] },
   };
 }
 
@@ -216,6 +227,14 @@ interface GardenState {
   takeNectar: (speciesIds: string[]) => number;
   /** 거대 잡초의 희귀 씨앗 상자를 연다. 날마다 한 번. 이미 받았으면 null. */
   claimRaid: (day: number, seed: string, catalog: Species[]) => { species?: Species; jam: number } | null;
+  /** 정원 공개를 켜고 끈다. 켤 때 공개 id가 없으면 만든다. */
+  setShare: (on: boolean) => string | null;
+  /** 오늘 이 정원에 물을 줄 수 있는가. 남은 횟수(0이면 못 준다). */
+  waterRoom: (gid: string) => number;
+  /** 물을 준 뒤 부른다. 내 텃밭도 함께 자란다. */
+  gaveWater: (gid: string) => void;
+  /** 받은 물을 쓴다. 오늘 처음 보는 방문자만, 하루 WATER_PER_DAY까지. 쓴 방문자를 돌려준다. */
+  receiveWaters: <T extends { uid: string }>(visitors: T[]) => T[];
 }
 
 export const useGarden = create<GardenState>((set, get) => {
@@ -450,6 +469,46 @@ export const useGarden = create<GardenState>((set, get) => {
       const jam = fresh.length * NECTAR;
       commit({ ...d, jam: d.jam + jam, nectar: { day: today, taken: [...taken, ...fresh] } });
       return jam;
+    },
+
+    setShare: (on) => {
+      const d = get().data;
+      if (!d) return null;
+      const id = d.share.id ?? (on ? newPublicId() : null);
+      commit({ ...d, share: { id, on } });
+      return id;
+    },
+
+    waterRoom: (gid) => {
+      const d = get().data;
+      if (!d) return 0;
+      const w = d.waters.day === kstDayNumber(Date.now()) ? d.waters : { day: 0, given: [], received: [] };
+      if (w.given.includes(gid) || gid === d.share.id) return 0;
+      return Math.max(0, WATER_PER_DAY - w.given.length);
+    },
+
+    gaveWater: (gid) => {
+      const d = get().data;
+      if (!d) return;
+      const today = kstDayNumber(Date.now());
+      const w = d.waters.day === today ? d.waters : { day: today, given: [], received: [] };
+      if (w.given.includes(gid)) return;
+      commit({ ...d, beds: waterBeds(d.beds, Date.now()), waters: { ...w, given: [...w.given, gid] } });
+    },
+
+    receiveWaters: (visitors) => {
+      const d = get().data;
+      if (!d) return [];
+      const today = kstDayNumber(Date.now());
+      const w = d.waters.day === today ? d.waters : { day: today, given: [], received: [] };
+      const fresh = visitors
+        .filter((v) => !w.received.includes(v.uid))
+        .slice(0, Math.max(0, WATER_PER_DAY - w.received.length));
+      if (fresh.length === 0) return [];
+      let beds = d.beds;
+      for (let i = 0; i < fresh.length; i++) beds = waterBeds(beds, Date.now());
+      commit({ ...d, beds, waters: { ...w, received: [...w.received, ...fresh.map((v) => v.uid)] } });
+      return fresh;
     },
 
     claimRaid: (day, seed, catalog) => {

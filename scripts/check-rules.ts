@@ -12,6 +12,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   getFirestore,
   increment,
@@ -21,6 +22,7 @@ import {
   setDoc,
   Timestamp,
   updateDoc,
+  where,
   writeBatch,
 } from "firebase/firestore";
 
@@ -456,6 +458,17 @@ async function cheerChecks(uid: string) {
   ok("점검용 응원 지우기 — 통과했다");
 }
 
+/** 두 번째 익명 사용자. 남과 겨루거나 남의 것에 쓰는 규칙을 보려면 둘이 있어야 한다. */
+let second: Promise<{ db: ReturnType<typeof getFirestore>; uid: string }> | null = null;
+function secondUser() {
+  second ??= (async () => {
+    const app2 = initializeApp(config, "probe-2");
+    const uid2 = (await signInAnonymously(getAuth(app2))).user.uid;
+    return { db: getFirestore(app2), uid: uid2 };
+  })();
+  return second;
+}
+
 /** 서비스 계정 키(sa.json)가 있으면 관리자 Firestore를 연다. 없으면 null. */
 async function openAdmin() {
   try {
@@ -498,6 +511,7 @@ async function gardenChecks(uid: string) {
   await raidChecks(uid, adminDb);
   await bloomChecks(uid, adminDb);
   await leafChecks(uid, adminDb);
+  await visitChecks(uid, adminDb);
 }
 
 async function plazaChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAdmin>>) {
@@ -669,9 +683,7 @@ async function bloomChecks(uid: string, adminDb: Awaited<ReturnType<typeof openA
   }
 
   // 두 번째 사람. 정원지기 다툼을 보려면 둘이 있어야 한다.
-  const app2 = initializeApp(config, "probe-2");
-  const db2 = getFirestore(app2);
-  const uid2 = (await signInAnonymously(getAuth(app2))).user.uid;
+  const { db: db2, uid: uid2 } = await secondUser();
 
   const clean = async () => {
     for (const who of [uid, uid2]) await adminDb.doc(`blooms/${species}/keepers/${who}`).delete();
@@ -787,6 +799,72 @@ async function leafChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
     await adminDb.doc(`leafChecks/${id}/votes/${uid}`).delete();
     await adminDb.doc(`leafChecks/${id}`).delete();
     ok("점검용 잎 치우기");
+  }
+}
+
+/*
+ * 공개 정원과 물 주기 (docs/garden-game.md §3.10). 점검용 공개 id로 하고, 물 표식은
+ * 지울 수 없는 규칙이라 치우기는 관리자 키로 한다. 키가 없으면 쓰지 않는 검사만 한다.
+ */
+async function visitChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAdmin>>) {
+  console.log("\n정원 — 공개와 물 주기");
+  const gid = "gzzrulesprobe";
+  const today = Math.floor((Date.now() + 9 * 3_600_000) / 86_400_000);
+  const garden = (over: Record<string, unknown> = {}) => ({
+    ownerUid: uid,
+    nick: "점검용",
+    beds: [{ s: "w:probe", p: 1, r: 2 }, null],
+    dex: 3,
+    golden: 0,
+    rainbow: 0,
+    updatedAt: serverTimestamp(),
+    ...over,
+  });
+  const gardenRef = (d = db, id = gid) => doc(d, "gardens", id);
+
+  await expectDenied("남의 uid로 공개하기", () => setDoc(gardenRef(), garden({ ownerUid: "somebody-else" })));
+  await expectDenied("공개 id 모양이 틀림", () => setDoc(gardenRef(db, "uid-like-id"), garden()));
+  await expectDenied("정원 이름 13자", () => setDoc(gardenRef(), garden({ nick: "가".repeat(13) })));
+  await expectDenied("밭 13칸", () => setDoc(gardenRef(), garden({ beds: Array(13).fill(null) })));
+  await expectDenied("잼까지 담기", () => setDoc(gardenRef(), garden({ jam: 999 })));
+
+  if (!adminDb) {
+    console.log("  공개 정원 통과 검사는 건너뛴다 (sa.json 없음 — 물 표식은 지울 수 없어 치우지 못한다)");
+    return;
+  }
+  const { db: db2, uid: uid2 } = await secondUser();
+  const waterRef = (d: typeof db, who: string) => doc(d, "gardens", gid, "waters", who);
+  const water = (d: typeof db, who: string, day = today, nick = "이웃") =>
+    setDoc(waterRef(d, who), { day, at: serverTimestamp(), nick });
+
+  const clean = async () => {
+    for (const who of [uid, uid2]) await adminDb.doc(`gardens/${gid}/waters/${who}`).delete();
+    await adminDb.doc(`gardens/${gid}`).delete();
+  };
+  await clean();
+
+  try {
+    await expectAllowed("제 정원 공개하기", () => setDoc(gardenRef(), garden()));
+    await expectAllowed("누구나 공개 정원 읽기", () => getDoc(gardenRef(db2)));
+    await expectDenied("남이 공개 정원 고치기", () => setDoc(gardenRef(db2), garden({ ownerUid: uid2 })));
+    await expectDenied("남이 공개 정원 지우기", () => deleteDoc(gardenRef(db2)));
+    await expectDenied("주인 바꾸기", () => setDoc(gardenRef(), garden({ ownerUid: uid2 })));
+
+    await expectDenied("내 정원에 물 주기", () => water(db, uid));
+    await expectDenied("남의 uid로 물 주기", () => water(db2, uid));
+    await expectDenied("어제 날짜로 물 주기", () => water(db2, uid2, today - 1));
+    await expectAllowed("친구 정원에 물 주기", () => water(db2, uid2));
+    await expectDenied("같은 날 또 물 주기", () => water(db2, uid2));
+    await expectAllowed("주인이 받은 물 읽기", () =>
+      getDocs(query(collection(db, "gardens", gid, "waters"), where("day", "==", today))),
+    );
+    await expectAllowed("물 준 사람이 제 표식 읽기", () => getDoc(waterRef(db2, uid2)));
+    await expectDenied("물 표식 지우기", () => deleteDoc(waterRef(db2, uid2)));
+    await expectAllowed("주인이 공개 끄기(지우기)", () => deleteDoc(gardenRef()));
+    await expectDenied("공개를 끈 정원에 물 주기", () => water(db, uid, today, "주인"));
+  } finally {
+    await clean();
+    ok("점검용 공개 정원 치우기");
   }
 }
 

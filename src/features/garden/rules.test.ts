@@ -49,6 +49,10 @@ import {
   shopFor,
   SHOP_ODDS,
   withRainbow,
+  newPublicId as makePublicId,
+  PUBLIC_ID as PUBLIC_ID_RE,
+  waterBeds as water,
+  WATER_CUT as CUT,
 } from "./rules";
 import type { Plant, Species, Tier } from "./types";
 
@@ -392,4 +396,19 @@ test("온실 보상: 처음에 맞히면 더 주고, 셋째마다 상자", () =>
   const box = openCaseBox("p0#r", catalog);
   assert.ok(box && (box.tier === "flagship" || box.tier === "perennial"));
   assert.equal(openCaseBox("p0#r", catalog)?.id, box.id);
+});
+
+test("물 주기: 자라는 중인 포기의 남은 시간만 줄인다", () => {
+  const now = kst("2026-11-04T10:00:00");
+  const growing: Plant = { id: "a", speciesId: "w:s0", plantedAt: now - HOUR, ripeAt: now + 100 * MINUTE, speed: 1, harvests: 0 };
+  const ripe: Plant = { ...growing, id: "b", ripeAt: now - MINUTE };
+  const [g, r, empty] = water([growing, ripe, null], now);
+  assert.equal(g!.ripeAt, now + Math.round(100 * MINUTE * (1 - CUT)));
+  assert.equal(r!.ripeAt, ripe.ripeAt);
+  assert.equal(empty, null);
+});
+
+test("공개 id는 규칙의 모양이고 uid처럼 길지 않다", () => {
+  for (let i = 0; i < 200; i++) assert.match(makePublicId(), PUBLIC_ID_RE);
+  assert.ok(!PUBLIC_ID_RE.test("abcdefghijklmnopqrstuvwxyz12"));
 });
