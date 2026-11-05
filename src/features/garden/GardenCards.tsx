@@ -15,6 +15,8 @@ import {
   RAIN_STARTS,
   SEED_PRICE,
   SHOP_SLOT,
+  TOOL_ORDER,
+  TOOLS,
 } from "./rules";
 import type { Species } from "./types";
 
@@ -130,7 +132,7 @@ const CARDS: Card[] = [
   {
     key: "shop",
     title: "잼으로 새 씨앗 사기",
-    line: `진열은 ${SHOP_SLOT / MINUTE}분마다 바뀌어요. 모두가 같은 진열을 봐요.`,
+    line: `진열은 ${SHOP_SLOT / MINUTE}분마다 바뀌어요. 비료를 주면 빨리 자라요 ${TOOL_ORDER.map((id) => TOOLS[id].icon).join(" ")}`,
     art: (
       <div className="garden-card-row">
         {(["sprout", "common", "flagship"] as const).map((t) => (
@@ -180,7 +182,7 @@ const CARDS: Card[] = [
   {
     key: "together",
     title: "함께 가꿔요",
-    line: "광장 잡초를 뽑고, 업적 꽃을 함께 피우고, 온실에서 도는 말을 확인해요.",
+    line: "광장 잡초를 뽑고, 업적 꽃을 함께 피우고, 거대 잡초는 여럿이 힘을 모아 쓰러뜨려요.",
     art: (
       <div className="garden-card-tiles is-three">
         <div className="garden-card-tile"><span aria-hidden="true">⛲</span><b>광장</b><small>잡초 뽑기</small></div>

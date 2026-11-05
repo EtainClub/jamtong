@@ -20,8 +20,13 @@ import {
   PLAZA_CELLS,
   PLAZA_LABEL,
   PLAZA_SPEED,
+  formatLeft,
   RAID_BOX,
+  RAID_HITS_PER_PERSON,
+  RAID_LIFE,
+  RAID_PER_DAY,
   RAID_RUBS_PER_STRIKE,
+  raidKey,
   TIER_LABEL,
   WEED,
   WEED_REWARD_PER_DAY,
@@ -69,6 +74,8 @@ export function PlazaView({
         gardenFeedback("reward");
         say("🏆 거대 잡초를 쓰러뜨렸어요! 상자를 열어 보세요");
       } else if (result === "over") say("거대 잡초가 이미 쓰러졌어요");
+      else if (result === "escaped") say("💨 거대 잡초가 도망갔어요");
+      else if (result === "capped") say(`💪 이번 거대 잡초에 줄 수 있는 ${RAID_HITS_PER_PERSON}방을 다 쳤어요. 친구를 불러 주세요!`);
       else if (result === "error") say("광장에 닿지 못했어요. 잠시 뒤 다시 해 보세요");
     },
     [say],
@@ -130,7 +137,7 @@ export function PlazaView({
         </p>
       </div>
 
-      <RaidPanel raid={raid} catalog={catalog} byId={byId} uid={uid} say={say} />
+      <RaidPanel raid={raid} catalog={catalog} byId={byId} uid={uid} now={now} say={say} />
 
       <div className="garden-plaza mt-3 rounded-3xl">
         <GroundDetails />
@@ -305,30 +312,35 @@ function useRub(rub: () => void) {
 }
 
 /**
- * 거대 잡초. 광장이 무성해지면 하루 한 번 나타나고, 다 같이 때려 쓰러뜨린다.
- * 쓰러뜨리면 한 번이라도 때린 사람 모두가 희귀 씨앗 상자를 받는다.
+ * 거대 잡초. 광장이 무성해지면 하루 RAID_PER_DAY번까지 나타나고, 다 같이 때려 쓰러뜨린다.
+ * 한 사람은 물결마다 RAID_HITS_PER_PERSON방까지 — 혼자서는 쓰러뜨리지 못한다.
+ * 쓰러뜨리면 한 번이라도 때린 사람 모두가 희귀 씨앗 상자를 받는다. 오래 두면 도망간다.
  */
 function RaidPanel({
   raid,
   catalog,
   byId,
   uid,
+  now,
   say,
 }: {
   raid: RaidState;
   catalog: Species[];
   byId: Map<string, Species>;
   uid: string | null;
+  now: number;
   say: (text: string) => void;
 }) {
   const r = raid.raid;
-  const claimed = useGarden((st) => st.data?.raids.includes(raid.day) ?? false);
+  const key = r ? raidKey(raid.day, r.wave) : -1;
+  const claimed = useGarden((st) => st.data?.raids.includes(key) ?? false);
   const [shake, setShake] = useState(0);
   const rubs = useRef(0);
   const [partial, setPartial] = useState(0);
+  const spent = raid.mine >= RAID_HITS_PER_PERSON;
 
   const rub = () => {
-    if (!r || r.defeatedAt) return;
+    if (!r || r.phase !== "active" || spent) return;
     gardenFeedback("tap");
     setShake((n) => n + 1);
     rubs.current += 1;
@@ -344,11 +356,18 @@ function RaidPanel({
 
   const left = Math.max(0, r.hp - r.hits);
   const odds = RAID_BOX.odds.map((o) => `${TIER_LABEL[o.tier]} ${Math.round(o.p * 100)}%`).join(" · ");
+  const need = Math.ceil(r.hp / RAID_HITS_PER_PERSON);
+  const label = `${["첫", "두", "세", "네", "다섯"][r.wave - 1] ?? r.wave} 번째 거대 잡초`;
+  const nextLine = raid.next
+    ? raid.next.at > now
+      ? `다음 거대 잡초는 ${formatLeft(raid.next.at - now)} 뒤부터, 광장이 무성해지면 나타나요.`
+      : "광장이 다시 무성해지면 다음 거대 잡초가 나타나요."
+    : "오늘은 여기까지. 내일 또 만나요.";
 
-  if (r.defeatedAt) {
+  if (r.phase === "defeated") {
     return (
       <section aria-labelledby="raid" className="garden-raid-done mt-3 rounded-2xl px-4 py-3.5">
-        <h3 id="raid" className="text-[14px] font-bold">🏆 오늘의 거대 잡초를 쓰러뜨렸어요</h3>
+        <h3 id="raid" className="text-[14px] font-bold">🏆 {label}를 쓰러뜨렸어요</h3>
         <p className="mt-0.5 text-[12px] opacity-85">
           {r.fighters.toLocaleString()}명이 함께 {r.hp.toLocaleString()}번 때렸어요{raid.mine ? ` · 나는 ${raid.mine}번` : ""}.
         </p>
@@ -356,7 +375,7 @@ function RaidPanel({
           <button
             type="button"
             onClick={() => {
-              const got = useGarden.getState().claimRaid(raid.day, `${raid.day}:${uid ?? "local"}`, catalog);
+              const got = useGarden.getState().claimRaid(key, `${r.id}:${uid ?? "local"}`, catalog);
               if (!got) return;
               gardenFeedback("reward");
               say(`🎁 희귀 씨앗 상자 · 🍯 +${got.jam}${got.species ? ` · 🌱 ${byId.get(got.species.id)?.title ?? "씨앗"}` : ""}`);
@@ -366,42 +385,79 @@ function RaidPanel({
             🎁 희귀 씨앗 상자 열기
           </button>
         )}
-        {raid.mine > 0 && claimed && <p className="mt-1.5 text-[12px] font-semibold">상자를 받았어요. 내일 또 만나요.</p>}
-        {raid.mine === 0 && <p className="mt-1.5 text-[12px]">이번에는 함께하지 못했어요. 광장이 다시 무성해지면 내일 또 나타나요.</p>}
+        {raid.mine > 0 && claimed && <p className="mt-1.5 text-[12px] font-semibold">상자를 받았어요.</p>}
+        {raid.mine === 0 && <p className="mt-1.5 text-[12px]">이번에는 함께하지 못했어요.</p>}
+        <p className="mt-1 text-[12px] opacity-85">{nextLine}</p>
       </section>
     );
   }
 
+  if (r.phase === "escaped") {
+    return (
+      <section aria-labelledby="raid" className="garden-raid-done mt-3 rounded-2xl px-4 py-3.5">
+        <h3 id="raid" className="text-[14px] font-bold">💨 {label}가 도망갔어요</h3>
+        <p className="mt-0.5 text-[12px] opacity-85">
+          {r.fighters.toLocaleString()}명이 {r.hits.toLocaleString()}/{r.hp.toLocaleString()}번 때렸지만 {formatLeft(RAID_LIFE)} 안에
+          쓰러뜨리지 못했어요. 적어도 {need}명이 모여야 해요.
+        </p>
+        <p className="mt-1 text-[12px] opacity-85">{nextLine}</p>
+      </section>
+    );
+  }
+
+  const escapeIn = r.spawnedAt !== null ? r.spawnedAt + RAID_LIFE - now : RAID_LIFE;
+  const size = Math.min(1.25, 0.85 + r.hp / 3000);
+
   return (
     <section aria-labelledby="raid" className="garden-raid mt-3 rounded-2xl px-4 py-3.5 text-white">
       <div className="flex items-baseline justify-between gap-2">
-        <h3 id="raid" className="text-[14px] font-bold">🌿 거대 잡초가 나타났어요</h3>
-        <p className="text-[11.5px] tabular-nums opacity-90">함께 {r.fighters.toLocaleString()}명 · 나 {raid.mine}번</p>
+        <h3 id="raid" className="text-[14px] font-bold">🌿 {label}가 나타났어요</h3>
+        <p className="text-[11.5px] tabular-nums opacity-90">도망까지 {formatLeft(escapeIn)}</p>
       </div>
-      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-black/30" role="progressbar" aria-label="거대 잡초 체력" aria-valuemin={0} aria-valuemax={r.hp} aria-valuenow={left}>
+      <div className="mt-2 h-3 overflow-hidden rounded-full bg-black/30" role="progressbar" aria-label="거대 잡초 체력" aria-valuemin={0} aria-valuemax={r.hp} aria-valuenow={left}>
         <div className="h-full bg-[#e9d24a] transition-[width]" style={{ width: `${(left / r.hp) * 100}%` }} />
       </div>
-      <p className="mt-1 text-[11.5px] tabular-nums opacity-90">체력 {left}/{r.hp}</p>
+      <p className="mt-1 flex justify-between text-[11.5px] tabular-nums opacity-90">
+        <span>체력 {left.toLocaleString()}/{r.hp.toLocaleString()}</span>
+        <span>함께 {r.fighters.toLocaleString()}명 · 적어도 {need}명</span>
+      </p>
 
       <button
         type="button"
-        aria-label={`거대 잡초 때리기 (체력 ${left} 남음)`}
-        className="relative mx-auto mt-2 grid h-36 w-36 touch-none select-none place-items-center"
+        aria-label={spent ? "이번 거대 잡초에 내 몫을 다 쳤어요" : `거대 잡초 때리기 (체력 ${left} 남음)`}
+        aria-disabled={spent}
+        className={`relative mx-auto mt-2 grid h-52 w-52 touch-none select-none place-items-center ${spent ? "opacity-60" : ""}`}
         {...gesture}
       >
-        <span key={shake} className={`garden-weed-body ${shake ? "garden-shake" : ""}`} style={{ transform: "scale(1.9)" }}>
+        <span key={shake} className={`garden-weed-body ${shake ? "garden-shake" : ""}`} style={{ transform: `scale(${2.6 * size})` }}>
           <WeedArt variant={2} tough />
         </span>
-        {(partial > 0 || raid.queued > 0) && (
+        {(partial > 0 || raid.queued > 0) && !spent && (
           <span className="pointer-events-none absolute bottom-1 h-1.5 w-2/3 overflow-hidden rounded-full bg-black/30">
             <span className="block h-full bg-white" style={{ width: `${(partial / RAID_RUBS_PER_STRIKE) * 100}%` }} />
           </span>
         )}
       </button>
 
-      <p className="mt-1 text-[11.5px] leading-relaxed opacity-90">
-        {RAID_RUBS_PER_STRIKE}번 문지르면 한 방, 한 사람은 1초에 한 방까지. 쓰러뜨리면 한 번이라도 때린 모두가 희귀
-        씨앗 상자를 받아요 ({odds}, 잼 {RAID_BOX.jam}).
+      <div className="mt-1" aria-label={`내 몫 ${raid.mine}/${RAID_HITS_PER_PERSON}방`}>
+        <div className="flex justify-between text-[11.5px] font-semibold tabular-nums">
+          <span>내 몫</span>
+          <span>{raid.mine}/{RAID_HITS_PER_PERSON}방</span>
+        </div>
+        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-black/30">
+          <div className="h-full bg-white/85" style={{ width: `${(raid.mine / RAID_HITS_PER_PERSON) * 100}%` }} />
+        </div>
+      </div>
+      {spent && (
+        <p className="mt-2 rounded-xl bg-black/25 px-3 py-2 text-[12px] font-semibold">
+          💪 내 몫을 다 쳤어요. 혼자서는 쓰러뜨릴 수 없어요 — 친구에게 광장을 알려 주세요!
+        </p>
+      )}
+
+      <p className="mt-2 text-[11.5px] leading-relaxed opacity-90">
+        {RAID_RUBS_PER_STRIKE}번 문지르면 한 방, 1초에 한 방, 한 사람은 {RAID_HITS_PER_PERSON}방까지.{" "}
+        {formatLeft(RAID_LIFE)} 안에 쓰러뜨리면 한 번이라도 때린 모두가 희귀 씨앗 상자를 받아요 ({odds}, 잼 {RAID_BOX.jam}).
+        하루 {RAID_PER_DAY}번까지 나타나요.
       </p>
     </section>
   );

@@ -7,6 +7,8 @@ import {
   MINUTE,
   PLAZA_SPEED,
   SHOP_SLOT,
+  TOOL_ORDER,
+  TOOLS,
   TRAIL_PER_DAY,
 } from "./rules";
 import type { Plant } from "./types";
@@ -151,7 +153,7 @@ export function coachCard(step: CoachStep, ctx: { now: number; beds: Array<Plant
 export const TIPS: Record<TipTab, { title: string; body: string }> = {
   shop: {
     title: "씨앗 상점",
-    body: `진열은 ${SHOP_SLOT / MINUTE}분마다 바뀌어요. 업적 씨앗은 비싸고 오래 자라지만 잼을 많이 줘요. 칸마다 등급이 나올 확률은 아래에 공개돼 있어요.`,
+    body: `진열은 ${SHOP_SLOT / MINUTE}분마다 바뀌어요. 업적 씨앗은 비싸고 오래 자라지만 잼을 많이 줘요. 아래 ‘도구’ 칸의 비료(${TOOL_ORDER.map((id) => TOOLS[id].label).join("·")})를 주면 작물이 빨리 자라요.`,
   },
   flowers: {
     title: "꽃밭",
@@ -159,7 +161,7 @@ export const TIPS: Record<TipTab, { title: string; body: string }> = {
   },
   plaza: {
     title: "광장",
-    body: `모두가 함께 쓰는 정원이에요. 잡초를 문질러 뽑으면 잼을 받아요. 광장이 깨끗하면 모두의 텃밭이 ${PLAZA_SPEED.clean}배 빨리 자라요.`,
+    body: `모두가 함께 쓰는 정원이에요. 잡초를 문질러 뽑으면 잼을 받아요. 광장이 깨끗하면 모두의 텃밭이 ${PLAZA_SPEED.clean}배 빨리 자라요. 무성해지면 거대 잡초가 나타나는데, 혼자서는 못 잡아요 — 친구와 함께!`,
   },
   greenhouse: {
     title: "탐정 온실",

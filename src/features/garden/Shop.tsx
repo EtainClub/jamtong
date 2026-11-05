@@ -7,6 +7,7 @@ import {
   fruitIcon,
   formatLeft,
   isNewVariety,
+  kstDay,
   monsoonSpecies,
   NEW_VARIETY_BONUS,
   NEW_VARIETY_DAYS,
@@ -17,6 +18,8 @@ import {
   shopFor,
   shopSlot,
   TIER_LABEL,
+  TOOL_ORDER,
+  TOOLS,
 } from "./rules";
 import { useGarden, type GardenData } from "./store";
 import type { Species } from "./types";
@@ -38,7 +41,7 @@ export function Shop({
   now: number;
   say: (text: string) => void;
 }) {
-  const { buy, upgrade } = useGarden.getState();
+  const { buy, upgrade, buyTool } = useGarden.getState();
   const slot = shopSlot(now);
   // 장마 여부는 슬롯 시작 시각으로 본다. 슬롯 안에서 진열이 바뀌지 않게, 모두가 같게.
   const monsoon = monsoonSpecies(slot * SHOP_SLOT, catalog);
@@ -106,6 +109,41 @@ export function Shop({
         동안 잼이 {Math.round(NEW_VARIETY_BONUS * 100)}% 더 나와요. 잼은 정원 안에서만
         쓰이고, 돈으로 사거나 다른 사람과 주고받을 수 없습니다.
       </p>
+
+      <section aria-labelledby="garden-tools" className="mt-6">
+        <h3 id="garden-tools" className="text-[14px] font-bold">도구</h3>
+        <p className="mt-0.5 text-[11.5px] text-smoke">늘 같은 값으로 팔아요. 무작위는 없어요.</p>
+        <div className="mt-2 space-y-2">
+          {TOOL_ORDER.map((id) => {
+            const tool = TOOLS[id];
+            const today = kstDay(now);
+            const used = data.tools.day === today ? (data.tools.bought[id] ?? 0) : 0;
+            const left = tool.perDay - used;
+            const have = data.tools.have[id] ?? 0;
+            return (
+              <div key={id} className="flex items-center gap-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3">
+                <span className="text-[28px] leading-none" aria-hidden="true">{tool.icon}</span>
+                <div className="min-w-0 flex-1 text-[13px]">
+                  <p className="font-semibold">
+                    {tool.label} <span className="font-normal text-smoke">· 가진 것 {have}개</span>
+                  </p>
+                  <p className="text-[11.5px] leading-relaxed text-smoke">
+                    {tool.hint} 텃밭에서 작물을 누르면 쓸 수 있어요. 오늘 {left}개 더 살 수 있어요.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={left <= 0 || data.jam < tool.price}
+                  onClick={() => { if (buyTool(id)) { gardenFeedback("reward"); say(`${tool.icon} ${tool.label}를 샀어요`); } }}
+                  className="shrink-0 rounded-full bg-[var(--g-jam)] px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-35"
+                >
+                  {left <= 0 ? "오늘 끝" : `🍯 ${tool.price}`}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {nextPlot && (
         <div className="mt-6 flex items-center gap-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3">

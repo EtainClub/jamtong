@@ -433,12 +433,78 @@ export function regrowMinutes(gardenersToday: number, roll: number): number {
 // ── 거대 잡초 (레이드) ──────────────────────────────────────────────
 
 /**
- * 거대 잡초의 체력(때릴 수). 광장이 무성해질 때 그날 온 정원지기 수로 정한다.
- * 혼자서도 2~3분이면 잡을 수 있고, 사람이 많으면 다 같이 때려야 한다.
- * Firestore 규칙이 [20, 300] 밖의 값을 막는다.
+ * 거대 잡초는 하루 여러 번(물결) 나타난다. 물결마다 Firestore 문서 하나 — plazaRaids/{날짜번호}-{물결}.
+ *
+ * ★ 혼자서는 잡지 못한다. 한 사람은 물결마다 RAID_HITS_PER_PERSON방까지만 칠 수 있고,
+ *   체력은 적어도 RAID_MIN_FIGHTERS명이 끝까지 쳐야 닿는다. 규칙이 둘 다 지킨다.
+ * ★ 오래 버티면 도망간다(RAID_LIFE). 그래서 "지금 같이 잡자"가 된다. 도망가면 상자는 없다.
+ * ★ 다음 물결은 앞 물결이 끝나고(쓰러지거나 도망가고) RAID_GAP 뒤, 광장이 무성할 때 나온다.
+ * 값을 바꾸면 firestore.rules의 plazaRaids 절도 같이 바꾼다 — raid.test.ts가 짝을 본다.
+ */
+export const RAID_PER_DAY = 3;
+export const RAID_LIFE = 3 * HOUR;
+export const RAID_GAP = 2 * HOUR;
+export const RAID_HITS_PER_PERSON = 60;
+export const RAID_MIN_FIGHTERS = 3;
+export const RAID_HP_PER_GARDENER = 30;
+export const RAID_HP_MIN = RAID_MIN_FIGHTERS * RAID_HITS_PER_PERSON;
+export const RAID_HP_MAX = 3000;
+
+/**
+ * 거대 잡초의 체력(때릴 수). 그날 온 정원지기 수로 정한다 — 오늘 온 사람의 절반쯤이
+ * 자기 몫을 다 쳐야 쓰러진다. 적어도 RAID_MIN_FIGHTERS명은 있어야 한다.
  */
 export function raidHp(gardenersToday: number): number {
-  return Math.min(300, Math.max(20, Math.round(12 + Math.max(0, gardenersToday) * 8)));
+  return Math.min(RAID_HP_MAX, Math.max(RAID_HP_MIN, Math.round(Math.max(0, gardenersToday) * RAID_HP_PER_GARDENER)));
+}
+
+/** 물결 문서 id. 규칙: ^[0-9]{5}-[1-3]$ */
+export function raidId(day: number, wave: number): string {
+  return `${day}-${wave}`;
+}
+
+/**
+ * 상자 장부(GardenData.raids)의 열쇠. 물결이 생기기 전에는 날짜 번호(5자리)만 적었다 —
+ * 날짜×10+물결(6자리)이라 옛 값과 겹치지 않는다.
+ */
+export function raidKey(day: number, wave: number): number {
+  return day * 10 + wave;
+}
+
+export interface RaidWave {
+  hp: number;
+  hits: number;
+  fighters: number;
+  /** 서버가 찍은 시각. 막 세운 직후 잠깐 null일 수 있다. */
+  spawnedAt: number | null;
+  defeatedAt: number | null;
+}
+
+export type RaidPhase = "active" | "defeated" | "escaped";
+
+export function raidPhase(r: RaidWave, now: number): RaidPhase {
+  if (r.defeatedAt) return "defeated";
+  if (r.spawnedAt !== null && now >= r.spawnedAt + RAID_LIFE) return "escaped";
+  return "active";
+}
+
+/** 이 물결이 끝난 시각(쓰러지거나 도망간). 아직 싸우는 중이면 null. */
+export function raidEndedAt(r: RaidWave, now: number): number | null {
+  if (r.defeatedAt) return r.defeatedAt;
+  if (r.spawnedAt !== null && now >= r.spawnedAt + RAID_LIFE) return r.spawnedAt + RAID_LIFE;
+  return null;
+}
+
+/**
+ * 오늘 물결들(1번부터, 없으면 null)을 보고 다음 물결이 언제 나올 수 있는지.
+ * wave=다음 물결 번호, at=그 시각. 오늘 몫을 다 썼거나 아직 싸우는 중이면 null.
+ */
+export function nextRaidWave(waves: Array<RaidWave | null>, now: number): { wave: number; at: number } | null {
+  const last = waves.reduce((n, w, i) => (w ? i + 1 : n), 0);
+  if (last === 0) return { wave: 1, at: now };
+  if (last >= RAID_PER_DAY) return null;
+  const ended = raidEndedAt(waves[last - 1]!, now);
+  return ended === null ? null : { wave: last + 1, at: ended + RAID_GAP };
 }
 
 /** 문지르기 이만큼이 한 방이다. */
@@ -470,6 +536,62 @@ function openBox(key: string, catalog: Species[]): Species | undefined {
   const fallback = catalog.filter((s) => s.tier === "flagship" || s.tier === "perennial");
   const from = pool.length ? pool : fallback;
   return from.length ? from[Math.floor(roll() * from.length)] : undefined;
+}
+
+// ── 도구 ────────────────────────────────────────────────────────────
+
+/**
+ * 상점에서 늘 파는 도구. 씨앗과 달리 진열이 돌지 않는다. 확률도 없다.
+ *
+ * ★ 비료는 남은 시간을 정해진 만큼 당긴다. 비율로 깎으면 오래 걸리는 업적 작물일수록
+ *   한 번에 많이 줄어 기다림이 사라진다 — 그래서 절반 비료(황금)는 당기는 양에 상한을 둔다.
+ * ★ 한 작물이 한 번 익는 동안 비료는 종류와 상관없이 한 번만. 겹쳐 주지 못하게.
+ * ★ 하루에 살 수 있는 수에 상한을 둔다. 잼이 쌓인 사람이 정원을 통째로 건너뛰지 않게.
+ */
+export type ToolId = "sprinkle" | "fertilizer" | "golden";
+
+export type ToolEffect = { kind: "minutes"; minutes: number } | { kind: "half"; maxMinutes: number };
+
+export const TOOLS: Record<ToolId, { label: string; icon: string; price: number; perDay: number; effect: ToolEffect; hint: string }> = {
+  sprinkle: {
+    label: "톡톡 비료",
+    icon: "💧",
+    price: 15,
+    perDay: 10,
+    effect: { kind: "minutes", minutes: 10 },
+    hint: "자라는 작물 하나를 10분 당겨요.",
+  },
+  fertilizer: {
+    label: "쑥쑥 비료",
+    icon: "🧴",
+    price: 60,
+    perDay: 5,
+    effect: { kind: "minutes", minutes: 60 },
+    hint: "자라는 작물 하나를 1시간 당겨요.",
+  },
+  golden: {
+    label: "황금 비료",
+    icon: "✨",
+    price: 200,
+    perDay: 2,
+    effect: { kind: "half", maxMinutes: 120 },
+    hint: "자라는 작물 하나의 남은 시간을 절반으로. 다만 2시간까지만 당겨요.",
+  },
+};
+
+export const TOOL_ORDER: ToolId[] = ["sprinkle", "fertilizer", "golden"];
+
+/** 이 비료가 지금 당겨 줄 시간(ms). 남은 시간을 넘지 않는다. */
+export function fertilizerCut(id: ToolId, left: number): number {
+  const effect = TOOLS[id].effect;
+  const cut = effect.kind === "minutes" ? effect.minutes * MINUTE : Math.min(left / 2, effect.maxMinutes * MINUTE);
+  return Math.max(0, Math.min(left, cut));
+}
+
+/** 비료를 준 포기. 이미 익었거나 이번 차례에 이미 줬으면 null. */
+export function fertilize(plant: Plant, now: number, id: ToolId): Plant | null {
+  if (plant.ripeAt <= now || plant.fed === plant.harvests) return null;
+  return { ...plant, ripeAt: Math.round(plant.ripeAt - fertilizerCut(id, plant.ripeAt - now)), fed: plant.harvests };
 }
 
 // ── 시든 잎 ─────────────────────────────────────────────────────────

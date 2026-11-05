@@ -8,9 +8,9 @@ import { track } from "@/lib/analytics";
 import { GroundDetails, PlantArt } from "./GardenArt";
 import { gardenFeedback } from "./feedback";
 import { MutationChips, NoteCard } from "./parts";
-import { CARE, caresFor, fruitIcon, fruitValue, formatLeft, growMinutes, kstDay, MINUTE, SHINE_PER_DAY, TIER_LABEL } from "./rules";
+import { CARE, caresFor, fruitIcon, fruitValue, formatLeft, growMinutes, kstDay, MINUTE, SHINE_PER_DAY, TIER_LABEL, fertilizerCut, TOOL_ORDER, TOOLS, type ToolId } from "./rules";
 import { useGarden, type GardenData } from "./store";
-import type { PlazaLevel, Species } from "./types";
+import type { Plant, PlazaLevel, Species } from "./types";
 import type { CareOutcome } from "./useBlooms";
 
 /**
@@ -40,7 +40,7 @@ export function Beds({
   care: (speciesId: string, delta: number) => Promise<CareOutcome>;
   say: (text: string) => void;
 }) {
-  const { plant, harvest, dig, sell, shine } = useGarden.getState();
+  const { plant, harvest, dig, sell, shine, feed } = useGarden.getState();
   const [picking, setPicking] = useState<number | null>(null);
   const [harvested, setHarvested] = useState<Record<number, number>>({});
   const [selected, setSelected] = useState<number | null>(null);
@@ -159,7 +159,16 @@ export function Beds({
       {selected !== null && data.beds[selected] && (
         <BedDetail
           species={byId.get(data.beds[selected]!.speciesId)}
-          harvests={data.beds[selected]!.harvests}
+          plant={data.beds[selected]!}
+          now={now}
+          have={data.tools.have}
+          onFeed={(id) => {
+            const before = data.beds[selected]!.ripeAt - now;
+            if (!feed(selected, id)) return;
+            gardenFeedback("plant");
+            const after = (useGarden.getState().data?.beds[selected]?.ripeAt ?? 0) - now;
+            say(`${TOOLS[id].icon} ${TOOLS[id].label}! ${formatLeft(before)} → ${formatLeft(after)}`);
+          }}
           onDig={() => {
             if (window.confirm("갈아엎을까요? 심은 씨앗은 돌아오지 않습니다.")) {
               dig(selected);
@@ -268,21 +277,32 @@ export function Beds({
 
 function BedDetail({
   species,
-  harvests,
+  plant,
+  now,
+  have,
+  onFeed,
   onDig,
 }: {
   species: Species | undefined;
-  harvests: number;
+  plant: Plant;
+  now: number;
+  have: Partial<Record<ToolId, number>>;
+  onFeed: (id: ToolId) => void;
   onDig: () => void;
 }) {
   if (!species) return null;
+  const left = plant.ripeAt - now;
+  const growing = left > 0;
+  const fed = plant.fed === plant.harvests;
+  const owned = TOOL_ORDER.filter((id) => (have[id] ?? 0) > 0);
   return (
-    <div className="mt-3 flex items-center gap-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3 text-[13px]">
+    <div className="mt-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3 text-[13px]">
+    <div className="flex items-center gap-3">
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">{species.title}</p>
         <p className="text-[12px] text-smoke">
           {TIER_LABEL[species.tier]}
-          {species.tier === "perennial" ? ` · ${harvests}번 수확함 · 다시 열립니다` : ""}
+          {species.tier === "perennial" ? ` · ${plant.harvests}번 수확함 · 다시 열립니다` : ""}
         </p>
       </div>
       <Link href={species.href} className="shrink-0 text-[12px] text-graphite underline underline-offset-2">
@@ -291,6 +311,32 @@ function BedDetail({
       <button type="button" onClick={onDig} className="shrink-0 text-[12px] text-smoke">
         갈아엎기
       </button>
+    </div>
+    {growing && (
+      <div className="mt-2.5 border-t border-stone/60 pt-2.5">
+        <p className="text-[12px] text-smoke">
+          {fed
+            ? "🌿 이번 차례에는 비료를 줬어요. 다 익을 때까지 한 번만 줄 수 있어요."
+            : owned.length
+              ? `비료 주기 · 남은 ${formatLeft(left)} (한 번 익는 동안 하나만)`
+              : "비료는 상점 ‘도구’에서 사요."}
+        </p>
+        {!fed && owned.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {owned.map((id) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onFeed(id)}
+                className="rounded-full bg-[var(--g-leaf)] px-3 py-1.5 text-[12px] font-semibold text-white"
+              >
+                {TOOLS[id].icon} {TOOLS[id].label} ×{have[id]} · −{formatLeft(fertilizerCut(id, left))}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
     </div>
   );
 }

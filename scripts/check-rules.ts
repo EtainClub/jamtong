@@ -590,14 +590,15 @@ async function plazaChecks(uid: string, adminDb: Awaited<ReturnType<typeof openA
 }
 
 /*
- * 거대 잡초. 문서 id가 오늘 날짜 번호라 진짜 오늘의 레이드를 쓴다. 그래서 통과 검사는
- * 관리자 키가 있고 진행 중인 레이드(참여자 있음)가 없을 때만 하고, 끝나면 원래대로 되돌린다.
+ * 거대 잡초. 문서 id가 오늘의 물결(날짜번호-물결)이라 진짜 오늘의 레이드를 쓴다. 그래서 통과
+ * 검사는 관리자 키가 있고 오늘 물결이 하나도 없을 때만 하고, 끝나면 원래대로 되돌린다.
  */
 async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAdmin>>) {
   console.log("\n정원 — 거대 잡초");
   const today = Math.floor((Date.now() + 9 * 3_600_000) / 86_400_000);
-  const raidRef = (day = today) => doc(db, "plazaRaids", String(day));
-  const mineRef = doc(db, "plazaRaids", String(today), "fighters", uid);
+  const id = (wave = 1, day = today) => `${day}-${wave}`;
+  const raidRef = (wave = 1, day = today) => doc(db, "plazaRaids", id(wave, day));
+  const mineRef = doc(db, "plazaRaids", id(), "fighters", uid);
   const fresh = (hp: number) => ({ hp, hits: 0, fighters: 0, spawnedAt: serverTimestamp(), defeatedAt: null });
   const strike = (hits: number, fighters: number, mine: number, defeated = false) => {
     const batch = writeBatch(db);
@@ -607,24 +608,29 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
   };
   const wait = () => new Promise((r) => setTimeout(r, 1_200));
 
-  await expectDenied("어제 번호로 세우기", () => setDoc(raidRef(today - 1), fresh(20)));
-  await expectDenied("체력 500으로 세우기", () => setDoc(raidRef(), fresh(500)));
-  await expectDenied("맞은 수 5로 세우기", () => setDoc(raidRef(), { ...fresh(20), hits: 5 }));
+  await expectDenied("옛 id(날짜 번호만)로 세우기", () => setDoc(doc(db, "plazaRaids", String(today)), fresh(180)));
+  await expectDenied("어제 번호로 세우기", () => setDoc(raidRef(1, today - 1), fresh(180)));
+  await expectDenied("넷째 물결 세우기", () => setDoc(raidRef(4), fresh(180)));
+  await expectDenied("체력 150(둘이 잡을 수 있는 크기)으로 세우기", () => setDoc(raidRef(), fresh(150)));
+  await expectDenied("체력 5000으로 세우기", () => setDoc(raidRef(), fresh(5000)));
+  await expectDenied("맞은 수 5로 세우기", () => setDoc(raidRef(), { ...fresh(180), hits: 5 }));
 
   if (!adminDb) {
     console.log("  거대 잡초 통과 검사는 건너뛴다 (sa.json 없음)");
     return;
   }
-  const live = adminDb.doc(`plazaRaids/${today}`);
-  const before = await live.get();
-  if (before.exists && !before.get("defeatedAt") && (before.get("fighters") ?? 0) > 0) {
-    console.log("  거대 잡초 통과 검사는 건너뛴다 (진행 중인 레이드가 있다)");
+  const lives = [1, 2, 3].map((w) => adminDb.doc(`plazaRaids/${id(w)}`));
+  const befores = await Promise.all(lives.map((l) => l.get()));
+  if (befores.some((b) => b.exists)) {
+    console.log("  거대 잡초 통과 검사는 건너뛴다 (오늘 물결이 이미 있다)");
     return;
   }
+  const live = lives[0];
 
   try {
-    await live.delete();
-    await expectAllowed("오늘 번호로 체력 20 세우기", () => setDoc(raidRef(), fresh(20)));
+    await expectDenied("첫 물결 없이 둘째 물결 세우기", () => setDoc(raidRef(2), fresh(180)));
+    await expectAllowed("오늘 첫 물결을 체력 180으로 세우기", () => setDoc(raidRef(), fresh(180)));
+    await expectDenied("첫 물결이 싸우는 중에 둘째 물결 세우기", () => setDoc(raidRef(2), fresh(180)));
     await expectDenied("내 표식 없이 합계만 +1", () => updateDoc(raidRef(), { hits: 1 }));
     await expectDenied("합계는 두고 내 표식만 +1", () => setDoc(mineRef, { hits: 1, lastAt: serverTimestamp() }));
     await expectDenied("한 번에 +2", () => strike(2, 1, 2));
@@ -634,18 +640,34 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
     await expectDenied("이미 센 참여자를 또 세기", () => strike(2, 2, 2));
     await expectAllowed("1초 뒤 한 방", () => strike(2, 1, 2));
 
-    // 쓰러뜨리기 직전까지 관리자가 올려 둔다.
-    await live.update({ hits: 19 });
+    // 내 몫(60방)을 다 친 것으로 관리자가 올려 둔다.
+    await adminDb.doc(`plazaRaids/${id()}/fighters/${uid}`).update({ hits: 60 });
+    await live.update({ hits: 60 });
     await wait();
-    await expectDenied("마지막 한 방에 쓰러진 시각을 안 찍기", () => strike(20, 1, 3));
-    await expectAllowed("마지막 한 방에 쓰러진 시각 찍기", () => strike(20, 1, 3, true));
+    await expectDenied("내 몫 60방을 넘어 61번째 한 방", () => strike(61, 1, 61));
+
+    // 쓰러뜨리기 직전까지 관리자가 올려 둔다. 내 몫도 한 방 남겨 둔다.
+    await adminDb.doc(`plazaRaids/${id()}/fighters/${uid}`).update({ hits: 10 });
+    await live.update({ hits: 179 });
     await wait();
-    await expectDenied("쓰러진 뒤 한 방", () => strike(21, 1, 4));
+    await expectDenied("마지막 한 방에 쓰러진 시각을 안 찍기", () => strike(180, 1, 11));
+    await expectAllowed("마지막 한 방에 쓰러진 시각 찍기", () => strike(180, 1, 11, true));
+    await wait();
+    await expectDenied("쓰러진 뒤 한 방", () => strike(181, 1, 12));
+    await expectDenied("쓰러진 지 2시간 안에 둘째 물결 세우기", () => setDoc(raidRef(2), fresh(180)));
     await expectDenied("거대 잡초 지우기", () => deleteDoc(raidRef()));
+
+    // 도망: 태어난 지 3시간이 지난 물결은 칠 수 없다.
+    await live.set({ hp: 180, hits: 1, fighters: 1, spawnedAt: Timestamp.fromMillis(Date.now() - 3.5 * 3_600_000), defeatedAt: null });
+    await adminDb.doc(`plazaRaids/${id()}/fighters/${uid}`).update({ hits: 1 });
+    await wait();
+    await expectDenied("도망간(3시간 지난) 거대 잡초 치기", () => strike(2, 1, 2));
+    await expectDenied("도망간 지 2시간 안에 둘째 물결 세우기", () => setDoc(raidRef(2), fresh(180)));
+    await live.update({ spawnedAt: Timestamp.fromMillis(Date.now() - 5.5 * 3_600_000) });
+    await expectAllowed("도망가고 2시간 뒤 둘째 물결 세우기", () => setDoc(raidRef(2), fresh(180)));
   } finally {
-    await adminDb.doc(`plazaRaids/${today}/fighters/${uid}`).delete();
-    if (before.exists) await live.set(before.data()!);
-    else await live.delete();
+    await adminDb.doc(`plazaRaids/${id()}/fighters/${uid}`).delete();
+    for (const l of lives) await l.delete();
     ok("점검용 거대 잡초 되돌리기");
   }
 }

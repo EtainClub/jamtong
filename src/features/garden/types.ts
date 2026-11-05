@@ -61,6 +61,8 @@ export interface Plant {
   /** 심을 때 광장 버프로 정해진 성장 배율. */
   speed: number;
   harvests: number;
+  /** 비료를 준 수확 차례(harvests 값). 같으면 이번 차례에는 이미 줬다. */
+  fed?: number;
 }
 
 export interface Fruit {
