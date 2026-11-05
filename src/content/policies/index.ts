@@ -142,6 +142,7 @@ import { US_INTEL_STANDARDS } from "./us-intel-standards";
 import { US_INVESTMENT } from "./us-investment";
 import { YOUTH_JOBS } from "./youth-jobs";
 import { YOUTH_2030_JOBS_LOANS } from "./youth-2030-jobs-loans";
+import { MANIPULATED_INDICTMENT_COUNSEL } from "./manipulated-indictment-counsel";
 import { OVERSEAS_TRIPS_DISPUTE } from "./overseas-trips-dispute";
 import { WEST_SEA_STRUCTURES } from "./west-sea-structures";
 import { LAND_HOLDING_TAX } from "./land-holding-tax";
@@ -303,6 +304,7 @@ export const POLICIES: Policy[] = [
   ADMINISTRATIVE_CAPITAL,
   REAL_ESTATE_TO_STOCKS,
   YOUTH_2030_JOBS_LOANS,
+  MANIPULATED_INDICTMENT_COUNSEL,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong

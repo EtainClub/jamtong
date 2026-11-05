@@ -1,0 +1,264 @@
+import type { PolicyInput } from "./schema";
+
+/**
+ * 조작기소 특검법 — 수사 대상 12건의 구성과 공소취소 조항 삭제 경위.
+ *
+ * 2026년 11월 4일 시사 요약 인스타그램 계정이 "수사 대상 12건 중 8건이 이재명 대통령 관련
+ * 사건", "대통령이 기자회견에서 공소취소 조항을 빼 달라고 하자 소위에서 삭제할 방침"이라고
+ * 올렸다(신고 센터 factbot-gap #220·#221). 원안과 법사위 수정안을 나눠 적는다.
+ *
+ * ★ '이 대통령 관련 사건'을 몇 건으로 세느냐는 보도마다 다르다. 원안은 8건(서울신문 계열
+ *   보도·국민의힘 지적)으로, 수정안은 7건(경향신문)으로 셌다. 9건으로 센 보도(중앙일보)도
+ *   검색에 나왔지만 원문이 내려가 대조하지 못해 싣지 않았다. 누가 그렇게 셌는지 적는다.
+ * ★ 법안 원문(의안정보시스템)은 대조하지 못했다. 조문 내용은 보도로 적고 gaps에 남긴다.
+ * ★ 재판 중단과 9월 18일 대통령 요청의 맥락은 policy:trial-suspension에 있다.
+ * ★ 2026-11-05 처음 등록 — factbot-gap #220·#221.
+ */
+export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
+  slug: "manipulated-indictment-counsel",
+  title: "조작기소 특검법 — 수사 대상과 공소취소 조항",
+  scope:
+    "2026년 4월 30일 발의된 조작기소 특검법의 수사 대상 12건 구성, 공소취소 권한 조항이 9월 대통령 요청 뒤 11월 4일 법사위 소위 수정안에서 삭제된 경위, 11월 5일 본회의 상정까지",
+  ministries: ["국회 법제사법위원회"],
+  categories: ["institution"],
+  asOf: "2026-11-05",
+  rumors: [
+    {
+      id: "rumor-eight-of-twelve",
+      text: "조작기소 특검법의 수사 대상 12건 중 8건이 이재명 대통령 관련 사건이다",
+      claimIds: ["claim-original-list", "claim-count-differs", "claim-revised-scope", "claim-revised-count"],
+    },
+    {
+      id: "rumor-clause-removed",
+      text: "대통령이 기자회견에서 공소취소 조항을 빼 달라고 하자 소위에서 삭제할 방침이다",
+      claimIds: ["claim-original-power", "claim-president-request", "claim-subcommittee", "claim-chair", "claim-opposition"],
+    },
+  ],
+  claims: [
+    {
+      id: "claim-original-list",
+      text:
+        "더불어민주당 천준호 의원이 2026년 4월 30일 대표발의한 원안은 수사 대상을 12개 사건으로 정했다. 보도에 " +
+        "따르면 이 가운데 대장동·위례·백현동·성남FC·쌍방울 대북송금·경기도 법인카드·허위사실공표·위증교사 사건은 " +
+        "'이 대통령 관련 사건의 수사권·공소권 남용 범죄 의혹'으로 묶였고, 나머지는 김용 전 민주연구원 부원장 " +
+        "금품수수, 서해 공무원 피격, 문재인 정부 통계 조작 의혹, 윤석열 명예훼손 혐의 허위 보도 의혹 사건이다.",
+      assertionType: "FACT",
+      sourceIds: ["src-twig-20260430"],
+      verified: true,
+    },
+    {
+      id: "claim-count-differs",
+      text:
+        "원안의 '이 대통령 관련 사건'을 위 보도는 8건으로 셌고, 국민의힘도 11월 4일 법사위에서 12개 가운데 8개가 " +
+        "이 대통령 관련이라고 문제 삼았다. 다만 12개 항목을 어떻게 나누고 묶느냐에 따라 숫자가 달라지며, 법안 " +
+        "조문이 '대통령 관련'이라는 분류를 따로 두는지는 확인하지 못했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-twig-20260430", "src-fn-20261104"],
+      verified: true,
+    },
+    {
+      id: "claim-original-power",
+      text:
+        "원안은 특검에게 재판 중인 사건의 이첩을 요구할 권한과 공소 제기·유지 권한을 주었다. 직무 범위에 " +
+        "'공소유지 여부의 결정'이 들어 있어, 대선 뒤 멈춘 이 대통령 사건의 공소를 특검이 취소할 수 있다는 " +
+        "해석이 나왔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-twig-20260430", "src-jkn-20261104"],
+      verified: true,
+    },
+    {
+      id: "claim-president-request",
+      text:
+        "이 대통령은 2026년 9월 18일 기자회견에서 국회에 \"기존 기소 사건들에 대한 이송 또는 처분에 관한 " +
+        "조항들은 삭제하고 진상 규명에만 집중해 주시기 바란다\"고 요청했다.",
+      assertionType: "CLAIM",
+      assertedBy: "이재명 대통령",
+      sourceIds: ["src-inews-20261028"],
+      verified: true,
+    },
+    {
+      id: "claim-subcommittee",
+      text:
+        "국회 법제사법위원회는 2026년 11월 4일 특검법을 상정해 법안심사제1소위원회에 회부했고, 소위는 같은 날 " +
+        "수정안을 의결했다. 수정안은 특검 직무 범위에서 '공소유지 여부의 결정'을 지우고, 검사가 수사·기소하거나 " +
+        "공소를 유지 중인 사건의 이첩을 요구하는 조항을 뺐다. 법사위 전체회의는 그날 국민의힘 의원들이 퇴장한 " +
+        "가운데 법안을 가결했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-fn-20261104", "src-jkn-20261104", "src-hankook-20261104", "src-mediatoday-20261105"],
+      verified: true,
+    },
+    {
+      id: "claim-chair",
+      text:
+        "김의겸 소위원장은 \"공소취소 여부 관련된 부분은 저희가 말끔히 삭제했다\"고 말했다. 서영교 법사위원장은 " +
+        "대통령 공소취소 내용은 소위에서 아예 빼는데 공소취소 법안이라고 하는 것은 허위 사실이라고 했다.",
+      assertionType: "CLAIM",
+      assertedBy: "더불어민주당 법사위원",
+      sourceIds: ["src-hankook-20261104", "src-fn-20261104"],
+      verified: true,
+    },
+    {
+      id: "claim-revised-scope",
+      text:
+        "수정안에서 수사 대상은 12개로 유지됐지만 범위는 넓어졌다. 탈북 어민 강제북송, 문재인 전 대통령 사위의 " +
+        "취업 관련 뇌물수수, 사드 기밀 유출, 월성원전 1호기 경제성 조작 의혹이 새로 들어갔다. 김의겸 소위원장은 " +
+        "특정인만을 위한 수사 대상이라는 비판을 고려했다고 설명했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-jkn-20261104", "src-hankook-20261104"],
+      verified: true,
+    },
+    {
+      id: "claim-revised-count",
+      text:
+        "경향신문은 수정안의 12개를 이 대통령 관련 7개(대장동·위례·백현동, 성남FC, 쌍방울 대북송금 등)와 문재인 " +
+        "정부 관련 5개(서해 공무원 피격, 통계조작, 사위 특혜 채용, 탈북 어민 북송, 월성원전)로 나눴다. 수정안 " +
+        "조문을 직접 대조하지는 못했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-khan-20261105"],
+      verified: false,
+    },
+    {
+      id: "claim-structure",
+      text:
+        "수정안에서도 특검은 여당·제1야당·비교섭단체가 추천한 후보 가운데 대통령이 한 명을 임명한다. 특검팀은 " +
+        "파견검사 20명(원안 30명)을 포함해 309명이고, 준비 20일과 수사 180일을 합쳐 최장 200일 활동한다.",
+      assertionType: "FACT",
+      sourceIds: ["src-jkn-20261104", "src-hankook-20261104"],
+      verified: true,
+    },
+    {
+      id: "claim-opposition",
+      text:
+        "국민의힘 박형수 의원은 \"국회가 대통령 하수인인가\"라며 '이 대통령 구하기, 죄 없애주기 법안'이라고 " +
+        "했고, 장동혁 대표는 공소취소 조항을 뺐다는 말이 거짓이며 우회로가 남아 있다고 주장했다. 기소 사건의 " +
+        "이해당사자인 대통령이 특검을 임명하는 구조도 박형수 의원이 \"심각한 이해충돌\"이라고 비판했다.",
+      assertionType: "CLAIM",
+      assertedBy: "국민의힘",
+      sourceIds: ["src-fn-20261104", "src-mediatoday-20261105"],
+      verified: true,
+    },
+    {
+      id: "claim-plenary",
+      text:
+        "특검법은 2026년 11월 5일 본회의에 상정됐고 국민의힘은 바로 필리버스터(무제한 토론)에 들어갔다. 민주당은 " +
+        "같은 날 토론 종결 동의안을 냈으며, 24시간 뒤인 6일 종결 표결을 거쳐 법안을 표결할 계획이다.",
+      assertionType: "FACT",
+      sourceIds: ["src-khan-20261105", "src-newspim-20261105"],
+      verified: true,
+    },
+  ],
+  critiqueIds: ["claim-opposition", "claim-structure"],
+  timeline: [
+    {
+      id: "t-bill",
+      date: "2026-04-30",
+      datePrecision: "day",
+      title: "조작기소 특검법 발의",
+      summary: "12개 사건, 공소유지 여부 결정·이첩 요구 권한 포함.",
+      claimIds: ["claim-original-list", "claim-original-power"],
+    },
+    {
+      id: "t-request",
+      date: "2026-09-18",
+      datePrecision: "day",
+      title: "대통령, 이송·처분 조항 삭제 요청",
+      summary: "진상 규명에만 집중해 달라고 했다.",
+      claimIds: ["claim-president-request"],
+    },
+    {
+      id: "t-subcommittee",
+      date: "2026-11-04",
+      datePrecision: "day",
+      title: "법사위 소위 수정안·전체회의 가결",
+      summary: "공소유지 여부 결정과 이첩 요구 조항 삭제, 문재인 정부 사건 추가.",
+      claimIds: ["claim-subcommittee", "claim-revised-scope", "claim-chair", "claim-opposition"],
+    },
+    {
+      id: "t-plenary",
+      date: "2026-11-05",
+      datePrecision: "day",
+      title: "본회의 상정, 필리버스터",
+      summary: "6일 종결 표결 예정.",
+      claimIds: ["claim-plenary"],
+    },
+  ],
+  gaps: [
+    "원안과 수정안의 조문을 국회 의안정보시스템에서 직접 대조하지 못했다. 수정안 12개 항목의 정확한 문구와 '이 대통령 관련'으로 셀 항목 수는 조문으로 확정되지 않았다.",
+    "원안에 있던 김용 전 부원장 금품수수, 허위 보도 의혹 사건이 수정안에서 어떻게 바뀌었는지는 보도로 확인하지 못했다.",
+    "본회의 표결 결과는 이 페이지 기준일(11월 5일)에 아직 나오지 않았다.",
+  ],
+  sources: [
+    {
+      id: "src-twig-20260430",
+      title: "'공소 취소권' 가진 특검 온다",
+      publisher: "트윅(서울신문)",
+      url: "https://www.twig24.com/news/2026/05/01/20260501001006",
+      publishedAt: "2026-04-30",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-inews-20261028",
+      title: "'조희대 국조' 민주당, '조작기소 특검'도 재추진…다음주 법사위 상정",
+      publisher: "아이뉴스24",
+      url: "https://www.inews24.com/view/2020072",
+      publishedAt: "2026-10-28",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-fn-20261104",
+      title: "'조작기소 특검법' 법사위 상정, 野 집단퇴장 속 與 5일 본회의 추진",
+      publisher: "파이낸셜뉴스",
+      url: "https://www.fnnews.com/news/202611041422342101",
+      publishedAt: "2026-11-04",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-hankook-20261104",
+      title: "與, 조작기소 특검법 수정안 법사소위 처리…곧 전체회의 표결",
+      publisher: "한국일보",
+      url: "https://www.hankookilbo.com/news/article/A2026110415470004669",
+      publishedAt: "2026-11-04",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-jkn-20261104",
+      title: "조작기소 특검법, 수사대상 확대해 법사위 소위 통과",
+      publisher: "재경일보",
+      url: "https://news.jkn.co.kr/post/1070269",
+      publishedAt: "2026-11-04",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-mediatoday-20261105",
+      title: "법사위 끝내 이재명 조작기소 특검법 강행처리 \"대통령 구하기\"",
+      publisher: "미디어오늘",
+      url: "https://www.mediatoday.co.kr/news/articleView.html?idxno=338213",
+      publishedAt: "2026-11-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-khan-20261105",
+      title: "'수사·기소권 모두 쥔' 조작기소특검법 본회의 상정",
+      publisher: "경향신문",
+      url: "https://khan.co.kr/article/202611052145015",
+      publishedAt: "2026-11-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newspim-20261105",
+      title: "조작기소 특검법 국회 본회의 상정…국민의힘 필리버스터 돌입",
+      publisher: "뉴스핌",
+      url: "https://www.newspim.com/news/view/20261105001312",
+      publishedAt: "2026-11-05",
+      type: "press",
+      license: "link-only",
+    },
+  ],
+};
