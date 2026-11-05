@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { AppMenu } from "@/features/app/AppMenu";
+import { MyButton } from "@/features/app/MyButton";
 import { UpdateNotice } from "@/features/app/UpdateNotice";
 
 /** 상단 바. 로고와 메뉴만 둔다. 모바일에서 세로 공간은 가장 비싼 자원이다. */
@@ -25,7 +26,10 @@ export function AppTopBar() {
           </span>
         </Link>
 
-        <AppMenu />
+        <div className="flex items-center gap-2">
+          <MyButton />
+          <AppMenu />
+        </div>
       </div>
     </header>
     <UpdateNotice />

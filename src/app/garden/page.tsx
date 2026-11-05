@@ -26,16 +26,24 @@ export default function GardenPage() {
     <>
       <AppTopBar />
 
-      <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pt-4">
-        {/* 정원 페이지 주소를 건넨다. ?visit=·?gift=는 싣지 않는다 — 받는 사람은 자기 정원에서 시작한다. */}
-        <div className="mb-3 flex justify-end">
-          <ShareLinkButton
-            title="잼통 정원"
-            surface="garden"
-            label={{ text: "정원 공유하기", aria: "잼통 정원 링크 공유하기", copied: "잼통 정원 링크를 복사했습니다" }}
-          />
-        </div>
-        <GardenApp catalog={catalog} leaves={leaves} />
+      <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pt-6">
+        <GardenApp
+          catalog={catalog}
+          leaves={leaves}
+          share={
+            /*
+             * 정원 페이지 주소를 건넨다. ?visit=·?gift=는 싣지 않는다 — 받는 사람은 자기 정원에서 시작한다.
+             * 줄 하나를 따로 차지하지 않게 정원 머리의 "? 안내" 옆에 둔다.
+             */
+            <ShareLinkButton
+              title="잼통 정원"
+              surface="garden"
+              compact
+              className="garden-pill"
+              label={{ text: "공유", aria: "잼통 정원 링크 공유하기", copied: "잼통 정원 링크를 복사했습니다" }}
+            />
+          }
+        />
       </main>
 
       <BottomNav />

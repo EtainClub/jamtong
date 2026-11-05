@@ -39,7 +39,12 @@ const TABS: Tab[] = [
     icon: <ExploreIcon />,
   },
   { href: "/words", label: "언행", ready: true, icon: <QuoteIcon /> },
-  { href: "/my", label: "MY", ready: true, icon: <MyIcon /> },
+  /*
+   * MY는 상단 바의 프로필 단추로 옮겼다. 매일 들르는 정원이 엄지 자리에 있는 편이
+   * 낫다 — 성장 타이머가 재방문 약속이 되려면 들어가는 길이 짧아야 한다.
+   * 자랑 링크(/g/…)는 정원으로 가는 길이라 이 탭의 것으로 친다.
+   */
+  { href: "/garden", label: "정원", ready: true, owns: ["/g/"], icon: <GardenIcon /> },
 ];
 
 export function BottomNav() {
@@ -154,11 +159,14 @@ function QuoteIcon() {
   );
 }
 
-function MyIcon() {
+/** 새싹. 심고 키우는 곳이라는 뜻이다. */
+function GardenIcon() {
   return (
     <svg {...iconProps}>
-      <circle cx="12" cy="8.5" r="3.5" />
-      <path d="M5 20c.8-3.5 3.6-5.5 7-5.5s6.2 2 7 5.5" />
+      <path d="M12 20v-8" />
+      <path d="M12 12c0-3.5-2.5-6-6.5-6 0 3.8 2.6 6 6.5 6z" />
+      <path d="M12 14.5c0-3.2 2.3-5.5 6.5-5.5 0 3.5-2.4 5.5-6.5 5.5z" />
+      <path d="M7 20h10" />
     </svg>
   );
 }
