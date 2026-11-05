@@ -141,6 +141,12 @@ import { UNEMPLOYMENT_BENEFITS } from "./unemployment-benefits";
 import { US_INTEL_STANDARDS } from "./us-intel-standards";
 import { US_INVESTMENT } from "./us-investment";
 import { YOUTH_JOBS } from "./youth-jobs";
+import { OVERSEAS_TRIPS_DISPUTE } from "./overseas-trips-dispute";
+import { WEST_SEA_STRUCTURES } from "./west-sea-structures";
+import { LAND_HOLDING_TAX } from "./land-holding-tax";
+import { CREDIT_RECOVERY } from "./credit-recovery";
+import { ADMINISTRATIVE_CAPITAL } from "./administrative-capital";
+import { REAL_ESTATE_TO_STOCKS } from "./real-estate-to-stocks";
 
 /**
  * 정부 정책 팩트 목록. 새 정책은 파일을 하나 만들고 여기에 더한다.
@@ -289,6 +295,12 @@ export const POLICIES: Policy[] = [
   HOUSING_SUPPLY_BILLS,
   MULTI_CHILD_HOUSING,
   CAPITAL_AREA_HOUSING_SITES,
+  OVERSEAS_TRIPS_DISPUTE,
+  WEST_SEA_STRUCTURES,
+  LAND_HOLDING_TAX,
+  CREDIT_RECOVERY,
+  ADMINISTRATIVE_CAPITAL,
+  REAL_ESTATE_TO_STOCKS,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
