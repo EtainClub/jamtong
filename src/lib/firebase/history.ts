@@ -88,3 +88,16 @@ export async function deleteAsk(uid: string, id: string): Promise<void> {
   if (!db) return;
   await deleteDoc(doc(db, "users", uid, "asks", id));
 }
+
+/** AI 이력을 모두 지운다. 한 번에 몇 건씩 지운다 — 하나가 실패하면 거기서 멈추고 알린다. */
+export async function deleteAllAsks(uid: string): Promise<number> {
+  const db = firebaseDb();
+  if (!db) return 0;
+  let removed = 0;
+  for (;;) {
+    const snap = await getDocs(query(collection(db, "users", uid, "asks"), fsLimit(50)));
+    if (snap.empty) return removed;
+    await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+    removed += snap.size;
+  }
+}

@@ -6,6 +6,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   increment,
   limit as fsLimit,
   onSnapshot,
@@ -14,6 +15,7 @@ import {
   serverTimestamp,
   Timestamp,
   updateDoc,
+  where,
   writeBatch,
 } from "firebase/firestore";
 
@@ -239,4 +241,17 @@ export async function checkAdmin(uid: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * 내가 남긴 피드백 — MY의 "내가 남긴 것"이 쓴다.
+ * authorUid로만 거른다. 정렬까지 서버에 맡기면 복합 색인이 필요해서, 최신순은 여기서 맞춘다.
+ */
+export async function listMyFeedback(uid: string): Promise<FeedbackItem[]> {
+  const db = firebaseDb();
+  if (!db) return [];
+  const snap = await getDocs(query(collection(db, "feedback"), where("authorUid", "==", uid), fsLimit(100)));
+  return snap.docs
+    .map((d) => toItem(d.id, d.data(), uid))
+    .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0));
 }

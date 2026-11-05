@@ -186,6 +186,7 @@ test("MY의 noindex/nofollow는 유지한다", () => {
     "react/jsx-runtime": {},
     "@/features/app/AppTopBar": {},
     "@/features/app/BottomNav": {},
+    "@/features/garden/catalog": { buildCatalog: () => [] },
     "@/features/my/MyPanel": {},
   });
   assert.equal(metadata.robots.index, false);
