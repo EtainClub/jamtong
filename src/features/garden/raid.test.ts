@@ -42,6 +42,13 @@ test("혼자서는 쓰러뜨리지 못한다", () => {
   assert.equal(RAID_HP_MIN, RAID_HITS_PER_PERSON * RAID_MIN_FIGHTERS);
 });
 
+test("최소 인원이 모두 자기 몫을 치면 언제나 쓰러뜨린다", () => {
+  for (const people of [0, 1, 3, 10, 100, 10_000]) {
+    assert.ok(raidHp(people) <= RAID_HITS_PER_PERSON * RAID_MIN_FIGHTERS, `${people}명: ${raidHp(people)}`);
+  }
+  assert.equal(RAID_MIN_FIGHTERS, 3);
+});
+
 test("세 시간 버티면 도망간다", () => {
   assert.equal(raidPhase(wave(), T + RAID_LIFE - 1), "active");
   assert.equal(raidPhase(wave(), T + RAID_LIFE), "escaped");

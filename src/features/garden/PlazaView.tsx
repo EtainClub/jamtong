@@ -406,30 +406,35 @@ function RaidPanel({
   }
 
   const escapeIn = r.spawnedAt !== null ? r.spawnedAt + RAID_LIFE - now : RAID_LIFE;
-  const size = Math.min(1.25, 0.85 + r.hp / 3000);
+  // 체력이 클수록 그림 칸을 키운다. 그림은 칸 안에서만 그린다 — scale로 키우면 위로 넘쳐
+  // 체력·인원 정보를 덮는다.
+  const box = Math.round(176 * Math.min(1.25, 0.9 + r.hp / 3000));
 
   return (
     <section aria-labelledby="raid" className="garden-raid mt-3 rounded-2xl px-4 py-3.5 text-white">
-      <div className="flex items-baseline justify-between gap-2">
-        <h3 id="raid" className="text-[14px] font-bold">🌿 {label}가 나타났어요</h3>
-        <p className="text-[11.5px] tabular-nums opacity-90">도망까지 {formatLeft(escapeIn)}</p>
+      <div className="relative z-10">
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 id="raid" className="text-[14px] font-bold">🌿 {label}가 나타났어요</h3>
+          <p className="text-[11.5px] tabular-nums opacity-90">도망까지 {formatLeft(escapeIn)}</p>
+        </div>
+        <div className="mt-2 h-3 overflow-hidden rounded-full bg-black/30" role="progressbar" aria-label="거대 잡초 체력" aria-valuemin={0} aria-valuemax={r.hp} aria-valuenow={left}>
+          <div className="h-full bg-[#e9d24a] transition-[width]" style={{ width: `${(left / r.hp) * 100}%` }} />
+        </div>
+        <p className="mt-1 flex justify-between text-[11.5px] tabular-nums opacity-90">
+          <span>체력 {left.toLocaleString()}/{r.hp.toLocaleString()}</span>
+          <span>함께 {r.fighters.toLocaleString()}명 · {need}명이면 잡아요</span>
+        </p>
       </div>
-      <div className="mt-2 h-3 overflow-hidden rounded-full bg-black/30" role="progressbar" aria-label="거대 잡초 체력" aria-valuemin={0} aria-valuemax={r.hp} aria-valuenow={left}>
-        <div className="h-full bg-[#e9d24a] transition-[width]" style={{ width: `${(left / r.hp) * 100}%` }} />
-      </div>
-      <p className="mt-1 flex justify-between text-[11.5px] tabular-nums opacity-90">
-        <span>체력 {left.toLocaleString()}/{r.hp.toLocaleString()}</span>
-        <span>함께 {r.fighters.toLocaleString()}명 · 적어도 {need}명</span>
-      </p>
 
       <button
         type="button"
         aria-label={spent ? "이번 거대 잡초에 내 몫을 다 쳤어요" : `거대 잡초 때리기 (체력 ${left} 남음)`}
         aria-disabled={spent}
-        className={`relative mx-auto mt-2 grid h-52 w-52 touch-none select-none place-items-center ${spent ? "opacity-60" : ""}`}
+        className={`relative mx-auto mt-3 grid touch-none select-none place-items-center overflow-hidden rounded-2xl ${spent ? "opacity-60" : ""}`}
+        style={{ width: box, height: box }}
         {...gesture}
       >
-        <span key={shake} className={`garden-weed-body ${shake ? "garden-shake" : ""}`} style={{ transform: `scale(${2.6 * size})` }}>
+        <span key={shake} className={`garden-weed-body garden-raid-weed relative ${shake ? "garden-shake" : ""}`}>
           <WeedArt variant={2} tough />
         </span>
         {(partial > 0 || raid.queued > 0) && !spent && (

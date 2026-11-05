@@ -446,16 +446,19 @@ export const RAID_LIFE = 3 * HOUR;
 export const RAID_GAP = 2 * HOUR;
 export const RAID_HITS_PER_PERSON = 60;
 export const RAID_MIN_FIGHTERS = 3;
-export const RAID_HP_PER_GARDENER = 30;
 export const RAID_HP_MIN = RAID_MIN_FIGHTERS * RAID_HITS_PER_PERSON;
 export const RAID_HP_MAX = 3000;
 
 /**
- * 거대 잡초의 체력(때릴 수). 그날 온 정원지기 수로 정한다 — 오늘 온 사람의 절반쯤이
- * 자기 몫을 다 쳐야 쓰러진다. 적어도 RAID_MIN_FIGHTERS명은 있어야 한다.
+ * 거대 잡초의 체력(때릴 수). 지금은 정확히 RAID_MIN_FIGHTERS명이 자기 몫을 다 치면 쓰러지는
+ * 크기로 고정한다 — 초기라 "셋이 모이면 잡는다"가 늘 참이어야 한다. 그날 온 사람 수로
+ * 키우면 화면의 "적어도 N명"이 날마다 달라져 약속이 깨진다.
+ * 늘릴 때는 RAID_MIN_FIGHTERS를 올린다(firestore.rules의 hp 하한도 함께 — raid.test.ts가 본다).
+ * 규칙의 상한(RAID_HP_MAX)은 그때 쓸 여유로 남겨 둔다.
  */
 export function raidHp(gardenersToday: number): number {
-  return Math.min(RAID_HP_MAX, Math.max(RAID_HP_MIN, Math.round(Math.max(0, gardenersToday) * RAID_HP_PER_GARDENER)));
+  void gardenersToday;
+  return RAID_HP_MIN;
 }
 
 /** 물결 문서 id. 규칙: ^[0-9]{5}-[1-3]$ */

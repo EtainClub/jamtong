@@ -95,6 +95,7 @@
 .game :global(.garden-weed-sway) { display: block; transform-origin: 50% 85%; animation: plant-sway 3.6s ease-in-out infinite; }
 .game :global(.garden-weed-body) { display: block; width: 100%; height: 100%; transform-origin: 50% 85%; }
 .game :global(.garden-weed-art) { width: 100%; height: 115%; position: absolute; bottom: 0; left: 0; pointer-events: none; }
+.game :global(.garden-raid-weed .garden-weed-art) { height: 100%; }
 .game :global(.garden-meadow-flower) { display: grid; place-items: center; height: 100%; color: #fff0ad; font-size: 21px; animation: flower-appear .5s ease-out; }
 .game :global(.garden-level-clean), .game :global(.garden-level-normal), .game :global(.garden-level-overgrown) { border: 1px solid #a7b88b; box-shadow: 0 2px 0 #b9c59b; }
 .game :global(.garden-vines) { border: 4px solid #bc9b66; box-shadow: 0 4px #987a4e; background: radial-gradient(ellipse at top left, #75aa53, transparent 75%), #426d39; }

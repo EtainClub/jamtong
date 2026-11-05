@@ -308,7 +308,8 @@ test("거대 잡초 체력은 Firestore 규칙의 [180, 3000] 안의 정수다",
     const hp = raidHp(people);
     assert.ok(Number.isInteger(hp) && hp >= 180 && hp <= 3000, `${people}명: ${hp}`);
   }
-  assert.ok(raidHp(40) > raidHp(1));
+  // 지금은 그날 온 사람 수와 상관없이 셋이 모이면 잡는 크기로 고정이다.
+  assert.equal(raidHp(40), raidHp(1));
 });
 
 test("희귀 씨앗 상자: 같은 날·같은 사람이면 같은 씨앗, 공개 확률에 가깝다", () => {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
+import { ShareLinkButton } from "@/features/app/ShareLinkButton";
 import { buildCatalog, buildLeaves } from "@/features/garden/catalog";
 import { GardenApp } from "@/features/garden/GardenApp";
 
@@ -25,7 +26,15 @@ export default function GardenPage() {
     <>
       <AppTopBar />
 
-      <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pt-6">
+      <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pt-4">
+        {/* 정원 페이지 주소를 건넨다. ?visit=·?gift=는 싣지 않는다 — 받는 사람은 자기 정원에서 시작한다. */}
+        <div className="mb-3 flex justify-end">
+          <ShareLinkButton
+            title="잼통 정원"
+            surface="garden"
+            label={{ text: "정원 공유하기", aria: "잼통 정원 링크 공유하기", copied: "잼통 정원 링크를 복사했습니다" }}
+          />
+        </div>
         <GardenApp catalog={catalog} leaves={leaves} />
       </main>
 
