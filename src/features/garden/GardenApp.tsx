@@ -8,11 +8,12 @@ import { loadGarden, saveGarden } from "@/lib/firebase/garden";
 
 import styles from "./garden.module.css";
 import { GardenScenery } from "./GardenArt";
-import { gardenFeedback, setGardenSound } from "./feedback";
+import { gardenFeedback, leaveGardenSound, restoreGardenSound, savedGardenSound, setGardenSound } from "./feedback";
 
 import { Beds } from "./Beds";
 import { CoachQuest, TabTip } from "./GardenCoach";
 import { coachStep } from "./coach";
+import { GardenCards } from "./GardenCards";
 import { GardenGuide } from "./GardenGuide";
 import { Dex } from "./Dex";
 import { FlowerBed } from "./FlowerBed";
@@ -54,13 +55,22 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
   const data = useGarden((s) => s.data);
   const [now, setNow] = useState(() => Date.now());
   const [tab, setTab] = useState<Tab>("beds");
-  const [sound, setSound] = useState(false);
+  // 켜 두었던 소리. 첫 렌더는 "여는 중"만 그리므로 서버 렌더와 어긋나지 않는다.
+  const [sound, setSound] = useState(() => typeof window !== "undefined" && savedGardenSound());
   const [showShare, setShowShare] = useState(false);
   /** 열린 안내의 절. null이면 닫힘. */
   const [guide, setGuide] = useState<string | null>(null);
+  /** 그림 카드 안내. "? 안내"는 이것부터 연다 — 글 안내는 그 안의 "자세한 규칙"으로. */
+  const [cards, setCards] = useState(false);
   const openGuide = useCallback((section = "loop") => {
     gardenFeedback("tap");
+    setCards(false);
     setGuide(section);
+  }, []);
+  const openCards = useCallback(() => {
+    gardenFeedback("tap");
+    setGuide(null);
+    setCards(true);
   }, []);
   // 친구 정원 링크(/garden?visit=<공개id>)로 왔으면 그 정원부터 보인다.
   // 첫 렌더는 데이터가 없어 "여는 중"만 그리므로, 서버 렌더와 어긋나지 않는다.
@@ -90,7 +100,12 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
 
   useEffect(() => () => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    setGardenSound(false);
+    leaveGardenSound();
+  }, []);
+
+  // 브라우저가 자동 재생을 막으므로 켜 두었어도 실제 소리는 첫 터치 때 난다.
+  useEffect(() => {
+    restoreGardenSound();
   }, []);
 
   // 시계. 성장·상점·단비가 모두 이 값으로 그려진다.
@@ -205,8 +220,8 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
       <header className="garden-world-header">
         <GardenScenery raining={isRaining(now)} />
         <div className="garden-world-title"><span className="garden-eyebrow">JAMTONG GARDEN</span><h1>잼통 정원</h1><p>{data.nick}의 작은 초록 세상</p></div>
-        <button type="button" className="garden-help" aria-haspopup="dialog" onClick={() => openGuide()}>? 안내</button>
-        <button type="button" className="garden-sound" aria-pressed={sound} aria-label={`효과음 ${sound ? "끄기" : "켜기"}`} onClick={() => { setSound(!sound); setGardenSound(!sound); }}>{sound ? "♪ 켜짐" : "♪ 소리 켜기"}</button>
+        <button type="button" className="garden-help" aria-haspopup="dialog" onClick={openCards}>? 안내</button>
+        <button type="button" className="garden-sound" aria-pressed={sound} aria-label={`음악과 효과음 ${sound ? "끄기" : "켜기"}`} onClick={() => { setSound(!sound); setGardenSound(!sound); if (!sound) say("♪ 음악을 켰어요 · 무음 모드에서는 들리지 않아요"); }}>{sound ? "♪ 음악 끄기" : "♪ 음악 켜기"}</button>
         {!visit && (
           <button type="button" className="garden-share-toggle" aria-expanded={showShare} aria-controls="garden-share-card" onClick={() => { gardenFeedback("tap"); setShowShare(!showShare); }}>
             🔗 {data.share.on ? "공개 중" : "자랑하기"}
@@ -268,7 +283,7 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
       </div>
 
       {(tab === "beds" || tab === "shop") && (
-        <CoachQuest data={data} now={now} tab={tab} onGo={setTab} onGuide={() => openGuide()} />
+        <CoachQuest data={data} now={now} tab={tab} onGo={setTab} onGuide={openCards} />
       )}
 
       <div key={tab} role="tabpanel" id={`garden-panel-${tab}`} aria-labelledby={`garden-tab-${tab}`} className={`garden-screen garden-screen-${tab} mt-4`}>
@@ -297,6 +312,7 @@ export function GardenApp({ catalog, leaves }: { catalog: Species[]; leaves: Lea
       </>
       )}
 
+      {cards && <GardenCards onClose={() => setCards(false)} onDetail={() => openGuide("loop")} />}
       {guide && <GardenGuide section={guide} onClose={() => setGuide(null)} />}
       <Toast text={toast} />
     </div>

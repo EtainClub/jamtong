@@ -53,9 +53,14 @@ export function CoachQuest({
           {step === "done" ? "처음 한 바퀴 완료" : `처음 한 바퀴 · ${index + 1}/${total}`}
         </p>
         {step !== "done" && (
-          <button type="button" onClick={() => finish(true)} className="text-[11.5px] text-smoke underline underline-offset-2">
-            건너뛰기
-          </button>
+          <span className="flex gap-3">
+            <button type="button" onClick={onGuide} className="text-[11.5px] font-semibold text-[#4d8c50] underline underline-offset-2">
+              🖼 그림으로 보기
+            </button>
+            <button type="button" onClick={() => finish(true)} className="text-[11.5px] text-smoke underline underline-offset-2">
+              건너뛰기
+            </button>
+          </span>
         )}
       </div>
       <ol className="garden-coach-dots mt-1.5" aria-hidden="true">
@@ -75,7 +80,7 @@ export function CoachQuest({
           {step === "done" && (
             <>
               <button type="button" onClick={onGuide} className="garden-coach-go">
-                ? 안내 보기
+                🖼 그림 안내 보기
               </button>
               <button type="button" onClick={() => finish(false)} className="garden-coach-go is-quiet">
                 닫기
