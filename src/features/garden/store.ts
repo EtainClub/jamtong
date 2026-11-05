@@ -30,6 +30,9 @@ import {
   WEED_REWARD_PER_DAY,
   WEED_SEED_ODDS,
   withRainbow,
+  fertilize,
+  TOOLS,
+  type ToolId,
   fruitValue,
   LEAF_JAM,
   leafSlot,
@@ -74,7 +77,10 @@ export interface GardenData {
   nick: string;
   /** 오늘 꽃꿀을 받은 업적. */
   nectar: { day: string; taken: string[] };
-  /** 희귀 씨앗 상자를 받은 거대 잡초(한국 날짜 번호). */
+  /**
+   * 희귀 씨앗 상자를 받은 거대 잡초. rules.ts의 raidKey(날짜번호×10+물결).
+   * 물결이 생기기 전에 받은 것은 날짜 번호 그대로 남아 있다 — 겹치지 않는다.
+   */
   raids: number[];
   /**
    * 시든 잎. 확인한 잎 id, 마지막으로 확인한 두 시간 슬롯, 오늘 확인한 수.
@@ -89,6 +95,8 @@ export interface GardenData {
   trails: { taken: string[]; day: string; count: number };
   /** 오늘(한국 날짜 번호) 물을 준 정원(공개 id)과, 받아서 쓴 물(방문자 uid). */
   waters: { day: number; given: string[]; received: string[] };
+  /** 가진 도구(rules.ts의 TOOLS)와 오늘(한국 날짜) 산 수. */
+  tools: { have: Partial<Record<ToolId, number>>; day: string; bought: Partial<Record<ToolId, number>> };
   /** 첫 한 바퀴 코치와 탭 첫 방문 팁(coach.ts). 기기를 옮겨도 다시 뜨지 않게 정원과 함께 간다. */
   coach: CoachData;
   /**
@@ -142,6 +150,7 @@ function fresh(catalog: Species[]): GardenData {
     waters: { day: 0, given: [], received: [] },
     trails: { taken: [], day: "", count: 0 },
     coach: initialCoach(),
+    tools: { have: {}, day: "", bought: {} },
     updatedAt: Date.now(),
   };
 }
@@ -161,6 +170,7 @@ function normalize(data: GardenData): GardenData {
     waters: data.waters ?? { day: 0, given: [], received: [] },
     trails: data.trails ?? { taken: [], day: "", count: 0 },
     coach: normalizeCoach(data.coach),
+    tools: data.tools ?? { have: {}, day: "", bought: {} },
   };
 }
 
@@ -235,8 +245,12 @@ interface GardenState {
   recordCare: (speciesId: string, delta: number, mine?: number) => void;
   rename: (nick: string) => void;
   takeNectar: (speciesIds: string[]) => number;
-  /** 거대 잡초의 희귀 씨앗 상자를 연다. 날마다 한 번. 이미 받았으면 null. */
-  claimRaid: (day: number, seed: string, catalog: Species[]) => { species?: Species; jam: number } | null;
+  /** 거대 잡초의 희귀 씨앗 상자를 연다. 물결마다 한 번(key=raidKey). 이미 받았으면 null. */
+  claimRaid: (key: number, seed: string, catalog: Species[]) => { species?: Species; jam: number } | null;
+  /** 도구를 산다. 잼이 모자라거나 오늘 상한에 닿았으면 false. */
+  buyTool: (id: ToolId) => boolean;
+  /** 자라는 작물에 비료를 준다. 그 비료가 없거나, 익었거나, 이번 차례에 이미 줬으면 false. */
+  feed: (bed: number, id: ToolId) => boolean;
   /**
    * 도감 지도에서 이어진 품종의 원본을 열었다. 처음이고 오늘 몫이 남았으면 씨앗을 준다.
    * 돌려주는 값: given=씨앗을 줬다, taken=이미 받은 품종, capped=오늘 몫을 다 썼다.
@@ -555,18 +569,53 @@ export const useGarden = create<GardenState>((set, get) => {
       return fresh;
     },
 
-    claimRaid: (day, seed, catalog) => {
+    claimRaid: (key, seed, catalog) => {
       const d = get().data;
-      if (!d || d.raids.includes(day)) return null;
+      if (!d || d.raids.includes(key)) return null;
       const species = openRaidBox(seed, catalog);
       commit({
         ...d,
         jam: d.jam + RAID_BOX.jam,
         seeds: species ? give(d.seeds, species.id) : d.seeds,
         // 오래된 날은 버린다. 문서가 끝없이 커지지 않게.
-        raids: [...d.raids, day].slice(-60),
+        raids: [...d.raids, key].slice(-60),
       });
       return { species, jam: RAID_BOX.jam };
+    },
+
+    buyTool: (id) => {
+      const d = get().data;
+      if (!d) return false;
+      const tool = TOOLS[id];
+      const today = kstDay(Date.now());
+      const bought = d.tools.day === today ? d.tools.bought : {};
+      if ((bought[id] ?? 0) >= tool.perDay || d.jam < tool.price) return false;
+      commit({
+        ...d,
+        jam: d.jam - tool.price,
+        tools: {
+          have: { ...d.tools.have, [id]: (d.tools.have[id] ?? 0) + 1 },
+          day: today,
+          bought: { ...bought, [id]: (bought[id] ?? 0) + 1 },
+        },
+      });
+      return true;
+    },
+
+    feed: (bed, id) => {
+      const d = get().data;
+      const plant = d?.beds[bed];
+      if (!d || !plant || !(d.tools.have[id] ?? 0)) return false;
+      const fed = fertilize(plant, Date.now(), id);
+      if (!fed) return false;
+      const beds = [...d.beds];
+      beds[bed] = fed;
+      const left = (d.tools.have[id] ?? 0) - 1;
+      // 다 쓴 도구는 키를 지운다. 0이 끝없이 쌓이지 않게.
+      const have: GardenData["tools"]["have"] = { ...d.tools.have, [id]: left };
+      if (left <= 0) delete have[id];
+      commit({ ...d, beds, tools: { ...d.tools, have } });
+      return true;
     },
 
     missCase: (caseId) => {

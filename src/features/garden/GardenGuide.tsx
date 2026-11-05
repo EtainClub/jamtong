@@ -30,6 +30,12 @@ import {
   PLAZA_SPEED,
   PLOT_UPGRADES,
   RAID_BOX,
+  RAID_GAP,
+  RAID_HITS_PER_PERSON,
+  RAID_HP_MIN,
+  RAID_LIFE,
+  RAID_MIN_FIGHTERS,
+  RAID_PER_DAY,
   RAIN_LENGTH,
   RAIN_SPEED,
   RAIN_STARTS,
@@ -41,6 +47,8 @@ import {
   SHOP_SLOT,
   START_PLOTS,
   TIER_LABEL,
+  TOOL_ORDER,
+  TOOLS,
   TRAIL_PER_DAY,
   WATER_CUT,
   WATER_PER_DAY,
@@ -83,6 +91,7 @@ export const GUIDE_SECTIONS = [
   { id: "weather", label: "날씨" },
   { id: "mutations", label: "변이" },
   { id: "shop", label: "상점" },
+  { id: "tools", label: "도구" },
   { id: "plaza", label: "광장" },
   { id: "flowers", label: "꽃밭" },
   { id: "greenhouse", label: "온실" },
@@ -239,6 +248,18 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
           <p>현금 결제도, 사람끼리 사고파는 것도 없어요. 잼은 이 정원 안에서만 써요.</p>
         </Section>
 
+        <Section id="tools" title="도구">
+          <p>상점 아래 ‘도구’ 칸에서 늘 같은 값으로 팔아요. 무작위는 없어요.</p>
+          <ul>
+            {TOOL_ORDER.map((id) => (
+              <li key={id}>
+                {TOOLS[id].icon} <b>{TOOLS[id].label}</b> — 🍯 {TOOLS[id].price}, 하루 {TOOLS[id].perDay}개까지. {TOOLS[id].hint}{" "}
+              </li>
+            ))}
+            <li>텃밭에서 자라는 작물을 누르면 쓸 수 있어요. 한 작물이 한 번 익는 동안 비료는 종류와 상관없이 하나만 줄 수 있어요.</li>
+          </ul>
+        </Section>
+
         <Section id="plaza" title="광장">
           <ul>
             <li>모두가 함께 쓰는 정원이에요. 잡초를 문질러 뽑으면 잼을 받아요.</li>
@@ -252,8 +273,16 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
               {(Object.keys(PLAZA_SPEED) as Array<keyof typeof PLAZA_SPEED>).map((k) => `${PLAZA_LABEL[k]} ×${PLAZA_SPEED[k]}`).join(" · ")}.
             </li>
             <li>
-              광장이 무성해지면 거대 잡초가 나타나요. 다 같이 쓰러뜨리면 잼 {RAID_BOX.jam}과 희귀 씨앗 상자를 받아요
-              ({RAID_BOX.odds.map((o) => `${TIER_LABEL[o.tier]} ${pct(o.p)}`).join(" · ")}).
+              광장이 무성해지면 거대 잡초가 나타나요. 하루 {RAID_PER_DAY}번까지, 앞 거대 잡초가 끝나고 {duration(RAID_GAP / MINUTE)} 뒤에
+              다음이 나올 수 있어요.
+            </li>
+            <li>
+              한 사람은 거대 잡초 하나에 {RAID_HITS_PER_PERSON}방까지만 칠 수 있어요. 체력은 적어도 {RAID_HP_MIN}이라 혼자서는 못
+              잡고, 적어도 {RAID_MIN_FIGHTERS}명이 모여야 해요. 그날 광장에 온 사람이 많을수록 더 커져요.
+            </li>
+            <li>
+              {duration(RAID_LIFE / MINUTE)} 안에 쓰러뜨리면 한 번이라도 때린 모두가 잼 {RAID_BOX.jam}과 희귀 씨앗 상자를 받아요
+              ({RAID_BOX.odds.map((o) => `${TIER_LABEL[o.tier]} ${pct(o.p)}`).join(" · ")}). 못 잡으면 도망가요.
             </li>
             <li>
               가끔 떨어지는 시든 잎은 링크가 열리지 않았던 출처예요. 열리는지 확인해 주면 잼 {LEAF_JAM}을 받아요(하루{" "}

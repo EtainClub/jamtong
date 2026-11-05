@@ -12,7 +12,7 @@
     "check": "pnpm validate && pnpm agent:check && pnpm wiki:lint && pnpm seo:check && pnpm garden:test && pnpm typecheck && pnpm lint",
     "agent:check": "tsx scripts/agent-check.ts",
     "seo:check": "node --test scripts/seo-check.test.mjs",
-    "garden:test": "tsx --test src/features/garden/rules.test.ts src/features/garden/coach.test.ts",
+    "garden:test": "tsx --test src/features/garden/rules.test.ts src/features/garden/coach.test.ts src/features/garden/raid.test.ts",
     "garden:arrivals": "tsx scripts/garden-arrivals.ts",
     "garden:leaves": "tsx scripts/garden-leaves.ts",
     "wiki:ingest": "tsx scripts/wiki-ingest.ts",
