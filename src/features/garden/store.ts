@@ -38,7 +38,7 @@ import {
   type CaseLedger,
   type WeedStage,
 } from "./rules";
-import { initialCoach, type CoachData, type CoachMark, type TipTab } from "./coach";
+import { initialCoach, normalizeCoach, type CoachData, type CoachMark, type TipTab } from "./coach";
 import type { Case, Fruit, Mutation, Plant, PlazaLevel, Species } from "./types";
 
 /**
@@ -141,7 +141,7 @@ function fresh(catalog: Species[]): GardenData {
     share: { id: null, on: false },
     waters: { day: 0, given: [], received: [] },
     trails: { taken: [], day: "", count: 0 },
-    coach: initialCoach({}),
+    coach: initialCoach(),
     updatedAt: Date.now(),
   };
 }
@@ -160,7 +160,7 @@ function normalize(data: GardenData): GardenData {
     share: data.share ?? { id: null, on: false },
     waters: data.waters ?? { day: 0, given: [], received: [] },
     trails: data.trails ?? { taken: [], day: "", count: 0 },
-    coach: data.coach ?? initialCoach(data.dex ?? {}),
+    coach: normalizeCoach(data.coach),
   };
 }
 

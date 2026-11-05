@@ -21,6 +21,11 @@ import type { Plant } from "./types";
  */
 
 export interface CoachData {
+  /**
+   * 2부터 있다. 1(값 없음)은 "이미 거둔 정원은 끈다"로 저장돼서 기존 사람 모두에게
+   * 코치가 꺼져 있었다 — normalizeCoach가 다시 켠다.
+   */
+  v: 2;
   /** 상태로 알 수 없는 첫 경험. "sold" | "bought". */
   marks: string[];
   /** 퀘스트를 마쳤거나 건너뛰었다. */
@@ -46,10 +51,23 @@ interface CoachInput {
   dex: Record<string, unknown>;
 }
 
-/** 새 정원의 코치. 이미 거둔 적이 있는 정원(코치 이전에 저장된 것)은 끈 채로 시작한다. */
-export function initialCoach(dex: Record<string, unknown>): CoachData {
-  const veteran = Object.keys(dex).length > 0;
-  return { marks: [], off: veteran, tips: veteran ? [...TIP_TABS] : [] };
+/**
+ * 새 정원의 코치. 이미 해 본 사람도 켠 채로 시작한다 — 단계가 정원 상태로 정해지므로
+ * 이미 거둔 사람은 심기·거두기를 건너뛰고 남은 단계만 본다.
+ */
+export function initialCoach(): CoachData {
+  return { v: 2, marks: [], off: false, tips: [] };
+}
+
+/**
+ * 저장된 코치를 맞춘다. v1은 거둔 적 있는 정원을 자동으로 껐으므로 다시 켠다.
+ * 다만 v1에서 실제로 한 바퀴를 마친 정원(졸이고 산 기록이 있다)은 끈 채로 둔다.
+ */
+export function normalizeCoach(saved: Partial<CoachData> | undefined): CoachData {
+  if (saved?.v === 2) return saved as CoachData;
+  const marks = saved?.marks ?? [];
+  const finished = Boolean(saved?.off) && marks.includes("sold") && marks.includes("bought");
+  return { v: 2, marks, off: finished, tips: [] };
 }
 
 /** 지금 보여 줄 단계. 꺼져 있으면 null. */

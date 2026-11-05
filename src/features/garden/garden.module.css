@@ -121,6 +121,44 @@
 .game :global(.is-raining .garden-sun) { opacity: .25; }
 .game :global(.garden-raindrops) { position: absolute; inset: 0; overflow: hidden; }
 .game :global(.garden-raindrops i) { position: absolute; top: -20px; width: 2px; height: 15px; background: #f1fbff99; animation: rain-fall .9s linear infinite; }
+.game :global(.garden-cards) { color: #344b32; border: 3px solid #e4d2a4; box-shadow: 0 -8px 40px #263b3033; }
+.game :global(.garden-cards-track) { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; border-radius: 20px; }
+.game :global(.garden-cards-track::-webkit-scrollbar) { display: none; }
+.game :global(.garden-card) { flex: 0 0 100%; scroll-snap-align: center; scroll-snap-stop: always; padding: 0 2px; text-align: center; }
+.game :global(.garden-card h3) { margin-top: 14px; font-size: 19px; font-weight: 900; letter-spacing: -.02em; color: #2e5c37; }
+.game :global(.garden-card p) { margin: 6px auto 0; max-width: 300px; font-size: 13.5px; line-height: 1.55; color: #4a5a40; }
+.game :global(.garden-card-art) { position: relative; display: grid; place-items: center; height: 200px; border-radius: 20px; border: 3px solid #e9d7a5; background: radial-gradient(circle at 50% 120%, #9fcf73 0 38%, transparent 39%), linear-gradient(#d8eef0, #eef6dc); box-shadow: 0 5px 0 #b29d70; overflow: hidden; }
+.game :global(.garden-card-row) { display: flex; gap: 14px; align-items: flex-end; justify-content: center; }
+.game :global(.garden-card-packet), .game :global(.garden-card-grow) { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.game :global(.garden-card-packet figcaption), .game :global(.garden-card-grow figcaption) { border-radius: 999px; background: #fffaf0; border: 1px solid #d6c99a; padding: 2px 9px; font-size: 11.5px; font-weight: 800; color: #5a4a2a; }
+.game :global(.garden-card-stage) { display: flex; align-items: center; gap: 14px; position: relative; }
+.game :global(.garden-card-plot) { position: relative; display: grid; place-items: center; width: 104px; height: 104px; overflow: hidden; }
+.game :global(.garden-card-plot.is-small) { width: 78px; height: 78px; }
+.game :global(.garden-card-finger) { position: absolute; right: -8px; bottom: -14px; font-size: 38px; animation: card-tap 1.4s ease-in-out infinite; }
+.game :global(.garden-card-arrow) { font-size: 28px; font-weight: 900; color: #4d8c50; }
+.game :global(.garden-card-big) { font-size: 44px; line-height: 1; }
+.game :global(.garden-card-jar) { font-size: 64px; line-height: 1; animation: wallet-pop 1.2s ease-in-out infinite; }
+.game :global(.garden-card-note) { width: 82%; max-width: 280px; border-radius: 14px; background: #fffdf6; border: 1px solid #d9d2b6; padding: 12px 14px; text-align: left; box-shadow: 0 4px 0 #d9d2b6; rotate: -2deg; }
+.game :global(.garden-card-note-kind) { font-size: 11px; font-weight: 800; color: #1f3d6b; }
+.game :global(.garden-card-note-text) { margin-top: 4px; font-size: 13px; color: #333; }
+.game :global(.garden-card-note-btn) { width: fit-content; margin-top: 10px; border-radius: 999px; border: 1px solid #d9d2b6; padding: 4px 10px; font-size: 12px; font-weight: 600; color: #555; animation: card-glow 1.6s ease-in-out infinite; }
+.game :global(.garden-card-note-btn b) { color: #a06a00; }
+.game :global(.garden-card-tiles) { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 88%; }
+.game :global(.garden-card-tiles.is-three) { grid-template-columns: repeat(3, 1fr); }
+.game :global(.garden-card-tile) { display: flex; flex-direction: column; align-items: center; gap: 2px; border-radius: 16px; background: #fffaf0; border: 2px solid #dfd4ac; padding: 12px 6px; box-shadow: 0 3px 0 #cdbf8f; }
+.game :global(.garden-card-tile > span) { font-size: 34px; line-height: 1.1; }
+.game :global(.garden-card-tile b) { font-size: 14px; font-weight: 900; }
+.game :global(.garden-card-tile small) { font-size: 11px; color: #69725d; }
+.game :global(.garden-card-tile em) { margin-top: 3px; font-style: normal; font-size: 12px; font-weight: 800; color: #fff; background: #4d8c50; border-radius: 999px; padding: 1px 8px; }
+.game :global(.garden-card-tile.is-meteor em) { background: #6b55b8; }
+.game :global(.garden-card-chips) { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 86%; }
+.game :global(.garden-card-chips .garden-chip) { border-radius: 999px; padding: 8px 14px; font-size: 15px; font-weight: 800; box-shadow: 0 3px 0 #0002; }
+.game :global(.garden-cards-dots) { display: flex; justify-content: center; gap: 6px; }
+.game :global(.garden-cards-dots button) { width: 8px; height: 8px; border-radius: 50%; background: #d3d8bd; padding: 0; }
+.game :global(.garden-cards-dots button[aria-current=true]) { width: 22px; border-radius: 4px; background: #4d8c50; }
+.game :global(.garden-coach-go:disabled) { opacity: .4; }
+@keyframes card-tap { 0%, 100% { translate: 0 0; } 50% { translate: -6px -8px; } }
+@keyframes card-glow { 0%, 100% { box-shadow: 0 0 0 0 #ffd76a00; } 50% { box-shadow: 0 0 0 4px #ffd76a88; } }
 @keyframes screen-enter { from { opacity: 0; translate: 0 7px; } to { opacity: 1; translate: 0; } }
 @keyframes wallet-pop { 50% { scale: 1.06; } }
 @keyframes cloud-drift { to { translate: 14px 0; } }
