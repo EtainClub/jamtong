@@ -1,3 +1,10 @@
+import { housingMyth } from "./housing-myth";
+import { comicsDay } from "./comics-day";
+import { spendingRestructure } from "./spending-restructure";
+import { budgetPost2027 } from "./budget-post-2027";
+import { wordsAndDeeds } from "./words-and-deeds";
+import { beanIsBean } from "./bean-is-bean";
+import { localCorruption } from "./local-corruption";
 import { budgetSpeech2027 } from "./budget-speech-2027";
 import { itaewon4th } from "./itaewon-4th";
 import { backAlley } from "./back-alley";
@@ -58,7 +65,14 @@ import { validateStatement, type Statement } from "./schema";
  * 없다 — 말한 날은 이미 지난 날이다. 그냥 최근이 위다.
  */
 export const STATEMENTS: Statement[] = [
+  housingMyth,
+  comicsDay,
+  spendingRestructure,
+  budgetPost2027,
   budgetSpeech2027,
+  wordsAndDeeds,
+  beanIsBean,
+  localCorruption,
   itaewon4th,
   backAlley,
   beyondCamps,
