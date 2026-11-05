@@ -1,6 +1,6 @@
 "use client";
 
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
 
 import { firebaseDb } from "./client";
 
@@ -26,4 +26,18 @@ export async function saveGarden(uid: string, state: object): Promise<void> {
   const db = firebaseDb();
   if (!db) return;
   await setDoc(doc(db, "users", uid, "garden", "state"), state);
+}
+
+/**
+ * 정원을 처음부터 다시 시작한다 — 계정의 정원과 공개 정원을 지운다.
+ * 꽃밭의 가꿈, 광장, 물 표식처럼 모두와 함께 쓴 기록은 지우지 않는다(규칙상 지울 수 없다).
+ */
+export async function deleteGarden(uid: string, publicId: string | null): Promise<void> {
+  const db = firebaseDb();
+  if (!db) return;
+  // 없는 문서를 지우려 하면 규칙이 resource.data를 읽다 거절한다. 있을 때만 지운다.
+  if (publicId && (await getDoc(doc(db, "gardens", publicId))).exists()) {
+    await deleteDoc(doc(db, "gardens", publicId));
+  }
+  await deleteDoc(doc(db, "users", uid, "garden", "state"));
 }

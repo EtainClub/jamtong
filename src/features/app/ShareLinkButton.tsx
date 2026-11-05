@@ -27,6 +27,7 @@ export function ShareLinkButton({
   surface,
   label,
   compact = false,
+  className,
 }: {
   /** 공유 시트에 뜨는 이름. 주소가 아니라 사람이 읽는 제목이다. */
   title: string;
@@ -35,6 +36,8 @@ export function ShareLinkButton({
   /** 버튼에 적는 말과 스크린리더가 읽는 말. */
   label: { text: string; aria: string; copied: string };
   compact?: boolean;
+  /** 버튼 모양을 바꿀 때. 주면 기본 모양 대신 이것만 쓴다(정원 머리처럼 자기 옷이 있는 곳). */
+  className?: string;
 }) {
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
@@ -76,9 +79,12 @@ export function ShareLinkButton({
         type="button"
         onClick={onShare}
         aria-label={label.aria}
-        className={`inline-flex shrink-0 items-center gap-2 rounded-full border border-stone bg-taupe py-2 text-sm font-medium text-smoke transition-colors hover:border-graphite hover:text-navy ${
-          compact ? "px-3 sm:px-4" : "px-4"
-        }`}
+        className={
+          className ??
+          `inline-flex shrink-0 items-center gap-2 rounded-full border border-stone bg-taupe py-2 text-sm font-medium text-smoke transition-colors hover:border-graphite hover:text-navy ${
+            compact ? "px-3 sm:px-4" : "px-4"
+          }`
+        }
       >
         <span aria-hidden="true">↗</span>
         {/*
@@ -86,7 +92,8 @@ export function ShareLinkButton({
          * 다만 복사한 뒤에는 접지 않는다. 시트가 없는 환경에서 조용히 복사만
          * 되면 눌린 것인지 알 수 없고, 그 환경이 바로 이 좁은 화면이다.
          */}
-        <span className={compact && !copied ? "hidden sm:inline" : undefined}>
+        {/* 자기 옷(className)을 입은 곳은 글자가 짧게 정해져 있으므로 접지 않는다. */}
+        <span className={compact && !copied && !className ? "hidden sm:inline" : undefined}>
           {copied ? "링크를 복사했습니다" : label.text}
         </span>
         <span className="sr-only" aria-live="polite">

@@ -1,6 +1,17 @@
 "use client";
 
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  limit as fsLimit,
+  query,
+  serverTimestamp,
+  Timestamp,
+  where,
+} from "firebase/firestore";
 
 import { firebaseDb } from "./client";
 
@@ -84,4 +95,59 @@ export async function submitCorrection(uid: string, input: CorrectionInput): Pro
     status: "received",
     createdAt: serverTimestamp(),
   });
+}
+
+export const CORRECTION_STATUSES = ["received", "checking", "fixed", "declined"] as const;
+export type CorrectionStatus = (typeof CORRECTION_STATUSES)[number];
+
+export const CORRECTION_STATUS_LABEL: Record<CorrectionStatus, string> = {
+  received: "접수됨",
+  checking: "확인 중",
+  fixed: "고쳤음",
+  declined: "반영하지 않음",
+};
+
+export interface MyCorrection {
+  id: string;
+  page: string;
+  kind: CorrectionKind;
+  body: string;
+  status: CorrectionStatus;
+  /** 운영자가 남긴 말. 없으면 null. */
+  note: string | null;
+  createdAt: Date | null;
+}
+
+/**
+ * 내가 접수한 정정·반론 — MY의 "내가 남긴 것"이 쓴다.
+ * 규칙이 본인 것만 읽게 하므로 authorUid로 거르는 조회만 통과한다. 최신순은 여기서 맞춘다.
+ */
+export async function listMyCorrections(uid: string): Promise<MyCorrection[]> {
+  const db = firebaseDb();
+  if (!db) return [];
+  const snap = await getDocs(query(collection(db, "corrections"), where("authorUid", "==", uid), fsLimit(100)));
+  return snap.docs
+    .map((d) => {
+      const data = d.data();
+      const at = data.createdAt;
+      return {
+        id: d.id,
+        page: typeof data.page === "string" ? data.page : "",
+        kind: (CORRECTION_KINDS as readonly string[]).includes(data.kind) ? (data.kind as CorrectionKind) : "fact",
+        body: typeof data.body === "string" ? data.body : "",
+        status: (CORRECTION_STATUSES as readonly string[]).includes(data.status)
+          ? (data.status as CorrectionStatus)
+          : "received",
+        note: typeof data.note === "string" && data.note ? data.note : null,
+        createdAt: at instanceof Timestamp ? at.toDate() : null,
+      };
+    })
+    .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0));
+}
+
+/** 내 접수를 거둔다. 규칙이 본인 것만 지우게 한다. */
+export async function withdrawCorrection(id: string): Promise<void> {
+  const db = firebaseDb();
+  if (!db) return;
+  await deleteDoc(doc(db, "corrections", id));
 }

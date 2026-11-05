@@ -174,6 +174,11 @@ function normalize(data: GardenData): GardenData {
   };
 }
 
+/** 이 브라우저의 정원 사본을 지운다. MY의 "정원 처음부터 다시 시작"이 쓴다. 못 지우면 던진다. */
+export function clearLocal(): void {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
 export function readLocal(): GardenData | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);

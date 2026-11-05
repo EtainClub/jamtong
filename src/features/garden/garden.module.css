@@ -37,6 +37,10 @@
 .game :global(.garden-wallet) { background: #fff5cc; border: 2px solid #e2bc63; border-radius: 14px; padding: 5px 11px; box-shadow: 0 3px 0 #be994c; font-size: 20px; color: #765026; animation: wallet-pop .3s ease-out; }
 .game :global(.garden-weather) { max-width: 52%; text-align: right; }
 .game :global(.garden-weather-next) { font-size: 10px; padding: 8px; border: 1px solid #d5dfbd; border-radius: 12px; }
+/* 머리 오른쪽 위의 버튼 묶음: 공유 · 안내. 공유가 줄 하나를 따로 차지하지 않게 한다. */
+.game :global(.garden-top-actions) { position: absolute; z-index: 2; right: 12px; top: 12px; display: flex; align-items: center; gap: 6px; }
+.game :global(.garden-top-actions .garden-help) { position: static; }
+.game :global(.garden-pill) { display: inline-flex; align-items: center; gap: 4px; background: #fff7dfed; border: 1px solid #729763; border-radius: 12px; padding: 7px 10px; font-size: 11px; font-weight: 800; color: #385531; box-shadow: 0 3px 0 #48643c33; }
 .game :global(.garden-help) { position: absolute; z-index: 2; right: 12px; top: 12px; background: #fff7dfed; border: 1px solid #729763; border-radius: 12px; padding: 7px 10px; font-size: 11px; font-weight: 800; color: #385531; box-shadow: 0 3px 0 #48643c33; }
 .game :global(.garden-coach) { position: relative; background: #fffbe6; border: 2px solid #9cc37c; box-shadow: 0 4px 0 #7fa761; color: #344b32; animation: screen-enter .26s ease-out; }
 .game :global(.garden-coach-eyebrow) { font-size: 10.5px; font-weight: 800; letter-spacing: .04em; color: #4d8c50; }

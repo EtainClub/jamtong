@@ -6,6 +6,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   increment,
   limit as fsLimit,
   onSnapshot,
@@ -14,6 +15,7 @@ import {
   serverTimestamp,
   setDoc,
   Timestamp,
+  where,
   writeBatch,
 } from "firebase/firestore";
 
@@ -281,4 +283,20 @@ export async function deleteCheerNote(id: string): Promise<void> {
   const db = firebaseDb();
   if (!db) return;
   await deleteDoc(doc(db, "cheerNotes", id));
+}
+
+/** 내가 남긴 응원 한 줄과 영상 — MY의 "내가 남긴 것"이 쓴다. 최신순은 여기서 맞춘다. */
+export async function listMyCheers(uid: string): Promise<{ notes: CheerNote[]; videos: SubmittedVideo[] }> {
+  const db = firebaseDb();
+  if (!db) return { notes: [], videos: [] };
+  const [notes, videos] = await Promise.all([
+    getDocs(query(collection(db, "cheerNotes"), where("authorUid", "==", uid), fsLimit(100))),
+    getDocs(query(collection(db, "cheerVideos"), where("authorUid", "==", uid), fsLimit(100))),
+  ]);
+  const newest = (a: { createdAt: Date | null }, b: { createdAt: Date | null }) =>
+    (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0);
+  return {
+    notes: notes.docs.map((d) => toNote(d.id, d.data(), uid)).sort(newest),
+    videos: videos.docs.map((d) => toVideo(d.id, d.data(), uid)).sort(newest),
+  };
 }
