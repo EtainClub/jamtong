@@ -20,7 +20,9 @@ import {
   RAID_LIFE,
   RAID_MIN_FIGHTERS,
   RAID_PER_DAY,
+  RAID_SHARDS,
   raidHp,
+  raidShard,
   raidKey,
   raidPhase,
   fertilizerCut,
@@ -83,6 +85,24 @@ test("firestore.rules의 물결 규칙이 rules.ts의 값과 같다", () => {
   has(`resource.data.spawnedAt + duration.value(${RAID_LIFE / HOUR}, 'h')`);
   has(`prev.defeatedAt + duration.value(${RAID_GAP / HOUR}, 'h')`);
   has(`prev.spawnedAt + duration.value(${(RAID_LIFE + RAID_GAP) / HOUR}, 'h')`);
+  // 칸(분산 카운터)의 수. 규칙은 칸 번호를 받고, 쓰러뜨릴 때 칸을 하나하나 더한다.
+  has(`n.matches('^[0-${RAID_SHARDS - 1}]$')`);
+  has(`request.resource.data.shard <= ${RAID_SHARDS - 1}`);
+  has(`getAfter(raidShardPath(raidId, '${RAID_SHARDS - 1}')).data.hits;`);
+  assert.ok(!rules.includes(`raidShardPath(raidId, '${RAID_SHARDS}')`), "규칙이 없는 칸까지 더한다");
+});
+
+test("칸은 사람마다 고정이고 고르게 퍼지며, 규칙의 읽기 상한 안에 든다", () => {
+  // 쓰러뜨리는 규칙은 칸을 모두 getAfter로 읽는다. 한 문서 요청의 상한은 10번이고 물결 문서도 읽는다.
+  assert.ok(RAID_SHARDS >= 2 && RAID_SHARDS <= 9);
+  const counts = Array.from({ length: RAID_SHARDS }, () => 0);
+  for (let i = 0; i < 4000; i++) {
+    const n = raidShard(`uid-${i}-${i * 7919}`);
+    assert.ok(Number.isInteger(n) && n >= 0 && n < RAID_SHARDS);
+    counts[n] += 1;
+  }
+  assert.equal(raidShard("same-user"), raidShard("same-user"));
+  for (const c of counts) assert.ok(c > 4000 / RAID_SHARDS / 2, `한 칸에 너무 적다: ${counts.join(",")}`);
 });
 
 const plant = (over: Partial<Plant> = {}): Plant => ({ id: "p", speciesId: "a:x", plantedAt: T, ripeAt: T + 8 * HOUR, speed: 1, harvests: 0, ...over });
