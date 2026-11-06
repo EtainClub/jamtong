@@ -22,6 +22,7 @@ import { Toast } from "./parts";
 import { PlazaView } from "./PlazaView";
 import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, nextMeteor, nextMonsoon, nextRain, PUBLIC_ID } from "./rules";
 import { ShareCard } from "./ShareCard";
+import { GardenShareButton } from "./GardenShareButton";
 import { useShare } from "./share";
 import { Shop } from "./Shop";
 import { VisitView } from "./VisitView";
@@ -53,12 +54,9 @@ const SAVE_DELAY = 2_000;
 export function GardenApp({
   catalog,
   leaves,
-  share,
 }: {
   catalog: Species[];
   leaves: Leaf[];
-  /** 정원 머리의 "? 안내" 옆에 놓을 공유 버튼. 페이지가 만들어 넘긴다. */
-  share?: React.ReactNode;
 }) {
   const byId = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
   const data = useGarden((s) => s.data);
@@ -230,8 +228,14 @@ export function GardenApp({
         <GardenScenery raining={isRaining(now)} />
         <div className="garden-world-title"><span className="garden-eyebrow">JAMTONG GARDEN</span><h1>잼통 정원</h1><p>{data.nick}의 작은 초록 세상</p></div>
         <div className="garden-top-actions">
-          {/* 페이지(서버)가 넘긴 요소는 형제 목록에 바로 섞지 않는다 — 개발 모드의 key 경고가 난다. */}
-          {share && <span className="contents">{share}</span>}
+          <GardenShareButton
+            nick={data.nick}
+            shareId={data.share.id}
+            shareOn={data.share.on}
+            visit={visit}
+            onNeedPublic={() => setShowShare(true)}
+            say={say}
+          />
           <button type="button" className="garden-help" aria-haspopup="dialog" onClick={openCards}>? 안내</button>
         </div>
         <button type="button" className="garden-sound" aria-pressed={sound} aria-label={`음악과 효과음 ${sound ? "끄기" : "켜기"}`} onClick={() => { setSound(!sound); setGardenSound(!sound); if (!sound) say("♪ 음악을 켰어요 · 무음 모드에서는 들리지 않아요"); }}>{sound ? "♪ 음악 끄기" : "♪ 음악 켜기"}</button>

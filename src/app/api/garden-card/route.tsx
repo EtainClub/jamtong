@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { OG_CONTENT_TYPE, OG_SIZE, dataUri, ogFonts } from "@/lib/og/card";
-import { loadGardenCard } from "@/lib/og/garden-state";
+import { GARDEN_FRUIT as FRUIT, GARDEN_OG as G, loadGardenCard } from "@/lib/og/garden-state";
 
 /**
  * 정원 자랑 카드 — /g/[gid]가 og:image로 건다 (docs/garden-game.md §3.10).
@@ -13,26 +13,6 @@ import { loadGardenCard } from "@/lib/og/garden-state";
  * 받아 와야 하는데, 카드 한 장을 위해 바깥에 기대지 않는다.
  */
 export const dynamic = "force-dynamic";
-
-const G = {
-  sky: "#d9eedf",
-  grass: "#a9cf7f",
-  soil: "#8b6a4a",
-  soilDark: "#6f5238",
-  leaf: "#3f8a3a",
-  ink: "#21401f",
-  muted: "#4f6b4a",
-  jam: "#c2410c",
-  cream: "#fdf8ea",
-};
-
-/** 등급마다 열매 색. 정원 화면의 열매 모양과 같은 계열. */
-const FRUIT: Record<string, string> = {
-  sprout: "#6d5bd0",
-  common: "#e0573a",
-  flagship: "#e9a23b",
-  perennial: "#3f8a3a",
-};
 
 function clip(text: string, max: number): string {
   const flat = text.replace(/\s+/g, " ").trim();

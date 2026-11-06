@@ -2,13 +2,22 @@ import type { Metadata } from "next";
 
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
-import { ShareLinkButton } from "@/features/app/ShareLinkButton";
 import { buildCatalog, buildLeaves } from "@/features/garden/catalog";
 import { GardenApp } from "@/features/garden/GardenApp";
 
+const TITLE = "잼통 정원";
+const DESCRIPTION = "업적 씨앗을 심고, 키우고, 거둬서 잼을 만드는 정원. 열매마다 근거가 붙은 쪽지가 들어 있어요.";
+
 export const metadata: Metadata = {
-  title: "잼통 정원",
-  description: "업적 씨앗을 심고, 키우고, 거둬서 잼을 만드는 정원. 열매마다 근거가 붙은 쪽지가 들어 있다.",
+  title: TITLE,
+  description: DESCRIPTION,
+  /*
+   * 미리보기 글을 정원 것으로. 이것이 없으면 사이트 기본 openGraph를 물려받아 정원 링크에
+   * 잼통 위키 소개가 붙는다. 그림은 같은 폴더의 opengraph-image.tsx가 건다.
+   * 내 정원 링크(/g/<공개id>)는 거기서 자랑 카드를 따로 건다.
+   */
+  openGraph: { type: "website", title: TITLE, description: DESCRIPTION, url: "/garden" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
   /*
    * 색인하지 않는다. 정원은 게임 레이어이고, 검색으로 닿아야 할 것은 원본
    * 정보 페이지다(docs/garden-game.md §1). 크롤링은 막지 않아야 noindex를 읽는다.
@@ -27,23 +36,7 @@ export default function GardenPage() {
       <AppTopBar />
 
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pt-6">
-        <GardenApp
-          catalog={catalog}
-          leaves={leaves}
-          share={
-            /*
-             * 정원 페이지 주소를 건넨다. ?visit=·?gift=는 싣지 않는다 — 받는 사람은 자기 정원에서 시작한다.
-             * 줄 하나를 따로 차지하지 않게 정원 머리의 "? 안내" 옆에 둔다.
-             */
-            <ShareLinkButton
-              title="잼통 정원"
-              surface="garden"
-              compact
-              className="garden-pill"
-              label={{ text: "공유", aria: "잼통 정원 링크 공유하기", copied: "잼통 정원 링크를 복사했습니다" }}
-            />
-          }
-        />
+        <GardenApp catalog={catalog} leaves={leaves} />
       </main>
 
       <BottomNav />
