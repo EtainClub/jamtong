@@ -35,8 +35,14 @@ export function gardenLink(id: string): string {
  * 정원 링크를 건넨다. 공유 시트가 있으면 그것을, 없으면 클립보드를 쓴다.
  * shared=시트로 보냈거나 사람이 시트를 닫았다, copied=복사했다, failed=둘 다 못 했다.
  */
-export async function sendGardenLink(url: string, title: string, text: string): Promise<"shared" | "copied" | "failed"> {
-  track("share_create", { surface: "garden" });
+export async function sendGardenLink(
+  url: string,
+  title: string,
+  text: string,
+  /** 어디서 보냈는지. raid=거대 잡초 "같이 잡자". 보낸 횟수에는 아무 보상도 없다(§1). */
+  from: "garden" | "raid" = "garden",
+): Promise<"shared" | "copied" | "failed"> {
+  track("share_create", { surface: "garden", from });
   if (navigator.share) {
     try {
       await navigator.share({ title, text, url });

@@ -94,16 +94,20 @@ export function watchMyHits(id: string, uid: string, onMine: (hits: number) => v
   );
 }
 
-/** 물결을 세운다(빈 칸까지 함께). 이미 있으면 아무것도 하지 않는다. 앞 물결이 덜 끝났으면 규칙이 막는다. */
-export async function spawnRaid(id: string, hp: number): Promise<void> {
+/**
+ * 물결을 세운다(빈 칸까지 함께). 이미 있으면 아무것도 하지 않는다. 앞 물결이 덜 끝났으면 규칙이 막는다.
+ * 내가 세웠으면 true.
+ */
+export async function spawnRaid(id: string, hp: number): Promise<boolean> {
   const db = firebaseDb();
-  if (!db) return;
+  if (!db) return false;
   const ref = doc(db, "plazaRaids", id);
-  await runTransaction(db, async (tx) => {
+  return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
-    if (snap.exists()) return;
+    if (snap.exists()) return false;
     tx.set(ref, { hp, hits: 0, fighters: 0, spawnedAt: serverTimestamp(), defeatedAt: null });
     for (const n of shardIds) tx.set(doc(db, "plazaRaids", id, "shards", n), { hits: 0, fighters: 0 });
+    return true;
   });
 }
 

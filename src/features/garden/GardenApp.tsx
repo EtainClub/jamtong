@@ -61,7 +61,12 @@ export function GardenApp({
   const byId = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
   const data = useGarden((s) => s.data);
   const [now, setNow] = useState(() => Date.now());
-  const [tab, setTab] = useState<Tab>("beds");
+  // "같이 잡자" 링크(/garden?tab=plaza)로 왔으면 그 탭부터. 첫 렌더는 "여는 중"만 그리므로 서버 렌더와 어긋나지 않는다.
+  const [tab, setTab] = useState<Tab>(() => {
+    if (typeof window === "undefined") return "beds";
+    const asked = new URL(window.location.href).searchParams.get("tab");
+    return TABS.find((t) => t.id === asked)?.id ?? "beds";
+  });
   // 켜 두었던 소리. 첫 렌더는 "여는 중"만 그리므로 서버 렌더와 어긋나지 않는다.
   const [sound, setSound] = useState(() => typeof window !== "undefined" && savedGardenSound());
   const [showShare, setShowShare] = useState(false);
@@ -126,6 +131,11 @@ export function GardenApp({
   useEffect(() => {
     useGarden.getState().boot(catalog);
     const url = new URL(window.location.href);
+    // 탭은 처음 한 번만 따른다. 주소에 남기면 새로고침해도 그 탭으로 돌아간다.
+    if (url.searchParams.has("tab")) {
+      url.searchParams.delete("tab");
+      window.history.replaceState(null, "", url.pathname + url.search);
+    }
     const id = url.searchParams.get("gift");
     if (!id) return;
     url.searchParams.delete("gift");

@@ -355,7 +355,11 @@
 
 **이벤트**: `garden_open`(연 때, 익은 밭 수 `ripe`), `garden_harvest`, `plaza_pull`,
 `leaf_check{verdict}`, `case_solve{first_try}`, `garden_visit{mine}`, `garden_water`,
-`dex_trail{given}`, `share_create{surface: garden}`, `evidence_open{source: garden}`. 계측은 첫 이벤트에서 붙으므로, 둘러만 본 방문은
+`dex_trail{given}`, `share_create{surface: garden, from: garden|raid}`, `evidence_open{source: garden}`,
+거대 잡초의 `raid_spawn{wave}`, `raid_join{wave, fighters}`,
+`raid_end{raid, wave, result, fighters, hits, hp, minutes, mine}`. raid_end는 때린 사람마다
+물결당 한 번 오므로, 물결 하나를 볼 때는 `raid`로 하나만 고른다. 필요 인원(`RAID_MIN_FIGHTERS`)을
+올릴지는 raid_end의 result·minutes·fighters로 정한다. 계측은 첫 이벤트에서 붙으므로, 둘러만 본 방문은
 `garden_open`이 있어야 재방문율에 잡힌다.
 
 ### 3.12 기술 메모
