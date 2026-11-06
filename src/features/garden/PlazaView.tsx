@@ -32,6 +32,7 @@ import {
   WEED_REWARD_PER_DAY,
   WEED_SEED_ODDS,
 } from "./rules";
+import { sendGardenLink } from "./share";
 import { useGarden } from "./store";
 import type { Plaza, Weed } from "./usePlaza";
 import { useRaid, type RaidState } from "./useRaid";
@@ -458,6 +459,7 @@ function RaidPanel({
           💪 내 몫을 다 쳤어요. 혼자서는 쓰러뜨릴 수 없어요 — 친구에게 광장을 알려 주세요!
         </p>
       )}
+      <RaidCall left={left} hp={r.hp} need={need} escapeIn={escapeIn} loud={spent} say={say} />
 
       <p className="mt-2 text-[11.5px] leading-relaxed opacity-90">
         {RAID_RUBS_PER_STRIKE}번 문지르면 한 방, 1초에 한 방, 한 사람은 {RAID_HITS_PER_PERSON}방까지.{" "}
@@ -465,5 +467,54 @@ function RaidPanel({
         하루 {RAID_PER_DAY}번까지 나타나요.
       </p>
     </section>
+  );
+}
+
+/**
+ * "같이 잡자" — 광장 탭이 바로 열리는 정원 링크를 건넨다.
+ * 거대 잡초는 혼자 못 잡으므로 사람을 부르는 길이 패널 안에 있어야 한다.
+ * 보낸 횟수에는 아무 보상도 없다(docs/garden-game.md §1). 계측은 share_create{from: raid}만.
+ */
+function RaidCall({
+  left,
+  hp,
+  need,
+  escapeIn,
+  loud,
+  say,
+}: {
+  left: number;
+  hp: number;
+  need: number;
+  escapeIn: number;
+  /** 내 몫을 다 쳐서 이제 할 수 있는 게 부르기뿐일 때. 더 눈에 띄게. */
+  loud: boolean;
+  say: (text: string) => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const call = async () => {
+    gardenFeedback("tap");
+    const result = await sendGardenLink(
+      `${window.location.origin}/garden?tab=plaza`,
+      "잼통 정원 · 거대 잡초",
+      `거대 잡초가 나타났어요! 체력 ${left}/${hp} · ${formatLeft(escapeIn)} 뒤 도망가요. ${need}명이 모이면 잡아요 🌿`,
+      "raid",
+    );
+    if (result === "copied") {
+      setCopied(true);
+      say("광장 링크를 복사했어요 · 친구에게 붙여 넣어 주세요");
+      setTimeout(() => setCopied(false), 2400);
+    } else if (result === "failed") say("링크를 복사하지 못했어요");
+  };
+  return (
+    <button
+      type="button"
+      onClick={() => void call()}
+      className={`mt-2 w-full rounded-full px-3.5 py-2 text-[13px] font-bold ${
+        loud ? "bg-[#e9d24a] text-[#2c3a12]" : "bg-white/15 text-white ring-1 ring-white/40"
+      }`}
+    >
+      {copied ? "링크를 복사했어요" : "📣 같이 잡자 — 친구 부르기"}
+    </button>
   );
 }

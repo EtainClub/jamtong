@@ -65,7 +65,19 @@ export type AnalyticsEvent =
   /** 시든 잎(출처 링크)이 열리는지 답했다. verdict: opens | fails | unsure. */
   | "leaf_check"
   /** 탐정 온실의 사건을 풀었다. first_try: 처음 고른 보기가 답이었는가. */
-  | "case_solve";
+  | "case_solve"
+  /**
+   * 거대 잡초 — 여럿을 모으는지 본다(docs/garden-game.md §3.11 "처치까지 걸린 시간").
+   * raid_spawn: 내가 물결을 세웠다. wave.
+   * raid_join: 이 물결에 처음 한 방을 넣었다. wave, fighters(그때까지 모인 사람).
+   * raid_end: 내가 때린 물결이 끝난 것을 봤다. 때린 사람마다 물결당 한 번 — 물결 하나를
+   *   보려면 raid로 하나만 고른다. raid(물결 id), wave, result(defeated|escaped), fighters,
+   *   hits, hp, minutes(태어나서 끝날 때까지), mine(내가 때린 수).
+   * 한 방마다 세지 않는다. 때린 수는 raid_end의 mine과 hits로 충분하다.
+   */
+  | "raid_spawn"
+  | "raid_join"
+  | "raid_end";
 
 type Params = Record<string, string | number | boolean>;
 

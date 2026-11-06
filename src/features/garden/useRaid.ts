@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { track } from "@/lib/analytics";
 import { firebaseConfigured } from "@/lib/firebase/client";
 import { finishRaid, spawnRaid, strikeRaid, watchMyHits, watchRaidWave, type Raid, type StrikeResult } from "@/lib/firebase/raid";
 
@@ -50,6 +51,20 @@ export interface RaidState {
 }
 
 const LOCAL_KEY = "jamtong-raid-local-v2";
+const ENDED_KEY = "jamtong-raid-ended";
+
+/** 끝남을 센 물결을 적는다. 처음이면 true. 오늘 몫(세 물결)만 넉넉히 남긴다. */
+function markEnded(id: string): boolean {
+  try {
+    const seen = JSON.parse(localStorage.getItem(ENDED_KEY) ?? "[]") as string[];
+    if (seen.includes(id)) return false;
+    localStorage.setItem(ENDED_KEY, JSON.stringify([...seen, id].slice(-9)));
+    return true;
+  } catch {
+    // 적지 못하면 세지 않는다. 같은 물결을 여러 번 세는 것보다 낫다.
+    return false;
+  }
+}
 const RAID_QUEUE_MAX = 4;
 const WAVES = Array.from({ length: RAID_PER_DAY }, (_, i) => i + 1);
 
@@ -166,6 +181,9 @@ export function useRaid(
     if (!uid) return;
     spawning.current = true;
     spawnRaid(raidId(day, due), hp)
+      .then((made) => {
+        if (made) track("raid_spawn", { wave: due });
+      })
       .catch((error) => console.error("[raid] 거대 잡초를 세우지 못했다", error))
       .finally(() => {
         spawning.current = false;
@@ -188,6 +206,32 @@ export function useRaid(
       if (!mine) finishing.current = null;
     });
   }, [full, onResult]);
+
+  // 계측: 내가 때린 물결이 끝났다. 때린 사람마다 물결당 한 번(이 기기 기준).
+  const endedPhase = raid && raid.phase !== "active" && myHits > 0 ? raid.phase : null;
+  useEffect(() => {
+    if (!raid || endedPhase === null || !markEnded(raid.id)) return;
+    const end = raid.defeatedAt ?? (raid.spawnedAt !== null ? raid.spawnedAt + RAID_LIFE : null);
+    track("raid_end", {
+      raid: raid.id,
+      wave: raid.wave,
+      result: endedPhase,
+      fighters: raid.fighters,
+      hits: Math.min(raid.hits, raid.hp),
+      hp: raid.hp,
+      minutes: end !== null && raid.spawnedAt !== null ? Math.round((end - raid.spawnedAt) / 60_000) : -1,
+      mine: myHits,
+    });
+    // 끝난 순간 한 번만 본다. 숫자가 뒤늦게 바뀌어도 다시 보내지 않는다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [raid?.id, endedPhase]);
+
+  // 계측: 이 물결에 처음 한 방을 넣었다.
+  const joined = useRef(new Set<string>());
+  const fightersRef = useRef(0);
+  useEffect(() => {
+    fightersRef.current = raid?.fighters ?? 0;
+  }, [raid?.fighters]);
 
   const wave = raid?.wave ?? null;
   const flush = useCallback(async () => {
@@ -236,6 +280,10 @@ export function useRaid(
         }
         if (result === "ok" || result === "defeated") {
           queue.current -= 1;
+          if (myHitsRef.current === 0 && !joined.current.has(id)) {
+            joined.current.add(id);
+            track("raid_join", { wave, fighters: fightersRef.current + 1 });
+          }
         } else {
           // 쓰러졌거나, 도망갔거나, 내 몫을 다 쳤거나, 닿지 못했다. 남은 방은 버린다.
           queue.current = 0;
