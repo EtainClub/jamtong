@@ -285,7 +285,7 @@ service cloud.firestore {
      * 공개 정원과 놀러 가기 (docs/garden-game.md §3.10).
      *
      * gardens/{공개id}           주인이 직접 켠 정원의 모습. 누구나 읽는다.
-     *                            정원 이름·텃밭·도감 수만 담는다. 본명은 없다.
+     *                            정원 이름·텃밭·도감 수·칭호 단계만 담는다. 본명은 없다.
      *   └ waters/{방문자 uid}    그 정원에 물을 준 날. 주인과 그 방문자만 읽는다.
      *
      * 공개 id는 uid가 아니다 — 링크가 돌아도 계정을 되짚지 못하게. ownerUid는 규칙이
@@ -375,7 +375,7 @@ service cloud.firestore {
 
     function publicGarden() {
       let d = request.resource.data;
-      return d.keys().hasOnly(['ownerUid', 'nick', 'beds', 'dex', 'golden', 'rainbow', 'updatedAt'])
+      return d.keys().hasOnly(['ownerUid', 'nick', 'beds', 'dex', 'golden', 'rainbow', 'titles', 'updatedAt'])
         && d.nick is string
         && d.nick.size() >= 1
         && d.nick.size() <= 12
@@ -384,7 +384,17 @@ service cloud.firestore {
         && d.dex is int && d.dex >= 0 && d.dex <= 5000
         && d.golden is int && d.golden >= 0 && d.golden <= 5000
         && d.rainbow is int && d.rainbow >= 0 && d.rainbow <= 5000
+        && (!('titles' in d) || publicTitles(d.titles))
         && d.updatedAt == request.time;
+    }
+
+    // 칭호 단계(0~3)만. 이름은 화면이 정해 둔 표에서 읽는다 — 사람이 지은 글이 아니다.
+    function publicTitles(t) {
+      return t is map
+        && t.keys().hasOnly(['dex', 'storm', 'plaza'])
+        && t.get('dex', 0) is int && t.get('dex', 0) >= 0 && t.get('dex', 0) <= 3
+        && t.get('storm', 0) is int && t.get('storm', 0) >= 0 && t.get('storm', 0) <= 3
+        && t.get('plaza', 0) is int && t.get('plaza', 0) >= 0 && t.get('plaza', 0) <= 3;
     }
 
     match /plazaRaids/{raidId} {

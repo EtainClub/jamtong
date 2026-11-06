@@ -887,6 +887,84 @@ export function canAcceptInvite(
   return INVITE_CODE.test(code) && Object.keys(d.dex).length === 0 && d.invite.by === null && d.invite.code !== code;
 }
 
+// ── 칭호 ────────────────────────────────────────────────────────────
+
+/**
+ * 칭호 (docs/garden-game.md §3.10). 정원에 이미 적힌 기록에서 셈한다 — 따로 모으는 장부가 없어
+ * 예전에 한 것도 저절로 쳐 준다. 내 정원과 공개한 정원에만 보인다. 순위표는 없다(§1).
+ *
+ * ★ 공개 정원에는 단계 숫자만 싣는다. 이름은 보는 쪽이 이 표에서 읽는다 — 사람이 지은 글이 아니다.
+ * ★ 꽃밭의 "정원지기"(업적마다 가장 많이 가꾼 사람)와 겹치지 않게, 광장 칭호는 잡초 사냥꾼이다.
+ */
+export type TitleId = "dex" | "storm" | "plaza";
+
+export const TITLE_ORDER: TitleId[] = ["dex", "storm", "plaza"];
+
+export const TITLES: Record<TitleId, { icon: string; name: string; what: string; unit: string; steps: [number, number, number] }> = {
+  dex: { icon: "📖", name: "품종학자", what: "도감에 모은 품종", unit: "종", steps: [10, 40, 100] },
+  storm: { icon: "⛈", name: "폭풍추적자", what: "도감에 모은 촉촉·반짝 변이", unit: "칸", steps: [3, 15, 40] },
+  plaza: { icon: "🪓", name: "잡초 사냥꾼", what: "함께 쓰러뜨린 거대 잡초", unit: "마리", steps: [1, 5, 20] },
+};
+
+export const TITLE_MAX = 3;
+
+/** 칭호마다 센 값. 도감(품종 → 본 변이)과 받은 거대 잡초 상자에서 나온다. */
+export function titleCounts(d: { dex: Record<string, readonly string[]>; raids: readonly number[] }): Record<TitleId, number> {
+  const seen = Object.values(d.dex);
+  return {
+    dex: seen.length,
+    storm: seen.reduce((n, m) => n + (m.includes("moist") ? 1 : 0) + (m.includes("sparkle") ? 1 : 0), 0),
+    plaza: d.raids.length,
+  };
+}
+
+/** 단계. 0=아직, 1~3=★ 수. */
+export function titleLevel(id: TitleId, count: number): number {
+  return TITLES[id].steps.filter((s) => count >= s).length;
+}
+
+export function titleLevels(d: Parameters<typeof titleCounts>[0]): Record<TitleId, number> {
+  const c = titleCounts(d);
+  return { dex: titleLevel("dex", c.dex), storm: titleLevel("storm", c.storm), plaza: titleLevel("plaza", c.plaza) };
+}
+
+/** 다음 단계까지 남은 수. 다 올랐으면 null. */
+export function titleNext(id: TitleId, count: number): number | null {
+  const step = TITLES[id].steps.find((s) => count < s);
+  return step === undefined ? null : step - count;
+}
+
+export function titleLabel(id: TitleId, level: number): string {
+  return `${TITLES[id].icon} ${TITLES[id].name} ${"★".repeat(Math.min(level, TITLE_MAX))}`;
+}
+
+// ── 익음 알림 ───────────────────────────────────────────────────────
+
+/**
+ * 다 익는 때를 캘린더에 넣는다(§3.6). 서버가 보내는 알림이 아니라 내 캘린더가 울린다.
+ * ★ 22시~다음 날 8시에 익으면 8시로 미룬다 — 22시 이후에는 알림을 보내지 않는다(§3.6).
+ *   열매는 익은 채로 기다린다. 시드는 일은 없다.
+ */
+export const QUIET_FROM = 22;
+export const QUIET_UNTIL = 8;
+
+export function alarmTime(ripeAt: number): number {
+  const hour = new Date(ripeAt + KST).getUTCHours();
+  if (hour >= QUIET_FROM) return kstMidnight(ripeAt) + 24 * HOUR + QUIET_UNTIL * HOUR;
+  if (hour < QUIET_UNTIL) return kstMidnight(ripeAt) + QUIET_UNTIL * HOUR;
+  return ripeAt;
+}
+
+/** 알림 카드를 띄울 만큼 먼가. 곧 익으면 기다리면 된다. */
+export const ALARM_MIN_LEAD = 15 * MINUTE;
+
+/** 한국 시각 "오후 3:42" 또는 날이 다르면 "내일 오전 8:00". */
+export function formatClock(t: number, now: number): string {
+  const clock = new Date(t).toLocaleTimeString("ko-KR", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Seoul" });
+  const days = Math.round((kstMidnight(t) - kstMidnight(now)) / (24 * HOUR));
+  return days === 0 ? clock : days === 1 ? `내일 ${clock}` : `${kstDay(t).slice(5).replace("-", "/")} ${clock}`;
+}
+
 // ── 표시 ────────────────────────────────────────────────────────────
 
 export function formatLeft(ms: number): string {

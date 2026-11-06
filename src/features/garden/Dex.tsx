@@ -6,7 +6,7 @@ import { useState } from "react";
 import { DexMap } from "./DexMap";
 import { PlantArt } from "./GardenArt";
 import { MutationChips, NoteCard } from "./parts";
-import { MUTATION, MUTATION_ORDER, TIER_LABEL } from "./rules";
+import { MUTATION, MUTATION_ORDER, TIER_LABEL, TITLE_MAX, TITLE_ORDER, TITLES, titleCounts, titleLevel, titleNext } from "./rules";
 import type { GardenData } from "./store";
 import type { Species, Tier } from "./types";
 
@@ -52,6 +52,8 @@ export function Dex({
           <p className="text-[11.5px] text-smoke">모은 쪽지</p>
         </div>
       </div>
+
+      <Titles data={data} />
 
       <div className="mt-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3 text-[12px] leading-relaxed text-smoke">
         <p className="font-semibold text-ink">변이 (확률 공개)</p>
@@ -152,5 +154,39 @@ export function Dex({
       </>
       )}
     </div>
+  );
+}
+
+/** 칭호와 다음 단계까지. 남과 견주는 순위표는 없다(§1) — 내 기록만 보인다. */
+function Titles({ data }: { data: GardenData }) {
+  const counts = titleCounts(data);
+  return (
+    <section aria-labelledby="garden-titles" className="mt-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3 text-[12px] leading-relaxed">
+      <p id="garden-titles" className="font-semibold text-ink">칭호</p>
+      <ul className="mt-1.5 space-y-1.5">
+        {TITLE_ORDER.map((id) => {
+          const t = TITLES[id];
+          const count = counts[id];
+          const level = titleLevel(id, count);
+          const next = titleNext(id, count);
+          return (
+            <li key={id} className="flex items-baseline justify-between gap-2">
+              <span className={level ? "font-semibold text-ink" : "text-smoke"}>
+                {t.icon} {t.name}{" "}
+                <span aria-label={`${level}단계`} className="tracking-tight">
+                  {"★".repeat(level)}
+                  <span className="opacity-30">{"★".repeat(TITLE_MAX - level)}</span>
+                </span>
+              </span>
+              <span className="text-right text-smoke">
+                {t.what} {count}{t.unit}
+                {next !== null ? ` · 다음 ★까지 ${next}` : " · 모두 모았어요"}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-1.5 text-[11px] text-smoke">칭호는 내 정원과 공개한 정원에만 보여요.</p>
+    </section>
   );
 }

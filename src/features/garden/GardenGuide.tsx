@@ -30,6 +30,10 @@ import {
   PLAZA_SPEED,
   PLOT_UPGRADES,
   INVITE_CAP,
+  QUIET_FROM,
+  QUIET_UNTIL,
+  TITLE_ORDER,
+  TITLES,
   RAID_BOX,
   RAID_GAP,
   RAID_HITS_PER_PERSON,
@@ -340,6 +344,14 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
               내가 보낸 정원 링크로 처음 온 친구가 첫 열매를 거두면 둘 다 희귀 씨앗 상자를 받아요(
               {RAID_BOX.odds.map((o) => `${TIER_LABEL[o.tier]} ${pct(o.p)}`).join(" · ")}). 초대한 사람은 평생 {INVITE_CAP}명까지, 초대받은 사람은 한 번.
               링크를 보낸 횟수에는 보상이 없어요.
+            </li>
+            <li>
+              칭호: {TITLE_ORDER.map((id) => `${TITLES[id].icon} ${TITLES[id].name}(${TITLES[id].what} ${TITLES[id].steps.join("·")}${TITLES[id].unit})`).join(", ")}.
+              모을수록 ★이 늘어요. 내 정원과 공개한 정원에만 보이고, 순위표는 없어요.
+            </li>
+            <li>
+              텃밭의 ‘다 익으면 알려 줄까요?’로 익는 시각을 내 캘린더에 넣을 수 있어요. 잼통이 알림을 보내지는 않아요.
+              밤 {QUIET_FROM}시~아침 {QUIET_UNTIL}시에 익으면 아침 {QUIET_UNTIL}시로 맞춰요.
             </li>
           </ul>
         </Section>

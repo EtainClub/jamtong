@@ -18,9 +18,9 @@ import { GardenGuide } from "./GardenGuide";
 import { Dex } from "./Dex";
 import { FlowerBed } from "./FlowerBed";
 import { Greenhouse } from "./Greenhouse";
-import { Toast } from "./parts";
+import { TitleChips, Toast } from "./parts";
 import { PlazaView } from "./PlazaView";
-import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, nextMeteor, nextMonsoon, nextRain, PUBLIC_ID } from "./rules";
+import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, nextMeteor, nextMonsoon, nextRain, PUBLIC_ID, TITLE_ORDER, titleLabel, titleLevels, type TitleId } from "./rules";
 import { ShareCard } from "./ShareCard";
 import { GardenShareButton } from "./GardenShareButton";
 import { takeInviteParam, useInvite } from "./invite";
@@ -227,6 +227,22 @@ export function GardenApp({
     say(given ? `🌱 「${species.title}」 씨앗을 받았어요` : "이 씨앗은 이미 받았어요");
   }, [hasData, syncing, catalog, say]);
 
+  // 칭호. 정원 기록에서 셈하므로 따로 저장하지 않는다. 계정과 맞춘 뒤의 단계를 기준으로, 오르면 알린다.
+  const dex = data?.dex;
+  const raids = data?.raids;
+  const levels = useMemo(() => (dex && raids ? titleLevels({ dex, raids }) : null), [dex, raids]);
+  const seenLevels = useRef<Record<TitleId, number> | null>(null);
+  useEffect(() => {
+    if (!levels || syncing) return;
+    const before = seenLevels.current;
+    seenLevels.current = levels;
+    const up = before && TITLE_ORDER.find((id) => levels[id] > before[id]);
+    if (!up) return;
+    track("title_up", { title: up, level: levels[up] });
+    gardenFeedback("reward");
+    say(`🏅 새 칭호 · ${titleLabel(up, levels[up])}`);
+  }, [levels, syncing, say]);
+
   useShare(uid, !syncing, now, say);
   useInvite(uid, hasData && !syncing, inviteIn, catalog, say);
 
@@ -242,7 +258,7 @@ export function GardenApp({
     <div className={`${styles.game} garden -mx-4 min-h-[70vh] rounded-t-3xl px-4 pb-10 pt-4 text-ink`}>
       <header className="garden-world-header">
         <GardenScenery raining={isRaining(now)} />
-        <div className="garden-world-title"><span className="garden-eyebrow">JAMTONG GARDEN</span><h1>잼통 정원</h1><p>{data.nick}의 작은 초록 세상</p></div>
+        <div className="garden-world-title"><span className="garden-eyebrow">JAMTONG GARDEN</span><h1>잼통 정원</h1><p>{data.nick}의 작은 초록 세상</p><TitleChips levels={levels ?? undefined} className="mt-1.5" /></div>
         <div className="garden-top-actions">
           <GardenShareButton
             nick={data.nick}

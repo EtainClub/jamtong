@@ -949,6 +949,9 @@ async function visitChecks(uid: string, adminDb: Awaited<ReturnType<typeof openA
   await expectDenied("정원 이름 13자", () => setDoc(gardenRef(), garden({ nick: "가".repeat(13) })));
   await expectDenied("밭 13칸", () => setDoc(gardenRef(), garden({ beds: Array(13).fill(null) })));
   await expectDenied("잼까지 담기", () => setDoc(gardenRef(), garden({ jam: 999 })));
+  await expectDenied("칭호에 글 담기", () => setDoc(gardenRef(), garden({ titles: { dex: "품종학자" } })));
+  await expectDenied("칭호 4단계", () => setDoc(gardenRef(), garden({ titles: { dex: 4 } })));
+  await expectDenied("없는 칭호", () => setDoc(gardenRef(), garden({ titles: { king: 1 } })));
 
   if (!adminDb) {
     console.log("  공개 정원 통과 검사는 건너뛴다 (sa.json 없음 — 물 표식은 지울 수 없어 치우지 못한다)");
@@ -967,6 +970,7 @@ async function visitChecks(uid: string, adminDb: Awaited<ReturnType<typeof openA
 
   try {
     await expectAllowed("제 정원 공개하기", () => setDoc(gardenRef(), garden()));
+    await expectAllowed("칭호 단계와 함께 공개하기", () => setDoc(gardenRef(), garden({ titles: { dex: 2, storm: 0, plaza: 3 } })));
     await expectAllowed("누구나 공개 정원 읽기", () => getDoc(gardenRef(db2)));
     await expectDenied("남이 공개 정원 고치기", () => setDoc(gardenRef(db2), garden({ ownerUid: uid2 })));
     await expectDenied("남이 공개 정원 지우기", () => deleteDoc(gardenRef(db2)));
