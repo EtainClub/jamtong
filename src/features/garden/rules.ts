@@ -461,6 +461,19 @@ export function raidHp(gardenersToday: number): number {
   return RAID_HP_MIN;
 }
 
+/**
+ * 맞은 수를 나눠 세는 칸(분산 카운터). plazaRaids/{id}/shards/{0..RAID_SHARDS-1}.
+ * 모두가 물결 문서 하나를 1씩 올리면 Firestore의 문서당 쓰기 한도(대략 초당 1회)에 막혀
+ * 사람이 몰릴수록 한 방이 밀린다. 사람마다 칸 하나를 정해 거기에 올리고, 합계는 칸을 더해 본다.
+ * 규칙이 쓰러뜨릴 때 칸을 모두 읽으므로 규칙의 읽기 상한(요청당 10–20)보다 작게 둔다.
+ */
+export const RAID_SHARDS = 8;
+
+/** 이 사람이 올리는 칸. 사람마다 고정이라 같은 사람의 방끼리는 겹쳐도 다른 사람과는 덜 겹친다. */
+export function raidShard(uid: string): number {
+  return hash(uid) % RAID_SHARDS;
+}
+
 /** 물결 문서 id. 규칙: ^[0-9]{5}-[1-3]$ */
 export function raidId(day: number, wave: number): string {
   return `${day}-${wave}`;

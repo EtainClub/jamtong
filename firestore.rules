@@ -219,19 +219,23 @@ service cloud.firestore {
     /*
      * 거대 잡초 — 광장이 무성해지면 나타나는 레이드 (docs/garden-game.md §3.8).
      *
-     * plazaRaids/{한국 날짜 번호}-{물결}   하루 세 마리까지. 체력(hp)·맞은 수(hits)·참여 인원(fighters).
-     *   └ fighters/{uid}                  한 사람이 이 물결에 때린 수. 본인만 읽는다.
+     * plazaRaids/{한국 날짜 번호}-{물결}   하루 세 마리까지. 체력(hp)·태어난 때·쓰러진 때.
+     *   ├ shards/{0–7}                    맞은 수(hits)·참여 인원(fighters)을 나눠 센다. 누구나 읽는다.
+     *   └ fighters/{uid}                  한 사람이 이 물결에 때린 수와 올리는 칸. 본인만 읽는다.
      *
      * 규칙이 지키는 것. 값은 src/features/garden/rules.ts의 RAID_*와 같다(rules.test.ts가 본다).
      *   1. 오늘 번호로만, 물결 1–3으로, 체력 [180, 3000]으로, 맞은 수 0에서 태어난다.
      *   2. 2·3번째 물결은 앞 물결이 끝난 뒤 2시간이 지나야 태어난다.
      *      끝남 = 쓰러졌거나(defeatedAt) 태어나고 3시간이 지나 도망갔다.
-     *   3. 한 번 칠 때마다 합계와 내 수가 같은 커밋에서 1씩 오른다. 체력을 넘지 않는다.
+     *   3. 한 번 칠 때마다 내 칸(shards/{0–7}, 표식의 shard)과 내 수가 같은 커밋에서 1씩 오른다.
+     *      맞은 수를 칸에 나눠 세는 것은 한 문서에 몰리는 쓰기를 흩기 위해서다(분산 카운터).
+     *      합계 = 물결 문서의 hits(칸 이전 화면의 몫) + 칸의 합. 쓰러지기 직전 몇 방은 체력을 넘을 수 있다.
      *   4. 한 사람은 1초에 한 번만, 한 물결에 60번까지만 친다 — 혼자 몰아 잡지 못하게.
      *      체력 하한 180 = 60 × 3명이다.
      *   5. 태어나고 3시간이 지나면 칠 수 없다(도망갔다).
-     *   6. 쓰러진 시각은 마지막 한 방에서 한 번만 찍히고, 쓰러진 뒤에는 칠 수 없다.
-     *   7. 참여 인원은 내 표식이 처음 생기는 커밋에서만 오른다.
+     *   6. 쓰러진 시각은 합계가 체력에 닿았을 때 한 번만 찍히고(규칙이 칸을 모두 읽는다),
+     *      쓰러진 뒤에는 칠 수 없다.
+     *   7. 참여 인원(칸의 fighters)은 내 표식이 처음 생기는 커밋에서만 오른다.
      * 광장이 정말 무성한지는 규칙이 보지 못한다(칸 24개를 다 읽어야 한다). 그 반칙은
      * 거대 잡초가 일찍 나오는 것뿐이라 감당한다.
      */
@@ -356,6 +360,15 @@ service cloud.firestore {
         && request.resource.data.defeatedAt == null
         && (raidWave(raidId) == 1 || raidPrevDone(raidId));
 
+      // 쓰러뜨리기: 합계(옛 몫 hits + 칸 8개)가 체력에 닿았을 때 쓰러진 시각만 한 번 찍는다.
+      allow update: if request.auth != null
+        && resource.data.defeatedAt == null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['defeatedAt'])
+        && request.resource.data.defeatedAt == request.time
+        && resource.data.hits + raidShardHits(raidId) >= resource.data.hp;
+
+      // 옛 화면의 한 방(물결 문서를 직접 1씩 올림). 칸으로 세기 전에 연 탭이 막혀 끝없이 다시
+      // 보내지 않게 남겨 둔다. 그 탭들이 사라지면 지운다.
       allow update: if request.auth != null
         && resource.data.defeatedAt == null
         && request.time < resource.data.spawnedAt + duration.value(3, 'h')
@@ -363,25 +376,80 @@ service cloud.firestore {
         && request.resource.data.hits == resource.data.hits + 1
         && request.resource.data.hits <= resource.data.hp
         && request.resource.data.defeatedAt == (request.resource.data.hits == resource.data.hp ? request.time : null)
+        && !('shard' in getAfter(raidFighter(raidId)).data)
         && getAfter(raidFighter(raidId)).data.lastAt == request.time
         && request.resource.data.fighters == resource.data.fighters + (exists(raidFighter(raidId)) ? 0 : 1);
 
       allow delete: if false;
 
+      // 맞은 수를 나눠 세는 칸. 한 방은 내 표식과 내 칸(표식의 shard)을 같은 커밋에서 1씩 올린다.
+      match /shards/{n} {
+        allow read: if true;
+        allow create: if request.auth != null
+          && n.matches('^[0-7]$')
+          && request.resource.data.keys().hasOnly(['hits', 'fighters'])
+          && getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.defeatedAt == null
+          && ((request.resource.data.hits == 0 && request.resource.data.fighters == 0)
+            || (request.resource.data.hits == 1
+              && request.resource.data.fighters == (exists(raidFighter(raidId)) ? 0 : 1)
+              && raidShardPaired(raidId, n)));
+        allow update: if request.auth != null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hits', 'fighters'])
+          && request.resource.data.hits == resource.data.hits + 1
+          && request.resource.data.fighters == resource.data.fighters + (exists(raidFighter(raidId)) ? 0 : 1)
+          && raidShardPaired(raidId, n);
+        allow delete: if false;
+      }
+
       match /fighters/{uid} {
         allow read: if request.auth != null && request.auth.uid == uid;
         allow create, update: if request.auth != null
           && request.auth.uid == uid
-          && request.resource.data.keys().hasOnly(['hits', 'lastAt'])
+          && request.resource.data.keys().hasOnly(['hits', 'lastAt', 'shard'])
           && request.resource.data.lastAt == request.time
           && request.resource.data.hits == (resource == null ? 0 : resource.data.hits) + 1
           && request.resource.data.hits <= 60
           && (resource == null || request.time > resource.data.lastAt + duration.value(1, 's'))
           && get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.defeatedAt == null
-          && getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
-            == get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits + 1;
+          && request.time < get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.spawnedAt + duration.value(3, 'h')
+          && ('shard' in request.resource.data
+            // 지금: 내 칸이 1 오르고 물결 문서는 그대로다.
+            ? request.resource.data.shard is int
+              && request.resource.data.shard >= 0
+              && request.resource.data.shard <= 7
+              && getAfter(raidShardPath(raidId, string(request.resource.data.shard))).data.hits
+                == (exists(raidShardPath(raidId, string(request.resource.data.shard)))
+                  ? get(raidShardPath(raidId, string(request.resource.data.shard))).data.hits
+                  : 0) + 1
+              && getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
+                == get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
+            // 옛 화면: 물결 문서의 합계가 1 오른다.
+            : getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
+              == get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits + 1);
         allow delete: if false;
       }
+    }
+
+    function raidShardPath(raidId, n) {
+      return /databases/$(database)/documents/plazaRaids/$(raidId)/shards/$(n);
+    }
+
+    // 이 칸을 올리는 커밋에 내 표식도 함께 올랐고, 그 표식이 이 칸을 가리킨다.
+    function raidShardPaired(raidId, n) {
+      let mine = getAfter(raidFighter(raidId)).data;
+      return mine.lastAt == request.time && 'shard' in mine && string(mine.shard) == n;
+    }
+
+    // 칸 8개의 합. 칸이 하나라도 없으면 읽기가 실패해 거절된다 — 쓰러뜨리는 커밋이 빈 칸을 함께 만든다.
+    function raidShardHits(raidId) {
+      return getAfter(raidShardPath(raidId, '0')).data.hits
+        + getAfter(raidShardPath(raidId, '1')).data.hits
+        + getAfter(raidShardPath(raidId, '2')).data.hits
+        + getAfter(raidShardPath(raidId, '3')).data.hits
+        + getAfter(raidShardPath(raidId, '4')).data.hits
+        + getAfter(raidShardPath(raidId, '5')).data.hits
+        + getAfter(raidShardPath(raidId, '6')).data.hits
+        + getAfter(raidShardPath(raidId, '7')).data.hits;
     }
 
     function raidFighter(raidId) {

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { firebaseConfigured } from "@/lib/firebase/client";
-import { spawnRaid, strikeRaid, watchMyHits, watchRaidWave, type Raid, type StrikeResult } from "@/lib/firebase/raid";
+import { finishRaid, spawnRaid, strikeRaid, watchMyHits, watchRaidWave, type Raid, type StrikeResult } from "@/lib/firebase/raid";
 
 import {
   kstDayNumber,
@@ -172,6 +172,23 @@ export function useRaid(
       });
   }, [due, uid, day, gardenersToday]);
 
+  // 합계가 체력에 닿았는데 아직 쓰러진 시각이 없으면 찍는다. 맞은 수는 칸에 나눠 세므로
+  // 마지막 한 방이 따로 찍지 못한다(raid.ts). 누가 찍어도 한 번만 찍히고, 보는 사람 누구나 시도한다.
+  const finishing = useRef<string | null>(null);
+  const full = firebaseConfigured && uid !== null && raid?.defeatedAt === null && raid.hits >= raid.hp ? raid.id : null;
+  const fullRef = useRef(false);
+  useEffect(() => {
+    fullRef.current = full !== null;
+    if (full === null || finishing.current === full) return;
+    finishing.current = full;
+    void finishRaid(full).then((mine) => {
+      // 내가 찍었고 나도 때렸으면 마지막 한 방의 기쁨을 준다. 아니면 화면이 쓰러진 모습으로 바뀔 뿐이다.
+      if (mine && myHitsRef.current > 0) onResult("defeated");
+      // 찍지 못했으면(겨루다 졌거나 막혔으면) 다음 변화에서 다시 시도한다.
+      if (!mine) finishing.current = null;
+    });
+  }, [full, onResult]);
+
   const wave = raid?.wave ?? null;
   const flush = useCallback(async () => {
     if (sending.current || wave === null) return;
@@ -179,6 +196,11 @@ export function useRaid(
     const id = raidId(day, wave);
     try {
       while (queue.current > 0) {
+        // 합계가 이미 체력에 닿았다. 쓰러진 시각이 찍히는 중이니 더 보내지 않는다.
+        if (fullRef.current) {
+          queue.current = 0;
+          break;
+        }
         let result: StrikeResult;
         if (!firebaseConfigured) {
           const cur = readLocal(day);

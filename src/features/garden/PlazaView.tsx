@@ -397,7 +397,7 @@ function RaidPanel({
       <section aria-labelledby="raid" className="garden-raid-done mt-3 rounded-2xl px-4 py-3.5">
         <h3 id="raid" className="text-[14px] font-bold">💨 {label}가 도망갔어요</h3>
         <p className="mt-0.5 text-[12px] opacity-85">
-          {r.fighters.toLocaleString()}명이 {r.hits.toLocaleString()}/{r.hp.toLocaleString()}번 때렸지만 {formatLeft(RAID_LIFE)} 안에
+          {r.fighters.toLocaleString()}명이 {Math.min(r.hits, r.hp).toLocaleString()}/{r.hp.toLocaleString()}번 때렸지만 {formatLeft(RAID_LIFE)} 안에
           쓰러뜨리지 못했어요. 적어도 {need}명이 모여야 해요.
         </p>
         <p className="mt-1 text-[12px] opacity-85">{nextLine}</p>
