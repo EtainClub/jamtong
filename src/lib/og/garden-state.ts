@@ -14,6 +14,27 @@ import type { Species } from "@/features/garden/types";
  *   아무 말이나 박히면 안 된다(api/share-card와 같은 원칙). 이름은 정원 안에서만 보인다.
  */
 
+/** 정원 카드의 색. 자랑 카드(/api/garden-card)와 정원 첫 카드(/garden)가 같이 쓴다. */
+export const GARDEN_OG = {
+  sky: "#d9eedf",
+  grass: "#a9cf7f",
+  soil: "#8b6a4a",
+  soilDark: "#6f5238",
+  leaf: "#3f8a3a",
+  ink: "#21401f",
+  muted: "#4f6b4a",
+  jam: "#c2410c",
+  cream: "#fdf8ea",
+};
+
+/** 등급마다 열매 색. 정원 화면의 열매 모양과 같은 계열. */
+export const GARDEN_FRUIT: Record<string, string> = {
+  sprout: "#6d5bd0",
+  common: "#e0573a",
+  flagship: "#e9a23b",
+  perennial: "#3f8a3a",
+};
+
 export interface GardenCard {
   gid: string;
   dex: number;

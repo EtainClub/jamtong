@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
+import { track } from "@/lib/analytics";
 import { firebaseConfigured } from "@/lib/firebase/client";
 import { publishGarden, unpublishGarden, watchWaters, type PublicGarden } from "@/lib/firebase/gardens";
 
@@ -28,6 +29,30 @@ export function publicSnapshot(data: GardenData): PublicGarden {
 /** 자랑 링크. /g/<id>는 미리보기 카드를 보여 주고 사람을 /garden?visit=<id>로 보낸다. */
 export function gardenLink(id: string): string {
   return `${window.location.origin}/g/${id}`;
+}
+
+/**
+ * 정원 링크를 건넨다. 공유 시트가 있으면 그것을, 없으면 클립보드를 쓴다.
+ * shared=시트로 보냈거나 사람이 시트를 닫았다, copied=복사했다, failed=둘 다 못 했다.
+ */
+export async function sendGardenLink(url: string, title: string, text: string): Promise<"shared" | "copied" | "failed"> {
+  track("share_create", { surface: "garden" });
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text, url });
+      return "shared";
+    } catch (error) {
+      // 사람이 시트를 닫은 것은 실패가 아니다.
+      if ((error as { name?: string }).name === "AbortError") return "shared";
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    return "copied";
+  } catch (error) {
+    console.error("[gardens] 링크를 나누지 못했다", error);
+    return "failed";
+  }
 }
 
 /** 공개를 켠 동안 바뀔 때마다 늦춰 올린다. 너무 자주 쓰지 않게 길게 늦춘다. */

@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 
-import { track } from "@/lib/analytics";
-
 import { gardenFeedback } from "./feedback";
 import { WATER_CUT, WATER_PER_DAY, kstDayNumber } from "./rules";
-import { gardenLink } from "./share";
+import { gardenLink, sendGardenLink } from "./share";
 import { useGarden, type GardenData } from "./store";
 
 /**
@@ -23,22 +21,13 @@ export function ShareCard({ data, now, say }: { data: GardenData; now: number; s
   const received = data.waters.day === today ? data.waters.received.length : 0;
   const given = data.waters.day === today ? data.waters.given.length : 0;
 
-  const share = async () => {
-    if (!id) return;
-    const url = gardenLink(id);
-    track("share_create", { surface: "garden" });
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: `${data.nick}의 잼통 정원`, text: "내 정원에 물 주러 와요 🌱", url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
+  const share = async (gid: string | null = id) => {
+    if (!gid) return;
+    const result = await sendGardenLink(gardenLink(gid), `${data.nick}의 잼통 정원`, "내 정원에 물 주러 와요 🌱");
+    if (result === "copied") {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      // 사용자가 공유 창을 닫은 것은 실패가 아니다.
-      if ((error as { name?: string }).name === "AbortError") return;
-      console.error("[gardens] 링크를 나누지 못했다", error);
+    } else if (result === "failed") {
       say("링크를 복사하지 못했어요");
     }
   };
@@ -68,6 +57,20 @@ export function ShareCard({ data, now, say }: { data: GardenData; now: number; s
         않아요. 친구가 물을 주면 둘 다 자라는 중인 포기의 남은 시간이 {Math.round(WATER_CUT * 100)}% 줄어요 (하루{" "}
         {WATER_PER_DAY}번까지).
       </p>
+
+      {!on && (
+        <button
+          type="button"
+          onClick={() => {
+            // 공개와 보내기를 한 번에. 시트는 누른 그 자리에서 열어야 한다(사용자 활성화).
+            gardenFeedback("tap");
+            void share(useGarden.getState().setShare(true));
+          }}
+          className="mt-2 rounded-full bg-[var(--g-leaf)] px-3.5 py-1.5 text-[12.5px] font-semibold text-white"
+        >
+          공개하고 내 정원 링크 보내기
+        </button>
+      )}
 
       {on && id && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
