@@ -102,6 +102,19 @@ export default function AboutPage() {
         </section>
 
         <section className="mt-8">
+          <h2 className="text-[13px] font-semibold text-smoke">이용 기록</h2>
+          <p className="mt-2.5 text-[15px] leading-relaxed text-graphite">
+            사이트가 제 역할을 하는지 보려고 구글 애널리틱스(Firebase)로 이용 기록을 셉니다.
+            페이지를 연 것과, 근거를 열었는지·공유 링크를 만들었는지·정원에서 무엇을 했는지 같은
+            동작의 횟수입니다. 이를 위해 브라우저에 쿠키가 저장됩니다.
+          </p>
+          <p className="mt-3 text-[15px] leading-relaxed text-graphite">
+            질문이나 게시판에 쓴 글, 정원 이름처럼 사람이 쓴 내용은 보내지 않습니다.
+            정치 성향을 짐작할 수 있는 집계는 하지 않습니다.
+          </p>
+        </section>
+
+        <section className="mt-8">
           <h2 className="text-[13px] font-semibold text-smoke">소스 코드</h2>
           <p className="mt-2.5 text-[15px] leading-relaxed text-graphite">
             콘텐츠와 코드가 모두 공개되어 있습니다. 무엇을 근거로 어떻게 썼는지

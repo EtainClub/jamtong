@@ -1,6 +1,6 @@
 "use client";
 
-import { doc, increment, onSnapshot, runTransaction, serverTimestamp, writeBatch } from "firebase/firestore";
+import { doc, getDoc, increment, onSnapshot, runTransaction, serverTimestamp, writeBatch } from "firebase/firestore";
 
 import { firebaseDb } from "./client";
 
@@ -28,10 +28,24 @@ export async function registerInvite(code: string, uid: string): Promise<void> {
   });
 }
 
-/** 초대받은 사람이 첫 열매를 거뒀다. ok=셌다, denied=셀 수 없는 초대(이미 받았거나 내 코드거나 없는 코드). */
+/**
+ * 초대받은 사람이 첫 열매를 거뒀다. ok=셌다, denied=셀 수 없는 초대(이미 받았거나 내 코드거나),
+ * error=지금은 셀 수 없다 — 다음에 다시 한다.
+ *
+ * ★ 초대한 사람의 코드가 아직 서버에 없으면 error다. 코드는 초대한 사람의 화면이 등록하는데,
+ *   그 등록이 실패하면(오프라인, 규칙 배포 전) 친구가 먼저 거둘 수 있다. 없는 코드에 쓰는 것도
+ *   permission-denied라 그대로 두면 denied로 끝나고 초대가 영영 사라진다(2026-11-06 실제로 있었다).
+ *   규칙상 없는 코드 문서는 누구나 읽을 수 있고 있는 문서는 주인만 읽으므로, 읽기가 되고 문서가
+ *   없으면 "아직 등록 전"이다.
+ */
 export async function joinInvite(uid: string, code: string): Promise<"ok" | "denied" | "error"> {
   const db = firebaseDb();
   if (!db) return "error";
+  try {
+    if (!(await getDoc(doc(db, "inviteCodes", code))).exists()) return "error";
+  } catch {
+    // 읽기가 거절됐다 = 남의 코드가 있다. 아래에서 센다.
+  }
   const batch = writeBatch(db);
   batch.set(doc(db, "invites", uid), { by: code, at: serverTimestamp() });
   batch.update(doc(db, "inviteCodes", code), { joined: increment(1) });

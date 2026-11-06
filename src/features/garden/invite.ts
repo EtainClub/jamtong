@@ -60,9 +60,18 @@ export function useInvite(
   const registered = invite?.registered ?? false;
   useEffect(() => {
     if (!uid || !synced || !code || registered) return;
-    registerInvite(code, uid)
-      .then(() => useGarden.getState().inviteRegistered())
-      .catch((error) => console.error("[invites] 초대 코드를 등록하지 못했다", error));
+    // 실패하면 1·2·4·8분 뒤에 다시 한다. 등록 전에 친구가 거두면 친구 쪽은 기다린다(joinInvite).
+    let tries = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const attempt = () =>
+      registerInvite(code, uid)
+        .then(() => useGarden.getState().inviteRegistered())
+        .catch((error) => {
+          console.error("[invites] 초대 코드를 등록하지 못했다", error);
+          if (tries < 4) timer = setTimeout(attempt, 60_000 * 2 ** tries++);
+        });
+    void attempt();
+    return () => clearTimeout(timer);
   }, [uid, synced, code, registered]);
 
   // 초대받은 사람: 첫 열매를 거두면 센다. 세어졌을 때만 상자를 받는다 — 둘의 장부가 어긋나지 않게.
@@ -74,7 +83,7 @@ export function useInvite(
     joining.current = true;
     void joinInvite(uid, by).then((result) => {
       joining.current = false;
-      if (result === "error") return; // 닿지 못했다. 다음에 다시.
+      if (result === "error") return; // 닿지 못했거나 초대한 사람의 코드가 아직 등록 전이다. 다음에 다시.
       const species = useGarden.getState().finishInvite(result === "ok" ? { key: `${by}:${uid}`, catalog } : null);
       if (result !== "ok") return;
       track("invite_join");
