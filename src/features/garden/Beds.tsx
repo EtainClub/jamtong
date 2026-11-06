@@ -8,7 +8,8 @@ import { track } from "@/lib/analytics";
 import { GroundDetails, PlantArt } from "./GardenArt";
 import { gardenFeedback } from "./feedback";
 import { MutationChips, NoteCard } from "./parts";
-import { CARE, caresFor, fruitIcon, fruitValue, formatLeft, growMinutes, kstDay, MINUTE, SHINE_PER_DAY, TIER_LABEL, fertilizerCut, TOOL_ORDER, TOOLS, type ToolId } from "./rules";
+import { googleCalendarLink } from "./alarm";
+import { ALARM_MIN_LEAD, alarmTime, CARE, caresFor, formatClock, fruitIcon, fruitValue, formatLeft, growMinutes, HOUR, kstDay, MINUTE, SHINE_PER_DAY, TIER_LABEL, fertilizerCut, TOOL_ORDER, TOOLS, type ToolId } from "./rules";
 import { useGarden, type GardenData } from "./store";
 import type { Plant, PlazaLevel, Species } from "./types";
 import type { CareOutcome } from "./useBlooms";
@@ -155,6 +156,8 @@ export function Beds({
         </ul>
         <p className="garden-field-hint">{ripe.length ? `✦ ${ripe.length}칸이 다 자랐어요! 열매를 눌러 수확하세요` : data.beds.some((bed) => bed === null) ? "빈 흙밭을 눌러 씨앗을 심어 보세요" : "쑥쑥 자라는 중 · 작물을 누르면 자세히 볼 수 있어요"}</p>
       </div>
+
+      <RipeAlarm beds={data.beds} now={now} />
 
       {selected !== null && data.beds[selected] && (
         <BedDetail
@@ -397,5 +400,68 @@ function SeedSheet({
         )}
       </div>
     </dialog>
+  );
+}
+
+/**
+ * 익음 알림 — 다음 열매가 익는 때를 내 캘린더에 넣는다(rules.ts의 alarmTime, alarm.ts).
+ * 서버가 보내는 알림이 아니다. 하루 두 번 돌아오게 하는 약속을 사람이 직접 잡는다.
+ * 곧 익거나 이미 익은 것이 있으면 띄우지 않는다.
+ */
+function RipeAlarm({ beds, now }: { beds: Array<Plant | null>; now: number }) {
+  const [open, setOpen] = useState(false);
+  const growing = beds.filter((p): p is Plant => p !== null && p.ripeAt > now);
+  if (growing.length === 0 || beds.some((p) => p && p.ripeAt <= now)) return null;
+  const first = Math.min(...growing.map((p) => p.ripeAt));
+  if (first - now < ALARM_MIN_LEAD) return null;
+  const last = Math.max(...growing.map((p) => p.ripeAt));
+  // 분 단위로 맞춘다. 같은 시각이면 캘린더가 같은 일정으로 본다.
+  const quiet = alarmTime(first) !== first;
+  const at = Math.ceil(alarmTime(first) / MINUTE) * MINUTE;
+  const go = (via: "ics" | "google") =>
+    track("ripe_alarm", { via, hours: Math.round((at - now) / HOUR), quiet });
+
+  return (
+    <div className="mt-3 rounded-2xl bg-[var(--g-panel)] px-4 py-3 text-[13px]">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => { gardenFeedback("tap"); setOpen(!open); }}
+        className="flex w-full items-center justify-between gap-2 text-left font-semibold"
+      >
+        <span>⏰ 다 익으면 알려 줄까요? · {formatClock(first, now)}</span>
+        <span aria-hidden="true" className="text-smoke">{open ? "▴" : "▾"}</span>
+      </button>
+      {open && (
+        <div className="mt-2">
+          <p className="text-graphite">
+            첫 열매 {formatClock(first, now)}
+            {last !== first && ` · 모두 ${formatClock(last, now)}`}
+            {quiet && ` · 밤에는 울리지 않게 ${formatClock(at, now)}에 알려요`}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <a
+              href={`/api/garden-alarm?at=${at}`}
+              onClick={() => go("ics")}
+              className="rounded-full bg-ink px-3.5 py-1.5 font-semibold text-eggshell"
+            >
+              📅 휴대폰 캘린더에 넣기
+            </a>
+            <a
+              href={googleCalendarLink(at, `${window.location.origin}/garden`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => go("google")}
+              className="rounded-full bg-white px-3.5 py-1.5 font-semibold text-graphite ring-1 ring-black/10"
+            >
+              구글 캘린더
+            </a>
+          </div>
+          <p className="mt-2 text-[11.5px] text-smoke">
+            내 캘린더가 울려요. 잼통은 알림을 보내지 않아요. 물이나 비료로 당겨지면 그보다 일찍 익어요.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }

@@ -81,7 +81,11 @@ export type AnalyticsEvent =
   | "invite_join"
   | "raid_spawn"
   | "raid_join"
-  | "raid_end";
+  | "raid_end"
+  /** 익음 알림을 캘린더에 넣으러 갔다. via: ics | google, hours(알림까지 남은 시간, 반올림), quiet(밤이라 8시로 미뤘다). */
+  | "ripe_alarm"
+  /** 칭호 단계가 올랐다. title(dex|storm|plaza), level(1~3). */
+  | "title_up";
 
 type Params = Record<string, string | number | boolean>;
 

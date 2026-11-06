@@ -6,7 +6,7 @@ import { track } from "@/lib/analytics";
 import { firebaseConfigured } from "@/lib/firebase/client";
 import { publishGarden, unpublishGarden, watchWaters, type PublicGarden } from "@/lib/firebase/gardens";
 
-import { kstDayNumber } from "./rules";
+import { kstDayNumber, titleLevels } from "./rules";
 import { useGarden, type GardenData } from "./store";
 
 /**
@@ -23,6 +23,7 @@ export function publicSnapshot(data: GardenData): PublicGarden {
     dex: Object.keys(data.dex).length,
     golden: seen.filter((m) => m.includes("golden")).length,
     rainbow: seen.filter((m) => m.includes("rainbow")).length,
+    titles: titleLevels(data),
   };
 }
 

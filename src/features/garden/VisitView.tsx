@@ -8,6 +8,7 @@ import { loadPublicGarden, waterGarden, type PublicGarden } from "@/lib/firebase
 
 import { PlantArt } from "./GardenArt";
 import { gardenFeedback } from "./feedback";
+import { TitleChips } from "./parts";
 import { formatLeft, TIER_LABEL, WATER_CUT, WATER_PER_DAY } from "./rules";
 import { useGarden } from "./store";
 import type { Species } from "./types";
@@ -115,6 +116,7 @@ export function VisitView({
     <div>
       <p className="text-[11px] font-semibold tracking-wide text-smoke">놀러 온 정원</p>
       <h2 className="mt-0.5 text-[18px] font-bold">{garden.nick || "이름 없는"}의 정원</h2>
+      <TitleChips levels={garden.titles} className="mt-1.5" />
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
         <Stat value={garden.dex} label="도감" />
         <Stat value={garden.golden} label="황금 변이" />

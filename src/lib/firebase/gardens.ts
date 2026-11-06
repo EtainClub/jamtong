@@ -39,6 +39,8 @@ export interface PublicGarden {
   dex: number;
   golden: number;
   rainbow: number;
+  /** 칭호 단계(0~3). 이름은 보는 쪽이 features/garden/rules.ts의 TITLES에서 읽는다. 옛 문서에는 없다. */
+  titles?: Partial<Record<"dex" | "storm" | "plaza", number>>;
 }
 
 export async function publishGarden(gid: string, uid: string, garden: PublicGarden): Promise<void> {
@@ -69,6 +71,7 @@ export async function loadPublicGarden(
     dex: Number(d.dex) || 0,
     golden: Number(d.golden) || 0,
     rainbow: Number(d.rainbow) || 0,
+    titles: toTitles(d.titles),
   };
   const mine = Boolean(uid && d.ownerUid === uid);
   let wateredToday = false;
@@ -77,6 +80,17 @@ export async function loadPublicGarden(
     wateredToday = w.exists() && w.get("day") === todayNumber();
   }
   return { garden, mine, wateredToday };
+}
+
+function toTitles(raw: unknown): PublicGarden["titles"] {
+  if (!raw || typeof raw !== "object") return {};
+  const t = raw as Record<string, unknown>;
+  const out: NonNullable<PublicGarden["titles"]> = {};
+  for (const k of ["dex", "storm", "plaza"] as const) {
+    const v = t[k];
+    if (typeof v === "number" && Number.isInteger(v) && v >= 1 && v <= 3) out[k] = v;
+  }
+  return out;
 }
 
 /** 아무 값이나 담길 수 있는 문서다. 모양이 맞는 칸만 받는다. */

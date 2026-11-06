@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { MUTATION, MUTATION_ORDER } from "./rules";
+import { MUTATION, MUTATION_ORDER, TITLE_ORDER, TITLES, titleLabel, type TitleId } from "./rules";
 import type { Mutation, Note, NoteKind } from "./types";
 
 /**
@@ -106,5 +106,24 @@ export function Toast({ text }: { text: string | null }) {
     >
       {text}
     </div>
+  );
+}
+
+/** 칭호 명패. 단계가 0인 것은 그리지 않는다. 이름은 정해 둔 표에서만 온다(rules.ts의 TITLES). */
+export function TitleChips({ levels, className = "" }: { levels: Partial<Record<TitleId, number>> | undefined; className?: string }) {
+  const earned = TITLE_ORDER.filter((id) => (levels?.[id] ?? 0) > 0);
+  if (earned.length === 0) return null;
+  return (
+    <ul className={`flex flex-wrap gap-1 ${className}`} aria-label="칭호">
+      {earned.map((id) => (
+        <li
+          key={id}
+          title={TITLES[id].what}
+          className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-semibold text-[#2e5c37] ring-1 ring-[#2e5c37]/15"
+        >
+          {titleLabel(id, levels?.[id] ?? 0)}
+        </li>
+      ))}
+    </ul>
   );
 }
