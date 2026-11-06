@@ -15,6 +15,7 @@
     "garden:test": "tsx --test src/features/garden/rules.test.ts src/features/garden/coach.test.ts src/features/garden/raid.test.ts src/features/garden/invite.test.ts src/features/garden/titles.test.ts",
     "garden:arrivals": "tsx scripts/garden-arrivals.ts",
     "garden:leaves": "tsx scripts/garden-leaves.ts",
+    "garden:stats": "tsx scripts/garden-stats.ts",
     "wiki:ingest": "tsx scripts/wiki-ingest.ts",
     "wiki:lint": "tsx scripts/wiki-lint.ts",
     "policies:tongtong": "tsx scripts/import-tongtong.ts",

@@ -536,6 +536,10 @@ async function inviteChecks(uid: string, adminDb: Awaited<ReturnType<typeof open
   await expectDenied("남의 uid로 코드 만들기", () => setDoc(codeRef(MINE), { uid: "somebody-else", joined: 0 }));
   await expectDenied("joined 5로 코드 만들기", () => setDoc(codeRef(MINE), { uid, joined: 5 }));
   await expectDenied("모양이 다른 코드(공개 id 꼴) 만들기", () => setDoc(codeRef("gabcdefghij"), { uid, joined: 0 }));
+  // joinInvite가 "아직 등록 전인 코드"를 가려내는 길이다. 막히면 친구가 기다리지 못하고 초대가 사라진다.
+  const missing = await getDoc(codeRef("izzprobe404")).catch(() => null);
+  if (missing && !missing.exists()) ok("없는 코드 읽기 — 등록 전인지 알 수 있다");
+  else bad("없는 코드를 읽지 못했다. joinInvite가 등록 전 코드를 가려내지 못한다");
 
   if (!adminDb) {
     console.log("  초대 통과 검사는 건너뛴다 (sa.json 없음)");

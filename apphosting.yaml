@@ -84,6 +84,13 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  # 계측(src/lib/analytics.ts). 없으면 계측 모듈도 쿠키도 없다 — 이게 빠져 있어서
+  # 2026-11-06까지 배포본의 이벤트가 하나도 모이지 않았다. 이용 기록 안내는 /about에 있다.
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: G-29CGWKP76C
+    availability:
+      - BUILD
+      - RUNTIME
   - variable: NAVER_SITE_VERIFICATION
     value: fae9f8c2b7f41b920d7c5e324c097a37e6f3dfd4
     availability:
