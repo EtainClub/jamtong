@@ -11,6 +11,10 @@ import {
   NICK_MAX,
   kstDay,
   newPublicId,
+  newInviteCode,
+  openInviteBox,
+  invitePending,
+  canAcceptInvite,
   TRAIL_PER_DAY,
   openRaidBox,
   RAID_BOX,
@@ -100,6 +104,12 @@ export interface GardenData {
   /** 첫 한 바퀴 코치와 탭 첫 방문 팁(coach.ts). 기기를 옮겨도 다시 뜨지 않게 정원과 함께 간다. */
   coach: CoachData;
   /**
+   * 초대 씨앗(rules.ts). code=내 초대 코드(처음 보낼 때 만든다), registered=서버에 등록했다,
+   * by=나를 초대한 코드, done=초대받은 몫을 끝냈다(받았거나 받을 수 없었다),
+   * claimed=초대한 친구 몫으로 받은 상자 수.
+   */
+  invite: { code: string | null; registered: boolean; by: string | null; done: boolean; claimed: number };
+  /**
    * 이 정원을 마지막으로 맞춘 계정. 없으면 아직 어느 계정과도 맞춘 적 없는
    * 이 기기만의 정원이다. updatedAt만으로 고르면 새 기기에서 갓 만든 빈 정원이
    * "더 새것"이 되어 계정에 쌓인 정원을 덮는다 — 그래서 주인부터 본다.
@@ -112,6 +122,8 @@ export interface GardenData {
 export type LinkResult = "remote" | "local";
 
 const STORAGE_KEY = "jamtong-garden-v1";
+
+const NO_INVITE: GardenData["invite"] = { code: null, registered: false, by: null, done: false, claimed: 0 };
 
 function fresh(catalog: Species[]): GardenData {
   const roll = rng(Date.now() >>> 0);
@@ -151,6 +163,7 @@ function fresh(catalog: Species[]): GardenData {
     trails: { taken: [], day: "", count: 0 },
     coach: initialCoach(),
     tools: { have: {}, day: "", bought: {} },
+    invite: NO_INVITE,
     updatedAt: Date.now(),
   };
 }
@@ -171,6 +184,7 @@ function normalize(data: GardenData): GardenData {
     trails: data.trails ?? { taken: [], day: "", count: 0 },
     coach: normalizeCoach(data.coach),
     tools: data.tools ?? { have: {}, day: "", bought: {} },
+    invite: data.invite ?? NO_INVITE,
   };
 }
 
@@ -273,6 +287,16 @@ interface GardenState {
   endCoach: () => void;
   /** 탭 첫 방문 팁을 닫았다. */
   seeTip: (tab: TipTab) => void;
+  /** 내 초대 코드. 없으면 만든다. */
+  inviteCode: () => string | null;
+  /** 내 초대 코드를 서버에 등록했다. */
+  inviteRegistered: () => void;
+  /** 초대 링크로 왔다. 새 정원일 때만 받아들인다(rules.ts의 canAcceptInvite). */
+  acceptInvite: (code: string) => boolean;
+  /** 초대받은 몫을 끝낸다. reward면 상자를 연다(key가 같으면 같은 씨앗). */
+  finishInvite: (reward: { key: string; catalog: Species[] } | null) => Species | undefined | null;
+  /** 첫 열매를 거둔 친구 수를 보고, 아직 받지 않은 상자를 연다(평생 INVITE_CAP까지). */
+  claimInvites: (joined: number, catalog: Species[]) => Array<Species | undefined>;
 }
 
 function marked(coach: CoachData, mark: CoachMark): CoachData {
@@ -659,6 +683,48 @@ export const useGarden = create<GardenState>((set, get) => {
       if (!d || d.gifts.includes(species.id)) return false;
       commit({ ...d, seeds: give(d.seeds, species.id), gifts: [...d.gifts, species.id] });
       return true;
+    },
+
+    inviteCode: () => {
+      const d = get().data;
+      if (!d) return null;
+      if (d.invite.code) return d.invite.code;
+      const code = newInviteCode();
+      commit({ ...d, invite: { ...d.invite, code, registered: false } });
+      return code;
+    },
+
+    inviteRegistered: () => {
+      const d = get().data;
+      if (!d || d.invite.registered) return;
+      commit({ ...d, invite: { ...d.invite, registered: true } });
+    },
+
+    acceptInvite: (code) => {
+      const d = get().data;
+      if (!d || !canAcceptInvite(d, code)) return false;
+      commit({ ...d, invite: { ...d.invite, by: code, done: false } });
+      return true;
+    },
+
+    finishInvite: (reward) => {
+      const d = get().data;
+      if (!d || !d.invite.by || d.invite.done) return null;
+      const species = reward ? openInviteBox(reward.key, reward.catalog) : undefined;
+      commit({ ...d, seeds: species ? give(d.seeds, species.id) : d.seeds, invite: { ...d.invite, done: true } });
+      return species;
+    },
+
+    claimInvites: (joined, catalog) => {
+      const d = get().data;
+      if (!d || !d.invite.code) return [];
+      const n = invitePending(joined, d.invite.claimed);
+      if (n === 0) return [];
+      const boxes = Array.from({ length: n }, (_, i) => openInviteBox(`${d.invite.code}:${d.invite.claimed + i + 1}`, catalog));
+      let seeds = d.seeds;
+      for (const b of boxes) if (b) seeds = give(seeds, b.id);
+      commit({ ...d, seeds, invite: { ...d.invite, claimed: d.invite.claimed + n } });
+      return boxes;
     },
 
     endCoach: () => {

@@ -75,6 +75,10 @@ export type AnalyticsEvent =
    *   hits, hp, minutes(태어나서 끝날 때까지), mine(내가 때린 수).
    * 한 방마다 세지 않는다. 때린 수는 raid_end의 mine과 hits로 충분하다.
    */
+  /** 초대 링크로 와서 초대를 받아들였다(새 정원일 때만). */
+  | "invite_accept"
+  /** 초대받은 사람이 첫 열매를 거둬 초대가 세어졌다. 초대한 사람도 상자를 받는다. */
+  | "invite_join"
   | "raid_spawn"
   | "raid_join"
   | "raid_end";

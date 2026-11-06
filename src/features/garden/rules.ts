@@ -847,6 +847,46 @@ export function defaultNick(seed: string): string {
 
 export const NICK_MAX = 12;
 
+// ── 초대 씨앗 ───────────────────────────────────────────────────────
+
+/**
+ * 초대 씨앗 (docs/garden-game.md §3.10). 초대 링크로 온 사람이 첫 열매를 거두면
+ * 둘 다 희귀 씨앗 상자를 하나씩 받는다.
+ *
+ * ★ 보상은 링크를 보낸 횟수가 아니라 친구가 실제로 거둔 것에 건다(§1).
+ * ★ 초대한 사람은 평생 INVITE_CAP명까지만 받는다. 익명 계정을 여럿 만들어 자기를
+ *   초대하는 반칙의 끝을 정해 둔다. 초대받은 사람은 평생 한 번이다(규칙).
+ * ★ 초대 코드는 공개 id와 따로다. 정원을 공개하지 않아도 초대할 수 있다.
+ */
+export const INVITE_CAP = 10;
+export const INVITE_CODE = /^i[0-9a-z]{10}$/;
+
+export function newInviteCode(random: () => number = Math.random): string {
+  const chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+  return `i${Array.from({ length: 10 }, () => chars[Math.floor(random() * chars.length)]).join("")}`;
+}
+
+/** 초대 상자. 거대 잡초 상자와 같은 확률이다(대표 80% · 다년생 20%). key가 같으면 같은 씨앗. */
+export function openInviteBox(key: string, catalog: Species[]): Species | undefined {
+  return openBox(`invite:${key}`, catalog);
+}
+
+/** 초대한 사람이 지금 더 받을 상자 수. joined=첫 열매를 거둔 친구 수, claimed=이미 받은 수. */
+export function invitePending(joined: number, claimed: number): number {
+  return Math.max(0, Math.min(joined, INVITE_CAP) - claimed);
+}
+
+/**
+ * 초대를 받아들일 수 있는 정원인가. 아직 아무것도 거두지 않은 새 정원이고, 다른 초대를
+ * 받은 적 없고, 내 코드가 아니어야 한다.
+ */
+export function canAcceptInvite(
+  d: { dex: Record<string, unknown>; invite: { code: string | null; by: string | null } },
+  code: string,
+): boolean {
+  return INVITE_CODE.test(code) && Object.keys(d.dex).length === 0 && d.invite.by === null && d.invite.code !== code;
+}
+
 // ── 표시 ────────────────────────────────────────────────────────────
 
 export function formatLeft(ms: number): string {
