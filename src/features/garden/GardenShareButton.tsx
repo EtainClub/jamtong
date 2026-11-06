@@ -6,6 +6,7 @@ import { KakaoShareButton } from "@/features/app/KakaoShareButton";
 import { firebaseConfigured } from "@/lib/firebase/client";
 
 import { gardenFeedback } from "./feedback";
+import { withInvite } from "./invite";
 import { gardenLink, sendGardenLink } from "./share";
 
 /**
@@ -38,9 +39,10 @@ export function GardenShareButton({
   const [copied, setCopied] = useState(false);
 
   const target = (): string | null => {
-    if (visit) return gardenLink(visit);
+    // 내 초대 코드를 붙인다. 링크로 온 새 사람이 첫 열매를 거두면 둘 다 씨앗을 받는다.
+    if (visit) return withInvite(gardenLink(visit), "i");
     if (!firebaseConfigured) return `${window.location.origin}/garden`;
-    return shareOn && shareId ? gardenLink(shareId) : null;
+    return shareOn && shareId ? withInvite(gardenLink(shareId), "i") : null;
   };
   const ready = Boolean(visit) || !firebaseConfigured || (shareOn && Boolean(shareId));
 

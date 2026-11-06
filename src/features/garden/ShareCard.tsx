@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 import { gardenFeedback } from "./feedback";
-import { WATER_CUT, WATER_PER_DAY, kstDayNumber } from "./rules";
+import { INVITE_CAP, WATER_CUT, WATER_PER_DAY, kstDayNumber } from "./rules";
+import { withInvite } from "./invite";
 import { gardenLink, sendGardenLink } from "./share";
 import { useGarden, type GardenData } from "./store";
 
@@ -23,7 +24,7 @@ export function ShareCard({ data, now, say }: { data: GardenData; now: number; s
 
   const share = async (gid: string | null = id) => {
     if (!gid) return;
-    const result = await sendGardenLink(gardenLink(gid), `${data.nick}의 잼통 정원`, "내 정원에 물 주러 와요 🌱");
+    const result = await sendGardenLink(withInvite(gardenLink(gid), "i"), `${data.nick}의 잼통 정원`, "내 정원에 물 주러 와요 🌱");
     if (result === "copied") {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -56,6 +57,10 @@ export function ShareCard({ data, now, say }: { data: GardenData; now: number; s
         공개하면 링크를 받은 사람이 정원 이름 「{data.nick}」, 텃밭, 도감 수를 볼 수 있어요. 잼·씨앗·쪽지는 보이지
         않아요. 친구가 물을 주면 둘 다 자라는 중인 포기의 남은 시간이 {Math.round(WATER_CUT * 100)}% 줄어요 (하루{" "}
         {WATER_PER_DAY}번까지).
+      </p>
+      <p className="mt-1 text-[11.5px] leading-relaxed text-smoke">
+        💌 링크로 처음 온 친구가 첫 열매를 거두면 둘 다 희귀 씨앗을 받아요 (평생 {INVITE_CAP}명까지
+        {data.invite.claimed > 0 ? ` · 지금까지 ${data.invite.claimed}명` : ""}).
       </p>
 
       {!on && (

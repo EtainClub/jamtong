@@ -29,6 +29,7 @@ import {
   PLAZA_LABEL,
   PLAZA_SPEED,
   PLOT_UPGRADES,
+  INVITE_CAP,
   RAID_BOX,
   RAID_GAP,
   RAID_HITS_PER_PERSON,
@@ -334,6 +335,11 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
             <li>
               친구 정원에 물을 주면 친구 텃밭과 내 텃밭의 자라는 작물이 남은 시간을 {pct(WATER_CUT)}씩 덜어요. 한 정원에 하루
               한 번, 하루 {WATER_PER_DAY}곳까지.
+            </li>
+            <li>
+              내가 보낸 정원 링크로 처음 온 친구가 첫 열매를 거두면 둘 다 희귀 씨앗 상자를 받아요(
+              {RAID_BOX.odds.map((o) => `${TIER_LABEL[o.tier]} ${pct(o.p)}`).join(" · ")}). 초대한 사람은 평생 {INVITE_CAP}명까지, 초대받은 사람은 한 번.
+              링크를 보낸 횟수에는 보상이 없어요.
             </li>
           </ul>
         </Section>

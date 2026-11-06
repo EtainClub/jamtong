@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { GardenLanding } from "@/features/garden/GardenLanding";
+import { INVITE_CODE } from "@/features/garden/rules";
 import { gardenSummary, loadGardenCard } from "@/lib/og/garden-state";
 
 /**
@@ -38,11 +39,18 @@ export async function generateMetadata({ params }: { params: Promise<{ gid: stri
   };
 }
 
-export default async function GardenLinkPage({ params }: { params: Promise<{ gid: string }> }) {
-  const { gid } = await params;
+export default async function GardenLinkPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ gid: string }>;
+  searchParams: Promise<{ i?: string }>;
+}) {
+  const [{ gid }, { i }] = await Promise.all([params, searchParams]);
   const card = await loadGardenCard(gid);
   if (!card) notFound();
-  const href = `/garden?visit=${gid}`;
+  // 보낸 사람의 초대 코드(?i=)를 정원으로 건넨다. 처음 온 사람이 첫 열매를 거두면 둘 다 씨앗을 받는다.
+  const href = `/garden?visit=${gid}${i && INVITE_CODE.test(i) ? `&invite=${i}` : ""}`;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-[560px] flex-col justify-center px-4 py-16">

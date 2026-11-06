@@ -512,6 +512,60 @@ async function gardenChecks(uid: string) {
   await bloomChecks(uid, adminDb);
   await leafChecks(uid, adminDb);
   await visitChecks(uid, adminDb);
+  await inviteChecks(uid, adminDb);
+}
+
+/*
+ * 초대 씨앗. invites/{uid}는 평생 하나라 통과 검사를 하면 점검 계정이 "초대받은 사람"이 된다.
+ * 그래서 통과 검사는 관리자 키가 있을 때만 하고, 끝나면 점검용 문서를 모두 지운다.
+ */
+async function inviteChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAdmin>>) {
+  console.log("\n정원 — 초대 씨앗");
+  const OTHER = "izzprobe001"; // 남의 코드 (관리자가 만든다)
+  const MINE = "izzprobe002"; // 내 코드
+  const SECOND = "izzprobe003"; // 두 번째로 받으려는 남의 코드
+  const codeRef = (c: string) => doc(db, "inviteCodes", c);
+  const inviteRef = doc(db, "invites", uid);
+  const join = (code: string, by = code, step = 1) => {
+    const batch = writeBatch(db);
+    batch.set(inviteRef, { by, at: serverTimestamp() });
+    batch.update(codeRef(code), { joined: increment(step) });
+    return batch.commit();
+  };
+
+  await expectDenied("남의 uid로 코드 만들기", () => setDoc(codeRef(MINE), { uid: "somebody-else", joined: 0 }));
+  await expectDenied("joined 5로 코드 만들기", () => setDoc(codeRef(MINE), { uid, joined: 5 }));
+  await expectDenied("모양이 다른 코드(공개 id 꼴) 만들기", () => setDoc(codeRef("gabcdefghij"), { uid, joined: 0 }));
+
+  if (!adminDb) {
+    console.log("  초대 통과 검사는 건너뛴다 (sa.json 없음)");
+    return;
+  }
+  const admin = (path: string) => adminDb.doc(path);
+  try {
+    await admin(`inviteCodes/${OTHER}`).set({ uid: "somebody-else", joined: 0 });
+    await admin(`inviteCodes/${SECOND}`).set({ uid: "somebody-else-2", joined: 0 });
+
+    await expectAllowed("내 코드 만들기", () => setDoc(codeRef(MINE), { uid, joined: 0 }));
+    await expectAllowed("내 코드 읽기", () => getDoc(codeRef(MINE)));
+    await expectDenied("남의 코드 읽기(누가 만들었는지)", () => getDoc(codeRef(OTHER)));
+    await expectDenied("내 코드를 다시 만들어 joined 되돌리기", () => setDoc(codeRef(MINE), { uid, joined: 0 }));
+    await expectDenied("내 코드로 나를 초대하기", () => join(MINE));
+    await expectDenied("세지 않고 초대 표식만 만들기", () => setDoc(inviteRef, { by: OTHER, at: serverTimestamp() }));
+    await expectDenied("표식 없이 남의 joined만 +1", () => updateDoc(codeRef(OTHER), { joined: increment(1) }));
+    await expectDenied("한 번에 +2", () => join(OTHER, OTHER, 2));
+    await expectDenied("다른 코드를 올리며 이 코드로 표식", () => join(SECOND, OTHER));
+    await expectAllowed("초대받아 첫 열매 (표식 + joined +1)", () => join(OTHER));
+    await expectDenied("두 번째 초대 받기", () => join(SECOND));
+    await expectDenied("초대 표식 지우기", () => deleteDoc(inviteRef));
+    await expectDenied("코드 지우기", () => deleteDoc(codeRef(MINE)));
+    const after = await admin(`inviteCodes/${OTHER}`).get();
+    if (after.get("joined") === 1) ok("남의 코드 joined가 1이 됐다");
+    else bad(`남의 코드 joined가 ${after.get("joined")}다. 1이어야 한다`);
+  } finally {
+    for (const path of [`invites/${uid}`, `inviteCodes/${OTHER}`, `inviteCodes/${SECOND}`, `inviteCodes/${MINE}`]) await admin(path).delete();
+    ok("점검용 초대 되돌리기");
+  }
 }
 
 async function plazaChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAdmin>>) {

@@ -23,6 +23,7 @@ import { PlazaView } from "./PlazaView";
 import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, nextMeteor, nextMonsoon, nextRain, PUBLIC_ID } from "./rules";
 import { ShareCard } from "./ShareCard";
 import { GardenShareButton } from "./GardenShareButton";
+import { takeInviteParam, useInvite } from "./invite";
 import { useShare } from "./share";
 import { Shop } from "./Shop";
 import { VisitView } from "./VisitView";
@@ -128,8 +129,12 @@ export function GardenApp({
 
   // 정원을 연다. 원본 페이지의 "씨앗 받기"로 왔으면 그 품종을 기억해 둔다.
   const gift = useRef<string | null>(null);
+  const inviteIn = useRef<string | null>(null);
   useEffect(() => {
     useGarden.getState().boot(catalog);
+    // 개발 모드는 효과를 두 번 돌린다. 두 번째에는 주소에서 이미 지워져 null이므로 덮지 않는다.
+    const invited = takeInviteParam();
+    if (invited) inviteIn.current = invited;
     const url = new URL(window.location.href);
     // 탭은 처음 한 번만 따른다. 주소에 남기면 새로고침해도 그 탭으로 돌아간다.
     if (url.searchParams.has("tab")) {
@@ -223,6 +228,7 @@ export function GardenApp({
   }, [hasData, syncing, catalog, say]);
 
   useShare(uid, !syncing, now, say);
+  useInvite(uid, hasData && !syncing, inviteIn, catalog, say);
 
   if (!data || syncing) {
     return <p className="py-16 text-center text-[13px] text-smoke">정원을 여는 중…</p>;

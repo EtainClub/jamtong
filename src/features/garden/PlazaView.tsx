@@ -32,6 +32,7 @@ import {
   WEED_REWARD_PER_DAY,
   WEED_SEED_ODDS,
 } from "./rules";
+import { withInvite } from "./invite";
 import { sendGardenLink } from "./share";
 import { useGarden } from "./store";
 import type { Plaza, Weed } from "./usePlaza";
@@ -459,7 +460,7 @@ function RaidPanel({
           💪 내 몫을 다 쳤어요. 혼자서는 쓰러뜨릴 수 없어요 — 친구에게 광장을 알려 주세요!
         </p>
       )}
-      <RaidCall left={left} hp={r.hp} need={need} escapeIn={escapeIn} loud={spent} say={say} />
+      <RaidCall id={r.id} left={left} hp={r.hp} need={need} escapeIn={escapeIn} loud={spent} say={say} />
 
       <p className="mt-2 text-[11.5px] leading-relaxed opacity-90">
         {RAID_RUBS_PER_STRIKE}번 문지르면 한 방, 1초에 한 방, 한 사람은 {RAID_HITS_PER_PERSON}방까지.{" "}
@@ -471,11 +472,12 @@ function RaidPanel({
 }
 
 /**
- * "같이 잡자" — 광장 탭이 바로 열리는 정원 링크를 건넨다.
+ * "같이 잡자" — 광장 탭이 바로 열리는 링크(/r/<물결id>)를 건넨다. 미리보기에 남은 체력이 보인다.
  * 거대 잡초는 혼자 못 잡으므로 사람을 부르는 길이 패널 안에 있어야 한다.
  * 보낸 횟수에는 아무 보상도 없다(docs/garden-game.md §1). 계측은 share_create{from: raid}만.
  */
 function RaidCall({
+  id,
   left,
   hp,
   need,
@@ -483,6 +485,8 @@ function RaidCall({
   loud,
   say,
 }: {
+  /** 물결 id. 링크(/r/<id>)의 미리보기에 남은 체력이 그려진다. */
+  id: string;
   left: number;
   hp: number;
   need: number;
@@ -495,7 +499,8 @@ function RaidCall({
   const call = async () => {
     gardenFeedback("tap");
     const result = await sendGardenLink(
-      `${window.location.origin}/garden?tab=plaza`,
+      // /r/<물결id>는 미리보기 카드를 보여 주고 사람을 광장으로 보낸다. 내 초대 코드도 함께.
+      withInvite(`${window.location.origin}/r/${id}`, "i"),
       "잼통 정원 · 거대 잡초",
       `거대 잡초가 나타났어요! 체력 ${left}/${hp} · ${formatLeft(escapeIn)} 뒤 도망가요. ${need}명이 모이면 잡아요 🌿`,
       "raid",
