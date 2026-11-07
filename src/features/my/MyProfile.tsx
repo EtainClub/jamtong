@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { useAuth, type Account } from "@/lib/firebase/auth";
 import { isUploadedAvatar } from "@/lib/firebase/avatar";
+import { renameMyPlaques } from "@/lib/firebase/blooms";
 import { saveGarden } from "@/lib/firebase/garden";
 import { NICK_MAX } from "@/features/garden/rules";
 import { readPendingNick, renameStoredGarden, writePendingNick, type GardenData } from "@/features/garden/store";
@@ -91,7 +92,23 @@ export function MyProfile({
           return;
         }
       }
-      setMessage({ text: "닉네임을 바꿨어요. 꽃밭 명패에는 다음에 가꿀 때 걸려요" });
+      if (!user) {
+        setMessage({ text: "닉네임을 바꿨어요" });
+        return;
+      }
+      try {
+        const { changed, failed } = await renameMyPlaques(user.uid, next.nick);
+        setMessage({
+          text: failed
+            ? "닉네임을 바꿨어요. 꽃밭 명패 일부는 다음에 가꿀 때 바뀌어요"
+            : changed
+              ? `닉네임을 바꿨어요. 꽃밭 명패 ${changed}개도 새 이름이에요`
+              : "닉네임을 바꿨어요",
+        });
+      } catch (error) {
+        console.error("[my] 명패 이름을 바꾸지 못했다", error);
+        setMessage({ text: "닉네임을 바꿨어요. 꽃밭 명패는 다음에 가꿀 때 바뀌어요" });
+      }
     } else {
       const clean = writePendingNick(draft);
       if (!clean) return;
