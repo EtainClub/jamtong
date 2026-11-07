@@ -29,6 +29,7 @@ import { Shop } from "./Shop";
 import { VisitView } from "./VisitView";
 import { useGarden, type GardenData } from "./store";
 import type { Leaf, Species } from "./types";
+import { Neighbors } from "./Neighbors";
 import { useBlooms } from "./useBlooms";
 import { usePlaza } from "./usePlaza";
 
@@ -39,7 +40,7 @@ import { usePlaza } from "./usePlaza";
  * 쌓이고, 계정이 있으면 Firestore로 따라간다. 광장은 모두가 함께 본다.
  */
 
-type Tab = "beds" | "shop" | "flowers" | "plaza" | "greenhouse" | "dex";
+type Tab = "beds" | "shop" | "flowers" | "plaza" | "greenhouse" | "dex" | "neighbors";
 
 const TABS: Array<{ id: Tab; label: string; icon: string }> = [
   { id: "beds", icon: "🌱", label: "텃밭" },
@@ -48,6 +49,7 @@ const TABS: Array<{ id: Tab; label: string; icon: string }> = [
   { id: "plaza", icon: "⛲", label: "광장" },
   { id: "greenhouse", icon: "🔍", label: "온실" },
   { id: "dex", icon: "📖", label: "도감" },
+  { id: "neighbors", icon: "🤝", label: "이웃" },
 ];
 
 const SAVE_DELAY = 2_000;
@@ -357,6 +359,9 @@ export function GardenApp({
         {tab === "plaza" && <PlazaView plaza={plaza} catalog={catalog} byId={byId} leaves={leaves} uid={uid} now={now} say={say} />}
         {tab === "greenhouse" && <Greenhouse data={data} catalog={catalog} now={now} say={say} />}
         {tab === "dex" && <Dex data={data} catalog={catalog} now={now} say={say} />}
+        {tab === "neighbors" && (
+          <Neighbors data={data} uid={uid} blooms={flowers.blooms} byId={byId} now={now} onVisit={setVisit} />
+        )}
       </div>
       </>
       )}

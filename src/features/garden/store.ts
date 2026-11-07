@@ -97,6 +97,11 @@ export interface GardenData {
   share: { id: string | null; on: boolean };
   /** 도감 지도에서 원본을 읽고 씨앗을 받은 품종, 그리고 오늘 받은 수. */
   trails: { taken: string[]; day: string; count: number };
+  /**
+   * 놀러 간 적 있는 공개 정원(최근 것부터, FRIENDS_MAX까지). 이웃 탭의 "친구 정원 비교"가 이 목록만 읽는다 —
+   * 모두에게 공개된 순위가 아니라 내가 가 본 정원끼리 나란히 보는 것이다. nick은 목록에 그릴 이름의 사본.
+   */
+  friends: Array<{ id: string; nick: string; at: number }>;
   /** 오늘(한국 날짜 번호) 물을 준 정원(공개 id)과, 받아서 쓴 물(방문자 uid). */
   waters: { day: number; given: string[]; received: string[] };
   /** 가진 도구(rules.ts의 TOOLS)와 오늘(한국 날짜) 산 수. */
@@ -122,6 +127,9 @@ export interface GardenData {
 export type LinkResult = "remote" | "local";
 
 const STORAGE_KEY = "jamtong-garden-v1";
+
+/** 친구 목록에 남길 정원 수. 비교 화면이 정원마다 문서 하나를 읽는다. */
+export const FRIENDS_MAX = 30;
 
 const NO_INVITE: GardenData["invite"] = { code: null, registered: false, by: null, done: false, claimed: 0 };
 
@@ -164,6 +172,7 @@ function fresh(catalog: Species[]): GardenData {
     coach: initialCoach(),
     tools: { have: {}, day: "", bought: {} },
     invite: NO_INVITE,
+    friends: [],
     updatedAt: Date.now(),
   };
 }
@@ -185,6 +194,7 @@ function normalize(data: GardenData): GardenData {
     coach: normalizeCoach(data.coach),
     tools: data.tools ?? { have: {}, day: "", bought: {} },
     invite: data.invite ?? NO_INVITE,
+    friends: data.friends ?? [],
   };
 }
 
@@ -326,6 +336,10 @@ interface GardenState {
   waterRoom: (gid: string) => number;
   /** 물을 준 뒤 부른다. 내 텃밭도 함께 자란다. */
   gaveWater: (gid: string) => void;
+  /** 남의 공개 정원에 놀러 갔다. 친구 목록 맨 앞에 둔다. */
+  metFriend: (gid: string, nick: string) => void;
+  /** 친구 목록에서 뺀다(공개를 껐거나 더 보고 싶지 않다). */
+  forgetFriend: (gid: string) => void;
   /** 받은 물을 쓴다. 오늘 처음 보는 방문자만, 하루 WATER_PER_DAY까지. 쓴 방문자를 돌려준다. */
   receiveWaters: <T extends { uid: string }>(visitors: T[]) => T[];
   /** 코치를 끈다(마쳤거나 건너뛰었다). */
@@ -617,6 +631,23 @@ export const useGarden = create<GardenState>((set, get) => {
       const w = d.waters.day === kstDayNumber(Date.now()) ? d.waters : { day: 0, given: [], received: [] };
       if (w.given.includes(gid) || gid === d.share.id) return 0;
       return Math.max(0, WATER_PER_DAY - w.given.length);
+    },
+
+    metFriend: (gid, nick) => {
+      const d = get().data;
+      if (!d) return;
+      const name = cleanNick(nick) || "이웃";
+      const head = d.friends[0];
+      // 같은 정원을 다시 열 때마다 쓰지 않는다. 이름이 바뀌었을 때만.
+      if (head && head.id === gid && head.nick === name) return;
+      const rest = d.friends.filter((f) => f.id !== gid);
+      commit({ ...d, friends: [{ id: gid, nick: name, at: Date.now() }, ...rest].slice(0, FRIENDS_MAX) });
+    },
+
+    forgetFriend: (gid) => {
+      const d = get().data;
+      if (!d || !d.friends.some((f) => f.id === gid)) return;
+      commit({ ...d, friends: d.friends.filter((f) => f.id !== gid) });
     },
 
     gaveWater: (gid) => {

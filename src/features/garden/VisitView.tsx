@@ -50,6 +50,7 @@ export function VisitView({
         if (!alive) return;
         setState({ gid, uid, loaded });
         if (loaded) track("garden_visit", { mine: loaded.mine });
+        if (loaded && !loaded.mine) useGarden.getState().metFriend(gid, loaded.garden.nick);
       })
       .catch((error) => {
         console.error("[gardens] 정원을 읽지 못했다", error);
