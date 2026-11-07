@@ -56,6 +56,8 @@ import { bentArmUnion } from "./bent-arm-union";
 import { bentArmLaborLaw } from "./bent-arm-labor-law";
 import { bentArmWomen } from "./bent-arm-women";
 import { bentArmCulture } from "./bent-arm-culture";
+import { liberationDay81 } from "./liberation-day-81";
+import { unga81 } from "./unga-81";
 import { validateStatement, type Statement } from "./schema";
 
 /**
@@ -93,9 +95,11 @@ export const STATEMENTS: Statement[] = [
   prosecutionReformForPeople,
   exProsecutorNominee,
   presidentFriend,
+  unga81,
   youthDay,
   chuseokPressConference,
   oilPrice,
+  liberationDay81,
   reformIsHard,
   developmentalCare,
   housingSupply,
