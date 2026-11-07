@@ -360,7 +360,7 @@ function Uploader({
             붙여 넣은 그림을 들고 있습니다. 연결하면 바로 이어서 올릴 수 있습니다.
           </p>
         )}
-        {linkBlock === "already-in-use" ? (
+        {linkBlock?.reason === "already-in-use" ? (
           <>
             <p className="mt-3 text-[12px] leading-relaxed text-ash">
               그 구글 계정은 이미 다른 기록과 이어져 있습니다. 그 계정으로 들어가면

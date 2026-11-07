@@ -9,6 +9,7 @@ import { deleteAllAsks, deleteAsk, listAsks, type AskRecord } from "@/lib/fireba
 
 import { clearLocal, type GardenData } from "@/features/garden/store";
 
+import { LinkBlockNotice } from "./LinkBlockNotice";
 import { MyAccount } from "./MyAccount";
 import { MyContributions } from "./MyContributions";
 import { MyGarden, useMyGarden } from "./MyGarden";
@@ -31,7 +32,8 @@ import { MySection, useOpenSections } from "./MySection";
  * 물었는지 다시 읽어야 알 수 있다. 무엇에 대해 물었는지가 먼저다.
  */
 export function MyPanel({ speciesTotal }: { speciesTotal: number }) {
-  const { user, ready, configured, linkBlock, ensureUser, signInWithGoogle, switchToGoogle, signOutUser } = useAuth();
+  const { user, ready, configured, linkBlock, ensureUser, signInWithGoogle, switchToGoogle, dismissLinkBlock, signOutUser } =
+    useAuth();
   const [asks, setAsks] = useState<AskRecord[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [gardenReset, setGardenReset] = useState(false);
@@ -74,7 +76,12 @@ export function MyPanel({ speciesTotal }: { speciesTotal: number }) {
     [uid],
   );
 
-  const loginError = (e: { code?: string }) => setError(`로그인하지 못했습니다. (${e?.code ?? "알 수 없는 오류"})`);
+  const loginError = (e: { code?: string }) =>
+    setError(
+      e?.code === "auth/popup-closed-by-user"
+        ? "구글 창이 닫혀 연결되지 않았어요. 계정을 골랐는데도 이렇다면 다시 한 번 눌러 주세요."
+        : `로그인하지 못했습니다. (${e?.code ?? "알 수 없는 오류"})`,
+    );
 
   if (!configured) {
     return (
@@ -89,6 +96,25 @@ export function MyPanel({ speciesTotal }: { speciesTotal: number }) {
 
   const anonymous = user?.isAnonymous ?? true;
   const grouped = groupByAchievement(asks ?? []);
+  const onLink = () => void signInWithGoogle().catch(loginError);
+  // 연결이 거부되면 연결 단추마다 바로 아래에 이 안내가 붙는다.
+  const linkNotice = linkBlock && (
+    <LinkBlockNotice
+      block={linkBlock}
+      current={
+        [
+          garden && `잼 ${garden.jam.toLocaleString()}`,
+          garden && `도감 ${Object.keys(garden.dex).length}종`,
+          asks?.length ? `물어본 것 ${asks.length}건` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ") || null
+      }
+      onSwitch={() => void switchToGoogle().catch(loginError)}
+      onRelink={onLink}
+      onDismiss={dismissLinkBlock}
+    />
+  );
 
   return (
     <>
@@ -121,12 +147,13 @@ export function MyPanel({ speciesTotal }: { speciesTotal: number }) {
         {anonymous && (
           <button
             type="button"
-            onClick={() => void signInWithGoogle().catch(loginError)}
+            onClick={onLink}
             className="mt-4 w-full rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-eggshell"
           >
             구글 계정 연결하기 · 기기를 옮겨도 따라가요
           </button>
         )}
+        {linkNotice}
         {error && <Note tone="warn">{error}</Note>}
       </section>
 
@@ -207,9 +234,8 @@ export function MyPanel({ speciesTotal }: { speciesTotal: number }) {
 
       <MyAccount
         anonymous={anonymous}
-        linkBlock={linkBlock}
-        onLink={() => void signInWithGoogle().catch(loginError)}
-        onSwitch={() => void switchToGoogle().catch(loginError)}
+        linkNotice={linkNotice}
+        onLink={onLink}
         onSignOut={() => void signOutUser()}
         asks={asks?.length ?? 0}
         onDeleteAsks={async () => {
