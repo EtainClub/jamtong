@@ -855,6 +855,11 @@ async function bloomChecks(uid: string, adminDb: Awaited<ReturnType<typeof openA
     );
     await expectDenied("꽃 지우기", () => deleteDoc(bloomRef()));
 
+    // 정원 이름을 바꾸면 내 명패도 바꾼다(renameMyPlaques). 가꿈은 그대로, 이름만.
+    await expectAllowed("정원지기 본인이 이름만 바꾸기", () => updateDoc(bloomRef(), { ownerNick: "바뀐 이름" }));
+    await expectDenied("이름 바꾸며 정원지기 값 올리기", () => updateDoc(bloomRef(), { ownerNick: "점검용", ownerCare: 99 }));
+    await expectAllowed("정원지기 본인이 이름 되돌리기", () => updateDoc(bloomRef(), { ownerNick: "점검용" }));
+
     console.log("  (운영자 — 두 번째 사람을 잠깐 올렸다 내린다)");
     await expectDenied("일반 사용자가 남의 정원 이름 지우기", () => updateDoc(bloomRef(db2), { ownerNick: null }));
     await adminDb.doc(`admins/${uid2}`).set({ grantedAt: new Date().toISOString(), probe: true });

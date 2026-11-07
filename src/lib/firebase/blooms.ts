@@ -1,6 +1,6 @@
 "use client";
 
-import { collection, doc, onSnapshot, runTransaction, serverTimestamp, Timestamp, updateDoc } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot, query, runTransaction, serverTimestamp, Timestamp, updateDoc, where } from "firebase/firestore";
 
 import { firebaseDb } from "./client";
 
@@ -95,7 +95,7 @@ export async function giveCare(
         care,
         bloomedAt: wasBloomed ? b.get("bloomedAt") : care >= bloomAt ? serverTimestamp() : null,
         ownerUid: takes ? uid : ownerUid,
-        // 운영자가 숨긴 이름이면 다시 걸지 않는다. 이름을 바꾸면 다음 가꿈부터 걸린다.
+        // 운영자가 숨긴 이름이면 다시 걸지 않는다. 이름을 바꾸면 renameMyPlaques가 바로 다시 건다.
         ownerNick: takes ? (nick === hiddenNick ? null : nick) : ((b.get("ownerNick") as string | null | undefined) ?? null),
         ownerCare: takes ? mine : ownerCare,
         ...(hiddenNick === null ? {} : { hiddenNick }),
@@ -117,4 +117,24 @@ export async function hideOwnerNick(speciesId: string, nick: string): Promise<vo
   const db = firebaseDb();
   if (!db) throw new Error("파이어베이스가 설정되지 않았다");
   await updateDoc(doc(db, "blooms", speciesId), { ownerNick: null, hiddenNick: nick });
+}
+
+/**
+ * 정원 이름을 바꾸면 내가 정원지기인 명패의 이름도 바꾼다. 바꾼 명패 수를 돌려준다.
+ *
+ * 규칙은 정원지기 본인이 가꿈은 그대로 두고 이름만 바꾸는 쓰기를 이미 허락한다(bloomOwner).
+ * 운영자가 숨긴 이름(hiddenNick)과 같으면 걸지 않고 "이름 숨김"으로 둔다 — giveCare와 같다.
+ * 명패마다 따로 쓴다. 하나가 막혀도 나머지는 바뀐다. 못 바꾼 명패는 다음 가꿈에서 따라온다.
+ */
+export async function renameMyPlaques(uid: string, nick: string): Promise<{ changed: number; failed: number }> {
+  const db = firebaseDb();
+  if (!db) return { changed: 0, failed: 0 };
+  const mine = await getDocs(query(collection(db, "blooms"), where("ownerUid", "==", uid)));
+  const stale = mine.docs.filter((d) => d.get("ownerNick") !== nick);
+  const results = await Promise.allSettled(
+    stale.map((d) => updateDoc(d.ref, { ownerNick: nick === (d.get("hiddenNick") ?? null) ? null : nick })),
+  );
+  const failed = results.filter((r) => r.status === "rejected");
+  for (const r of failed) console.error("[blooms] 명패 이름을 바꾸지 못했다", (r as PromiseRejectedResult).reason);
+  return { changed: results.length - failed.length, failed: failed.length };
 }

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { PlantArt } from "./GardenArt";
 import { gardenFeedback } from "./feedback";
 
-import { hideOwnerNick, type Bloom } from "@/lib/firebase/blooms";
+import { hideOwnerNick, renameMyPlaques, type Bloom } from "@/lib/firebase/blooms";
 import { checkAdmin } from "@/lib/firebase/feedback";
 
 import {
@@ -128,7 +128,25 @@ export function FlowerBed({
               if (draft === null) return;
               rename(draft);
               setDraft(null);
-              say("이름을 바꿨어요. 다음에 가꿀 때 명패에 걸려요");
+              const nick = useGarden.getState().data?.nick;
+              if (!uid || !nick) {
+                say("이름을 바꿨어요");
+                return;
+              }
+              void renameMyPlaques(uid, nick)
+                .then(({ changed, failed }) =>
+                  say(
+                    failed
+                      ? "이름을 바꿨어요. 명패 일부는 다음에 가꿀 때 바뀌어요"
+                      : changed
+                        ? `이름을 바꿨어요. 명패 ${changed}개도 새 이름이에요`
+                        : "이름을 바꿨어요",
+                  ),
+                )
+                .catch((error) => {
+                  console.error("[flowers] 명패 이름을 바꾸지 못했다", error);
+                  say("이름을 바꿨어요. 명패는 다음에 가꿀 때 바뀌어요");
+                });
             }}
             className="shrink-0 rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-eggshell disabled:opacity-35"
           >
