@@ -3,12 +3,13 @@ import type { Metadata } from "next";
 
 import { CHEERS } from "@/content/cheers";
 import { STATEMENTS } from "@/content/words";
-import { KIND_LABEL } from "@/content/words/schema";
+import { KIND_LABEL, type Statement, type StatementKind } from "@/content/words/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
 import { BottomNav } from "@/features/app/BottomNav";
 import { JsonLd, collectionPageLd } from "@/lib/seo/jsonld";
 import { BooksPanel } from "@/features/books/BooksPanel";
 import { CheerBoard } from "@/features/words/CheerBoard";
+import { MoreList } from "@/features/words/MoreList";
 import { SpeechCard, speechVideoId } from "@/features/words/SpeechCard";
 import { WordsTabs } from "@/features/words/WordsTabs";
 
@@ -63,13 +64,24 @@ export default function WordsPage() {
  *
  * 유튜브로 틀 수 있는 연설은 위에 따로 묶는다. 연설은 듣는 것이 본래 모습이라
  * 목록에서 바로 틀고 읽을 수 있게 둔다. 영상이 없는 연설은 글과 같은 줄에 남는다.
+ *
+ * ★ 섹션마다 대표 한 편만 펼친다.
+ *   글이 쉰 편을 넘으면서 한 줄로 늘어놓은 목록은 끝까지 내려가기 어려워졌다.
+ *   대표(가장 최근) 한 편은 카드로 보이고, 나머지는 "더 보기"로 접는다.
+ *   글과 발언은 종류(SNS 글·연설·책…)별로 다시 가른다.
  */
+const KIND_ORDER: StatementKind[] = ["post", "speech", "book", "interview", "letter", "act"];
+
 function WordsPanel() {
   const speeches = STATEMENTS.flatMap((statement) => {
     const videoId = speechVideoId(statement);
     return videoId ? [{ statement, videoId }] : [];
   });
   const others = STATEMENTS.filter((statement) => !speechVideoId(statement));
+  const groups = KIND_ORDER.map((kind) => ({
+    kind,
+    items: others.filter((statement) => statement.kind === kind),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <>
@@ -83,63 +95,114 @@ function WordsPanel() {
           <h2 id="speech-videos" className="text-[13px] font-bold text-ink">
             연설 영상 <span className="font-normal text-ash">{speeches.length}</span>
           </h2>
-          <ul className="mt-3 space-y-3">
-            {speeches.map(({ statement, videoId }) => (
-              <li key={statement.id}>
-                <SpeechCard statement={statement} videoId={videoId} />
-              </li>
-            ))}
-          </ul>
+          <div className="mt-3">
+            <SpeechCard statement={speeches[0].statement} videoId={speeches[0].videoId} />
+          </div>
+          <MoreList count={speeches.length - 1}>
+            <ul className="space-y-3">
+              {speeches.slice(1).map(({ statement, videoId }) => (
+                <li key={statement.id}>
+                  <SpeechCard statement={statement} videoId={videoId} />
+                </li>
+              ))}
+            </ul>
+          </MoreList>
         </section>
       )}
 
-      <h2 className="mt-10 text-[13px] font-bold text-ink">
-        글과 발언 <span className="font-normal text-ash">{others.length}</span>
-      </h2>
-      <ul className="mt-3 space-y-3">
-        {others.map((statement) => (
-          <li key={statement.id}>
-            <Link
-              href={`/words/${statement.slug}`}
-              className="block rounded-card border border-stone px-5 py-4 transition-colors hover:border-graphite"
-            >
-              <div className="flex items-center gap-2 text-[11px] font-semibold text-ash">
+      <section aria-labelledby="words-others" className="mt-10">
+        <h2 id="words-others" className="text-[13px] font-bold text-ink">
+          글과 발언 <span className="font-normal text-ash">{others.length}</span>
+        </h2>
+
+        <div className="mt-3 space-y-6">
+          {groups.map(({ kind, items }) => (
+            <section key={kind} aria-labelledby={`words-kind-${kind}`}>
+              <h3
+                id={`words-kind-${kind}`}
+                className="flex items-center gap-1.5 text-[12px] font-semibold text-smoke"
+              >
                 <span className="rounded-full bg-taupe px-2 py-0.5 text-navy">
-                  {KIND_LABEL[statement.kind]}
+                  {KIND_LABEL[kind]}
                 </span>
-                <span>{statement.displayDate}</span>
-              </div>
-
-              <h3 className="mt-2 text-[17px] font-bold tracking-tight text-ink">
-                {statement.title}
+                <span className="font-normal text-ash">{items.length}편</span>
               </h3>
-
-              <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-smoke">
-                {statement.body
-                  ? statement.body.split("\n").filter(Boolean).slice(1).join(" ")
-                  : statement.overview}
-              </p>
-
-              <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] text-ash">
-                <span>{statement.channel}</span>
-                {statement.easy && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span>쉽게 보기 있음</span>
-                  </>
-                )}
-                {statement.media.length > 0 && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span>{statement.body ? "영상 자료 있음" : "영상 개요 · 영상 자료"}</span>
-                  </>
-                )}
+              <div className="mt-2">
+                <StatementCard statement={items[0]} />
               </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
+              <MoreList count={items.length - 1}>
+                <ul className="divide-y divide-stone overflow-hidden rounded-card border border-stone">
+                  {items.slice(1).map((statement) => (
+                    <li key={statement.id}>
+                      <StatementRow statement={statement} />
+                    </li>
+                  ))}
+                </ul>
+              </MoreList>
+            </section>
+          ))}
+        </div>
+      </section>
     </>
+  );
+}
+
+/** 섹션의 대표 한 편. 미리보기 두 줄과 자료 표시까지 보인다. */
+function StatementCard({ statement }: { statement: Statement }) {
+  return (
+    <Link
+      href={`/words/${statement.slug}`}
+      className="block rounded-card border border-stone px-5 py-4 transition-colors hover:border-graphite"
+    >
+      <p className="text-[11px] font-semibold text-ash">{statement.displayDate}</p>
+
+      <h4 className="mt-1.5 text-[17px] font-bold tracking-tight text-ink">{statement.title}</h4>
+
+      <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-smoke">
+        {statement.body
+          ? statement.body.split("\n").filter(Boolean).slice(1).join(" ")
+          : statement.overview}
+      </p>
+
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] text-ash">
+        <span>{statement.channel}</span>
+        {statement.easy && (
+          <>
+            <span aria-hidden="true">·</span>
+            <span>쉽게 보기 있음</span>
+          </>
+        )}
+        {statement.media.length > 0 && (
+          <>
+            <span aria-hidden="true">·</span>
+            <span>{statement.body ? "영상 자료 있음" : "영상 개요 · 영상 자료"}</span>
+          </>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+/** 접어 둔 나머지. 제목과 날짜만 한 줄로 둔다. */
+function StatementRow({ statement }: { statement: Statement }) {
+  return (
+    <Link
+      href={`/words/${statement.slug}`}
+      className="flex items-baseline gap-3 px-4 py-3 transition-colors hover:bg-taupe/50"
+    >
+      <span className="min-w-0 flex-1">
+        <span className="line-clamp-1 text-[14px] font-semibold tracking-tight text-ink">
+          {statement.title}
+        </span>
+        <span className="mt-0.5 block text-[11px] text-ash">
+          {statement.displayDate}
+          {statement.easy && " · 쉽게 보기"}
+        </span>
+      </span>
+      <span aria-hidden="true" className="text-[12px] text-ash">
+        →
+      </span>
+    </Link>
   );
 }
 

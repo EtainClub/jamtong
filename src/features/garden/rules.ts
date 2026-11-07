@@ -450,15 +450,117 @@ export const RAID_HP_MIN = RAID_MIN_FIGHTERS * RAID_HITS_PER_PERSON;
 export const RAID_HP_MAX = 3000;
 
 /**
- * 거대 잡초의 체력(때릴 수). 지금은 정확히 RAID_MIN_FIGHTERS명이 자기 몫을 다 치면 쓰러지는
- * 크기로 고정한다 — 초기라 "셋이 모이면 잡는다"가 늘 참이어야 한다. 그날 온 사람 수로
- * 키우면 화면의 "적어도 N명"이 날마다 달라져 약속이 깨진다.
- * 늘릴 때는 RAID_MIN_FIGHTERS를 올린다(firestore.rules의 hp 하한도 함께 — raid.test.ts가 본다).
- * 규칙의 상한(RAID_HP_MAX)은 그때 쓸 여유로 남겨 둔다.
+ * 거대 잡초의 종류 — 사회를 갉아먹는 악초들. 종류마다 체력·생김새·성질(대사)이 다르다.
+ *
+ * ★ 종류는 물결 id(날짜·물결)에서 정한다. 문서에 적지 않아도 모두가 같은 잡초를 본다.
+ *   하루 세 물결은 서로 다른 종류다(날마다 섞은 순서에서 앞의 셋).
+ * ★ 체력은 종류가 정한다 — 세운 사람이 문서에 적고, 화면은 문서의 체력을 그린다.
+ *   어느 종류든 RAID_MIN_FIGHTERS명보다 적게는 못 잡고, RAID_MAX_FIGHTERS명이면 잡는다.
+ *   "N명이면 잡아요"는 체력에서 셈하므로 종류마다 화면이 맞게 바뀐다.
+ * ★ 특정 사람·정당·집단을 가리키지 않는다. 누구에게나 해로운 행동만 잡초로 삼는다.
  */
-export function raidHp(gardenersToday: number): number {
-  void gardenersToday;
-  return RAID_HP_MIN;
+export type RaidKindId = "troll" | "hate" | "rumor" | "bribe" | "bossy" | "grab";
+
+export interface RaidKind {
+  id: RaidKindId;
+  name: string;
+  hp: number;
+  /** 한 줄 성질. */
+  trait: string;
+  /** 맞을수록 바뀌는 대사(체력 많을 때부터). */
+  taunts: string[];
+  /** 도망갔을 때. */
+  escaped: string;
+  /** 패널 바탕(위·아래). 글자는 흰색이라 어둡게 둔다. */
+  bg: [string, string];
+}
+
+export const RAID_MAX_FIGHTERS = 5;
+
+export const RAID_KINDS: RaidKind[] = [
+  {
+    id: "troll",
+    name: "악플 가시풀",
+    hp: 180,
+    trait: "익명 뒤에 숨어 가시를 날려요",
+    taunts: ["ㅋㅋ 그게 최선이야?", "얼굴 안 보이니까 아무 말이나 해도 되지~", "가시 하나에 하루가 망가지지? 그게 재밌거든", "잠깐, 신고는 하지 마…"],
+    escaped: "악플 가시풀이 가시를 뿌리고 숨어 버렸어요",
+    bg: ["#7a2433", "#3d0f18"],
+  },
+  {
+    id: "hate",
+    name: "혐오 쐐기풀",
+    hp: 180,
+    trait: "닿기만 해도 따끔, 편을 갈라 번져요",
+    taunts: ["너희끼리 싸우면 내가 자라지", "다르면 틀린 거야, 몰랐어?", "한 포기 뽑아도 미움은 씨를 남겨", "어… 다 같이 덤비는 건 반칙이야!"],
+    escaped: "혐오 쐐기풀이 씨를 날리고 사라졌어요",
+    bg: ["#8a3a12", "#421a06"],
+  },
+  {
+    id: "rumor",
+    name: "가짜뉴스 덩굴",
+    hp: 240,
+    trait: "근거 없는 말을 먹고 퍼져요",
+    taunts: ["근거? 그런 거 없어도 잘만 퍼지는데!", "퍼 나르는 손이 많을수록 난 커진다고", "제목만 읽고 가, 본문은 내가 지어 줄게", "원문을 확인하다니… 그건 반칙이야!"],
+    escaped: "가짜뉴스 덩굴이 광장 밖으로 퍼져 나갔어요",
+    bg: ["#4b2a74", "#21103a"],
+  },
+  {
+    id: "bribe",
+    name: "검은돈 독초",
+    hp: 240,
+    trait: "탁자 밑으로 오가는 돈에 뿌리를 내려요",
+    taunts: ["이거 받고 못 본 척해", "영수증? 그런 건 없어", "뿌리는 땅 밑으로, 돈은 탁자 밑으로", "장부를 펼치지 마!"],
+    escaped: "검은돈 독초가 돈다발을 챙겨 달아났어요",
+    bg: ["#2b2a1e", "#0f0e08"],
+  },
+  {
+    id: "bossy",
+    name: "갑질 엉겅퀴",
+    hp: 300,
+    trait: "높은 자리에서 남을 짓눌러요",
+    taunts: ["내가 누군 줄 알아?", "꼬우면 네가 올라오든가", "물? 내 화분부터 줘", "여, 여럿이 오면 얘기가 다르지…"],
+    escaped: "갑질 엉겅퀴가 큰소리만 남기고 떠났어요",
+    bg: ["#2f2f7a", "#13133a"],
+  },
+  {
+    id: "grab",
+    name: "땅투기 칡",
+    hp: 300,
+    trait: "남의 땅까지 휘감아 차지해요",
+    taunts: ["여기도 내 땅, 저기도 내 땅", "빈칸 보이면 바로 감는다", "광장도 곧 내 거야", "놔, 놔! 내 덩굴 놓으라고!"],
+    escaped: "땅투기 칡이 광장 구석까지 휘감고 사라졌어요",
+    bg: ["#4d4a14", "#22200a"],
+  },
+];
+
+/** 이 물결의 거대 잡초. 날마다 종류를 섞고, 물결 순서대로 꺼낸다 — 하루 안에는 겹치지 않는다. */
+export function raidKind(day: number, wave: number): RaidKind {
+  const order = RAID_KINDS.map((_, i) => i);
+  const roll = rng(hash(`raid-kinds:${day}`));
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(roll() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return RAID_KINDS[order[(wave - 1) % order.length]];
+}
+
+/** 이 물결의 체력(때릴 수). 종류가 정한다. */
+export function raidHp(day: number, wave: number): number {
+  return raidKind(day, wave).hp;
+}
+
+/** 맞은 만큼 바뀌는 대사. */
+export function raidTaunt(kind: RaidKind, hits: number, hp: number): string {
+  const i = Math.min(kind.taunts.length - 1, Math.floor((Math.min(hits, hp) / hp) * kind.taunts.length));
+  return kind.taunts[i];
+}
+
+/** 받침에 맞는 조사. 이/가, 을/를. */
+export function josa(word: string, pair: "이가" | "을를"): string {
+  const code = word.charCodeAt(word.length - 1) - 0xac00;
+  const batchim = code >= 0 && code <= 11171 && code % 28 !== 0;
+  return word + (batchim ? pair[0] : pair[1]);
 }
 
 /**

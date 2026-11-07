@@ -7,6 +7,7 @@ import { track } from "@/lib/analytics";
 import { cellId } from "@/lib/firebase/plaza";
 
 import { GroundDetails, WeedArt } from "./GardenArt";
+import { RaidWeedArt } from "./RaidWeedArt";
 import { LeafButton, LeafSheet } from "./LeafCheck";
 import { gardenFeedback } from "./feedback";
 
@@ -26,7 +27,10 @@ import {
   RAID_LIFE,
   RAID_PER_DAY,
   RAID_RUBS_PER_STRIKE,
+  josa,
   raidKey,
+  raidKind,
+  raidTaunt,
   TIER_LABEL,
   WEED,
   WEED_REWARD_PER_DAY,
@@ -82,7 +86,7 @@ export function PlazaView({
     },
     [say],
   );
-  const raid = useRaid(uid, now, plaza.level, plaza.today.gardeners, onStrike);
+  const raid = useRaid(uid, now, plaza.level, onStrike);
   const weedByCell = new Map(plaza.weeds.map((w) => [w.cell, w]));
   // 시든 잎. 두 시간에 한 장, 잡초가 없는 칸에 떨어진다. 다 덮였으면 뽑아야 보인다.
   const leafLedger = useGarden((s) => s.data?.leaves);
@@ -359,7 +363,8 @@ function RaidPanel({
   const left = Math.max(0, r.hp - r.hits);
   const odds = RAID_BOX.odds.map((o) => `${TIER_LABEL[o.tier]} ${Math.round(o.p * 100)}%`).join(" · ");
   const need = Math.ceil(r.hp / RAID_HITS_PER_PERSON);
-  const label = `${["첫", "두", "세", "네", "다섯"][r.wave - 1] ?? r.wave} 번째 거대 잡초`;
+  const kind = raidKind(raid.day, r.wave);
+  const order = `오늘 ${["첫", "두", "세", "네", "다섯"][r.wave - 1] ?? r.wave} 번째 거대 잡초`;
   const nextLine = raid.next
     ? raid.next.at > now
       ? `다음 거대 잡초는 ${formatLeft(raid.next.at - now)} 뒤부터, 광장이 무성해지면 나타나요.`
@@ -369,7 +374,8 @@ function RaidPanel({
   if (r.phase === "defeated") {
     return (
       <section aria-labelledby="raid" className="garden-raid-done mt-3 rounded-2xl px-4 py-3.5">
-        <h3 id="raid" className="text-[14px] font-bold">🏆 {label}를 쓰러뜨렸어요</h3>
+        <h3 id="raid" className="text-[14px] font-bold">🏆 {josa(kind.name, "을를")} 쓰러뜨렸어요</h3>
+        <p className="text-[11.5px] opacity-75">{order}</p>
         <p className="mt-0.5 text-[12px] opacity-85">
           {r.fighters.toLocaleString()}명이 함께 {r.hp.toLocaleString()}번 때렸어요{raid.mine ? ` · 나는 ${raid.mine}번` : ""}.
         </p>
@@ -397,7 +403,8 @@ function RaidPanel({
   if (r.phase === "escaped") {
     return (
       <section aria-labelledby="raid" className="garden-raid-done mt-3 rounded-2xl px-4 py-3.5">
-        <h3 id="raid" className="text-[14px] font-bold">💨 {label}가 도망갔어요</h3>
+        <h3 id="raid" className="text-[14px] font-bold">💨 {kind.escaped}</h3>
+        <p className="text-[11.5px] opacity-75">{order}</p>
         <p className="mt-0.5 text-[12px] opacity-85">
           {r.fighters.toLocaleString()}명이 {Math.min(r.hits, r.hp).toLocaleString()}/{r.hp.toLocaleString()}번 때렸지만 {formatLeft(RAID_LIFE)} 안에
           쓰러뜨리지 못했어요. 적어도 {need}명이 모여야 해요.
@@ -413,12 +420,18 @@ function RaidPanel({
   const box = Math.round(176 * Math.min(1.25, 0.9 + r.hp / 3000));
 
   return (
-    <section aria-labelledby="raid" className="garden-raid mt-3 rounded-2xl px-4 py-3.5 text-white">
+    <section
+      aria-labelledby="raid"
+      className="garden-raid mt-3 rounded-2xl px-4 py-3.5 text-white"
+      style={{ background: `linear-gradient(180deg, ${kind.bg[0]}, ${kind.bg[1]})` }}
+    >
       <div className="relative z-10">
         <div className="flex items-baseline justify-between gap-2">
-          <h3 id="raid" className="text-[14px] font-bold">🌿 {label}가 나타났어요</h3>
-          <p className="text-[11.5px] tabular-nums opacity-90">도망까지 {formatLeft(escapeIn)}</p>
+          <p className="text-[11.5px] font-semibold opacity-80">{order}</p>
+          <p className="shrink-0 text-[11.5px] tabular-nums opacity-90">도망까지 {formatLeft(escapeIn)}</p>
         </div>
+        <h3 id="raid" className="mt-0.5 text-[17px] font-black tracking-tight">😠 {josa(kind.name, "이가")} 나타났어요!</h3>
+        <p className="text-[12px] opacity-85">{kind.trait}</p>
         <div className="mt-2 h-3 overflow-hidden rounded-full bg-black/30" role="progressbar" aria-label="거대 잡초 체력" aria-valuemin={0} aria-valuemax={r.hp} aria-valuenow={left}>
           <div className="h-full bg-[#e9d24a] transition-[width]" style={{ width: `${(left / r.hp) * 100}%` }} />
         </div>
@@ -428,16 +441,21 @@ function RaidPanel({
         </p>
       </div>
 
+      <p className="garden-raid-taunt relative mx-auto mt-3 w-fit max-w-full rounded-2xl bg-white px-3 py-1.5 text-center text-[12.5px] font-bold text-[#2a1a1a]" aria-live="polite">
+        &ldquo;{raidTaunt(kind, r.hits, r.hp)}&rdquo;
+      </p>
       <button
         type="button"
-        aria-label={spent ? "이번 거대 잡초에 내 몫을 다 쳤어요" : `거대 잡초 때리기 (체력 ${left} 남음)`}
+        aria-label={spent ? "이번 거대 잡초에 내 몫을 다 쳤어요" : `${kind.name} 때리기 (체력 ${left} 남음)`}
         aria-disabled={spent}
-        className={`relative mx-auto mt-3 grid touch-none select-none place-items-center overflow-hidden rounded-2xl ${spent ? "opacity-60" : ""}`}
+        className={`relative mx-auto mt-2 grid touch-none select-none place-items-center overflow-hidden rounded-2xl ${spent ? "opacity-60" : ""}`}
         style={{ width: box, height: box }}
         {...gesture}
       >
         <span key={shake} className={`garden-weed-body garden-raid-weed relative ${shake ? "garden-shake" : ""}`}>
-          <WeedArt variant={2} tough />
+          <span className={`garden-raid-menace is-${kind.id}`}>
+            <RaidWeedArt kind={kind.id} />
+          </span>
         </span>
         {(partial > 0 || raid.queued > 0) && !spent && (
           <span className="pointer-events-none absolute bottom-1 h-1.5 w-2/3 overflow-hidden rounded-full bg-black/30">
@@ -460,7 +478,7 @@ function RaidPanel({
           💪 내 몫을 다 쳤어요. 혼자서는 쓰러뜨릴 수 없어요 — 친구에게 광장을 알려 주세요!
         </p>
       )}
-      <RaidCall id={r.id} left={left} hp={r.hp} need={need} escapeIn={escapeIn} loud={spent} say={say} />
+      <RaidCall id={r.id} name={kind.name} left={left} hp={r.hp} need={need} escapeIn={escapeIn} loud={spent} say={say} />
 
       <p className="mt-2 text-[11.5px] leading-relaxed opacity-90">
         {RAID_RUBS_PER_STRIKE}번 문지르면 한 방, 1초에 한 방, 한 사람은 {RAID_HITS_PER_PERSON}방까지.{" "}
@@ -478,6 +496,7 @@ function RaidPanel({
  */
 function RaidCall({
   id,
+  name,
   left,
   hp,
   need,
@@ -487,6 +506,8 @@ function RaidCall({
 }: {
   /** 물결 id. 링크(/r/<id>)의 미리보기에 남은 체력이 그려진다. */
   id: string;
+  /** 거대 잡초 종류 이름. */
+  name: string;
   left: number;
   hp: number;
   need: number;
@@ -502,7 +523,7 @@ function RaidCall({
       // /r/<물결id>는 미리보기 카드를 보여 주고 사람을 광장으로 보낸다. 내 초대 코드도 함께.
       withInvite(`${window.location.origin}/r/${id}`, "i"),
       "잼통 정원 · 거대 잡초",
-      `거대 잡초가 나타났어요! 체력 ${left}/${hp} · ${formatLeft(escapeIn)} 뒤 도망가요. ${need}명이 모이면 잡아요 🌿`,
+      `거대 잡초 ${josa(name, "이가")} 나타났어요! 체력 ${left}/${hp} · ${formatLeft(escapeIn)} 뒤 도망가요. ${need}명이 모이면 잡아요 🌿`,
       "raid",
     );
     if (result === "copied") {

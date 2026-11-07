@@ -95,7 +95,6 @@ export function useRaid(
   uid: string | null,
   now: number,
   level: PlazaLevel,
-  gardenersToday: number,
   onResult: (result: StrikeResult) => void,
 ): RaidState {
   const day = kstDayNumber(now);
@@ -165,7 +164,7 @@ export function useRaid(
   const due = level === "overgrown" && next !== null && now >= next.at ? next.wave : null;
   useEffect(() => {
     if (due === null || spawning.current) return;
-    const hp = raidHp(gardenersToday);
+    const hp = raidHp(day, due);
     if (!firebaseConfigured) {
       const cur = readLocal(day);
       if (cur.waves[due - 1]) return;
@@ -188,7 +187,7 @@ export function useRaid(
       .finally(() => {
         spawning.current = false;
       });
-  }, [due, uid, day, gardenersToday]);
+  }, [due, uid, day]);
 
   // 합계가 체력에 닿았는데 아직 쓰러진 시각이 없으면 찍는다. 맞은 수는 칸에 나눠 세므로
   // 마지막 한 방이 따로 찍지 못한다(raid.ts). 누가 찍어도 한 번만 찍히고, 보는 사람 누구나 시도한다.
