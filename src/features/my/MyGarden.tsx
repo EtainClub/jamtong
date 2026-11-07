@@ -14,6 +14,7 @@ import { MySection } from "./MySection";
  *
  * 이 브라우저의 정원과 계정의 정원 중 이 계정 것이고 더 새것을 보인다(정원의 link와 같은 판정).
  * 보이기만 한다. 고치는 것은 정원에서 한다 — 두 곳에서 쓰면 정원이 갈라진다.
+ * 하나 예외가 정원 이름(= MY의 닉네임)이다. MyProfile이 이 정원에 이름만 바꿔 쓴다(renameStoredGarden).
  */
 export function useMyGarden(uid: string | null): GardenData | null | undefined {
   const [garden, setGarden] = useState<{ uid: string | null; data: GardenData | null } | null>(null);
@@ -126,7 +127,7 @@ export function MyGarden({
             정원은 공개하지 않았어요. 공개하면 친구가 링크로 놀러 와 물을 줄 수 있어요(정원 머리의 &lsquo;자랑하기&rsquo;).
           </p>
         )}
-        <p className="mt-1.5">정원 이름 「{garden.nick}」은 정원의 꽃밭 탭에서 바꿉니다. 정원지기가 되면 이 이름이 명패에 걸려요.</p>
+        <p className="mt-1.5">정원 이름 「{garden.nick}」은 MY의 닉네임과 같아요. 위 프로필이나 정원의 꽃밭 탭에서 바꿉니다. 정원지기가 되면 이 이름이 명패에 걸려요.</p>
       </div>
 
       <GoGarden label={ripe ? `수확하러 가기 · ${ripe}칸` : "정원으로 가기"} />

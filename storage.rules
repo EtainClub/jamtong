@@ -37,6 +37,22 @@ service firebase.storage {
         && (request.auth.uid == uid || isAdmin());
     }
 
+    /*
+     * 프로필 사진 (src/lib/firebase/avatar.ts). 브라우저가 256px로 줄여 올리므로 수십 KB다.
+     * 익명 계정도 올린다 — 사진은 내 화면에만 쓰이고 공개 자리에는 실리지 않는다.
+     * 크기를 작게 묶어 남용의 끝을 정한다.
+     */
+    match /avatars/{uid}/{fileId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.size < 300 * 1024
+        && request.resource.contentType.matches('image/(png|jpeg|webp)');
+      allow update: if false;
+      allow delete: if request.auth != null
+        && (request.auth.uid == uid || isAdmin());
+    }
+
     // 그 밖의 모든 것은 닫는다.
     match /{allPaths=**} {
       allow read, write: if false;

@@ -65,14 +65,7 @@ export async function loadPublicGarden(
   const snap = await getDoc(doc(db, "gardens", gid));
   if (!snap.exists()) return null;
   const d = snap.data();
-  const garden: PublicGarden = {
-    nick: typeof d.nick === "string" ? d.nick : "",
-    beds: Array.isArray(d.beds) ? d.beds.map(toBed) : [],
-    dex: Number(d.dex) || 0,
-    golden: Number(d.golden) || 0,
-    rainbow: Number(d.rainbow) || 0,
-    titles: toTitles(d.titles),
-  };
+  const garden = toPublic(d);
   const mine = Boolean(uid && d.ownerUid === uid);
   let wateredToday = false;
   if (uid && !mine) {
@@ -80,6 +73,31 @@ export async function loadPublicGarden(
     wateredToday = w.exists() && w.get("day") === todayNumber();
   }
   return { garden, mine, wateredToday };
+}
+
+/**
+ * 공개 정원 여럿을 읽는다 — 이웃 탭의 친구 정원 비교. 없거나 공개를 끈 정원은 null.
+ * 물 표식은 읽지 않는다(비교에는 필요 없다).
+ */
+export async function loadPublicGardens(gids: string[]): Promise<Map<string, PublicGarden | null>> {
+  const db = firebaseDb();
+  const out = new Map<string, PublicGarden | null>();
+  if (!db) return out;
+  const snaps = await Promise.all(gids.map((gid) => getDoc(doc(db, "gardens", gid))));
+  snaps.forEach((snap, i) => out.set(gids[i], snap.exists() ? toPublic(snap.data()) : null));
+  return out;
+}
+
+/** 아무 값이나 담길 수 있는 문서다. 모양이 맞는 값만 받는다. */
+function toPublic(d: Record<string, unknown>): PublicGarden {
+  return {
+    nick: typeof d.nick === "string" ? d.nick : "",
+    beds: Array.isArray(d.beds) ? d.beds.map(toBed) : [],
+    dex: Number(d.dex) || 0,
+    golden: Number(d.golden) || 0,
+    rainbow: Number(d.rainbow) || 0,
+    titles: toTitles(d.titles),
+  };
 }
 
 function toTitles(raw: unknown): PublicGarden["titles"] {

@@ -7,11 +7,12 @@ import { useAuth } from "@/lib/firebase/auth";
 import { deleteGarden } from "@/lib/firebase/garden";
 import { deleteAllAsks, deleteAsk, listAsks, type AskRecord } from "@/lib/firebase/history";
 
-import { clearLocal } from "@/features/garden/store";
+import { clearLocal, type GardenData } from "@/features/garden/store";
 
 import { MyAccount } from "./MyAccount";
 import { MyContributions } from "./MyContributions";
 import { MyGarden, useMyGarden } from "./MyGarden";
+import { MyProfile } from "./MyProfile";
 import { MySection, useOpenSections } from "./MySection";
 
 /**
@@ -37,7 +38,9 @@ export function MyPanel({ speciesTotal }: { speciesTotal: number }) {
   const { open, toggle } = useOpenSections();
   const uid = user?.uid ?? null;
   const loadedGarden = useMyGarden(uid);
-  const garden = gardenReset ? null : loadedGarden;
+  // MY에서 닉네임을 바꾸면 그 정원으로 바꿔 보인다.
+  const [renamed, setRenamed] = useState<GardenData | null>(null);
+  const garden = gardenReset ? null : renamed && renamed.owner === uid ? renamed : loadedGarden;
 
   // MY를 연 것 자체가 "내 것을 보겠다"는 뜻이므로, 여기서 계정을 만든다.
   useEffect(() => {
@@ -86,17 +89,17 @@ export function MyPanel({ speciesTotal }: { speciesTotal: number }) {
 
   const anonymous = user?.isAnonymous ?? true;
   const grouped = groupByAchievement(asks ?? []);
-  const name = garden?.nick || user?.displayName || "익명 이용자";
 
   return (
     <>
       {/* 프로필 카드 — 늘 펼쳐 둔다. */}
       <section aria-label="프로필" className="mt-6 rounded-card border border-stone bg-taupe p-4">
-        <div className="flex items-center gap-3">
-          <Avatar user={user} name={name} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-semibold text-ink">{name}</p>
-            <p className="mt-0.5 flex items-center gap-1.5 truncate text-[12px] text-ash">
+        <MyProfile
+          user={user}
+          garden={garden}
+          onGarden={setRenamed}
+          badge={
+            <p className="flex items-center gap-1.5 truncate text-[12px] text-ash">
               <span
                 className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${
                   anonymous ? "bg-stone text-graphite" : "bg-navy text-eggshell"
@@ -106,8 +109,8 @@ export function MyPanel({ speciesTotal }: { speciesTotal: number }) {
               </span>
               <span className="truncate">{anonymous ? "이 브라우저에만 저장돼요" : (user?.email ?? "구글 계정")}</span>
             </p>
-          </div>
-        </div>
+          }
+        />
 
         <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
           <Stat label="잼" value={garden ? garden.jam.toLocaleString() : "–"} />
@@ -266,28 +269,6 @@ function groupByAchievement(asks: AskRecord[]): [string, AskRecord[]][] {
 function formatWhen(date: Date | null): string {
   if (!date) return "방금";
   return date.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
-}
-
-function Avatar({
-  user,
-  name,
-}: {
-  user: { photoURL?: string | null } | null;
-  name: string;
-}) {
-  if (user?.photoURL) {
-    // 구글 프로필 사진. 도메인을 next/image에 열어 두는 대신 그냥 img로 둔다.
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={user.photoURL} alt="" className="h-11 w-11 shrink-0 rounded-full" />;
-  }
-  return (
-    <span
-      aria-hidden="true"
-      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-stone text-[15px] font-bold text-smoke"
-    >
-      {name.slice(0, 1)}
-    </span>
-  );
 }
 
 function Note({ children, tone }: { children: React.ReactNode; tone?: "warn" }) {
