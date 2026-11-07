@@ -85,7 +85,24 @@ export type AnalyticsEvent =
   /** 익음 알림을 캘린더에 넣으러 갔다. via: ics | google, hours(알림까지 남은 시간, 반올림), quiet(밤이라 8시로 미뤘다). */
   | "ripe_alarm"
   /** 칭호 단계가 올랐다. title(dex|storm|plaza), level(1~3). */
-  | "title_up";
+  | "title_up"
+  /**
+   * 지지자 응원 — 응원 탭이 사람을 남기게 하는지 본다.
+   * cheer_open: 응원 탭을 처음 열었다. from: tab(탭을 눌렀다) | home | garden | neighbors | my | link.
+   * cheer_post: 한 줄을 남겼다. starter: none(직접 씀) | edited(첫 문장을 고쳐 씀) | verbatim(첫 문장 그대로),
+   *   topic(언행에 붙였는지), from(위와 같음).
+   * cheer_agree: 나도요를 눌렀다. on(켰으면 true).
+   * cheer_echo: 지난번 이후 내 응원에 붙은 나도요를 봤다. gain.
+   * cheer_video_post: 영상을 걸었다. topic.
+   * cheer_seed: 응원을 남긴 뒤 그 언행의 씨앗을 받으러 갔다.
+   * 글 내용은 보내지 않는다. 어느 언행에 붙였는지도 보내지 않는다 — 있다/없다만.
+   */
+  | "cheer_open"
+  | "cheer_post"
+  | "cheer_agree"
+  | "cheer_echo"
+  | "cheer_video_post"
+  | "cheer_seed";
 
 type Params = Record<string, string | number | boolean>;
 

@@ -20,6 +20,8 @@ export interface CheerCard {
   title: string;
   channel: string;
   channelUrl?: string | null;
+  /** 올린 사람이 이 영상이 다룬다고 고른 언행의 제목. 우리가 확인한 짝이 아니다. */
+  topicTitle?: string;
   /** 지울 수 있는 사람에게만 준다. 없으면 단추가 나오지 않는다. */
   onRemove?: () => void;
 }
@@ -75,6 +77,9 @@ function Frame({ card }: { card: CheerCard }) {
           )}
         </p>
 
+        {card.topicTitle && (
+          <p className="mt-1 truncate text-[11px] text-ash">올린 사람이 고른 언행 · 「{card.topicTitle}」</p>
+        )}
         {card.onRemove && (
           <button
             type="button"

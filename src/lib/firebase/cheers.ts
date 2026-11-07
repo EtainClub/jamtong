@@ -6,6 +6,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getCountFromServer,
   getDocs,
   increment,
   limit as fsLimit,
@@ -14,9 +15,12 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  startAfter,
   Timestamp,
   where,
   writeBatch,
+  type DocumentSnapshot,
+  type QueryConstraint,
 } from "firebase/firestore";
 
 import { firebaseDb } from "./client";
@@ -43,6 +47,18 @@ import { firebaseDb } from "./client";
 
 export const NOTE_MAX = 80;
 
+/**
+ * 응원이 가리키는 언행 — 언행 slug.
+ *
+ * ★ 이름표일 뿐이다. 응원 글이 원문에 섞이거나 원문 화면에 실리지 않는다.
+ *   언행별로 응원을 모아 보고, "오늘의 한 줄"이 어느 말을 두고 쓴 것인지 알게 할
+ *   뿐이다. 응원은 여전히 소스가 아니다(AGENTS.md).
+ */
+const TOPIC_RE = /^[a-z0-9-]{1,80}$/;
+function cleanTopic(topic: string | null | undefined): string | null {
+  return topic && TOPIC_RE.test(topic) ? topic : null;
+}
+
 /* ── 영상 ─────────────────────────────────────────────────────── */
 
 export interface SubmittedVideo {
@@ -51,6 +67,8 @@ export interface SubmittedVideo {
   channel: string;
   channelUrl: string | null;
   createdAt: Date | null;
+  /** 이 영상이 가리키는 언행. 없으면 null. */
+  topic: string | null;
   /** 내가 올린 것인지. 화면은 이것만 알면 되고 uid 자체는 쓰지 않는다. */
   mine: boolean;
 }
@@ -101,6 +119,7 @@ function toVideo(
     channel: typeof data.channel === "string" ? data.channel : "",
     channelUrl: typeof data.channelUrl === "string" ? data.channelUrl : null,
     createdAt: createdAt instanceof Timestamp ? createdAt.toDate() : null,
+    topic: cleanTopic(typeof data.topic === "string" ? data.topic : null),
     mine: Boolean(uid) && data.authorUid === uid,
   };
 }
@@ -139,6 +158,7 @@ export function watchCheerVideos(
 export async function postCheerVideo(
   uid: string,
   video: { youtubeId: string; title: string; channel: string; channelUrl: string | null },
+  topic: string | null = null,
 ): Promise<void> {
   const db = firebaseDb();
   if (!db) throw new Error("파이어베이스 설정이 없습니다.");
@@ -154,6 +174,7 @@ export async function postCheerVideo(
       title: video.title,
       channel: video.channel,
       channelUrl: video.channelUrl,
+      ...(cleanTopic(topic) ? { topic: cleanTopic(topic) } : {}),
       authorUid: uid,
       createdAt: serverTimestamp(),
     });
@@ -179,6 +200,8 @@ export interface CheerNote {
   body: string;
   agreeCount: number;
   createdAt: Date | null;
+  /** 이 한 줄이 가리키는 언행. 없으면 null. */
+  topic: string | null;
   mine: boolean;
 }
 
@@ -193,13 +216,23 @@ function toNote(
     body: typeof data.body === "string" ? data.body : "",
     agreeCount: typeof data.agreeCount === "number" ? data.agreeCount : 0,
     createdAt: createdAt instanceof Timestamp ? createdAt.toDate() : null,
+    topic: cleanTopic(typeof data.topic === "string" ? data.topic : null),
     mine: Boolean(uid) && data.authorUid === uid,
   };
 }
 
+/**
+ * 벽의 첫 쪽 — 최신 NOTE_LIVE개를 지켜본다.
+ *
+ * ★ 예전에는 최신 300개를 통째로 지켜보고 그 길이를 개수로 썼다. 300을 넘으면
+ *   개수가 300에서 멈추고 오래된 글이 벽에서 사라진다. 이제 첫 쪽만 지켜보고,
+ *   나머지는 loadNotePage로 한 쪽씩 받고, 개수는 countCheerNotes가 서버에서 센다.
+ */
+export const NOTE_LIVE = 24;
+
 export function watchCheerNotes(
   uid: string | null,
-  onChange: (notes: CheerNote[]) => void,
+  onChange: (notes: CheerNote[], last: DocumentSnapshot | null) => void,
   onError: (message: string) => void,
 ): () => void {
   const db = firebaseDb();
@@ -211,14 +244,86 @@ export function watchCheerNotes(
   const q = query(
     collection(db, "cheerNotes"),
     orderBy("createdAt", "desc"),
-    fsLimit(300),
+    fsLimit(NOTE_LIVE),
   );
 
   return onSnapshot(
     q,
-    (snap) => onChange(snap.docs.map((d) => toNote(d.id, d.data(), uid))),
+    (snap) =>
+      onChange(
+        snap.docs.map((d) => toNote(d.id, d.data(), uid)),
+        snap.docs.at(-1) ?? null,
+      ),
     (error) => onError(error.message),
   );
+}
+
+export type NoteOrder = "new" | "agree";
+
+/** 한 쪽 더. after는 앞 쪽의 마지막 문서다. 실시간이 아니다 — 지난 글은 잘 바뀌지 않는다. */
+export async function loadNotePage(
+  uid: string | null,
+  order: NoteOrder,
+  after: DocumentSnapshot | null,
+  size = NOTE_LIVE,
+): Promise<{ notes: CheerNote[]; last: DocumentSnapshot | null }> {
+  const db = firebaseDb();
+  if (!db) return { notes: [], last: null };
+  const parts: QueryConstraint[] = [
+    order === "new" ? orderBy("createdAt", "desc") : orderBy("agreeCount", "desc"),
+    ...(after ? [startAfter(after)] : []),
+    fsLimit(size),
+  ];
+  const snap = await getDocs(query(collection(db, "cheerNotes"), ...parts));
+  return {
+    notes: snap.docs.map((d) => toNote(d.id, d.data(), uid)),
+    last: snap.docs.at(-1) ?? null,
+  };
+}
+
+/** 한 언행에 붙은 한 줄. 등호 하나라 복합 색인이 필요 없다. 최신순은 여기서 맞춘다. */
+export async function loadTopicNotes(uid: string | null, topic: string): Promise<CheerNote[]> {
+  const db = firebaseDb();
+  const clean = cleanTopic(topic);
+  if (!db || !clean) return [];
+  const snap = await getDocs(
+    query(collection(db, "cheerNotes"), where("topic", "==", clean), fsLimit(200)),
+  );
+  return snap.docs
+    .map((d) => toNote(d.id, d.data(), uid))
+    .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0));
+}
+
+/** 지난 7일의 한 줄. "이번 주 공감을 많이 받은 한 줄"이 쓴다. */
+export async function loadWeekNotes(uid: string | null, since: number): Promise<CheerNote[]> {
+  const db = firebaseDb();
+  if (!db) return [];
+  const snap = await getDocs(
+    query(
+      collection(db, "cheerNotes"),
+      where("createdAt", ">=", Timestamp.fromMillis(since)),
+      orderBy("createdAt", "desc"),
+      fsLimit(200),
+    ),
+  );
+  return snap.docs.map((d) => toNote(d.id, d.data(), uid));
+}
+
+/**
+ * 몇 개인가 — 모두와 지난 7일.
+ *
+ * 문서를 받지 않고 서버가 센다. 홈과 정원의 이웃 탭도 이것을 부른다 — 응원 글을
+ * 그 화면에 싣지 않고 숫자만 보인다.
+ */
+export async function countCheerNotes(since: number): Promise<{ total: number; week: number }> {
+  const db = firebaseDb();
+  if (!db) return { total: 0, week: 0 };
+  const notes = collection(db, "cheerNotes");
+  const [total, week] = await Promise.all([
+    getCountFromServer(notes),
+    getCountFromServer(query(notes, where("createdAt", ">=", Timestamp.fromMillis(since)))),
+  ]);
+  return { total: total.data().count, week: week.data().count };
 }
 
 export async function loadMyNoteAgrees(uid: string, ids: string[]): Promise<Set<string>> {
@@ -238,7 +343,11 @@ export async function loadMyNoteAgrees(uid: string, ids: string[]): Promise<Set<
   return new Set(found.filter((id): id is string => id !== null));
 }
 
-export async function postCheerNote(uid: string, input: string): Promise<void> {
+export async function postCheerNote(
+  uid: string,
+  input: string,
+  topic: string | null = null,
+): Promise<void> {
   const db = firebaseDb();
   if (!db) throw new Error("파이어베이스 설정이 없습니다.");
 
@@ -247,8 +356,10 @@ export async function postCheerNote(uid: string, input: string): Promise<void> {
   if (body.length === 0) throw new Error("응원을 적어 주세요.");
   if (body.length > NOTE_MAX) throw new Error(`${NOTE_MAX}자까지 쓸 수 있습니다.`);
 
+  const clean = cleanTopic(topic);
   await addDoc(collection(db, "cheerNotes"), {
     body,
+    ...(clean ? { topic: clean } : {}),
     authorUid: uid,
     agreeCount: 0,
     createdAt: serverTimestamp(),
