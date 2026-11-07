@@ -604,6 +604,14 @@ const raw: StatementInput = {
   postedAt: "2026-11-02",
   displayDate: "2026년 11월 2일(월)",
   body: BODY,
+  media: [
+    {
+      type: "youtube",
+      url: "https://www.youtube.com/watch?v=7i_0jYPo7zo",
+      title: "[#이재명 LIVE] 2027년도 예산안 대통령 시정연설",
+      credit: "이재명 (유튜브)",
+    },
+  ],
   context:
     "정부가 9월에 국회에 낸 2027년 예산안을 설명하고 심의 협조를 구한 시정연설입니다. " +
     "예산안은 국회 심의에서 바뀔 수 있고, 법정 처리 기한은 12월 2일입니다.",
