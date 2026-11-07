@@ -12,6 +12,7 @@ import {
   type User,
 } from "firebase/auth";
 
+import { clearAvatar, uploadAvatar } from "./avatar";
 import { firebaseAuth, firebaseConfigured } from "./client";
 
 /**
@@ -69,6 +70,10 @@ interface AuthState {
   switchToGoogle: () => Promise<void>;
   signOutUser: () => Promise<void>;
   rename: (name: string) => Promise<void>;
+  /** 프로필 사진을 올려 계정 사진으로 건다. 상단 단추가 바로 바뀐다. */
+  setPhoto: (file: File) => Promise<void>;
+  /** 올린 사진을 내리고 구글 사진(없으면 기본 모양)으로 돌아간다. */
+  clearPhoto: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthState | null>(null);
@@ -171,6 +176,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const auth = firebaseAuth();
         if (!auth?.currentUser) return;
         await updateProfile(auth.currentUser, { displayName: name });
+        await push();
+      },
+
+      async setPhoto(file: File) {
+        const auth = firebaseAuth();
+        if (!auth?.currentUser) return;
+        await uploadAvatar(auth.currentUser, file);
+        await push();
+      },
+
+      async clearPhoto() {
+        const auth = firebaseAuth();
+        if (!auth?.currentUser) return;
+        await clearAvatar(auth.currentUser);
         await push();
       },
     }),

@@ -153,7 +153,7 @@ function fresh(catalog: Species[]): GardenData {
     gifts: [],
     care: {},
     careToday: { day: 0, given: {} },
-    nick: defaultNick(String(Date.now()) + Math.random()),
+    nick: (typeof window !== "undefined" && readPendingNick()) || defaultNick(String(Date.now()) + Math.random()),
     nectar: { day: "", taken: [] },
     raids: [],
     leaves: { checked: [], slot: 0, day: "", count: 0 },
@@ -186,6 +186,51 @@ function normalize(data: GardenData): GardenData {
     tools: data.tools ?? { have: {}, day: "", bought: {} },
     invite: data.invite ?? NO_INVITE,
   };
+}
+
+/**
+ * MY에서 정원 이름을 바꾼다. 정원 이름은 남에게 보이는 유일한 이름이라(꽃밭 명패, 공개 정원)
+ * MY의 닉네임도 이것이다.
+ *
+ * MY는 정원 화면 밖이라 store를 띄우지 않는다. MY가 고른 정원(이 계정 것이고 더 새것)에
+ * 이름만 바꾸고 updatedAt을 올려 이 브라우저에 쓴다 — 정원의 link가 이 사본을 "더 새것"으로
+ * 고른다. 계정 쪽은 부르는 쪽이 saveGarden으로 쓴다. 이름이 비면 null.
+ */
+export function renameStoredGarden(garden: GardenData, uid: string | null, nick: string): GardenData | null {
+  const clean = cleanNick(nick);
+  if (!clean) return null;
+  const next: GardenData = { ...garden, nick: clean, owner: uid ?? garden.owner, updatedAt: Date.now() };
+  writeLocal(next);
+  return next;
+}
+
+export function cleanNick(nick: string): string {
+  return nick.replace(/\s+/g, " ").trim().slice(0, NICK_MAX);
+}
+
+/**
+ * 정원을 시작하기 전에 MY에서 정한 이름. 정원을 처음 만들 때(fresh) 지어 준 이름 대신 쓴다.
+ * 계정에 이미 정원이 있으면 그 정원의 이름이 이긴다 — MY는 그때 정원 이름을 직접 고친다.
+ */
+const PENDING_NICK_KEY = "jamtong-garden-nick";
+
+export function readPendingNick(): string | null {
+  try {
+    return localStorage.getItem(PENDING_NICK_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function writePendingNick(nick: string): string | null {
+  const clean = cleanNick(nick);
+  if (!clean) return null;
+  try {
+    localStorage.setItem(PENDING_NICK_KEY, clean);
+  } catch {
+    return null;
+  }
+  return clean;
 }
 
 /** 이 브라우저의 정원 사본을 지운다. MY의 "정원 처음부터 다시 시작"이 쓴다. 못 지우면 던진다. */
@@ -526,7 +571,7 @@ export const useGarden = create<GardenState>((set, get) => {
 
     rename: (nick) => {
       const d = get().data;
-      const clean = nick.replace(/\s+/g, " ").trim().slice(0, NICK_MAX);
+      const clean = cleanNick(nick);
       if (!d || !clean) return;
       commit({ ...d, nick: clean });
     },
