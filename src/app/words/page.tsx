@@ -9,6 +9,7 @@ import { BottomNav } from "@/features/app/BottomNav";
 import { JsonLd, collectionPageLd } from "@/lib/seo/jsonld";
 import { BooksPanel } from "@/features/books/BooksPanel";
 import { CheerBoard } from "@/features/words/CheerBoard";
+import { cheerTopics } from "@/features/words/cheerTopics";
 import { MoreList } from "@/features/words/MoreList";
 import { SpeechCard, speechVideoId } from "@/features/words/SpeechCard";
 import { WordsTabs } from "@/features/words/WordsTabs";
@@ -221,7 +222,7 @@ function CheerPanel() {
         올린 응원 영상이 있습니다.
       </p>
 
-      <CheerBoard seed={CHEERS} />
+      <CheerBoard seed={CHEERS} topics={cheerTopics()} />
     </>
   );
 }

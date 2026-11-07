@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import type { Bloom } from "@/lib/firebase/blooms";
 import { firebaseConfigured } from "@/lib/firebase/client";
+import { countCheerNotes } from "@/lib/firebase/cheers";
 import { loadPublicGardens, type PublicGarden } from "@/lib/firebase/gardens";
 import { loadTogether, type Together } from "@/lib/firebase/together";
 
@@ -95,7 +97,41 @@ function TogetherCard({ blooms, now }: { blooms: Map<string, Bloom>; now: number
         </dl>
       )}
       <p className="mt-2 text-[11px] text-smoke">꽃밭에 모인 가꿈은 지금까지 모두 {care.toLocaleString()}이에요.</p>
+      <CheerLine since={since} />
     </section>
+  );
+}
+
+/**
+ * 같은 주, 언행 탭에 남은 응원 수 — 숫자와 길만.
+ *
+ * 응원 글은 싣지 않는다. 정원은 근거를 퍼뜨리는 자리이고 응원 글은 검증된 자료가 아니다.
+ * 버프·잼도 붙이지 않는다 — 응원에 게임 보상을 붙이지 않는다(docs/garden-game.md §1).
+ */
+function CheerLine({ since }: { since: number }) {
+  const [week, setWeek] = useState<number | null>(null);
+  useEffect(() => {
+    if (!firebaseConfigured) return;
+    let alive = true;
+    countCheerNotes(since)
+      .then((c) => alive && setWeek(c.week))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [since]);
+
+  if (week === null) return null;
+  return (
+    <Link
+      href="/words?tab=cheers&from=neighbors"
+      className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-white/70 px-3 py-2 text-[12px]"
+    >
+      <span>
+        💬 같은 주, 언행 탭에 남은 응원 <b className="tabular-nums">{week.toLocaleString()}</b>줄
+      </span>
+      <span aria-hidden="true" className="text-smoke">→</span>
+    </Link>
   );
 }
 

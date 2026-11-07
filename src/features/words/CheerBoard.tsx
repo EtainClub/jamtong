@@ -1,25 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { CheerVideo } from "@/content/cheers/schema";
+import { track } from "@/lib/analytics";
 import { useAuth } from "@/lib/firebase/auth";
 import {
-  NOTE_MAX,
-  deleteCheerNote,
+  countCheerNotes,
   deleteCheerVideo,
-  loadMyNoteAgrees,
   parseYoutubeId,
-  postCheerNote,
   postCheerVideo,
-  toggleNoteAgree,
-  watchCheerNotes,
   watchCheerVideos,
-  type CheerNote,
   type SubmittedVideo,
 } from "@/lib/firebase/cheers";
 import { checkAdmin } from "@/lib/firebase/feedback";
 import { CheerWall, type CheerCard } from "./CheerWall";
+import { NotesView, type CheerFrom } from "./CheerNotes";
+import type { CheerTopic } from "./cheerTopics";
 
 /**
  * 지지자 응원 — 한 줄과 영상.
@@ -43,22 +40,51 @@ import { CheerWall, type CheerCard } from "./CheerWall";
  * ★ 로그인 화면을 먼저 들이밀지 않는다.
  *   나머지 화면과 같게 익명으로 시작한다(ensureUser). 올리기를 누른 순간
  *   계정이 생기고, 그래서 제 것을 도로 내릴 수 있다.
+ *
+ * ★ 언행 하나를 고르면 한 줄과 영상이 같이 그 말을 따른다.
+ *   주소의 `?tab=cheers&topic=<언행 slug>&from=<어디서>`로 들어올 수 있다 — 정원의 쪽지,
+ *   홈, 정원 이웃 탭, MY가 이 길로 보낸다. 읽은 뒤 주소에서 지운다.
  */
 
 type View = "notes" | "videos";
 
-export function CheerBoard({ seed }: { seed: CheerVideo[] }) {
-  const { user, ready, configured, ensureUser } = useAuth();
+const WEEK = 7 * 86_400_000;
+const FROMS: CheerFrom[] = ["home", "garden", "neighbors", "my", "link"];
+
+export function CheerBoard({ seed, topics }: { seed: CheerVideo[]; topics: CheerTopic[] }) {
+  const { user, configured } = useAuth();
   const uid = user?.uid ?? null;
 
   const [videos, setVideos] = useState<SubmittedVideo[]>([]);
-  const [notes, setNotes] = useState<CheerNote[]>([]);
-  const [agreed, setAgreed] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [counts, setCounts] = useState<{ total: number; week: number } | null>(null);
 
   const [view, setView] = useState<View>("notes");
   const [videosOpened, setVideosOpened] = useState(false);
+
+  /*
+   * 고른 언행. 처음에는 맨 앞(가장 최근에 들어온 언행)이 "오늘의 한 줄"이다.
+   * 링크로 들어왔으면 그 언행. 첫 렌더는 서버와 같아야 하므로 주소는 효과에서 읽는다.
+   */
+  const known = useMemo(() => new Set(topics.map((t) => t.slug)), [topics]);
+  const [topic, setTopic] = useState<string | null>(topics[0]?.slug ?? null);
+  const [from, setFrom] = useState<CheerFrom>("tab");
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const asked = url.searchParams.get("topic");
+    const came = url.searchParams.get("from");
+    const via = FROMS.find((f) => f === came) ?? (asked ? "link" : "tab");
+    track("cheer_open", { from: via });
+    if (!url.searchParams.has("topic") && !url.searchParams.has("from")) return;
+    url.searchParams.delete("topic");
+    url.searchParams.delete("from");
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    // 주소에서 한 번 읽는 값이다. 다음 렌더에서 다시 읽지 않는다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFrom(via);
+    if (asked && known.has(asked)) setTopic(asked);
+  }, [known]);
 
   /*
    * 운영자인지. 피드백 게시판과 같은 이유로 "어느 uid가 확인됐나"를 담고
@@ -72,35 +98,17 @@ export function CheerBoard({ seed }: { seed: CheerVideo[] }) {
     return watchCheerVideos(uid, setVideos, setError);
   }, [uid, configured]);
 
+  /* 개수는 서버가 센다. 벽에 불러온 글의 수가 아니다. */
   useEffect(() => {
     if (!configured) return;
-    return watchCheerNotes(
-      uid,
-      (next) => {
-        setNotes(next);
-        setLoaded(true);
-        setError(null);
-      },
-      (message) => {
-        setError(message);
-        setLoaded(true);
-      },
-    );
-  }, [uid, configured]);
-
-  useEffect(() => {
-    if (!uid || notes.length === 0) return;
     let alive = true;
-    loadMyNoteAgrees(
-      uid,
-      notes.map((n) => n.id),
-    ).then((set) => {
-      if (alive) setAgreed(set);
-    });
+    countCheerNotes(Date.now() - WEEK)
+      .then((c) => alive && setCounts(c))
+      .catch(() => {});
     return () => {
       alive = false;
     };
-  }, [uid, notes]);
+  }, [configured]);
 
   useEffect(() => {
     if (!uid) return;
@@ -114,6 +122,7 @@ export function CheerBoard({ seed }: { seed: CheerVideo[] }) {
   }, [uid]);
 
   const seedIds = useMemo(() => new Set(seed.map((v) => v.youtubeId)), [seed]);
+  const topicBy = useMemo(() => new Map(topics.map((t) => [t.slug, t])), [topics]);
 
   /*
    * 한 벽에 붙일 카드.
@@ -124,16 +133,17 @@ export function CheerBoard({ seed }: { seed: CheerVideo[] }) {
    * 씨앗과 같은 영상이 올라와 있으면 올라온 쪽을 버린다. 저장소는 제
    * 컬렉션 안의 겹침만 막을 수 있고 코드에 박힌 것까지는 모른다.
    */
-  const cards = useMemo<CheerCard[]>(() => {
-    const fromSeed: CheerCard[] = seed.map((video) => ({
+  const cards = useMemo<Array<CheerCard & { topic: string | null }>>(() => {
+    const fromSeed = seed.map((video) => ({
       key: `seed:${video.id}`,
       youtubeId: video.youtubeId,
       title: video.title,
       channel: video.channel,
       channelUrl: video.channelUrl,
+      topic: null,
     }));
 
-    const fromUsers: CheerCard[] = videos
+    const fromUsers = videos
       .filter((video) => !seedIds.has(video.youtubeId))
       .map((video) => ({
         key: `up:${video.youtubeId}`,
@@ -141,6 +151,8 @@ export function CheerBoard({ seed }: { seed: CheerVideo[] }) {
         title: video.title,
         channel: video.channel,
         channelUrl: video.channelUrl,
+        topic: video.topic && topicBy.has(video.topic) ? video.topic : null,
+        topicTitle: video.topic ? topicBy.get(video.topic)?.title : undefined,
         onRemove:
           video.mine || admin
             ? () => {
@@ -152,31 +164,24 @@ export function CheerBoard({ seed }: { seed: CheerVideo[] }) {
       }));
 
     return [...fromSeed, ...fromUsers];
-  }, [seed, seedIds, videos, admin]);
+  }, [seed, seedIds, videos, admin, topicBy]);
 
-  const onAgree = useCallback(
-    async (note: CheerNote) => {
-      const account = await ensureUser();
-      if (!account) return;
-      try {
-        await toggleNoteAgree(account.uid, note.id, agreed.has(note.id));
-        setAgreed((prev) => {
-          const next = new Set(prev);
-          if (next.has(note.id)) next.delete(note.id);
-          else next.add(note.id);
-          return next;
-        });
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "누르지 못했습니다.");
-      }
-    },
-    [agreed, ensureUser],
-  );
+  /* 고른 언행에 걸린 영상만 보기. 걸린 영상이 없으면 단추가 나오지 않는다. */
+  const [onlyTopic, setOnlyTopic] = useState(false);
+  const topicCards = topic ? cards.filter((c) => c.topic === topic) : [];
+  const wall = onlyTopic && topicCards.length > 0 ? topicCards : cards;
 
   const show = (next: View) => {
     setView(next);
     if (next === "videos") setVideosOpened(true);
   };
+
+  const clearError = useCallback(() => setError(null), []);
+  const onPosted = useCallback(
+    () => setCounts((c) => (c ? { total: c.total + 1, week: c.week + 1 } : c)),
+    [],
+  );
+  const current = topic ? topicBy.get(topic) ?? null : null;
 
   return (
     <>
@@ -195,22 +200,23 @@ export function CheerBoard({ seed }: { seed: CheerVideo[] }) {
       <ViewSwitch
         view={view}
         onChange={show}
-        noteCount={configured && loaded ? notes.length : null}
+        noteCount={configured ? (counts?.total ?? null) : null}
         videoCount={cards.length}
       />
 
       <div id="cheer-panel-notes" hidden={view !== "notes"}>
         {configured ? (
           <NotesView
-            notes={notes}
-            loaded={loaded}
-            agreed={agreed}
+            topics={topics}
+            topic={topic}
+            onTopic={setTopic}
+            from={from}
             admin={admin}
-            ready={ready}
-            hasError={error !== null}
-            onAgree={onAgree}
+            counts={counts}
+            onPosted={onPosted}
             onError={setError}
-            onDone={() => setError(null)}
+            onDone={clearError}
+            hasError={error !== null}
           />
         ) : (
           <p className="mt-6 rounded-card border border-stone bg-taupe px-5 py-4 text-[13px] leading-relaxed text-smoke">
@@ -230,15 +236,30 @@ export function CheerBoard({ seed }: { seed: CheerVideo[] }) {
             {configured ? (
               <VideoComposer
                 known={new Set([...seedIds, ...videos.map((v) => v.youtubeId)])}
+                topic={current}
                 onError={setError}
-                onDone={() => setError(null)}
+                onDone={clearError}
               />
             ) : (
               <p className="mt-4 rounded-card border border-stone bg-taupe px-5 py-4 text-[13px] leading-relaxed text-smoke">
                 파이어베이스 설정이 없어 영상 올리기는 쓸 수 없습니다.
               </p>
             )}
-            <CheerWall cards={cards} />
+            {current && topicCards.length > 0 && (
+              <button
+                type="button"
+                aria-pressed={onlyTopic}
+                onClick={() => setOnlyTopic((v) => !v)}
+                className={`mt-4 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+                  onlyTopic
+                    ? "bg-ink text-eggshell"
+                    : "border border-stone text-smoke hover:border-graphite hover:text-ink"
+                }`}
+              >
+                「{current.title}」 영상만 · {topicCards.length}편
+              </button>
+            )}
+            <CheerWall cards={wall} />
           </>
         )}
       </div>
@@ -336,380 +357,6 @@ function VideoNotice() {
   );
 }
 
-/* ── 한 줄 응원 ────────────────────────────────────────────────── */
-
-/** 처음에 이만큼 붙이고, 나머지는 "더 보기"로 편다. 300장을 한 번에 그리지 않는다. */
-const NOTE_PAGE = 24;
-
-type Sort = "new" | "agree";
-
-function NotesView({
-  notes,
-  loaded,
-  agreed,
-  admin,
-  ready,
-  hasError,
-  onAgree,
-  onError,
-  onDone,
-}: {
-  notes: CheerNote[];
-  loaded: boolean;
-  agreed: Set<string>;
-  admin: boolean;
-  ready: boolean;
-  hasError: boolean;
-  onAgree: (note: CheerNote) => void;
-  onError: (message: string) => void;
-  onDone: () => void;
-}) {
-  const [sort, setSort] = useState<Sort>("new");
-  const [shown, setShown] = useState(NOTE_PAGE);
-
-  const sorted = useMemo(
-    () => (sort === "new" ? notes : [...notes].sort((a, b) => b.agreeCount - a.agreeCount)),
-    [notes, sort],
-  );
-
-  return (
-    <>
-      {/*
-        * 빈 칸 앞에서 사람을 멈추게 하는 것은 "무슨 말을 써야 하나"다.
-        * 그래서 첫 줄은 설명이 아니라 허락이다 — 짧아도 된다고 먼저 말한다.
-        */}
-      <div className="mt-8">
-        <p className="text-[12px] font-semibold text-navy">대통령께 마음을 전하는 자리</p>
-        <h2 className="mt-2 text-[26px] font-extrabold leading-[1.2] tracking-[-0.02em] text-ink">
-          한 줄이면 충분합니다.
-          <br />
-          <span className="text-navy">응원은 오래 남습니다.</span>
-        </h2>
-        <p className="mt-3 text-[13px] leading-relaxed text-smoke">
-          {loaded && notes.length > 0
-            ? `이미 ${notes.length}개의 응원이 모였습니다. 당신의 한 줄을 더해 주세요.`
-            : "전하고 싶은 응원과 감사를 짧게 남겨 주세요."}
-        </p>
-      </div>
-
-      <NoteComposer onError={onError} onDone={onDone} />
-
-      <div className="mt-10 flex items-center justify-between gap-3">
-        <h3 className="text-[15px] font-bold text-ink">
-          마음이 모이는 응원 벽
-          {loaded && (
-            <span className="tabular ml-2 text-[12px] font-semibold text-ash">
-              {notes.length}개
-            </span>
-          )}
-        </h3>
-        <div role="group" aria-label="정렬" className="flex shrink-0 gap-1">
-          {(
-            [
-              ["new", "최신순"],
-              ["agree", "공감순"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              aria-pressed={sort === id}
-              onClick={() => setSort(id)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                sort === id
-                  ? "bg-ink text-eggshell"
-                  : "border border-stone text-smoke hover:border-graphite hover:text-ink"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {!loaded && (
-        <p className="mt-4 rounded-card border border-stone px-5 py-6 text-center text-[13px] text-ash">
-          응원을 불러오는 중입니다.
-        </p>
-      )}
-
-      {loaded && notes.length === 0 && !hasError && (
-        <p className="mt-4 rounded-card border border-dashed border-stone px-5 py-8 text-center text-[13px] leading-relaxed text-ash">
-          아직 벽이 비어 있습니다.
-          <br />
-          첫 번째 응원을 붙여 주세요.
-        </p>
-      )}
-
-      {/*
-        * 길이가 제각각인 쪽지를 줄 맞춰 세우면 짧은 것 옆에 빈자리가 난다.
-        * 열(columns)로 흘려 붙여 벽처럼 보이게 한다.
-        */}
-      <ul className="mt-5 columns-1 gap-3 sm:columns-2">
-        {sorted.slice(0, shown).map((note, i) => (
-          <li key={note.id} className="mb-4 break-inside-avoid pt-2">
-            <NoteCard
-              note={note}
-              tilt={i % 3}
-              agreed={agreed.has(note.id)}
-              admin={admin}
-              ready={ready}
-              onAgree={() => onAgree(note)}
-              onError={onError}
-            />
-          </li>
-        ))}
-      </ul>
-
-      {sorted.length > shown && (
-        <button
-          type="button"
-          onClick={() => setShown((n) => n + NOTE_PAGE)}
-          className="mt-2 w-full rounded-full border border-stone px-4 py-2.5 text-[12px] font-semibold text-smoke transition-colors hover:border-graphite hover:text-ink"
-        >
-          응원 더 보기 <span className="tabular">({sorted.length - shown})</span>
-        </button>
-      )}
-    </>
-  );
-}
-
-/**
- * 마음 고르기.
- *
- * 누르면 첫 문장을 채워 준다. 빈 칸에서 시작하는 것보다 고쳐 쓰는 것이
- * 훨씬 쉽다. 저장되는 것은 결국 글 한 줄뿐이라 저장소 모양은 그대로다.
- */
-const MOODS = [
-  { label: "늘 응원합니다", starter: "대통령님, 늘 응원하고 있습니다." },
-  { label: "고맙습니다", starter: "대통령님, 정말 고맙습니다." },
-  { label: "힘내세요", starter: "대통령님, 힘내세요!" },
-  { label: "함께하겠습니다", starter: "끝까지 함께하겠습니다." },
-] as const;
-
-const STARTERS = new Set<string>(MOODS.map((m) => m.starter));
-
-/** 한 줄 칸. 접어 두지 않는다 — 한 줄짜리를 여는 데 한 번 더 누르게 할 이유가 없다. */
-function NoteComposer({
-  onDone,
-  onError,
-}: {
-  onDone: () => void;
-  onError: (message: string) => void;
-}) {
-  const { ensureUser } = useAuth();
-  const [body, setBody] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const fieldRef = useRef<HTMLTextAreaElement>(null);
-
-  const pick = (starter: string) => {
-    /*
-     * 비었거나 다른 첫 문장만 있으면 갈아 끼운다. 이미 제 말을 적어 두었으면
-     * 지우지 않고 앞에 붙인다 — 누른 한 번에 쓴 것이 사라지면 다시 안 쓴다.
-     */
-    const current = body.trim();
-    const next =
-      current.length === 0 || STARTERS.has(current)
-        ? `${starter} `
-        : `${starter} ${current}`.slice(0, NOTE_MAX);
-    setBody(next);
-    setSent(false);
-    const field = fieldRef.current;
-    if (field) {
-      field.focus();
-      requestAnimationFrame(() => field.setSelectionRange(next.length, next.length));
-    }
-  };
-
-  const submit = async () => {
-    if (body.trim().length === 0 || sending) return;
-    setSending(true);
-    try {
-      const account = await ensureUser();
-      if (!account) throw new Error("로그인을 준비하지 못했습니다.");
-      await postCheerNote(account.uid, body);
-      setBody("");
-      setSent(true);
-      onDone();
-    } catch (e) {
-      onError(e instanceof Error ? e.message : "남기지 못했습니다.");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const trimmed = body.trim();
-
-  return (
-    <div className="mt-6 rounded-card-lg border border-stone bg-eggshell px-5 py-5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.12)]">
-      <p className="rounded-card bg-taupe px-4 py-3 text-[12px] leading-relaxed text-smoke">
-        <span className="font-semibold text-graphite">품격 있는 말로 함께해 주세요.</span>{" "}
-        비난이나 조롱 대신 따뜻한 응원을 남겨 주세요. 남에 대한 이야기와
-        개인정보는 운영자가 지웁니다.
-      </p>
-
-      <p className="mt-5 text-[13px] font-semibold text-ink">어떤 마음을 전할까요?</p>
-      <div className="mt-2.5 grid grid-cols-2 gap-2">
-        {MOODS.map((mood) => {
-          const on = trimmed.startsWith(mood.starter);
-          return (
-            <button
-              key={mood.label}
-              type="button"
-              aria-pressed={on}
-              onClick={() => pick(mood.starter)}
-              className={`rounded-card px-3 py-2.5 text-[13px] font-semibold transition-colors ${
-                on
-                  ? "border border-ink bg-ink text-eggshell"
-                  : "border border-stone bg-taupe text-graphite hover:border-graphite hover:text-ink"
-              }`}
-            >
-              {mood.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-5 flex items-baseline justify-between">
-        <label htmlFor="cheer-note" className="text-[13px] font-semibold text-ink">
-          메시지
-        </label>
-        <span
-          className={`tabular text-[11px] ${body.length >= NOTE_MAX ? "text-burgundy" : "text-ash"}`}
-        >
-          {body.length} / {NOTE_MAX}
-        </span>
-      </div>
-      <textarea
-        id="cheer-note"
-        ref={fieldRef}
-        value={body}
-        rows={3}
-        maxLength={NOTE_MAX}
-        onChange={(e) => {
-          setBody(e.target.value);
-          setSent(false);
-        }}
-        onKeyDown={(e) => {
-          /* 한 줄이므로 Enter는 줄바꿈이 아니라 남기기다. 한글 조합 중에는 넘긴다. */
-          if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-            e.preventDefault();
-            void submit();
-          }
-        }}
-        placeholder="대통령님, 늘 응원하고 있습니다. 힘내세요!"
-        className="mt-2 block w-full resize-none rounded-card border border-stone bg-canvas px-4 py-3 text-[15px] leading-relaxed text-ink placeholder:text-ash focus:border-graphite focus:outline-none"
-      />
-
-      <button
-        type="button"
-        onClick={submit}
-        disabled={sending || trimmed.length === 0}
-        className="mt-3 w-full rounded-full bg-ink px-4 py-3 text-[14px] font-bold text-eggshell transition-opacity disabled:opacity-40"
-      >
-        {sending ? "붙이는 중" : "응원 벽에 붙이기"}
-      </button>
-
-      <p aria-live="polite" className="mt-2 min-h-[1.25rem] text-center text-[12px] text-navy">
-        {sent && "응원이 벽에 붙었습니다. 고맙습니다!"}
-      </p>
-    </div>
-  );
-}
-
-/** 몇 분 전. 벽이 살아 있다는 것은 날짜보다 "방금"이 더 잘 말한다. */
-function ago(date: Date | null): string | null {
-  if (!date) return null;
-  const min = Math.floor((Date.now() - date.getTime()) / 60000);
-  if (min < 1) return "방금";
-  if (min < 60) return `${min}분 전`;
-  const hour = Math.floor(min / 60);
-  if (hour < 24) return `${hour}시간 전`;
-  const day = Math.floor(hour / 24);
-  if (day < 30) return `${day}일 전`;
-  return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`;
-}
-
-/* 쪽지를 살짝 비뚤게 붙인다. 셋 중 하나는 반듯하게 — 다 기울면 어지럽다. */
-const TILTS = ["-rotate-[0.6deg]", "rotate-0", "rotate-[0.5deg]"] as const;
-
-function NoteCard({
-  note,
-  tilt,
-  agreed,
-  admin,
-  ready,
-  onAgree,
-  onError,
-}: {
-  note: CheerNote;
-  tilt: number;
-  agreed: boolean;
-  admin: boolean;
-  ready: boolean;
-  onAgree: () => void;
-  onError: (message: string) => void;
-}) {
-  const remove = async () => {
-    try {
-      await deleteCheerNote(note.id);
-    } catch (e) {
-      onError(e instanceof Error ? e.message : "지우지 못했습니다.");
-    }
-  };
-
-  const when = ago(note.createdAt);
-
-  return (
-    <article
-      className={`relative rounded-card border px-4 pb-3 pt-5 ${TILTS[tilt]} ${
-        note.mine ? "border-graphite bg-eggshell" : "border-stone bg-taupe"
-      }`}
-    >
-      {/* 테이프 한 조각. 쪽지를 벽에 붙였다는 것 말고는 뜻이 없다. */}
-      <span
-        aria-hidden="true"
-        className="absolute -top-2 left-1/2 h-4 w-14 -translate-x-1/2 rotate-[-2deg] rounded-[2px] bg-stone/90"
-      />
-      <span aria-hidden="true" className="block text-[22px] font-bold leading-none text-ash">
-        &ldquo;
-      </span>
-      <p className="mt-1 text-[14.5px] leading-relaxed text-ink">{note.body}</p>
-
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <button
-          type="button"
-          onClick={onAgree}
-          disabled={!ready}
-          aria-pressed={agreed}
-          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-40 ${
-            agreed
-              ? "bg-navy text-eggshell"
-              : "border border-stone bg-eggshell text-smoke hover:border-graphite hover:text-ink"
-          }`}
-        >
-          나도요 {note.agreeCount > 0 && <span className="tabular">{note.agreeCount}</span>}
-        </button>
-
-        {note.mine && <span className="text-[11px] font-semibold text-navy">내 글</span>}
-
-        {(note.mine || admin) && (
-          <button
-            type="button"
-            onClick={remove}
-            className="rounded-full border border-stone px-2.5 py-1 text-[11px] font-semibold text-ash transition-colors hover:border-burgundy hover:text-burgundy"
-          >
-            지우기
-          </button>
-        )}
-
-        {when && <span className="ml-auto text-[11px] text-ash">{when}</span>}
-      </div>
-    </article>
-  );
-}
-
 /* ── 영상 ─────────────────────────────────────────────────────── */
 
 /**
@@ -724,10 +371,13 @@ function NoteCard({
  */
 function VideoComposer({
   known,
+  topic,
   onDone,
   onError,
 }: {
   known: Set<string>;
+  /** 응원 탭에서 고른 언행. 있으면 "이 언행 영상으로 걸기"를 고를 수 있다. */
+  topic: CheerTopic | null;
   onDone: () => void;
   onError: (message: string) => void;
 }) {
@@ -741,11 +391,14 @@ function VideoComposer({
     channelUrl: string | null;
   } | null>(null);
   const [busy, setBusy] = useState(false);
+  /* 기본은 끈다. 영상이 그 언행을 다루는지는 올리는 사람이 직접 고른다. */
+  const [tagged, setTagged] = useState(false);
 
   const reset = () => {
     setInput("");
     setFound(null);
     setOpen(false);
+    setTagged(false);
   };
 
   const look = async () => {
@@ -791,7 +444,9 @@ function VideoComposer({
     try {
       const account = await ensureUser();
       if (!account) throw new Error("로그인을 준비하지 못했습니다.");
-      await postCheerVideo(account.uid, found);
+      const withTopic = tagged && topic ? topic.slug : null;
+      await postCheerVideo(account.uid, found, withTopic);
+      track("cheer_video_post", { topic: Boolean(withTopic) });
       reset();
       onDone();
     } catch (e) {
@@ -863,6 +518,20 @@ function VideoComposer({
             />
           </div>
         </div>
+      )}
+
+      {found && topic && (
+        <label className="mt-4 flex items-start gap-2 text-[12px] leading-relaxed text-smoke">
+          <input
+            type="checkbox"
+            checked={tagged}
+            onChange={(e) => setTagged(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>
+            「{topic.title}」을 다룬 영상으로 걸기
+          </span>
+        </label>
       )}
 
       <div className="mt-4 flex justify-end gap-2">

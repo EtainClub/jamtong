@@ -266,6 +266,18 @@ export function Beds({
                           if (caresFor(species)) void tend(species, CARE.shine);
                         }}
                       />
+                      {/*
+                        * 언행 열매에서만, 그 말에 한 줄 남기는 길. 잼은 그대로다 — 응원에는
+                        * 게임 보상을 붙이지 않는다(docs/garden-game.md §1). 길만 놓는다.
+                        */}
+                      {species.id.startsWith("w:") && (
+                        <Link
+                          href={`/words?tab=cheers&topic=${species.id.slice(2)}&from=garden`}
+                          className="mt-1.5 inline-block text-[12px] font-semibold text-[var(--g-leaf)] hover:underline"
+                        >
+                          💬 이 말에 한 줄 남기기 →
+                        </Link>
+                      )}
                     </div>
                   )}
                 </li>

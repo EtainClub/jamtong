@@ -654,6 +654,16 @@ service cloud.firestore {
      *   길이뿐이다. 거짓 제목을 붙인 문서를 손으로 만들 수는 있다는 뜻이다.
      *   그래서 운영자가 내릴 수 있게 해 두었고, 그게 여기서 감당하는 방식이다.
      */
+    /*
+     * 응원이 가리키는 언행(topic) — 없어도 되고, 있으면 언행 slug 모양이어야 한다.
+     * 실제로 있는 언행인지는 규칙이 모른다. 화면은 아는 slug만 붙이고, 모르는 이름표는
+     * 그리지 않는다. 이름표일 뿐이라 원문 화면에는 아무것도 실리지 않는다.
+     */
+    function cheerTopicOk(data) {
+      return !('topic' in data)
+        || (data.topic is string && data.topic.matches('^[a-z0-9-]{1,80}$'));
+    }
+
     match /cheerVideos/{youtubeId} {
       allow read: if true;
 
@@ -666,7 +676,8 @@ service cloud.firestore {
         && request.resource.data.title.size() <= 200
         && request.resource.data.channel is string
         && request.resource.data.channel.size() > 0
-        && request.resource.data.channel.size() <= 100;
+        && request.resource.data.channel.size() <= 100
+        && cheerTopicOk(request.resource.data);
 
       // 올린 사람은 제 것을 거둘 수 있고, 운영자는 무엇이든 내린다.
       allow delete: if request.auth != null
@@ -699,7 +710,8 @@ service cloud.firestore {
         && request.resource.data.body is string
         && request.resource.data.body.size() > 0
         && request.resource.data.body.size() <= 80
-        && request.resource.data.agreeCount == 0;
+        && request.resource.data.agreeCount == 0
+        && cheerTopicOk(request.resource.data);
 
       allow delete: if request.auth != null
         && (resource.data.authorUid == request.auth.uid || isAdmin());

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * 언행 탭.
@@ -13,8 +13,11 @@ import { useRef, useState } from "react";
  *
  * ★ 주소에 담지 않는다.
  *   담으려면 searchParams를 읽어야 하고, 그러면 이 페이지가 통째로 매 요청
- *   렌더링으로 넘어간다. 언행 목록은 빌드 때 굳혀 두는 편이 낫고, 응원 탭은
- *   아직 따로 공유할 주소가 필요한 자리가 아니다. 필요해지면 그때 옮긴다.
+ *   렌더링으로 넘어간다. 언행 목록은 빌드 때 굳혀 두는 편이 낫다.
+ *
+ * ★ 다만 들어오는 길은 받는다 — `/words?tab=cheers`.
+ *   홈·정원·MY가 응원 탭으로 보낸다. 서버는 늘 왼쪽 탭으로 그리고, 연 뒤에 주소를
+ *   읽어 옮긴다. 읽은 tab은 주소에서 지운다(새로고침하면 다시 왼쪽).
  */
 
 const TABS = [
@@ -51,6 +54,18 @@ export function WordsTabs({
     setActive(id);
     setOpened((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
   };
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const asked = TABS.find((t) => t.id === url.searchParams.get("tab"))?.id;
+    if (!asked) return;
+    url.searchParams.delete("tab");
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    // 주소에서 한 번 읽는 값이다. 서버 렌더와 어긋나지 않게 연 뒤에 옮긴다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setActive(asked);
+    setOpened((prev) => (prev.has(asked) ? prev : new Set(prev).add(asked)));
+  }, []);
 
   /* 탭 줄 안에서는 좌우 화살표로 옮겨 다니는 것이 표준 동작이다. */
   const onKeyDown = (e: React.KeyboardEvent) => {

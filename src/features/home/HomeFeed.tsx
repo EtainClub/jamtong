@@ -13,6 +13,7 @@ import type { WikiConceptCard } from "@/lib/wiki/load";
 import type { StatusCount } from "@/content/pledges";
 import { PledgeBar, PledgeLegend } from "@/features/pledges/PledgeProgress";
 import { GardenHomeCard } from "@/features/garden/GardenHomeCard";
+import { CheerHomeCard } from "@/features/words/CheerHomeCard";
 import { loadSelection, saveSelection } from "@/features/app/rememberSelection";
 
 /** 홈 업적 줄에서 마지막으로 연 업적. 돌아왔을 때 그 카드를 파랗게 남긴다. */
@@ -357,6 +358,7 @@ export function HomeFeed({
       </section>
 
       <GardenHomeCard />
+      <CheerHomeCard />
 
       {/*
        * 자매 앱. 업적 다음 갈래로 가는 문이라 위키 바로 아래에 둔다. 앱 이름을

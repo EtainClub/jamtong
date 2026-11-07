@@ -20,6 +20,7 @@ import {
   type FeedbackItem,
 } from "@/lib/firebase/feedback";
 
+import { echoGains } from "@/features/words/cheerEcho";
 import { MySection } from "./MySection";
 
 /**
@@ -84,6 +85,11 @@ export function MyContributions({
   const data = mine?.uid === uid ? mine.data : undefined;
   const keys = data && data !== "error" ? replyKeys(data) : [];
   const fresh = keys.filter((k) => !seen.has(k)).length;
+  /*
+   * 지난번 응원 탭을 연 뒤로 내 응원에 붙은 나도요. 여기서는 보기만 하고 "봤다"고 적지 않는다 —
+   * 적는 것은 응원 탭이다. 그래야 MY에서 보고도 응원 탭에서 한 번 더 반긴다.
+   */
+  const gains = uid && data && data !== "error" ? echoGains(uid, data.notes) : new Map<string, number>();
 
   // 열어서 본 답은 새것이 아니다. 열 때 한 번 적는다.
   const toggle = (id: string, next: boolean) => {
@@ -180,9 +186,9 @@ export function MyContributions({
             {data.notes.map((n) => (
               <Item
                 key={n.id}
-                meta={`한 줄 · 나도요 ${n.agreeCount} · ${when(n.createdAt)}`}
+                meta={`한 줄 · 나도요 ${n.agreeCount}${gains.get(n.id) ? ` (새로 +${gains.get(n.id)})` : ""} · ${when(n.createdAt)}`}
                 body={n.body}
-                href="/words"
+                href={`/words?tab=cheers${n.topic ? `&topic=${n.topic}` : ""}&from=my`}
                 onRemove={() =>
                   void remove("이 응원 한 줄", () => deleteCheerNote(n.id), (m) => ({ ...m, notes: m.notes.filter((x) => x.id !== n.id) }))
                 }
@@ -193,7 +199,7 @@ export function MyContributions({
                 key={v.youtubeId}
                 meta={`영상 · ${v.channel} · ${when(v.createdAt)}`}
                 body={v.title}
-                href="/words"
+                href="/words?tab=cheers&from=my"
                 onRemove={() =>
                   void remove("이 응원 영상", () => deleteCheerVideo(v.youtubeId), (m) => ({
                     ...m,
