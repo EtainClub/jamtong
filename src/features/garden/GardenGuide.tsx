@@ -38,6 +38,7 @@ import {
   RAID_GAP,
   RAID_HITS_PER_PERSON,
   RAID_HP_MIN,
+  RAID_KINDS,
   RAID_LIFE,
   RAID_MIN_FIGHTERS,
   RAID_PER_DAY,
@@ -283,7 +284,11 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
             </li>
             <li>
               한 사람은 거대 잡초 하나에 {RAID_HITS_PER_PERSON}방까지만 칠 수 있어요. 체력은 적어도 {RAID_HP_MIN}이라 혼자서는 못
-              잡고, 적어도 {RAID_MIN_FIGHTERS}명이 모여야 해요. 그날 광장에 온 사람이 많을수록 더 커져요.
+              잡고, 적어도 {RAID_MIN_FIGHTERS}명이 모여야 해요.
+            </li>
+            <li>
+              거대 잡초는 사회를 갉아먹는 악초예요. 하루 세 번 서로 다른 놈이 나오고, 종류마다 체력이 달라요:{" "}
+              {RAID_KINDS.map((k) => `${k.name} ${k.hp}(${Math.ceil(k.hp / RAID_HITS_PER_PERSON)}명)`).join(" · ")}.
             </li>
             <li>
               {duration(RAID_LIFE / MINUTE)} 안에 쓰러뜨리면 한 번이라도 때린 모두가 잼 {RAID_BOX.jam}과 희귀 씨앗 상자를 받아요

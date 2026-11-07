@@ -304,12 +304,12 @@ test("장마 상점: 신품종이 앞 칸에 서고, 장마가 아니면 진열�
 });
 
 test("거대 잡초 체력은 Firestore 규칙의 [180, 3000] 안의 정수다", () => {
-  for (const people of [0, 1, 2, 10, 36, 1000]) {
-    const hp = raidHp(people);
-    assert.ok(Number.isInteger(hp) && hp >= 180 && hp <= 3000, `${people}명: ${hp}`);
+  for (let day = 20_000; day < 20_060; day++) {
+    for (let wave = 1; wave <= 3; wave++) {
+      const hp = raidHp(day, wave);
+      assert.ok(Number.isInteger(hp) && hp >= 180 && hp <= 3000, `${day}-${wave}: ${hp}`);
+    }
   }
-  // 지금은 그날 온 사람 수와 상관없이 셋이 모이면 잡는 크기로 고정이다.
-  assert.equal(raidHp(40), raidHp(1));
 });
 
 test("희귀 씨앗 상자: 같은 날·같은 사람이면 같은 씨앗, 공개 확률에 가깝다", () => {

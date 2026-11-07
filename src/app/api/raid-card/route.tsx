@@ -90,7 +90,7 @@ export async function GET(request: Request) {
           width: "100%",
           height: "100%",
           display: "flex",
-          background: `linear-gradient(180deg, ${R.bg}, ${R.bgLow})`,
+          background: card ? `linear-gradient(180deg, ${card.kind.bg[0]}, ${card.kind.bg[1]})` : `linear-gradient(180deg, ${R.bg}, ${R.bgLow})`,
           fontFamily: "Pretendard",
           padding: "56px 64px",
           gap: 40,

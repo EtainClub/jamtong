@@ -184,3 +184,26 @@
   .game *, .game *::before, .game *::after { animation: none !important; transition: none !important; }
   .game :global(.garden-lift) { opacity: .45; }
 }
+
+/* 거대 잡초 — 종류마다 바탕이 어두우니 제목은 흰 글자 그대로(.garden-screen h3의 초록을 덮는다). */
+.game :global(.garden-screen .garden-raid h3) { color: inherit; }
+.game :global(.garden-raid-menace) { display: block; width: 100%; height: 100%; transform-origin: 50% 92%; animation: raid-menace 1.6s ease-in-out infinite; }
+.game :global(.garden-raid-menace.is-troll) { animation-duration: .9s; }
+.game :global(.garden-raid-menace.is-hate) { animation-duration: 1.1s; }
+.game :global(.garden-raid-menace.is-bossy) { animation-duration: 2.2s; }
+.game :global(.garden-raid-menace.is-grab) { animation-name: raid-grab; animation-duration: 1.8s; }
+.game :global(.garden-raid-menace .garden-weed-art) { height: 100%; width: 100%; filter: drop-shadow(0 4px 0 #0005); }
+.game :global(.garden-raid-taunt) { box-shadow: 0 3px 0 #0004; }
+.game :global(.garden-raid-taunt::after) { content: ""; position: absolute; left: 50%; bottom: -6px; width: 12px; height: 12px; background: #fff; transform: translateX(-50%) rotate(45deg); border-radius: 2px; }
+@keyframes raid-menace {
+  0%, 100% { transform: rotate(-3deg) scale(1); }
+  40% { transform: rotate(3deg) scale(1.04, .97); }
+  55% { transform: rotate(2deg) scale(.97, 1.05) translateY(-3%); }
+}
+@keyframes raid-grab {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.08) scaleY(.97); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game :global(.garden-raid-menace) { animation: none; }
+}

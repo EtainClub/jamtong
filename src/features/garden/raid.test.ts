@@ -21,7 +21,12 @@ import {
   RAID_MIN_FIGHTERS,
   RAID_PER_DAY,
   RAID_SHARDS,
+  RAID_KINDS,
+  RAID_MAX_FIGHTERS,
+  josa,
   raidHp,
+  raidKind,
+  raidTaunt,
   raidShard,
   raidKey,
   raidPhase,
@@ -35,20 +40,38 @@ import type { Plant } from "./types";
 const T = 1_800_000_000_000;
 const wave = (over: Partial<RaidWave> = {}): RaidWave => ({ hp: 300, hits: 0, fighters: 0, spawnedAt: T, defeatedAt: null, ...over });
 
-test("혼자서는 쓰러뜨리지 못한다", () => {
-  for (const people of [0, 1, 3, 10, 100, 10_000]) {
-    const hp = raidHp(people);
-    assert.ok(hp > RAID_HITS_PER_PERSON * (RAID_MIN_FIGHTERS - 1), `${people}명: ${hp}`);
-    assert.ok(hp >= RAID_HP_MIN && hp <= RAID_HP_MAX);
+test("어느 종류도 혼자서는, 셋보다 적게는 쓰러뜨리지 못한다", () => {
+  for (const kind of RAID_KINDS) {
+    assert.ok(kind.hp > RAID_HITS_PER_PERSON * (RAID_MIN_FIGHTERS - 1), `${kind.id}: ${kind.hp}`);
+    assert.ok(kind.hp >= RAID_HP_MIN && kind.hp <= RAID_HP_MAX);
   }
   assert.equal(RAID_HP_MIN, RAID_HITS_PER_PERSON * RAID_MIN_FIGHTERS);
 });
 
-test("최소 인원이 모두 자기 몫을 치면 언제나 쓰러뜨린다", () => {
-  for (const people of [0, 1, 3, 10, 100, 10_000]) {
-    assert.ok(raidHp(people) <= RAID_HITS_PER_PERSON * RAID_MIN_FIGHTERS, `${people}명: ${raidHp(people)}`);
-  }
+test("어느 종류든 RAID_MAX_FIGHTERS명이 자기 몫을 다 치면 쓰러뜨린다", () => {
+  for (const kind of RAID_KINDS) assert.ok(kind.hp <= RAID_HITS_PER_PERSON * RAID_MAX_FIGHTERS, kind.id);
   assert.equal(RAID_MIN_FIGHTERS, 3);
+});
+
+test("하루 세 물결은 서로 다른 종류이고, 날마다 순서가 바뀐다", () => {
+  const firsts = new Set<string>();
+  for (let day = 20_000; day < 20_100; day++) {
+    const kinds = Array.from({ length: RAID_PER_DAY }, (_, i) => raidKind(day, i + 1).id);
+    assert.equal(new Set(kinds).size, RAID_PER_DAY, `${day}: ${kinds.join(",")}`);
+    assert.equal(raidKind(day, 1).id, raidKind(day, 1).id);
+    assert.equal(raidHp(day, 2), raidKind(day, 2).hp);
+    firsts.add(kinds[0]);
+  }
+  assert.equal(firsts.size, RAID_KINDS.length, "첫 물결로 모든 종류가 나온다");
+});
+
+test("대사는 맞을수록 넘어가고, 조사는 받침을 따른다", () => {
+  const kind = RAID_KINDS[0];
+  assert.equal(raidTaunt(kind, 0, kind.hp), kind.taunts[0]);
+  assert.equal(raidTaunt(kind, kind.hp * 2, kind.hp), kind.taunts.at(-1));
+  assert.equal(josa("가짜뉴스 덩굴", "이가"), "가짜뉴스 덩굴이");
+  assert.equal(josa("갑질 엉겅퀴", "을를"), "갑질 엉겅퀴를");
+  assert.equal(josa("땅투기 칡", "이가"), "땅투기 칡이");
 });
 
 test("세 시간 버티면 도망간다", () => {

@@ -1,4 +1,4 @@
-import { RAID_HITS_PER_PERSON, RAID_LIFE, raidPhase, type RaidPhase, type RaidWave } from "@/features/garden/rules";
+import { josa, RAID_HITS_PER_PERSON, RAID_LIFE, raidKind, raidPhase, type RaidKind, type RaidPhase, type RaidWave } from "@/features/garden/rules";
 
 /**
  * 거대 잡초 한 물결을 서버에서 읽는다 — "같이 잡자" 링크(/r/[rid])와 그 카드(/api/raid-card)가 쓴다.
@@ -13,6 +13,8 @@ export const RAID_ID = /^[0-9]{5}-[1-3]$/;
 export interface RaidCard extends RaidWave {
   id: string;
   wave: number;
+  /** 거대 잡초 종류. 물결 id에서 정해진다. */
+  kind: RaidKind;
   phase: RaidPhase;
   /** 남은 체력. */
   left: number;
@@ -55,10 +57,12 @@ export async function loadRaidCard(rid: string): Promise<RaidCard | null> {
   if (raid.hp <= 0) return null;
   const now = Date.now();
   const phase = raidPhase(raid, now);
+  const [day, wave] = rid.split("-").map(Number);
   return {
     ...raid,
     id: rid,
-    wave: Number(rid.split("-")[1]),
+    wave,
+    kind: raidKind(day, wave),
     phase,
     left: phase === "defeated" ? 0 : Math.max(0, raid.hp - raid.hits),
     need: Math.ceil(raid.hp / RAID_HITS_PER_PERSON),
@@ -66,12 +70,10 @@ export async function loadRaidCard(rid: string): Promise<RaidCard | null> {
   };
 }
 
-const ORDINAL = ["첫", "두", "세"];
-
 export function raidTitle(card: RaidCard | null): string {
   if (!card) return "광장에서 거대 잡초를 같이 잡아요";
-  const name = `${ORDINAL[card.wave - 1] ?? card.wave} 번째 거대 잡초`;
-  if (card.phase === "defeated") return `${name}를 쓰러뜨렸어요`;
-  if (card.phase === "escaped") return `${name}가 도망갔어요`;
-  return `${name}가 나타났어요 — 같이 잡아요`;
+  const name = card.kind.name;
+  if (card.phase === "defeated") return `${josa(name, "을를")} 쓰러뜨렸어요`;
+  if (card.phase === "escaped") return card.kind.escaped;
+  return `${josa(name, "이가")} 나타났어요 — 같이 잡아요`;
 }
