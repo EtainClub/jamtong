@@ -1,14 +1,16 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   GoogleAuthProvider,
   linkWithPopup,
   onIdTokenChanged,
   signInAnonymously,
+  signInWithCredential,
   signInWithPopup,
   signOut,
   updateProfile,
+  type OAuthCredential,
   type User,
 } from "firebase/auth";
 
@@ -55,8 +57,11 @@ function snapshot(user: User | null): Account | null {
   };
 }
 
-/** 구글 연결이 막힌 이유. 화면이 무엇을 말할지 정한다. */
-export type LinkBlock = "already-in-use" | null;
+/**
+ * 구글 연결이 막힌 사정. 화면이 무엇을 말할지 정한다.
+ * email은 사용자가 고른 구글 계정 — 어느 계정 이야기인지 알아야 고를 수 있다.
+ */
+export type LinkBlock = { reason: "already-in-use"; email: string | null } | null;
 
 interface AuthState {
   user: Account | null;
@@ -68,6 +73,8 @@ interface AuthState {
   signInWithGoogle: () => Promise<void>;
   /** 연결이 막혔을 때, 이력을 포기하고 그 구글 계정으로 들어간다. */
   switchToGoogle: () => Promise<void>;
+  /** 연결이 막힌 안내를 닫고 익명으로 계속 쓴다. */
+  dismissLinkBlock: () => void;
   signOutUser: () => Promise<void>;
   rename: (name: string) => Promise<void>;
   /** 프로필 사진을 올려 계정 사진으로 건다. 상단 단추가 바로 바뀐다. */
@@ -82,6 +89,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<Account | null>(null);
   const [ready, setReady] = useState(!firebaseConfigured);
   const [linkBlock, setLinkBlock] = useState<LinkBlock>(null);
+  /**
+   * 거부된 연결이 돌려준 구글 자격. "그 계정으로 들어가기"에서 팝업을 다시 열지 않고
+   * 이것으로 들어간다 — 두 번째 팝업은 브라우저가 막기 쉽고, 계정을 또 고르게 된다.
+   */
+  const blockedCredential = useRef<OAuthCredential | null>(null);
 
   useEffect(() => {
     const auth = firebaseAuth();
@@ -123,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const auth = firebaseAuth();
         if (!auth) return;
         setLinkBlock(null);
+        blockedCredential.current = null;
         const provider = new GoogleAuthProvider();
 
         /*
@@ -143,13 +156,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
              * 것처럼 보인다. 화면에 사정을 알리고 한 번 더 누르게 한다.
              */
             if (code === "auth/credential-already-in-use") {
-              setLinkBlock("already-in-use");
+              const email = (error as { customData?: { email?: string } }).customData?.email ?? null;
+              blockedCredential.current = GoogleAuthProvider.credentialFromError(error as never);
+              console.info("[auth] 이미 기록이 있는 구글 계정이라 연결하지 않았다", email);
+              setLinkBlock({ reason: "already-in-use", email });
               return;
             }
-            // 사용자가 팝업을 스스로 닫은 것은 실패가 아니다. 조용히 둔다.
-            if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
-              return;
-            }
+            // 같은 팝업을 두 번 연 것뿐이다. 앞의 팝업이 계속 진행된다.
+            if (code === "auth/cancelled-popup-request") return;
+            /*
+             * popup-closed-by-user는 조용히 두지 않는다. 계정을 골랐는데 결과가
+             * 돌아오지 못해도(authDomain이 제3자일 때 Brave에서 실제로 그랬다) SDK는
+             * 이 코드를 낸다. 삼키면 "아무 일도 없었다"가 되어 원인을 찾을 수 없다.
+             */
+            console.warn("[auth] 구글 연결 실패", code, error);
             throw error;
           }
         }
@@ -161,14 +181,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async switchToGoogle() {
         const auth = firebaseAuth();
         if (!auth) return;
-        await signInWithPopup(auth, new GoogleAuthProvider());
+        const credential = blockedCredential.current;
+        if (credential) await signInWithCredential(auth, credential);
+        else await signInWithPopup(auth, new GoogleAuthProvider());
+        blockedCredential.current = null;
         setLinkBlock(null);
         await push();
+      },
+
+      dismissLinkBlock() {
+        blockedCredential.current = null;
+        setLinkBlock(null);
       },
 
       async signOutUser() {
         const auth = firebaseAuth();
         if (auth) await signOut(auth);
+        blockedCredential.current = null;
         setLinkBlock(null);
       },
 

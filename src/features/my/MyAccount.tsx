@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-import type { LinkBlock } from "@/lib/firebase/auth";
-
 import { MySection } from "./MySection";
 
 /**
@@ -14,9 +12,8 @@ import { MySection } from "./MySection";
  */
 export function MyAccount({
   anonymous,
-  linkBlock,
+  linkNotice,
   onLink,
-  onSwitch,
   onSignOut,
   asks,
   onDeleteAsks,
@@ -26,9 +23,9 @@ export function MyAccount({
   onToggle,
 }: {
   anonymous: boolean;
-  linkBlock: LinkBlock;
+  /** 연결이 거부됐을 때의 안내. 프로필 카드와 같은 것을 연결 단추 아래에 붙인다. */
+  linkNotice: React.ReactNode;
   onLink: () => void;
-  onSwitch: () => void;
   onSignOut: () => void;
   asks: number;
   onDeleteAsks: () => Promise<void>;
@@ -97,22 +94,7 @@ export function MyAccount({
         )}
       </div>
 
-      {/*
-       * 연결이 거부된 경우. 두 번째 팝업을 같은 클릭으로 열 수 없으므로
-       * 사정을 적고 한 번 더 누르게 한다 — 그래야 브라우저가 막지 않는다.
-       */}
-      {linkBlock === "already-in-use" && (
-        <div className="mt-3 rounded-card border border-pending bg-pending-tint p-3.5">
-          <p className="text-[13px] font-semibold leading-relaxed text-pending">그 구글 계정으로 이미 만든 기록이 있습니다.</p>
-          <p className="mt-1.5 text-[12px] leading-relaxed text-smoke">
-            그래서 지금 기록에 계정을 붙일 수 없습니다. 그 계정으로 들어가면 거기 쌓인 기록이 보이고, 지금 익명으로
-            쌓은 것은 보이지 않게 됩니다.
-          </p>
-          <button type="button" onClick={onSwitch} className="mt-3 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-eggshell">
-            그 계정으로 들어가기
-          </button>
-        </div>
-      )}
+      {linkNotice}
 
       <h3 className="mt-5 text-[13px] font-bold text-navy">무엇이 어디에 남나요</h3>
       <dl className="mt-2 divide-y divide-stone rounded-card border border-stone">
