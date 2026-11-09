@@ -9,20 +9,26 @@ import type { PolicyInput } from "./schema";
  *
  * ★ 러시아의 대북 드론 기술 이전은 우크라이나 측 주장·전문가 추정 수준이다. 확인된 사실로 쓰지 않는다.
  * ★ 2026-10-31 처음 등록 — 잼통 Voice 이슈 #125.
+ * ★ 2026-11-09 보충 — 이슈 #249(드론 관련 예산): 2026년 국회 증액, 2027년 정부안의 드론·대드론 예산.
  */
 export const NK_DRONES: PolicyInput = {
   slug: "nk-drones",
   title: "북한 드론 전력 증강과 국방부 대응",
   scope:
-    "북한의 국방발전 5개년 계획(2026~2030)의 무인공격체계, 러시아 기술 이전 의혹, 2026년 6월 국방부의 드론작전사령부 개편과 드론·대드론 정책",
+    "북한의 국방발전 5개년 계획(2026~2030)의 무인공격체계, 러시아 기술 이전 의혹, 2026년 6월 국방부의 드론작전사령부 개편과 드론·대드론 정책, 2026·2027년 드론 예산",
   ministries: ["국방부"],
   categories: ["diplomacy"],
-  asOf: "2026-10-31",
+  asOf: "2026-11-09",
   rumors: [
     {
       id: "rumor-hands-off",
       text: "북한이 드론 기술까지 들여오는데 정부는 북한 문제와 안보에 손을 놓고 있다",
       claimIds: ["claim-nk-plan", "claim-russia", "claim-mnd", "claim-budget-critique"],
+    },
+    {
+      id: "rumor-budget",
+      text: "드론 관련 예산은 어떻게 됐나",
+      claimIds: ["claim-budget-2026", "claim-budget-2027", "claim-budget-critique"],
     },
   ],
   claims: [
@@ -65,9 +71,34 @@ export const NK_DRONES: PolicyInput = {
       sourceIds: ["src-sidae-20260730"],
       verified: true,
     },
+    {
+      id: "claim-budget-2026",
+      text:
+        "2026년 예산의 '50만 드론전사 양성' 사업은 국회 심의에서 205억 원에서 330억 원으로 늘었다. 교육용 드론 단가를 대당 260만 원으로 올려 GPS·모터·배터리 등 핵심부품을 국산화하기 위해서라는 설명이었다.",
+      assertionType: "FACT",
+      sourceIds: ["src-gonggam-drone", "src-munhwa-11551577"],
+      verified: true,
+    },
+    {
+      id: "claim-budget-2027",
+      text:
+        "정부가 국회에 낸 2027년 국방예산안(73조 2,777억 원, 8.2% 증가)에서 드론·대드론 예산은 8,061억 원으로 2026년(6,788억 원)보다 18.8% 늘었다. " +
+        "'50만 드론전사' 교육훈련 예산은 296억 원에서 771억 원으로 커졌다. 최종 규모는 국회 의결로 정해진다.",
+      assertionType: "FACT",
+      sourceIds: ["src-aitimes-41743", "src-newswhoplus-68723"],
+      verified: true,
+    },
   ],
   critiqueIds: ["claim-budget-critique"],
   timeline: [
+    {
+      id: "t-budget-2027",
+      date: "2026-09",
+      datePrecision: "month",
+      title: "2027년 국방예산안 드론·대드론 8,061억 원",
+      summary: "국회 심의 중.",
+      claimIds: ["claim-budget-2027"],
+    },
     {
       id: "t-mnd",
       date: "2026-06-26",
@@ -78,10 +109,44 @@ export const NK_DRONES: PolicyInput = {
     },
   ],
   gaps: [
-    "국방 드론·대드론 발전 정책의 세부 내용(전력 규모·예산)은 국방부 자료로 확인하지 못했다.",
+    "국방 드론·대드론 발전 정책의 전력 규모는 국방부 자료로 확인하지 못했다.",
     "북한 군사 동향에 대한 합동참모본부의 2026년 공식 평가는 찾지 못했다.",
   ],
   sources: [
+    {
+      id: "src-aitimes-41743",
+      title: "2027년 국방예산 73조원 돌파, 역대 최대… AI·유무인체계에 7,727억원 투입",
+      publisher: "인공지능신문",
+      url: "https://www.aitimes.kr/news/articleView.html?idxno=41743",
+      publishedAt: "2026-09",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newswhoplus-68723",
+      title: "국방예산 73조2777억원…전작권·AI·드론 집중투자",
+      publisher: "뉴스후플러스",
+      url: "https://www.newswhoplus.com/news/articleView.html?idxno=68723",
+      publishedAt: "2026-09",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-gonggam-drone",
+      title: "장거리 자폭무인기 전력화 50만 드론 전사 양성",
+      publisher: "K-공감(대한민국 정부 정책주간지)",
+      url: "https://gonggam.korea.kr/newsContentView.es?mid=a12503000000&section_id=NCCD_POLICY&news_id=8cebd409-8722-465a-992a-9762b49993a7",
+      type: "official",
+      license: "public",
+    },
+    {
+      id: "src-munhwa-11551577",
+      title: "[속보]국방부 \"90% 이상 중국산인 드론 핵심부품 국산화…1만1200여대 대량구매해 50만 드론전사 육성\"",
+      publisher: "문화일보",
+      url: "https://www.munhwa.com/article/11551577",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-rfa-20260723",
       title: "북한 '드론' 개발 박차… \"한미 안보 위협\"",

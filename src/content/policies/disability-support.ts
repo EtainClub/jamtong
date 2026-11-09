@@ -8,15 +8,16 @@ import type { PolicyInput } from "./schema";
  * 불편한 장애인만 쓰게 해 달라"는 말이 달렸다(잼통 Voice). 두 제도의 현행 기준을 적는다.
  *
  * ★ 2026-10-31 처음 등록 — 잼통 Voice 이슈 #177, #178.
+ * ★ 2026-11-09 보충 — 이슈 #265(공항 장애인 주차구역 표지 위조·부정 사용 단속).
  */
 export const DISABILITY_SUPPORT: PolicyInput = {
   slug: "disability-support",
   title: "장애수당·장애인연금과 장애인 전용주차구역 기준",
   scope:
-    "2026년 장애수당 대상·금액과 장애인연금과의 차이, 2027년 예산안의 장애인연금 대상 확대, 장애인 전용주차구역 설치 비율과 이용 조건",
+    "2026년 장애수당 대상·금액과 장애인연금과의 차이, 2027년 예산안의 장애인연금 대상 확대, 장애인 전용주차구역 설치 비율과 이용 조건, 주차표지 부당사용·위조 단속",
   ministries: ["보건복지부", "국토교통부"],
   categories: ["welfare"],
-  asOf: "2026-10-31",
+  asOf: "2026-11-09",
   rumors: [
     {
       id: "rumor-allowance",
@@ -27,6 +28,11 @@ export const DISABILITY_SUPPORT: PolicyInput = {
       id: "rumor-parking",
       text: "장애인 전용주차구역이 지나치게 많아 비어 있으니 수를 조정하고 거동이 불편한 장애인만 쓰게 해 달라",
       claimIds: ["claim-parking-ratio", "claim-parking-debate"],
+    },
+    {
+      id: "rumor-forgery",
+      text: "인천공항 장애인 주차구역의 표지 위조·부정 사용을 국가기관이 제대로 단속해 달라",
+      claimIds: ["claim-parking-enforcement", "claim-parking-forgery"],
     },
   ],
   claims: [
@@ -76,6 +82,23 @@ export const DISABILITY_SUPPORT: PolicyInput = {
       sourceIds: ["src-kyeongin-1733440"],
       verified: true,
     },
+    {
+      id: "claim-parking-enforcement",
+      text:
+        "서미화 의원이 보건복지부에서 받은 자료에 따르면 2022년부터 2026년 상반기까지 장애인전용주차구역 관련 적발은 180만 건이 넘는다. 이 가운데 주차표지 부당사용 적발은 " +
+        "2022년 2,537건, 2023년 6,690건, 2024년 7,897건, 2025년 7,109건, 2026년 상반기 3,193건이다. 표지 부당사용에는 장애인복지법에 따라 최대 300만 원의 과태료가 부과된다.",
+      assertionType: "FACT",
+      sourceIds: ["src-indigo-69872"],
+      verified: true,
+    },
+    {
+      id: "claim-parking-forgery",
+      text:
+        "표지를 위조하면 과태료가 아니라 형사처벌 대상이다. 2026년 6월 창원지법은 포토샵으로 장애인 주차표지를 위조해 김해공항 등 장애인전용주차구역에 쓴 40대에게 징역 4개월·집행유예 1년을 선고했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-khan-20260629"],
+      verified: true,
+    },
   ],
   critiqueIds: [],
   timeline: [
@@ -91,8 +114,27 @@ export const DISABILITY_SUPPORT: PolicyInput = {
   gaps: [
     "장애수당 월 6만 원 단가가 언제 정해졌고 2027년 예산안에서 인상되는지는 복지부 자료로 확인하지 못했다.",
     "장애인 전용주차구역 이용 자격(보행상 장애 여부)을 바꾸려는 정부 논의는 찾지 못했다.",
+    "인천공항 주차장만 따로 집계한 단속 실적은 공개 자료에서 찾지 못했다.",
   ],
   sources: [
+    {
+      id: "src-indigo-69872",
+      title: "장애인주차구역 위반 등 5년간 180만 건… 과태료 2천억",
+      publisher: "더인디고",
+      url: "https://theindigo.co.kr/archives/69872",
+      publishedAt: "2026-10",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-khan-20260629",
+      title: "포토샵으로 장애인 주차증 위조해 사용한 40대, 집행유예",
+      publisher: "경향신문",
+      url: "https://www.khan.co.kr/article/202606290921001/",
+      publishedAt: "2026-06-29",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-vegannews-390679",
       title: "장애수당 월 6만원…장애인연금과 대상 달라",

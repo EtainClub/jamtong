@@ -149,6 +149,43 @@ import { LAND_HOLDING_TAX } from "./land-holding-tax";
 import { CREDIT_RECOVERY } from "./credit-recovery";
 import { ADMINISTRATIVE_CAPITAL } from "./administrative-capital";
 import { REAL_ESTATE_TO_STOCKS } from "./real-estate-to-stocks";
+import { HINZPETER_AWARD } from "./hinzpeter-award";
+import { SPECIAL_FORCES_WALKING } from "./special-forces-walking";
+import { SPECIAL_PARDON_CRITERIA } from "./special-pardon-criteria";
+import { TAEKWONDO_UNESCO } from "./taekwondo-unesco";
+import { BRUNSON_REMARKS } from "./brunson-remarks";
+import { RELIGION_POLITICS } from "./religion-politics";
+import { EV_SUBSIDY_PROCESS } from "./ev-subsidy-process";
+import { TESLA_FSD } from "./tesla-fsd";
+import { CAR_INSURANCE_RENTAL } from "./car-insurance-rental";
+import { INCHEON_CUSTOMS_DRUGS } from "./incheon-customs-drugs";
+import { MOTORCYCLE_ROAD_RULES } from "./motorcycle-road-rules";
+import { EMERGENCY_ALERT_DEVICES } from "./emergency-alert-devices";
+import { DRUNK_DRIVING_2026 } from "./drunk-driving-2026";
+import { VIETNAM_VETERANS } from "./vietnam-veterans";
+import { CARE_WORKERS } from "./care-workers";
+import { MEDIA_OWNER_CONFLICT } from "./media-owner-conflict";
+import { IMPORTED_FOOD_SAFETY } from "./imported-food-safety";
+import { TAX_REFORM_2026 } from "./tax-reform-2026";
+import { NEW_START_FUND } from "./new-start-fund";
+import { INHERITED_HOUSE_LOANS } from "./inherited-house-loans";
+import { DEATH_PENALTY } from "./death-penalty";
+import { PRESIDENT_SON_ALLEGATIONS } from "./president-son-allegations";
+import { PRESIDENT_FAMILY_DISPUTE } from "./president-family-dispute";
+import { UNIVERSAL_PUBLIC_RENTAL } from "./universal-public-rental";
+import { RECALL_SYSTEM } from "./recall-system";
+import { DECISION_RECORDS } from "./decision-records";
+import { STATE_VIOLENCE_STATUTE } from "./state-violence-statute";
+import { PRIVATE_LAND_SAFETY } from "./private-land-safety";
+import { PUBLIC_CONTRACT_ADVANCE } from "./public-contract-advance";
+import { WANGSUK_NEW_TOWN } from "./wangsuk-new-town";
+import { REDEVELOPMENT_POLICY_LOANS } from "./redevelopment-policy-loans";
+import { INSURRECTION_WARRANTS } from "./insurrection-warrants";
+import { ELECTRONIC_MONITORING } from "./electronic-monitoring";
+import { COMMENT_NATIONALITY_LABEL } from "./comment-nationality-label";
+import { NK_PROVOCATIONS_2026 } from "./nk-provocations-2026";
+import { RENT_SHIFT_2026 } from "./rent-shift-2026";
+import { CYBER_SECURITY } from "./cyber-security";
 
 /**
  * 정부 정책 팩트 목록. 새 정책은 파일을 하나 만들고 여기에 더한다.
@@ -305,6 +342,43 @@ export const POLICIES: Policy[] = [
   REAL_ESTATE_TO_STOCKS,
   YOUTH_2030_JOBS_LOANS,
   MANIPULATED_INDICTMENT_COUNSEL,
+  HINZPETER_AWARD,
+  SPECIAL_FORCES_WALKING,
+  SPECIAL_PARDON_CRITERIA,
+  TAEKWONDO_UNESCO,
+  BRUNSON_REMARKS,
+  RELIGION_POLITICS,
+  EV_SUBSIDY_PROCESS,
+  TESLA_FSD,
+  CAR_INSURANCE_RENTAL,
+  INCHEON_CUSTOMS_DRUGS,
+  MOTORCYCLE_ROAD_RULES,
+  EMERGENCY_ALERT_DEVICES,
+  DRUNK_DRIVING_2026,
+  VIETNAM_VETERANS,
+  CARE_WORKERS,
+  MEDIA_OWNER_CONFLICT,
+  IMPORTED_FOOD_SAFETY,
+  TAX_REFORM_2026,
+  NEW_START_FUND,
+  INHERITED_HOUSE_LOANS,
+  DEATH_PENALTY,
+  PRESIDENT_SON_ALLEGATIONS,
+  PRESIDENT_FAMILY_DISPUTE,
+  UNIVERSAL_PUBLIC_RENTAL,
+  RECALL_SYSTEM,
+  DECISION_RECORDS,
+  STATE_VIOLENCE_STATUTE,
+  PRIVATE_LAND_SAFETY,
+  PUBLIC_CONTRACT_ADVANCE,
+  WANGSUK_NEW_TOWN,
+  REDEVELOPMENT_POLICY_LOANS,
+  INSURRECTION_WARRANTS,
+  ELECTRONIC_MONITORING,
+  COMMENT_NATIONALITY_LABEL,
+  NK_PROVOCATIONS_2026,
+  RENT_SHIFT_2026,
+  CYBER_SECURITY,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
