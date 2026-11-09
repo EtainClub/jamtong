@@ -10,15 +10,17 @@ import type { PolicyInput } from "./schema";
  *
  * ★ 지지층 갈등은 policy:supporter-conflict, 국정홍보 체계는 policy:government-communication에 있다.
  * ★ 2026-10-30 처음 등록 — 잼통 Voice 이슈 #92.
+ * ★ 2026-11-09 보충 — 이슈 #245(심리 상태 주장), #222(유튜브 조회수·좋아요 조작 주장), #232(댓글 삭제 주장):
+ *   11월 5일 유튜브 '대통령의 Y' 첫 방송과 그에 대한 팩트체크·청와대 설명.
  */
 export const PRESIDENT_SNS: PolicyInput = {
   slug: "president-sns",
   title: "대통령의 SNS 소통: 게시 빈도, 밝힌 이유, 논란이 된 인용",
   scope:
-    "2026년 8~10월 이재명 대통령 X 게시 건수, 대통령·청와대가 밝힌 SNS 소통의 이유, 제미나이 답변 인용(10월 21일)과 에펨코리아 글 공유(10월 28일)를 둘러싼 논란, 글의 뜻을 스스로 풀어 쓴 사례",
+    "2026년 8~10월 이재명 대통령 X 게시 건수, 대통령·청와대가 밝힌 SNS 소통의 이유, 제미나이 답변 인용(10월 21일)과 에펨코리아 글 공유(10월 28일)를 둘러싼 논란, 글의 뜻을 스스로 풀어 쓴 사례, 11월 유튜브 '대통령의 Y' 개설과 조회수 조작 주장 팩트체크",
   ministries: ["청와대"],
   categories: ["institution"],
-  asOf: "2026-10-30",
+  asOf: "2026-11-09",
   rumors: [
     {
       id: "rumor-all-day",
@@ -54,6 +56,21 @@ export const PRESIDENT_SNS: PolicyInput = {
       id: "rumor-intent",
       text: "글로 소통하면 오해가 생기니 '칭찬입니다', '보완을 권유합니다'처럼 뜻을 끝에 밝혀 달라",
       claimIds: ["claim-clarify"],
+    },
+    {
+      id: "rumor-mental",
+      text: "측근 말처럼 대통령의 심리 상태가 불안정하고, 최근 SNS 글이 그 징후다",
+      claimIds: ["claim-y-launch", "claim-y-remarks", "claim-y-cheongwadae"],
+    },
+    {
+      id: "rumor-views",
+      text: "조회수보다 좋아요와 댓글이 훨씬 많으니 댓글과 좋아요를 사서 부풀린 것이다",
+      claimIds: ["claim-y-views"],
+    },
+    {
+      id: "rumor-delete",
+      text: "선거 조작에 해명하지 않고 독재자처럼 댓글을 지운다",
+      claimIds: ["claim-y-comments"],
     },
   ],
   claims: [
@@ -155,6 +172,48 @@ export const PRESIDENT_SNS: PolicyInput = {
       sourceIds: ["src-inews24-20261012", "src-metro-20261012"],
       verified: false,
     },
+    {
+      id: "claim-y-launch",
+      text:
+        "청와대는 2026년 11월 5일 밤 대통령 유튜브 대담 프로그램 '대통령의 Y' 첫 회를 공개했다. 한 회 30분 안팎으로 2~3주 간격으로 이어갈 예정이다.",
+      assertionType: "FACT",
+      sourceIds: ["src-imbc-6863304", "src-fnnews-20261105"],
+      verified: true,
+    },
+    {
+      id: "claim-y-remarks",
+      text:
+        "대통령은 첫 방송에서 SNS 과다 사용 지적에 \"논란이 나쁜 게 아니다\"라고 했고, 알고리즘에 갇혔다는 김어준 씨의 지적에는 욕도 비난도 다 본다며 갇히지 않았다고 반박했다. " +
+        "하루 6시간 정도 잔다고 했고, 평정심을 잃을까 걱정하는 것 같지만 전혀 아니라고 말했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-khan-20261105-y", "src-news1-6344839"],
+      verified: true,
+    },
+    {
+      id: "claim-y-cheongwadae",
+      text: "청와대 관계자는 대통령의 SNS 활동이 늘어난 데 대해 현 상황을 절박하게 보는 측면이 있다고 설명했다.",
+      assertionType: "CLAIM",
+      assertedBy: "청와대 관계자",
+      sourceIds: ["src-imbc-6856382"],
+      verified: true,
+    },
+    {
+      id: "claim-y-views",
+      text:
+        "첫 방송 공개 직후 '조회수 3,700회에 좋아요 2만 개' 같은 화면을 근거로 매크로 조작 주장이 돌았다. 주간경향 팩트체크는 유튜브가 조회수와 좋아요를 서로 다른 검증 과정을 거쳐 집계해 " +
+        "일시적으로 이런 차이가 날 수 있다며 조작 주장을 '거짓'으로 판정했다. 몇 시간 뒤 조회수는 16만 회로 늘었다.",
+      assertionType: "FACT",
+      sourceIds: ["src-weeklykhan-20261106"],
+      verified: true,
+    },
+    {
+      id: "claim-y-comments",
+      text:
+        "대통령은 욕설과 비난 댓글도 모두 읽는다고 했고, 청와대 홍보소통수석은 국민 댓글에 직접 답변도 하겠다고 밝혔다. 첫 방송 댓글을 분석한 보도에서는 지지 반응 69.3%(9,929건), 비판 6.9%(994건)였다.",
+      assertionType: "FACT",
+      sourceIds: ["src-imbc-6863304", "src-sidae-20261106"],
+      verified: true,
+    },
   ],
   critiqueIds: ["claim-gemini-critique", "claim-critique"],
   timeline: [
@@ -192,11 +251,76 @@ export const PRESIDENT_SNS: PolicyInput = {
     },
   ],
   gaps: [
+    "답글이 말한 '대통령 심리 상태가 불안정하다'는 측근 발언은 공개 보도에서 찾지 못했다.",
+    "'대통령의 Y' 채널이 댓글을 삭제·차단하는 운영 기준은 공개되지 않았고, 삭제 사례를 다룬 보도도 찾지 못했다. 부정선거 주장 자체는 policy:ballot-shortage-2026에 있다.",
     "대통령의 블루스카이 등 다른 SNS 계정 개설 계획은 찾지 못했다.",
     "10월 12일 이후의 월별 게시 건수는 집계된 보도를 찾지 못했다.",
     "SNS 의견이 실제 정책 결정에 어떻게 반영되는지 청와대의 절차 설명은 찾지 못했다.",
   ],
   sources: [
+    {
+      id: "src-imbc-6863304",
+      title: "대통령 유튜브 오늘 첫선‥'언론 불만' 직접 돌파?",
+      publisher: "MBC",
+      url: "https://imnews.imbc.com/replay/2026/nwtoday/article/6863304_37012.html",
+      publishedAt: "2026-11-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-fnnews-20261105",
+      title: "李, SNS 논란에도 '유튜브 소통 확대'…'대통령의 Y' 첫 방송",
+      publisher: "파이낸셜뉴스",
+      url: "https://www.fnnews.com/news/202611052017104938",
+      publishedAt: "2026-11-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-khan-20261105-y",
+      title: "\"언론·정치·권력이 나를 공격했지만…국민과 직접 소통 덕에 지금 이 자리\"",
+      publisher: "경향신문",
+      url: "https://www.khan.co.kr/article/202611052205005/",
+      publishedAt: "2026-11-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-news1-6344839",
+      title: "李대통령 \"논란 나쁜 것 아냐…'SNS 왜하냐?', 사람 왜 만나냐는 얘기\"",
+      publisher: "뉴스1",
+      url: "https://www.news1.kr/politics/president/6344839",
+      publishedAt: "2026-11-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-imbc-6856382",
+      title: "靑 \"활발해진 이 대통령 SNS, 현 상황 절박하게 보는 측면\"",
+      publisher: "MBC",
+      url: "https://imnews.imbc.com/news/2026/politics/article/6856382_36911.html",
+      publishedAt: "2026-11",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-weeklykhan-20261106",
+      title: "첫방 '대통령의 Y'···'매크로 조작' 주장은 '거짓'",
+      publisher: "주간경향",
+      url: "https://weekly.khan.co.kr/article/202611061053001",
+      publishedAt: "2026-11-06",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-sidae-20261106",
+      title: "이 대통령 유튜브, 댓글 70% 지지에도…\"마이너스\" 우려 왜",
+      publisher: "시대일보",
+      url: "https://www.sidae.com/article/2026110615121712743",
+      publishedAt: "2026-11-06",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-inews24-20261012",
       title: "거침없는 李 'SNS 정치'…'개혁 주도권' 확보 포석[여의뷰]",

@@ -14,6 +14,7 @@ import type { PolicyInput } from "./schema";
  * ★ 아동수당 자체는 `child-allowance`가 다룬다.
  * ★ 2026-10-12 처음 등록 — 잼통 신고 센터 factbot-gap 이슈 #18·#19·#21·#22.
  *   2026-10-13 이슈 #36 — 합계에 부모급여와 2027년 예산안을 더하고 육아휴직 개편 시점을 원문과 대조했다.
+ *   2026-11-09 잼통 Voice 이슈 #269 — 자립펀드 기준일(2026년 9월 1일생) 이전 출생아 형평성 논란을 더했다.
  */
 export const CHILD_BENEFITS_TOTAL: PolicyInput = {
   slug: "child-benefits-total",
@@ -23,8 +24,13 @@ export const CHILD_BENEFITS_TOTAL: PolicyInput = {
     "아동수당·첫만남이용권·자립펀드를 합친 한 아이당 정부 지원액",
   ministries: ["보건복지부", "고용노동부", "재정경제부"],
   categories: ["welfare"],
-  asOf: "2026-10-13",
+  asOf: "2026-11-09",
   rumors: [
+    {
+      id: "rumor-cutoff",
+      text: "내년부터 태어나는 아기에게 주는 출생 축하금을 한두 해 전에 태어난 아기에게도 적용해 달라",
+      claimIds: ["claim-fund-plan", "claim-fund-cutoff", "claim-first-voucher"],
+    },
     {
       id: "rumor-renewed",
       text: "이재명 정부 들어 육아휴직, 아빠휴가, 출산지원금, 조리원비, 교육비 공제, 자립펀드 제도가 완전히 리뉴얼되었다",
@@ -155,8 +161,17 @@ export const CHILD_BENEFITS_TOTAL: PolicyInput = {
       ],
       verified: true,
     },
+    {
+      id: "claim-fund-cutoff",
+      text:
+        "자립펀드의 정부 매칭은 2026년 9월 1일 이후 출생아부터라, 8월 31일생과 9월 1일생 사이에 저소득 가구 기준 정부 지원금이 최대 2,280만 원까지 벌어질 수 있다는 보도가 나왔다. " +
+        "정부는 기준일 이전 출생아와 중위소득 150% 초과 가구 아동도 정부 매칭 없이 펀드에 가입·납입할 수 있게 하는 방안을 검토하는 것으로 알려졌다. 예산과 세부 제도는 국회 심의를 거쳐 정해진다.",
+      assertionType: "FACT",
+      sourceIds: ["src-heraldk-20260902"],
+      verified: false,
+    },
   ],
-  critiqueIds: ["claim-fund-status"],
+  critiqueIds: ["claim-fund-status", "claim-fund-cutoff"],
   timeline: [
     {
       id: "t-voucher",
@@ -184,6 +199,7 @@ export const CHILD_BENEFITS_TOTAL: PolicyInput = {
     },
   ],
   gaps: [
+    "답글이 말한 '내년부터 태어나는 아기에게 주는 출생 축하금'이 자립펀드를 가리키는지, 지자체 출산축하금을 가리키는지는 답글만으로 알 수 없다. 기준일 이전 출생아에 대한 정부의 최종 결정은 11월 9일까지 나오지 않았다.",
     "합계 계산은 아동수당이 계획대로 2030년 만 13세 미만까지 확대되고 자립펀드가 19년 내내 지금 설계대로 운영된다고 가정했다. 부모급여(0~1세)·보육료 등 다른 지원은 넣지 않았다 — 게시물이 든 세 제도만 더했다.",
     "육아휴직 개편의 정확한 시행일(2025년 1월 1일 또는 2월 23일)을 법령 원문으로 확인하지 못했다.",
     "산후조리원비 지원과 교육비 공제가 이재명 정부에서 바뀌었는지 확인하지 못했다.",
@@ -191,6 +207,15 @@ export const CHILD_BENEFITS_TOTAL: PolicyInput = {
     "지역화폐 50만 원 추가가 어느 지자체 제도를 가리키는지 확인하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-heraldk-20260902",
+      title: "\"우리 애는 왜 못 받아?\" 정부 지원금 2280만원 vs 0원…생일 하루 차이로 엇갈려",
+      publisher: "헤럴드K",
+      url: "https://www.heraldk.com/article/2026090201001415526",
+      publishedAt: "2026-09-02",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-yonhap-20240111",
       title: "올해부터 부모급여 '0세 100만원·1세 50만원'으로 인상",

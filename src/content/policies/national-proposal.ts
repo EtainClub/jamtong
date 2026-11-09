@@ -11,6 +11,7 @@ import type { PolicyInput } from "./schema";
  *   있다고도 없다고도 단정하지 않는다.
  * ★ 국민신문고 민원 처리 일반은 policy:petition-handling에 있다.
  * ★ 2026-10-30 처음 등록 — 잼통 Voice 이슈 #89.
+ * ★ 2026-11-09 보충 — 이슈 #239(우편 제안의 접수·진행 확인): 민원 장기 미처리·반복 이송 실태(2026년 국감).
  */
 export const NATIONAL_PROPOSAL: PolicyInput = {
   slug: "national-proposal",
@@ -19,8 +20,13 @@ export const NATIONAL_PROPOSAL: PolicyInput = {
     "국민신문고 국민제안의 채택률, 2026년 7월 국민권익위원회가 연 불채택 제안 재검토 시스템의 선정 방식과 절차",
   ministries: ["국민권익위원회", "청와대"],
   categories: ["institution"],
-  asOf: "2026-10-30",
+  asOf: "2026-11-09",
   rumors: [
+    {
+      id: "rumor-mail",
+      text: "대통령실에 우편으로 낸 정책 제안서의 접수 여부와 진행 상황을 알 길이 없고 안내받은 기관은 전화도 받지 않는다",
+      claimIds: ["claim-long-pending", "claim-transfer", "claim-system"],
+    },
     {
       id: "rumor-threshold",
       text: "국민제안의 '공감 30개' 문턱은 지인 동원을 부르니 공감 수가 아니라 내용으로 검토해 달라",
@@ -65,8 +71,26 @@ export const NATIONAL_PROPOSAL: PolicyInput = {
       sourceIds: ["src-newspim-20260729"],
       verified: true,
     },
+    {
+      id: "claim-long-pending",
+      text:
+        "국민의힘 박성훈 의원이 국민권익위원회 자료를 분석한 결과, 2022년부터 2026년 8월까지 처리에 100일 이상 걸린 국민신문고 민원은 6,221건이었다. " +
+        "2026년 8월 말 기준 접수 후 100일이 넘도록 처리되지 않은 민원은 2,220건이고, 그중 311건은 1년 이상 미처리였다.",
+      assertionType: "FACT",
+      sourceIds: ["src-ntoday-130237"],
+      verified: true,
+    },
+    {
+      id: "claim-transfer",
+      text:
+        "다른 기관으로 10회 이상 이송된 민원은 2022년 103건, 2023년 120건, 2024년 189건, 2025년 252건으로 해마다 늘었고, 2026년은 8월까지 234건이었다. " +
+        "권익위는 실태점검으로 처리 기간 준수율과 이송 신속도, 장기 미처리 민원을 정기 평가하고 있다.",
+      assertionType: "FACT",
+      sourceIds: ["src-ntoday-130237"],
+      verified: true,
+    },
   ],
-  critiqueIds: ["claim-rejected"],
+  critiqueIds: ["claim-rejected", "claim-long-pending", "claim-transfer"],
   timeline: [
     {
       id: "t-open",
@@ -81,8 +105,18 @@ export const NATIONAL_PROPOSAL: PolicyInput = {
     "'공감 30개' 문턱이 어느 제도(국민신문고, 국민생각함, 정책화 시스템, 청와대 누리집)의 기준인지, 실제로 있는 기준인지 공식 자료와 보도에서 찾지 못했다.",
     "정책화 시스템의 확정 명칭과 개통 뒤 정책으로 이어진 제안 건수는 확인하지 못했다.",
     "심의위원회의 구성과 선정 기준 원문은 확인하지 못했다.",
+    "청와대에 우편으로 들어온 제안서를 어느 부서가 접수해 어디로 이송하는지, 제안자에게 접수 사실을 알리는지는 공개된 절차 안내를 찾지 못했다.",
   ],
   sources: [
+    {
+      id: "src-ntoday-130237",
+      title: "[국감 워치] 국민신문고 넣었는데...100일 이상 미처리 민원 2220건",
+      publisher: "투데이신문",
+      url: "https://www.ntoday.co.kr/news/articleView.html?idxno=130237",
+      publishedAt: "2026-10-22",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-newspim-20260729",
       title: "권익위, 국민제안 정책화 시스템 개통…미채택 아이디어 재검토",

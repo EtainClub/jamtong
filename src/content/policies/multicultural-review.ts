@@ -10,16 +10,22 @@ import type { PolicyInput } from "./schema";
  *
  * ★ 어린이집 입소 순위는 policy:daycare-priority에 따로 있다.
  * ★ 2026-10-30 처음 등록 — 잼통 Voice 이슈 #84, #91, #98.
+ * ★ 2026-11-09 보충 — 이슈 #243(다문화 가정과의 소통): 11월 3일 청와대-이주단체 간담회, 법무부의 지자체 우대 시책 점검 회의.
  */
 export const MULTICULTURAL_REVIEW: PolicyInput = {
   slug: "multicultural-review",
   title: "다문화가족 우대 제도 점검과 대입 다문화 전형·결혼이민 귀화 요건",
   scope:
-    "2026년 10월 대통령의 다문화가족 우대 제도 검토 발언, 서울형 안심 산후조리원 순위 논란, 대입 다문화가정 자녀 전형의 운영 방식, 결혼이민자 간이귀화 요건",
+    "2026년 10월 대통령의 다문화가족 우대 제도 검토 발언, 서울형 안심 산후조리원 순위 논란, 대입 다문화가정 자녀 전형의 운영 방식, 결혼이민자 간이귀화 요건, 11월 청와대-이주단체 간담회와 법무부 점검 회의",
   ministries: ["성평등가족부", "교육부", "법무부"],
   categories: ["welfare", "institution"],
-  asOf: "2026-10-30",
+  asOf: "2026-11-09",
   rumors: [
+    {
+      id: "rumor-dialogue",
+      text: "해외 동포를 챙기듯 국내 다문화 가정 국민과도 시간을 내 소통해 달라",
+      claimIds: ["claim-meeting-1103", "claim-moj-review"],
+    },
     {
       id: "rumor-farright",
       text: "다문화 특혜를 문제 삼는 것은 이주민 혐오에 올라타는 극우 정치와 다르지 않다",
@@ -119,6 +125,23 @@ export const MULTICULTURAL_REVIEW: PolicyInput = {
       sourceIds: ["src-koreancenter-1028", "src-nocut-6598811", "src-x-20261029"],
       verified: false,
     },
+    {
+      id: "claim-meeting-1103",
+      text:
+        "청와대는 11월 3일 전성환 경청통합수석이 이주인권단체들과 간담회를 열었다. 단체들은 대통령 발언에 대한 사과와 재발 방지, 다문화가족 예산 복원, 청와대 주재 토론회를 요구했고, " +
+        "한 참석자는 전 수석이 \"대신해 사과한다\"는 취지로 말했다고 전했다. 청와대는 보도자료에서 대통령 발언이 혐오 표현은 아니라고 설명했고, 전 수석은 제안을 \"검토하겠다\"고 답한 것으로 전해졌다.",
+      assertionType: "FACT",
+      sourceIds: ["src-khan-20261103", "src-nate-20261103"],
+      verified: true,
+    },
+    {
+      id: "claim-moj-review",
+      text:
+        "법무부는 대통령의 점검 지시 9일 만인 11월 초 6개 중앙부처와 16개 광역지자체 과장급이 참여한 회의를 열어 지자체가 시행 중인 '다문화가족 우대 시책' 현황을 파악하고 개선 방안을 논의했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-ikbc-20261107"],
+      verified: true,
+    },
   ],
   critiqueIds: ["claim-critique"],
   timeline: [
@@ -140,12 +163,40 @@ export const MULTICULTURAL_REVIEW: PolicyInput = {
     },
   ],
   gaps: [
+    "대통령이 다문화가족을 직접 만나는 간담회 일정은 11월 9일까지 발표되지 않았다.",
     "2027학년도 대입에서 다문화가정 자녀 전형을 운영하는 대학 수와 모집 인원, 합격자 성적은 찾지 못했다. 2022학년도 집계만 확인했다.",
     "'다문화 우대 법안을 대통령이 만들었다'는 답글은 어느 법안을 가리키는지 확인할 수 없어 다루지 않는다.",
     "결혼이민자 귀화 심사를 강화하는 법무부의 최근 방침은 찾지 못했다.",
     "중앙정부의 다문화가족 지원 예산 규모는 이 페이지에서 정리하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-khan-20261103",
+      title: "[단독]이주민 단체 만난 청와대 경청수석, 이 대통령 발언에 \"대신해 사과\"",
+      publisher: "경향신문",
+      url: "https://www.khan.co.kr/article/202611032019001/",
+      publishedAt: "2026-11-03",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-nate-20261103",
+      title: "청, 이주인권단체 간담회서 \"이 대통령 발언, 혐오표현 아냐\" 해명",
+      publisher: "네이트 뉴스",
+      url: "https://news.nate.com/view/20261103n35876",
+      publishedAt: "2026-11-03",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-ikbc-20261107",
+      title: "李대통령 '에펨 인용 폐지검토' 9일만...법무부, 지자체와 개선 논의",
+      publisher: "광주방송(kbc)",
+      url: "https://news.ikbc.co.kr/article/view/kbc202611070003",
+      publishedAt: "2026-11-07",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-wikitree-20261028",
       title: "민심 좋아질 수 있을까…이 대통령이 \"폐지 필요한지 검토하겠다\"고 밝힌 내용",
