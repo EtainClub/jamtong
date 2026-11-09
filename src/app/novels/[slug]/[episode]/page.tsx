@@ -156,6 +156,11 @@ export default async function EpisodePage({
               note={next.body ? undefined : "공개 예정"}
             />
           )}
+          {!next && novel.completedAt && (
+            <p className="py-3 text-center text-[13px] font-semibold text-graphite">
+              《{novel.title}》 전 {novel.total}편 완결
+            </p>
+          )}
           {prev?.body && (
             <EpisodeCard
               href={`/novels/${novel.slug}/${prev.no}`}

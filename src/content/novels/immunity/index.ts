@@ -12,13 +12,13 @@ import { EP11_BODY } from "./ep11";
 import { EP12_BODY } from "./ep12";
 import { EP13_BODY } from "./ep13";
 import { EP14_BODY } from "./ep14";
+import { EP15_BODY } from "./ep15";
 
 /**
  * 정치소설 《면역》.
  *
- * 이타인클럽이 X에 연재하는 소설이다. 한 편마다 글 한 편과 숏츠 한 편이 짝을
- * 이룬다. 전체 열다섯 편이고, 아직 올라오지 않은 편도 자리는 미리 잡아 둔다 —
- * 몇 편 중 몇 편째인지 보여야 연재를 따라올 수 있다.
+ * 이타인클럽이 X에 연재한 소설이다. 한 편마다 글 한 편과 숏츠 한 편이 짝을
+ * 이룬다. 전체 열다섯 편이고, 2026년 11월 9일 15편으로 완결됐다.
  *
  * ★ 이것은 소설이다. 업적·언행·정책의 사실 자료가 아니고, 위키의 raw source도
  *   아니다. 위키 페이지가 여기 적힌 문장을 앵커로 삼지 않는다.
@@ -55,6 +55,8 @@ export type Novel = {
   synopsis: string;
   /** 전체 편수. */
   total: number;
+  /** 완결된 날(마지막 편이 올라온 날). YYYY-MM-DD. 없으면 연재 중이다. */
+  completedAt?: string;
   episodes: NovelEpisode[];
 };
 
@@ -170,6 +172,14 @@ const KNOWN: NovelEpisode[] = [
     xUrl: "https://x.com/etainclub/status/2114353747451343312",
     shortsId: "TOsLjhMWNTQ",
   },
+  {
+    no: 15,
+    title: "내 몸",
+    body: EP15_BODY,
+    postedAt: "2026-11-09",
+    xUrl: "https://x.com/etainclub/status/2119779016257188157",
+    shortsId: "4nFcm-xkHNI",
+  },
 ];
 
 const TOTAL = 15;
@@ -186,6 +196,7 @@ export const IMMUNITY: Novel = {
     "범인을 찾아 없애면 예전으로 돌아갈 수 있으리라 믿으며 밤새 검색하던 그는 한 문장 앞에서 멈춘다 — " +
     "우리 몸에서는 끊임없이 비정상적인 세포가 생긴다. 그렇다면 왜 내 몸은 그것을 막지 못했을까.",
   total: TOTAL,
+  completedAt: "2026-11-09",
   episodes: Array.from(
     { length: TOTAL },
     (_, i) => KNOWN.find((e) => e.no === i + 1) ?? { no: i + 1 },
