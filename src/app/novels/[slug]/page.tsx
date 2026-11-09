@@ -26,7 +26,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const novel = getNovel(slug);
   if (!novel) return {};
-  const description = `${novel.genre} 《${novel.title}》 전 ${novel.total}편. ${novel.logline}`;
+  const description = `${novel.genre} 《${novel.title}》 전 ${novel.total}편${novel.completedAt ? " 완결" : ""}. ${novel.logline}`;
   return {
     title: `《${novel.title}》 · 소설`,
     description,
@@ -48,7 +48,8 @@ export async function generateMetadata({
  * 무채색이므로 "UI는 무채색" 규칙 안에 있다.
  *
  * 열다섯 편의 자리를 모두 그린다. 아직 오지 않은 편은 누를 수 없고
- * "공개 예정"이라고 적는다.
+ * "공개 예정"이라고 적는다. 완결되면(`completedAt`) "연재"를 "완결"로 바꾸고
+ * 최신 편 이어 보기 대신 마지막 편 보기를 둔다.
  */
 export default async function NovelPage({
   params,
@@ -101,7 +102,7 @@ export default async function NovelPage({
 
           <div className="relative mx-auto max-w-[560px] px-4 pb-8 pt-12">
             <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/50">
-              연재 {novel.genre}
+              {novel.completedAt ? "완결" : "연재"} {novel.genre}
             </p>
             <h1 className="mt-3 text-[56px] font-black leading-none tracking-[-0.04em]">
               {novel.title}
@@ -111,19 +112,32 @@ export default async function NovelPage({
             </p>
 
             <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-white/60">
-              <span className="font-semibold text-white">전 {novel.total}편</span>
-              <span aria-hidden="true">·</span>
-              <span>
-                {published.length}편 공개
-                {published.length < novel.total && " · 연재 중"}
+              <span className="font-semibold text-white">
+                전 {novel.total}편{novel.completedAt && " 완결"}
               </span>
-              <span aria-hidden="true">·</span>
-              <span>숏츠 {shorts}편</span>
-              {latest?.postedAt && (
+              {!novel.completedAt && (
                 <>
                   <span aria-hidden="true">·</span>
-                  <span className="tabular">최근 {latest.postedAt.replaceAll("-", ".")}</span>
+                  <span>
+                    {published.length}편 공개
+                    {published.length < novel.total && " · 연재 중"}
+                  </span>
                 </>
+              )}
+              <span aria-hidden="true">·</span>
+              <span>숏츠 {shorts}편</span>
+              {novel.completedAt ? (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span className="tabular">{novel.completedAt.replaceAll("-", ".")} 완결</span>
+                </>
+              ) : (
+                latest?.postedAt && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span className="tabular">최근 {latest.postedAt.replaceAll("-", ".")}</span>
+                  </>
+                )
               )}
             </div>
 
@@ -143,7 +157,7 @@ export default async function NovelPage({
                 href={`/novels/${novel.slug}/${latest.no}`}
                 className="mt-2 flex h-11 w-full items-center justify-center rounded-full border border-white/25 text-[14px] font-semibold text-white transition-colors hover:bg-white/10"
               >
-                최신 {latest.no}편 이어 보기
+                {novel.completedAt ? `마지막 ${latest.no}편 보기` : `최신 ${latest.no}편 이어 보기`}
               </Link>
             )}
 
@@ -184,7 +198,7 @@ export default async function NovelPage({
             <h2 id="episodes" className="text-[16px] font-bold">
               회차
             </h2>
-            <span className="text-[12px] text-white/50">시즌 1 · {novel.total}편</span>
+            <span className="text-[12px] text-white/50">시즌 1 · {novel.total}편{novel.completedAt ? " 완결" : ""}</span>
           </div>
 
           <ol className="divide-y divide-white/10">
