@@ -136,6 +136,161 @@ export function gardenFeedback(kind: "tap" | "plant" | "harvest" | "pull" | "rew
   notes.forEach((hz, i) => tone(ctx, master!, hz, ctx.currentTime + 0.01 + i * 0.07, kind === "tap" ? 0.12 : 0.28, 0.16, "triangle"));
 }
 
+// ── 거대 잡초 타격음 ────────────────────────────────────────────────
+
+/**
+ * 거대 잡초의 손맛. 문지르기(rub)·한 방(hit)·약점(weak)·남이 친 한 방(ghost)·단계(phase)·
+ * 합동 게이지(surge)·반격 경고(warn)·맞음(hurt)·피함(dodge)·필살기(finisher)·쓰러뜨림(defeat).
+ *
+ * ★ 소리는 사람이 켰을 때만 난다(enabled). 진동은 소리와 따로이고, 움직임 줄이기 설정이면 내지 않는다.
+ * ★ 타격음은 짧은 잡음(퍽)과 낮은 사인(쿵)을 겹친다. 파일을 받지 않는다.
+ */
+export type RaidSound = "rub" | "hit" | "weak" | "ghost" | "phase" | "surge" | "warn" | "hurt" | "dodge" | "finisher" | "defeat";
+
+const RAID_VIBE: Partial<Record<RaidSound, number | number[]>> = {
+  rub: 4,
+  hit: [18, 20, 28],
+  weak: [24, 16, 36],
+  phase: [40, 40, 80],
+  surge: [30, 30, 30, 30, 60],
+  warn: [60, 60, 60],
+  hurt: [120, 40, 120],
+  dodge: 20,
+  finisher: [30, 30, 50, 30, 120],
+  defeat: [60, 50, 60, 50, 200],
+};
+
+let lastGhost = 0;
+
+export function raidFeedback(kind: RaidSound) {
+  if (typeof window === "undefined") return;
+  const vibe = RAID_VIBE[kind];
+  if (vibe !== undefined && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    try {
+      navigator.vibrate?.(vibe);
+    } catch {
+      // 진동은 덤이다.
+    }
+  }
+  if (!enabled) return;
+  // 남이 친 소리는 겹치면 시끄럽다. 0.12초에 한 번만.
+  if (kind === "ghost") {
+    const t = performance.now();
+    if (t - lastGhost < 120) return;
+    lastGhost = t;
+  }
+  const ctx = unlock();
+  if (!ctx || !master) return;
+  const at = ctx.currentTime + 0.005;
+  const out = master;
+  switch (kind) {
+    case "rub":
+      noise(ctx, out, at, 0.05, 0.08, 2_400);
+      break;
+    case "hit":
+      thud(ctx, out, at, 1);
+      break;
+    case "weak":
+      thud(ctx, out, at, 1.1);
+      tone(ctx, out, 1_320, at + 0.02, 0.18, 0.1, "square");
+      break;
+    case "ghost":
+      thud(ctx, out, at, 0.35);
+      break;
+    case "phase":
+      thud(ctx, out, at, 1.3);
+      [523, 392, 330].forEach((hz, i) => tone(ctx, out, hz, at + 0.12 + i * 0.09, 0.3, 0.12, "sawtooth"));
+      break;
+    case "surge":
+      [523, 659, 784, 1047].forEach((hz, i) => tone(ctx, out, hz, at + i * 0.07, 0.4, 0.13, "triangle"));
+      sweep(ctx, out, at, 0.6, 300, 1_800, 0.08);
+      break;
+    case "warn":
+      tone(ctx, out, 880, at, 0.12, 0.14, "square");
+      tone(ctx, out, 880, at + 0.18, 0.12, 0.14, "square");
+      break;
+    case "hurt":
+      sweep(ctx, out, at, 0.35, 420, 90, 0.16);
+      noise(ctx, out, at, 0.25, 0.12, 900);
+      break;
+    case "dodge":
+      sweep(ctx, out, at, 0.18, 600, 1_600, 0.1);
+      break;
+    case "finisher":
+      sweep(ctx, out, at, 0.45, 180, 1_400, 0.12);
+      [0.5, 0.68, 0.86].forEach((d, i) => thud(ctx, out, at + d, 1.1 + i * 0.2));
+      break;
+    case "defeat":
+      thud(ctx, out, at, 1.6);
+      [523, 659, 784, 1047, 1319].forEach((hz, i) => tone(ctx, out, hz, at + 0.35 + i * 0.1, 0.6, 0.12, "triangle"));
+      break;
+  }
+}
+
+/** 퍽 — 잡음 한 줌과 낮은 쿵. power가 클수록 낮고 크다. */
+function thud(ctx: AudioContext, out: AudioNode, at: number, power: number) {
+  noise(ctx, out, at, 0.09 * power, 0.22 * Math.min(power, 1.4), 1_200);
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(150 / Math.sqrt(power), at);
+  osc.frequency.exponentialRampToValueAtTime(45, at + 0.18 * power);
+  gain.gain.setValueAtTime(0.0001, at);
+  gain.gain.linearRampToValueAtTime(0.4 * Math.min(power, 1.4), at + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.22 * power);
+  osc.connect(gain).connect(out);
+  osc.start(at);
+  osc.stop(at + 0.25 * power + 0.05);
+  osc.onended = () => {
+    osc.disconnect();
+    gain.disconnect();
+  };
+}
+
+let noiseBuffer: AudioBuffer | undefined;
+
+function noise(ctx: AudioContext, out: AudioNode, at: number, length: number, peak: number, cutoff: number) {
+  if (!noiseBuffer || noiseBuffer.sampleRate !== ctx.sampleRate) {
+    noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.5), ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = cutoff;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(peak, at);
+  gain.gain.exponentialRampToValueAtTime(0.0001, at + length);
+  src.connect(filter).connect(gain).connect(out);
+  src.start(at);
+  src.stop(at + length + 0.02);
+  src.onended = () => {
+    src.disconnect();
+    filter.disconnect();
+    gain.disconnect();
+  };
+}
+
+function sweep(ctx: AudioContext, out: AudioNode, at: number, length: number, from: number, to: number, peak: number) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(from, at);
+  osc.frequency.exponentialRampToValueAtTime(to, at + length);
+  gain.gain.setValueAtTime(0.0001, at);
+  gain.gain.linearRampToValueAtTime(peak, at + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, at + length);
+  osc.connect(gain).connect(out);
+  osc.start(at);
+  osc.stop(at + length + 0.05);
+  osc.onended = () => {
+    osc.disconnect();
+    gain.disconnect();
+  };
+}
+
 function tone(ctx: AudioContext, out: AudioNode, hz: number, at: number, length: number, peak: number, type: OscillatorType) {
   const oscillator = ctx.createOscillator();
   const gain = ctx.createGain();

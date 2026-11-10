@@ -227,7 +227,9 @@ service cloud.firestore {
      *   1. 오늘 번호로만, 물결 1–3으로, 체력 [180, 3000]으로, 맞은 수 0에서 태어난다.
      *   2. 2·3번째 물결은 앞 물결이 끝난 뒤 2시간이 지나야 태어난다.
      *      끝남 = 쓰러졌거나(defeatedAt) 태어나고 3시간이 지나 도망갔다.
-     *   3. 한 번 칠 때마다 내 칸(shards/{0–7}, 표식의 shard)과 내 수가 같은 커밋에서 1씩 오른다.
+     *   3. 한 번 칠 때마다 내 칸(shards/{0–7}, 표식의 shard)과 내 수가 같은 커밋에서 같은 만큼 오른다.
+     *      보통은 1, 필살기는 20까지(rules.ts RAID_FINISHER_MAX). 필살기 아이템은 규칙이 볼 수 없는
+     *      내 정원 문서에 있으므로, 규칙은 한 커밋의 크기와 내 몫(60)만 지킨다 — 혼자 잡지는 못한다.
      *      맞은 수를 칸에 나눠 세는 것은 한 문서에 몰리는 쓰기를 흩기 위해서다(분산 카운터).
      *      합계 = 물결 문서의 hits(칸 이전 화면의 몫) + 칸의 합. 쓰러지기 직전 몇 방은 체력을 넘을 수 있다.
      *   4. 한 사람은 1초에 한 번만, 한 물결에 60번까지만 친다 — 혼자 몰아 잡지 못하게.
@@ -443,12 +445,17 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly(['hits', 'fighters'])
           && getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.defeatedAt == null
           && ((request.resource.data.hits == 0 && request.resource.data.fighters == 0)
-            || (request.resource.data.hits == 1
+            || (request.resource.data.hits is int
+              && request.resource.data.hits >= 1
+              && request.resource.data.hits <= 20
               && request.resource.data.fighters == (exists(raidFighter(raidId)) ? 0 : 1)
               && raidShardPaired(raidId, n)));
+        // 얼마나 오르는지는 표식 규칙이 맞춘다(표식이 오른 만큼 칸도 올라야 한다). 여기서는 상한만.
         allow update: if request.auth != null
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hits', 'fighters'])
-          && request.resource.data.hits == resource.data.hits + 1
+          && request.resource.data.hits is int
+          && request.resource.data.hits > resource.data.hits
+          && request.resource.data.hits <= resource.data.hits + 20
           && request.resource.data.fighters == resource.data.fighters + (exists(raidFighter(raidId)) ? 0 : 1)
           && raidShardPaired(raidId, n);
         allow delete: if false;
@@ -460,24 +467,27 @@ service cloud.firestore {
           && request.auth.uid == uid
           && request.resource.data.keys().hasOnly(['hits', 'lastAt', 'shard'])
           && request.resource.data.lastAt == request.time
-          && request.resource.data.hits == (resource == null ? 0 : resource.data.hits) + 1
+          && request.resource.data.hits is int
+          && request.resource.data.hits > (resource == null ? 0 : resource.data.hits)
+          && request.resource.data.hits <= (resource == null ? 0 : resource.data.hits) + 20
           && request.resource.data.hits <= 60
           && (resource == null || request.time > resource.data.lastAt + duration.value(1, 's'))
           && get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.defeatedAt == null
           && request.time < get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.spawnedAt + duration.value(3, 'h')
           && ('shard' in request.resource.data
-            // 지금: 내 칸이 1 오르고 물결 문서는 그대로다.
+            // 지금: 내 칸이 내 수가 오른 만큼 오르고 물결 문서는 그대로다.
             ? request.resource.data.shard is int
               && request.resource.data.shard >= 0
               && request.resource.data.shard <= 7
               && getAfter(raidShardPath(raidId, string(request.resource.data.shard))).data.hits
                 == (exists(raidShardPath(raidId, string(request.resource.data.shard)))
                   ? get(raidShardPath(raidId, string(request.resource.data.shard))).data.hits
-                  : 0) + 1
+                  : 0) + (request.resource.data.hits - (resource == null ? 0 : resource.data.hits))
               && getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
                 == get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
-            // 옛 화면: 물결 문서의 합계가 1 오른다.
-            : getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
+            // 옛 화면: 한 방씩만, 물결 문서의 합계가 1 오른다.
+            : request.resource.data.hits == (resource == null ? 0 : resource.data.hits) + 1
+              && getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
               == get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits + 1);
         allow delete: if false;
       }

@@ -707,7 +707,8 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
     await expectDenied("칸은 두고 내 표식만 +1", () => setDoc(mineRef, { hits: 1, lastAt: serverTimestamp(), shard: S }));
     await expectDenied("표식이 가리키지 않는 칸을 올리기", () => strike(1, 1, 1, S, S + 1));
     await expectDenied("칸 번호 8(없는 칸)", () => strike(1, 1, 1, 8, 8));
-    await expectDenied("한 번에 +2", () => strike(2, 2, 1));
+    await expectDenied("한 번에 +21(필살기 상한 20을 넘음)", () => strike(21, 21, 1));
+    await expectDenied("표식은 +5인데 칸은 +4", () => strike(5, 4, 1));
     await expectDenied("칸과 물결 문서를 함께 +1(한 방에 두 번 세기)", () => {
       const batch = writeBatch(db);
       batch.set(mineRef, { hits: 1, lastAt: serverTimestamp(), shard: S });
@@ -730,13 +731,19 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
     });
     await wait();
     await expectAllowed("다시 칸으로 한 방", () => strike(4, 3, 1));
+    await wait();
+    await expectAllowed("필살기: 표식과 칸을 함께 +5", () => strike(9, 8, 1));
+    await expectDenied("필살기도 1초 안에는 또 못 친다", () => strike(14, 13, 1));
 
     // 내 몫(60방)을 다 친 것으로 관리자가 올려 둔다.
     await adminMine.update({ hits: 60 });
     await wait();
-    await expectDenied("내 몫 60방을 넘어 61번째 한 방", () => strike(61, 4, 1));
+    await expectDenied("내 몫 60방을 넘어 61번째 한 방", () => strike(61, 9, 1));
+    await adminMine.update({ hits: 50 });
+    await wait();
+    await expectDenied("필살기로 내 몫 60방을 넘기(50 + 20)", () => strike(70, 28, 1));
 
-    // 합계 = 물결 문서 1 + 칸 3 = 4. 체력 180에 못 미친다.
+    // 합계 = 물결 문서 1 + 칸 8 = 9. 체력 180에 못 미친다.
     await expectDenied("합계가 체력에 못 미쳐 쓰러뜨리기", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp() }));
     // 칸을 올려 합계를 180으로(1 + 179).
     await adminShard(S).update({ hits: 179 });

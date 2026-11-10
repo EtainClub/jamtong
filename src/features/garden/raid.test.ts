@@ -10,7 +10,10 @@ import { test } from "node:test";
 
 import {
   fertilize,
+  FINISHER_ORDER,
+  FINISHERS,
   HOUR,
+  RAID_FINISHER_MAX,
   MINUTE,
   nextRaidWave,
   RAID_GAP,
@@ -36,6 +39,7 @@ import {
   type RaidWave,
 } from "./rules";
 import type { Plant } from "./types";
+import { comboTier, RAID_GIMMICKS, raidRubsPerStrike, raidStage, raidSurge } from "./raidPlay";
 
 const T = 1_800_000_000_000;
 const wave = (over: Partial<RaidWave> = {}): RaidWave => ({ hp: 300, hits: 0, fighters: 0, spawnedAt: T, defeatedAt: null, ...over });
@@ -113,6 +117,47 @@ test("firestore.rules의 물결 규칙이 rules.ts의 값과 같다", () => {
   has(`request.resource.data.shard <= ${RAID_SHARDS - 1}`);
   has(`getAfter(raidShardPath(raidId, '${RAID_SHARDS - 1}')).data.hits;`);
   assert.ok(!rules.includes(`raidShardPath(raidId, '${RAID_SHARDS}')`), "규칙이 없는 칸까지 더한다");
+  // 필살기: 한 커밋에 RAID_FINISHER_MAX방까지. 표식·칸 생성·칸 올리기 세 곳.
+  has(`request.resource.data.hits <= (resource == null ? 0 : resource.data.hits) + ${RAID_FINISHER_MAX}`);
+  has(`request.resource.data.hits <= ${RAID_FINISHER_MAX}\n`);
+  has(`request.resource.data.hits <= resource.data.hits + ${RAID_FINISHER_MAX}`);
+});
+
+test("필살기는 한 커밋 상한 안이고, 내 몫으로는 여전히 혼자 못 잡는다", () => {
+  for (const id of FINISHER_ORDER) {
+    const f = FINISHERS[id];
+    assert.ok(f.hits >= 2 && f.hits <= RAID_FINISHER_MAX, id);
+    assert.ok(f.hits < RAID_HITS_PER_PERSON, id);
+  }
+  // 값이 클수록 더 세고, 하루에 덜 판다.
+  for (let i = 1; i < FINISHER_ORDER.length; i++) {
+    const [a, b] = [FINISHERS[FINISHER_ORDER[i - 1]], FINISHERS[FINISHER_ORDER[i]]];
+    assert.ok(b.hits > a.hits && b.price > a.price && b.perDay <= a.perDay);
+  }
+  // 하루 살 수 있는 필살기를 다 써도 한 사람 몫(60)을 넘지 못한다 — 몫은 규칙이 지킨다.
+  for (const kind of RAID_KINDS) assert.ok(kind.hp > RAID_HITS_PER_PERSON, kind.id);
+});
+
+test("손맛 규칙: 단계·합동 게이지·한 방에 드는 문지르기", () => {
+  assert.equal(raidStage(0, 200), 0);
+  assert.equal(raidStage(60, 200), 1);
+  assert.equal(raidStage(100, 200), 2);
+  assert.equal(raidStage(160, 200), 3);
+  assert.equal(raidStage(999, 200), 3);
+  assert.deepEqual(raidSurge(0, 200), { count: 0, fill: 0 });
+  assert.deepEqual(raidSurge(50, 200), { count: 1, fill: 0.25 });
+  assert.equal(raidSurge(200, 200).count, 4, "마지막 칸은 햇살이 아니다");
+  for (const kind of RAID_KINDS) {
+    const base = raidRubsPerStrike(kind.id, 0, kind.hp, false);
+    assert.ok(base >= 2);
+    assert.ok(raidRubsPerStrike(kind.id, 0, kind.hp, true) < base, `${kind.id}: 햇살은 문지르기를 줄인다`);
+    assert.ok(RAID_GIMMICKS[kind.id].counter.stunMs <= 5_000, `${kind.id}: 반격이 너무 길다`);
+  }
+  // 갑질 엉겅퀴는 절반 아래에서 방패를 든다.
+  assert.ok(raidRubsPerStrike("bossy", 250, 300, false) > raidRubsPerStrike("bossy", 0, 300, false));
+  assert.equal(comboTier(5), 0);
+  assert.equal(comboTier(10), 1);
+  assert.equal(comboTier(60), 3);
 });
 
 test("칸은 사람마다 고정이고 고르게 퍼지며, 규칙의 읽기 상한 안에 든다", () => {
