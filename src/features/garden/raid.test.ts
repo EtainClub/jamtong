@@ -16,7 +16,11 @@ import {
   RAID_FINISHER_MAX,
   MINUTE,
   nextRaidWave,
+  RAID_EVERY_HOURS,
+  RAID_FIRST_HOUR,
   RAID_GAP,
+  kstDayNumber,
+  raidOpensAt,
   RAID_HITS_PER_PERSON,
   RAID_HP_MAX,
   RAID_HP_MIN,
@@ -86,14 +90,39 @@ test("세 시간 버티면 도망간다", () => {
   assert.equal(raidPhase(wave({ spawnedAt: null }), T + RAID_LIFE * 2), "active");
 });
 
-test("다음 물결은 앞 물결이 끝나고 두 시간 뒤", () => {
-  assert.deepEqual(nextRaidWave([null, null, null], T), { wave: 1, at: T });
-  assert.equal(nextRaidWave([wave(), null, null], T + HOUR), null, "싸우는 중");
-  const beaten = wave({ defeatedAt: T + HOUR });
-  assert.deepEqual(nextRaidWave([beaten, null, null], T + HOUR), { wave: 2, at: T + HOUR + RAID_GAP });
-  assert.deepEqual(nextRaidWave([wave(), null, null], T + RAID_LIFE), { wave: 2, at: T + RAID_LIFE + RAID_GAP });
-  assert.equal(nextRaidWave([beaten, beaten, beaten], T + 10 * HOUR), null, "오늘 몫을 다 썼다");
-  assert.ok(RAID_PER_DAY >= 2);
+test("물결은 하루에 고르게 열린다 — 8·11·14·17·20시(한국 시각)", () => {
+  const day = 20_400;
+  const kstHour = (t: number) => ((t + 9 * HOUR) % (24 * HOUR)) / HOUR;
+  const opens = Array.from({ length: RAID_PER_DAY }, (_, i) => raidOpensAt(day, i + 1));
+  assert.deepEqual(opens.map(kstHour), [8, 11, 14, 17, 20]);
+  for (const t of opens) assert.equal(kstDayNumber(t), day, "여는 시각은 그날 안이다");
+  // 마지막 물결이 도망가도 그날 안에 끝난다.
+  assert.ok(kstDayNumber(opens.at(-1)! + RAID_LIFE) === day);
+  for (let i = 1; i < opens.length; i++) assert.equal(opens[i] - opens[i - 1], RAID_EVERY_HOURS * HOUR);
+  assert.equal(RAID_PER_DAY, 5);
+});
+
+test("다음 물결은 제 시각이 되고, 앞 물결이 끝나고 30분이 지나야 나온다", () => {
+  const day = 20_400;
+  const open = (w: number) => raidOpensAt(day, w);
+  const early = open(1) - 3 * HOUR; // 새벽 5시
+  const none = Array.from({ length: RAID_PER_DAY }, () => null);
+  assert.deepEqual(nextRaidWave(none, early), { wave: 1, at: open(1) }, "새벽에는 8시를 기다린다");
+  const w1 = wave({ spawnedAt: open(1) });
+  assert.equal(nextRaidWave([w1, null, null, null, null], open(1) + HOUR), null, "싸우는 중");
+  // 10분 만에 쓰러져도 둘째는 11시에 열린다 — 오전에 몰리지 않는다.
+  const quick = wave({ spawnedAt: open(1), defeatedAt: open(1) + 10 * MINUTE });
+  assert.deepEqual(nextRaidWave([quick, null, null, null, null], open(1) + HOUR), { wave: 2, at: open(2) });
+  // 오래 싸우면 끝나고 30분 뒤.
+  const late = wave({ spawnedAt: open(2) + HOUR, defeatedAt: open(2) + 2.8 * HOUR });
+  assert.deepEqual(nextRaidWave([quick, late, null, null, null], open(3)), { wave: 3, at: open(2) + 2.8 * HOUR + RAID_GAP });
+  // 도망가면 태어나고 3시간 + 30분 뒤.
+  const fled = wave({ spawnedAt: open(3) });
+  assert.deepEqual(nextRaidWave([quick, late, fled, null, null], open(3) + RAID_LIFE), { wave: 4, at: Math.max(open(4), open(3) + RAID_LIFE + RAID_GAP) });
+  const all = Array.from({ length: RAID_PER_DAY }, () => quick);
+  assert.equal(nextRaidWave(all, open(5) + HOUR), null, "오늘 몫을 다 썼다");
+  assert.equal(RAID_GAP, 30 * MINUTE);
+  assert.equal(RAID_FIRST_HOUR, 8);
 });
 
 test("상자 장부 열쇠는 옛 날짜 번호와 겹치지 않는다", () => {
@@ -110,8 +139,9 @@ test("firestore.rules의 물결 규칙이 rules.ts의 값과 같다", () => {
   has(`request.resource.data.hp <= ${RAID_HP_MAX}`);
   has(`request.resource.data.hits <= ${RAID_HITS_PER_PERSON}`);
   has(`resource.data.spawnedAt + duration.value(${RAID_LIFE / HOUR}, 'h')`);
-  has(`prev.defeatedAt + duration.value(${RAID_GAP / HOUR}, 'h')`);
-  has(`prev.spawnedAt + duration.value(${(RAID_LIFE + RAID_GAP) / HOUR}, 'h')`);
+  has(`prev.defeatedAt + duration.value(${RAID_GAP / MINUTE}, 'm')`);
+  has(`prev.spawnedAt + duration.value(${(RAID_LIFE + RAID_GAP) / MINUTE}, 'm')`);
+  has(`(${RAID_FIRST_HOUR} + ${RAID_EVERY_HOURS} * (raidWave(raidId) - 1)) * 3600000`);
   // 칸(분산 카운터)의 수. 규칙은 칸 번호를 받고, 쓰러뜨릴 때 칸을 하나하나 더한다.
   has(`n.matches('^[0-${RAID_SHARDS - 1}]$')`);
   has(`request.resource.data.shard <= ${RAID_SHARDS - 1}`);

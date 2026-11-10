@@ -322,7 +322,7 @@ export function RaidArena({
     >
       <div className="relative z-10">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-[11.5px] font-semibold opacity-80">오늘 {["첫", "두", "세"][r.wave - 1] ?? r.wave} 번째 거대 잡초</p>
+          <p className="text-[11.5px] font-semibold opacity-80">오늘 {["첫", "두", "세", "네", "다섯"][r.wave - 1] ?? r.wave} 번째 거대 잡초</p>
           <p className="shrink-0 text-[11.5px] tabular-nums opacity-90">도망까지 {formatLeft(Math.max(0, escapeIn))}</p>
         </div>
         <h3 id="raid" className="mt-0.5 text-[17px] font-black tracking-tight">😠 {josa(kind.name, "이가")} 나타났어요!</h3>

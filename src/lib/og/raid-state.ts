@@ -8,7 +8,7 @@ import { josa, RAID_HITS_PER_PERSON, RAID_LIFE, raidKind, raidPhase, type RaidKi
  * 카드에 싣는 글자는 숫자뿐이다.
  */
 
-export const RAID_ID = /^[0-9]{5}-[1-3]$/;
+export const RAID_ID = /^[0-9]{5}-[1-5]$/;
 
 export interface RaidCard extends RaidWave {
   id: string;

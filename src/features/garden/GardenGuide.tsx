@@ -35,6 +35,8 @@ import {
   TITLE_ORDER,
   TITLES,
   RAID_BOX,
+  RAID_EVERY_HOURS,
+  RAID_FIRST_HOUR,
   RAID_GAP,
   RAID_HITS_PER_PERSON,
   RAID_HP_MIN,
@@ -279,15 +281,16 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
               {(Object.keys(PLAZA_SPEED) as Array<keyof typeof PLAZA_SPEED>).map((k) => `${PLAZA_LABEL[k]} ×${PLAZA_SPEED[k]}`).join(" · ")}.
             </li>
             <li>
-              광장이 무성해지면 거대 잡초가 나타나요. 하루 {RAID_PER_DAY}번까지, 앞 거대 잡초가 끝나고 {duration(RAID_GAP / MINUTE)} 뒤에
-              다음이 나올 수 있어요.
+              광장이 무성해지면 거대 잡초가 나타나요. 하루 {RAID_PER_DAY}번까지,{" "}
+              {Array.from({ length: RAID_PER_DAY }, (_, i) => `${RAID_FIRST_HOUR + RAID_EVERY_HOURS * i}시`).join("·")}부터 하나씩
+              열려요. 앞 거대 잡초가 끝나고 {duration(RAID_GAP / MINUTE)}이 지나야 다음이 나와요.
             </li>
             <li>
               한 사람은 거대 잡초 하나에 {RAID_HITS_PER_PERSON}방까지만 칠 수 있어요. 체력은 적어도 {RAID_HP_MIN}이라 혼자서는 못
               잡고, 적어도 {RAID_MIN_FIGHTERS}명이 모여야 해요.
             </li>
             <li>
-              거대 잡초는 사회를 갉아먹는 악초예요. 하루 세 번 서로 다른 놈이 나오고, 종류마다 체력이 달라요:{" "}
+              거대 잡초는 사회를 갉아먹는 악초예요. 하루 {RAID_PER_DAY}번 서로 다른 놈이 나오고, 종류마다 체력이 달라요:{" "}
               {RAID_KINDS.map((k) => `${k.name} ${k.hp}(${Math.ceil(k.hp / RAID_HITS_PER_PERSON)}명)`).join(" · ")}.
             </li>
             <li>
