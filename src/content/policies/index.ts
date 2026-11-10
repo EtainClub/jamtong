@@ -186,6 +186,8 @@ import { COMMENT_NATIONALITY_LABEL } from "./comment-nationality-label";
 import { NK_PROVOCATIONS_2026 } from "./nk-provocations-2026";
 import { RENT_SHIFT_2026 } from "./rent-shift-2026";
 import { CYBER_SECURITY } from "./cyber-security";
+import { CHEORWON_HOWITZER_CRASH } from "./cheorwon-howitzer-crash";
+import { WILDFIRE_CAUSES } from "./wildfire-causes";
 
 /**
  * 정부 정책 팩트 목록. 새 정책은 파일을 하나 만들고 여기에 더한다.
@@ -379,6 +381,8 @@ export const POLICIES: Policy[] = [
   NK_PROVOCATIONS_2026,
   RENT_SHIFT_2026,
   CYBER_SECURITY,
+  CHEORWON_HOWITZER_CRASH,
+  WILDFIRE_CAUSES,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
