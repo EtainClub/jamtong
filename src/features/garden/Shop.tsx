@@ -4,6 +4,10 @@ import { PlantArt } from "./GardenArt";
 import { gardenFeedback } from "./feedback";
 
 import {
+  FINISHER_ORDER,
+  FINISHERS,
+  josa,
+  RAID_HITS_PER_PERSON,
   fruitIcon,
   formatLeft,
   isNewVariety,
@@ -41,7 +45,7 @@ export function Shop({
   now: number;
   say: (text: string) => void;
 }) {
-  const { buy, upgrade, buyTool } = useGarden.getState();
+  const { buy, upgrade, buyTool, buyFinisher } = useGarden.getState();
   const slot = shopSlot(now);
   // 장마 여부는 슬롯 시작 시각으로 본다. 슬롯 안에서 진열이 바뀌지 않게, 모두가 같게.
   const monsoon = monsoonSpecies(slot * SHOP_SLOT, catalog);
@@ -138,6 +142,44 @@ export function Shop({
                   className="shrink-0 rounded-full bg-[var(--g-jam)] px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-35"
                 >
                   {left <= 0 ? "오늘 끝" : `🍯 ${tool.price}`}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section aria-labelledby="garden-finishers" className="mt-6">
+        <h3 id="garden-finishers" className="text-[14px] font-bold">거대 잡초 필살기</h3>
+        <p className="mt-0.5 text-[11.5px] leading-relaxed text-smoke">
+          광장에 거대 잡초가 나타났을 때 싸움터 아래 단추로 써요. 여러 방을 한 번에 넣지만, 한 사람이 칠 수 있는{" "}
+          {RAID_HITS_PER_PERSON}방 안에서만 들어가요 — 필살기가 있어도 혼자서는 쓰러뜨릴 수 없어요. 늘 같은 값, 무작위 없음.
+        </p>
+        <div className="mt-2 space-y-2">
+          {FINISHER_ORDER.map((id) => {
+            const item = FINISHERS[id];
+            const today = kstDay(now);
+            const used = data.finishers.day === today ? (data.finishers.bought[id] ?? 0) : 0;
+            const left = item.perDay - used;
+            const have = data.finishers.have[id] ?? 0;
+            return (
+              <div key={id} className="flex items-center gap-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3">
+                <span className="text-[28px] leading-none" aria-hidden="true">{item.icon}</span>
+                <div className="min-w-0 flex-1 text-[13px]">
+                  <p className="font-semibold">
+                    {item.label} <span className="font-normal text-smoke">· 가진 것 {have}개</span>
+                  </p>
+                  <p className="text-[11.5px] leading-relaxed text-smoke">
+                    내 몫에서 {item.hits}방을 한꺼번에. 오늘 {left}개 더 살 수 있어요.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={left <= 0 || data.jam < item.price}
+                  onClick={() => { if (buyFinisher(id)) { gardenFeedback("reward"); say(`${item.icon} ${josa(item.label, "을를")} 샀어요`); } }}
+                  className="shrink-0 rounded-full bg-[var(--g-jam)] px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-35"
+                >
+                  {left <= 0 ? "오늘 끝" : `🍯 ${item.price}`}
                 </button>
               </div>
             );

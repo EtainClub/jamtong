@@ -36,6 +36,8 @@ import {
   withRainbow,
   fertilize,
   TOOLS,
+  FINISHERS,
+  type FinisherId,
   type ToolId,
   fruitValue,
   LEAF_JAM,
@@ -106,6 +108,8 @@ export interface GardenData {
   waters: { day: number; given: string[]; received: string[] };
   /** 가진 도구(rules.ts의 TOOLS)와 오늘(한국 날짜) 산 수. */
   tools: { have: Partial<Record<ToolId, number>>; day: string; bought: Partial<Record<ToolId, number>> };
+  /** 가진 거대 잡초 필살기(rules.ts의 FINISHERS)와 오늘(한국 날짜) 산 수. */
+  finishers: { have: Partial<Record<FinisherId, number>>; day: string; bought: Partial<Record<FinisherId, number>> };
   /** 첫 한 바퀴 코치와 탭 첫 방문 팁(coach.ts). 기기를 옮겨도 다시 뜨지 않게 정원과 함께 간다. */
   coach: CoachData;
   /**
@@ -171,6 +175,7 @@ function fresh(catalog: Species[]): GardenData {
     trails: { taken: [], day: "", count: 0 },
     coach: initialCoach(),
     tools: { have: {}, day: "", bought: {} },
+    finishers: { have: {}, day: "", bought: {} },
     invite: NO_INVITE,
     friends: [],
     updatedAt: Date.now(),
@@ -193,6 +198,7 @@ function normalize(data: GardenData): GardenData {
     trails: data.trails ?? { taken: [], day: "", count: 0 },
     coach: normalizeCoach(data.coach),
     tools: data.tools ?? { have: {}, day: "", bought: {} },
+    finishers: data.finishers ?? { have: {}, day: "", bought: {} },
     invite: data.invite ?? NO_INVITE,
     friends: data.friends ?? [],
   };
@@ -323,6 +329,11 @@ interface GardenState {
   claimRaid: (key: number, seed: string, catalog: Species[]) => { species?: Species; jam: number } | null;
   /** 도구를 산다. 잼이 모자라거나 오늘 상한에 닿았으면 false. */
   buyTool: (id: ToolId) => boolean;
+  /** 필살기를 산다. 잼이 모자라거나 오늘 상한에 닿았으면 false. */
+  buyFinisher: (id: FinisherId) => boolean;
+  /** 필살기 하나를 꺼낸다(쓰기 직전). 없으면 false. 보내지 못했으면 refundFinisher로 되돌린다. */
+  spendFinisher: (id: FinisherId) => boolean;
+  refundFinisher: (id: FinisherId) => void;
   /** 자라는 작물에 비료를 준다. 그 비료가 없거나, 익었거나, 이번 차례에 이미 줬으면 false. */
   feed: (bed: number, id: ToolId) => boolean;
   /**
@@ -705,6 +716,42 @@ export const useGarden = create<GardenState>((set, get) => {
         },
       });
       return true;
+    },
+
+    buyFinisher: (id) => {
+      const d = get().data;
+      if (!d) return false;
+      const item = FINISHERS[id];
+      const today = kstDay(Date.now());
+      const bought = d.finishers.day === today ? d.finishers.bought : {};
+      if ((bought[id] ?? 0) >= item.perDay || d.jam < item.price) return false;
+      commit({
+        ...d,
+        jam: d.jam - item.price,
+        finishers: {
+          have: { ...d.finishers.have, [id]: (d.finishers.have[id] ?? 0) + 1 },
+          day: today,
+          bought: { ...bought, [id]: (bought[id] ?? 0) + 1 },
+        },
+      });
+      return true;
+    },
+
+    spendFinisher: (id) => {
+      const d = get().data;
+      const have = d?.finishers.have[id] ?? 0;
+      if (!d || have <= 0) return false;
+      const next: GardenData["finishers"]["have"] = { ...d.finishers.have, [id]: have - 1 };
+      // 다 쓴 것은 키를 지운다. 0이 끝없이 쌓이지 않게.
+      if (have - 1 <= 0) delete next[id];
+      commit({ ...d, finishers: { ...d.finishers, have: next } });
+      return true;
+    },
+
+    refundFinisher: (id) => {
+      const d = get().data;
+      if (!d) return;
+      commit({ ...d, finishers: { ...d.finishers, have: { ...d.finishers.have, [id]: (d.finishers.have[id] ?? 0) + 1 } } });
     },
 
     feed: (bed, id) => {

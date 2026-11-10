@@ -630,6 +630,27 @@ export const RAID_RUBS_PER_STRIKE = 4;
 /** 한 사람이 한 방을 보내는 간격. 규칙은 1초를 지키고, 화면은 여유를 둔다. */
 export const RAID_STRIKE_GAP = 1_200;
 
+/**
+ * 필살기 — 상점에서 잼으로 사서 거대 잡초에 쓴다. 쓰면 내 몫(RAID_HITS_PER_PERSON)에서
+ * 여러 방을 한 커밋에 한꺼번에 보낸다.
+ *
+ * ★ 필살기는 내 몫을 넘지 못한다. 아이템은 내 정원 문서(클라이언트가 쓴다)에 있어
+ *   규칙이 샀는지 볼 수 없다. 그래서 규칙은 "한 커밋에 RAID_FINISHER_MAX방까지, 내 몫 안에서"만
+ *   본다. 위조해도 얻는 것은 모아 둔 몫을 한 번에 쓰는 것뿐이고, 혼자서는 여전히 못 잡는다.
+ * 값을 바꾸면 firestore.rules의 fighters·shards 절도 같이 바꾼다 — raid.test.ts가 짝을 본다.
+ */
+export const RAID_FINISHER_MAX = 20;
+
+export type FinisherId = "pick" | "whirl" | "sun";
+
+export const FINISHERS: Record<FinisherId, { label: string; icon: string; hits: number; price: number; perDay: number; shout: string }> = {
+  pick: { label: "곡괭이 내려찍기", icon: "⛏️", hits: 5, price: 20, perDay: 6, shout: "내려찍기!" },
+  whirl: { label: "뿌리 뽑기 회오리", icon: "🌪️", hits: 10, price: 45, perDay: 3, shout: "회오리!" },
+  sun: { label: "햇살 폭발", icon: "☀️", hits: 20, price: 100, perDay: 1, shout: "햇살 폭발!" },
+};
+
+export const FINISHER_ORDER: FinisherId[] = ["pick", "whirl", "sun"];
+
 /** 쓰러뜨리면 참여한 사람이 받는 희귀 씨앗 상자. 확률을 공개한다. */
 export const RAID_BOX = { jam: 50, odds: [{ tier: "flagship" as Tier, p: 0.8 }, { tier: "perennial" as Tier, p: 0.2 }] };
 

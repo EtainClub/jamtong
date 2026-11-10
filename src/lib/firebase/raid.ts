@@ -2,7 +2,7 @@
 
 import { collection, doc, onSnapshot, runTransaction, serverTimestamp, Timestamp } from "firebase/firestore";
 
-import { RAID_HITS_PER_PERSON, RAID_LIFE, RAID_SHARDS, raidShard, type RaidWave } from "@/features/garden/rules";
+import { RAID_FINISHER_MAX, RAID_HITS_PER_PERSON, RAID_LIFE, RAID_SHARDS, raidShard, type RaidWave } from "@/features/garden/rules";
 
 import { firebaseDb } from "./client";
 
@@ -23,7 +23,10 @@ import { firebaseDb } from "./client";
  * 규칙이 지키는 것은 firestore.rules의 plazaRaids 절에 있다.
  */
 
-export type Raid = RaidWave;
+export interface Raid extends RaidWave {
+  /** 칸마다 맞은 수. 누가 지금 치고 있는지 어림하는 데 쓴다(화면 연출). 칸을 아직 못 읽었으면 없다. */
+  shardHits?: number[];
+}
 
 function toMillis(value: unknown): number | null {
   return value instanceof Timestamp ? value.toMillis() : null;
@@ -36,10 +39,14 @@ export function watchRaidWave(id: string, onRaid: (raid: Raid | null) => void): 
   const db = firebaseDb();
   if (!db) return () => {};
   let base: (Raid & { exists: boolean }) | undefined;
-  let shards: { hits: number; fighters: number } | undefined;
+  let shards: { hits: number; fighters: number; each: number[] } | undefined;
   const emit = () => {
     if (base === undefined || shards === undefined) return;
-    onRaid(base.exists ? { ...base, hits: base.hits + shards.hits, fighters: base.fighters + shards.fighters } : null);
+    onRaid(
+      base.exists
+        ? { ...base, hits: base.hits + shards.hits, fighters: base.fighters + shards.fighters, shardHits: shards.each }
+        : null,
+    );
   };
   const fail = (error: unknown) => {
     console.error("[raid] 거대 잡초를 읽지 못했다", error);
@@ -67,11 +74,15 @@ export function watchRaidWave(id: string, onRaid: (raid: Raid | null) => void): 
     (snap) => {
       let hits = 0;
       let fighters = 0;
+      const each = Array.from({ length: RAID_SHARDS }, () => 0);
       snap.forEach((d) => {
-        hits += (d.get("hits") as number | undefined) ?? 0;
+        const h = (d.get("hits") as number | undefined) ?? 0;
+        hits += h;
         fighters += (d.get("fighters") as number | undefined) ?? 0;
+        const n = Number(d.id);
+        if (n >= 0 && n < RAID_SHARDS) each[n] = h;
       });
-      shards = { hits, fighters };
+      shards = { hits, fighters, each };
       emit();
     },
     fail,
@@ -118,35 +129,41 @@ export async function spawnRaid(id: string, hp: number): Promise<boolean> {
  */
 export type StrikeResult = "ok" | "defeated" | "over" | "escaped" | "capped" | "busy" | "error";
 
-export async function strikeRaid(uid: string, id: string): Promise<StrikeResult> {
+/**
+ * 한 방(count=1) 또는 필살기(count>1, RAID_FINISHER_MAX까지)를 보낸다. 내 몫을 넘는 만큼은 덜어 낸다.
+ * 돌려주는 count는 실제로 들어간 방 수다(ok일 때).
+ */
+export async function strikeRaid(uid: string, id: string, count = 1): Promise<{ result: StrikeResult; count: number }> {
+  const want = Math.max(1, Math.min(RAID_FINISHER_MAX, Math.floor(count)));
   const db = firebaseDb();
-  if (!db) return "error";
+  if (!db) return { result: "error", count: 0 };
   const shard = raidShard(uid);
   const raidRef = doc(db, "plazaRaids", id);
   const mineRef = doc(db, "plazaRaids", id, "fighters", uid);
   const shardRef = doc(db, "plazaRaids", id, "shards", String(shard));
   try {
-    return await runTransaction(db, async (tx): Promise<StrikeResult> => {
+    return await runTransaction(db, async (tx): Promise<{ result: StrikeResult; count: number }> => {
       // 물결 문서는 읽기만 한다. 트랜잭션이 읽은 문서는 다른 사람의 쓰기와 겨루지 않는다 —
       // 물결 문서는 세울 때와 쓰러질 때만 바뀐다.
       const [raid, mine, cell] = await Promise.all([tx.get(raidRef), tx.get(mineRef), tx.get(shardRef)]);
-      if (!raid.exists() || raid.get("defeatedAt")) return "over";
+      if (!raid.exists() || raid.get("defeatedAt")) return { result: "over", count: 0 };
       const spawnedAt = toMillis(raid.get("spawnedAt"));
-      if (spawnedAt !== null && Date.now() >= spawnedAt + RAID_LIFE) return "escaped";
-      const myHits = ((mine.get("hits") as number | undefined) ?? 0) + 1;
-      if (myHits > RAID_HITS_PER_PERSON) return "capped";
-      tx.set(mineRef, { hits: myHits, lastAt: serverTimestamp(), shard });
+      if (spawnedAt !== null && Date.now() >= spawnedAt + RAID_LIFE) return { result: "escaped", count: 0 };
+      const before = (mine.get("hits") as number | undefined) ?? 0;
+      const n = Math.min(want, RAID_HITS_PER_PERSON - before);
+      if (n <= 0) return { result: "capped", count: 0 };
+      tx.set(mineRef, { hits: before + n, lastAt: serverTimestamp(), shard });
       tx.set(shardRef, {
-        hits: ((cell.get("hits") as number | undefined) ?? 0) + 1,
+        hits: ((cell.get("hits") as number | undefined) ?? 0) + n,
         fighters: ((cell.get("fighters") as number | undefined) ?? 0) + (mine.exists() ? 0 : 1),
       });
-      return "ok";
+      return { result: "ok", count: n };
     });
   } catch (error) {
     // 1초 안에 두 번 친 것은 규칙에 막힌다. 화면이 간격을 두므로 드물다.
-    if ((error as { code?: string }).code === "permission-denied") return "busy";
+    if ((error as { code?: string }).code === "permission-denied") return { result: "busy", count: 0 };
     console.error("[raid] 거대 잡초를 치지 못했다", error);
-    return "error";
+    return { result: "error", count: 0 };
   }
 }
 
