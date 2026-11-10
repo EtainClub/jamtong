@@ -85,12 +85,12 @@ interface Shot {
 const LOCAL_KEY = "jamtong-raid-local-v2";
 const ENDED_KEY = "jamtong-raid-ended";
 
-/** 끝남을 센 물결을 적는다. 처음이면 true. 오늘 몫(세 물결)만 넉넉히 남긴다. */
+/** 끝남을 센 물결을 적는다. 처음이면 true. 사흘 치 물결만 남긴다. */
 function markEnded(id: string): boolean {
   try {
     const seen = JSON.parse(localStorage.getItem(ENDED_KEY) ?? "[]") as string[];
     if (seen.includes(id)) return false;
-    localStorage.setItem(ENDED_KEY, JSON.stringify([...seen, id].slice(-9)));
+    localStorage.setItem(ENDED_KEY, JSON.stringify([...seen, id].slice(-RAID_PER_DAY * 3)));
     return true;
   } catch {
     // 적지 못하면 세지 않는다. 같은 물결을 여러 번 세는 것보다 낫다.

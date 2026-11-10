@@ -679,7 +679,7 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
 
   await expectDenied("옛 id(날짜 번호만)로 세우기", () => setDoc(doc(db, "plazaRaids", String(today)), fresh(180)));
   await expectDenied("어제 번호로 세우기", () => setDoc(raidRef(1, today - 1), fresh(180)));
-  await expectDenied("넷째 물결 세우기", () => setDoc(raidRef(4), fresh(180)));
+  await expectDenied("여섯째 물결 세우기", () => setDoc(raidRef(6), fresh(180)));
   await expectDenied("체력 150(둘이 잡을 수 있는 크기)으로 세우기", () => setDoc(raidRef(), fresh(150)));
   await expectDenied("체력 5000으로 세우기", () => setDoc(raidRef(), fresh(5000)));
   await expectDenied("맞은 수 5로 세우기", () => setDoc(raidRef(), { ...fresh(180), hits: 5 }));
@@ -688,10 +688,16 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
     console.log("  거대 잡초 통과 검사는 건너뛴다 (sa.json 없음)");
     return;
   }
-  const lives = [1, 2, 3].map((w) => adminDb.doc(`plazaRaids/${id(w)}`));
+  const lives = [1, 2, 3, 4, 5].map((w) => adminDb.doc(`plazaRaids/${id(w)}`));
   const befores = await Promise.all(lives.map((l) => l.get()));
   if (befores.some((b) => b.exists)) {
     console.log("  거대 잡초 통과 검사는 건너뛴다 (오늘 물결이 이미 있다)");
+    return;
+  }
+  // 물결은 한국 시각 8·11·14·17·20시에 열린다(5분 여유). 세우기가 통과하는 점검은 그 시각이 지나야 한다.
+  const kstHour = new Date(Date.now() + 9 * 3_600_000).getUTCHours();
+  if (kstHour < 11) {
+    console.log("  거대 잡초 통과 검사는 건너뛴다 (둘째 물결이 열리는 한국 시각 11시 전)");
     return;
   }
   const live = lives[0];
@@ -762,7 +768,7 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
     await adminMine.update({ hits: 10 });
     await wait();
     await expectDenied("쓰러진 뒤 한 방", () => strike(11, 180, 1));
-    await expectDenied("쓰러진 지 2시간 안에 둘째 물결 세우기", () => spawn(2));
+    await expectDenied("쓰러진 지 30분 안에 둘째 물결 세우기", () => spawn(2));
     await expectDenied("거대 잡초 지우기", () => deleteDoc(raidRef()));
     await expectDenied("칸 지우기", () => deleteDoc(shardRef(S)));
 
@@ -772,12 +778,18 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
     await adminMine.update({ hits: 1 });
     await wait();
     await expectDenied("도망간(3시간 지난) 거대 잡초 치기", () => strike(2, 2, 1));
-    await expectDenied("도망간 지 2시간 안에 둘째 물결 세우기", () => spawn(2));
-    await live.update({ spawnedAt: Timestamp.fromMillis(Date.now() - 5.5 * 3_600_000) });
-    await expectAllowed("도망가고 2시간 뒤 둘째 물결 세우기", () => spawn(2));
+    await live.update({ spawnedAt: Timestamp.fromMillis(Date.now() - 3.2 * 3_600_000) });
+    await expectDenied("도망간 지 30분 안에 둘째 물결 세우기", () => spawn(2));
+    await live.update({ spawnedAt: Timestamp.fromMillis(Date.now() - 3.6 * 3_600_000) });
+    await expectAllowed("도망가고 30분 뒤(11시가 지나서) 둘째 물결 세우기", () => spawn(2));
+    // 둘째가 쓰러진 지 오래여도 셋째는 14시 전에는 열리지 않는다.
+    if (kstHour < 14) {
+      await adminDb.doc(`plazaRaids/${id(2)}`).update({ defeatedAt: Timestamp.fromMillis(Date.now() - 3_600_000) });
+      await expectDenied("여는 시각(14시) 전에 셋째 물결 세우기", () => spawn(3));
+    }
   } finally {
     await adminMine.delete();
-    for (const wave of [1, 2, 3]) for (let n = 0; n < SHARDS; n++) await adminShard(n, wave).delete();
+    for (const wave of [1, 2, 3, 4, 5]) for (let n = 0; n < SHARDS; n++) await adminShard(n, wave).delete();
     for (const l of lives) await l.delete();
     ok("점검용 거대 잡초 되돌리기");
   }

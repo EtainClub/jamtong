@@ -438,12 +438,23 @@ export function regrowMinutes(gardenersToday: number, roll: number): number {
  * ★ 혼자서는 잡지 못한다. 한 사람은 물결마다 RAID_HITS_PER_PERSON방까지만 칠 수 있고,
  *   체력은 적어도 RAID_MIN_FIGHTERS명이 끝까지 쳐야 닿는다. 규칙이 둘 다 지킨다.
  * ★ 오래 버티면 도망간다(RAID_LIFE). 그래서 "지금 같이 잡자"가 된다. 도망가면 상자는 없다.
- * ★ 다음 물결은 앞 물결이 끝나고(쓰러지거나 도망가고) RAID_GAP 뒤, 광장이 무성할 때 나온다.
+ * ★ 물결마다 여는 시각이 있다(한국 시각 RAID_FIRST_HOUR시부터 RAID_EVERY_HOURS시간마다).
+ *   앞 물결이 끝나고(쓰러지거나 도망가고) RAID_GAP이 지났고, 제 시각이 됐고, 광장이 무성할 때 나온다.
+ *   여는 시각이 없을 때는 앞 물결이 빨리 쓰러지면 다음이 줄줄이 나와 오전에 몰렸다.
  * 값을 바꾸면 firestore.rules의 plazaRaids 절도 같이 바꾼다 — raid.test.ts가 짝을 본다.
  */
-export const RAID_PER_DAY = 3;
+export const RAID_PER_DAY = 5;
 export const RAID_LIFE = 3 * HOUR;
-export const RAID_GAP = 2 * HOUR;
+export const RAID_GAP = 30 * MINUTE;
+/** 첫 물결이 열리는 시각(한국 시각, 시). */
+export const RAID_FIRST_HOUR = 8;
+/** 물결 사이 여는 시각의 간격(시간). 8·11·14·17·20시. */
+export const RAID_EVERY_HOURS = 3;
+
+/** 이 물결이 열리는 시각(ms). day는 한국 날짜 번호. */
+export function raidOpensAt(day: number, wave: number): number {
+  return day * 24 * HOUR - KST + (RAID_FIRST_HOUR + RAID_EVERY_HOURS * (wave - 1)) * HOUR;
+}
 export const RAID_HITS_PER_PERSON = 60;
 export const RAID_MIN_FIGHTERS = 3;
 export const RAID_HP_MIN = RAID_MIN_FIGHTERS * RAID_HITS_PER_PERSON;
@@ -576,7 +587,7 @@ export function raidShard(uid: string): number {
   return hash(uid) % RAID_SHARDS;
 }
 
-/** 물결 문서 id. 규칙: ^[0-9]{5}-[1-3]$ */
+/** 물결 문서 id. 규칙: ^[0-9]{5}-[1-5]$ */
 export function raidId(day: number, wave: number): string {
   return `${day}-${wave}`;
 }
@@ -618,11 +629,12 @@ export function raidEndedAt(r: RaidWave, now: number): number | null {
  * wave=다음 물결 번호, at=그 시각. 오늘 몫을 다 썼거나 아직 싸우는 중이면 null.
  */
 export function nextRaidWave(waves: Array<RaidWave | null>, now: number): { wave: number; at: number } | null {
+  const day = kstDayNumber(now);
   const last = waves.reduce((n, w, i) => (w ? i + 1 : n), 0);
-  if (last === 0) return { wave: 1, at: now };
+  if (last === 0) return { wave: 1, at: raidOpensAt(day, 1) };
   if (last >= RAID_PER_DAY) return null;
   const ended = raidEndedAt(waves[last - 1]!, now);
-  return ended === null ? null : { wave: last + 1, at: ended + RAID_GAP };
+  return ended === null ? null : { wave: last + 1, at: Math.max(raidOpensAt(day, last + 1), ended + RAID_GAP) };
 }
 
 /** 문지르기 이만큼이 한 방이다. */
