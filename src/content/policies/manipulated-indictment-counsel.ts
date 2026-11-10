@@ -13,16 +13,23 @@ import type { PolicyInput } from "./schema";
  * ★ 법안 원문(의안정보시스템)은 대조하지 못했다. 조문 내용은 보도로 적고 gaps에 남긴다.
  * ★ 재판 중단과 9월 18일 대통령 요청의 맥락은 policy:trial-suspension에 있다.
  * ★ 2026-11-05 처음 등록 — factbot-gap #220·#221.
+ *   2026-11-10 factbot-gap #280('여당 의원 105명이 李공취모 출범')을 더했다. 특검법 이전, 2월 23일
+ *   출범한 민주당 의원 모임이다. 정부 기구가 아니라 의원들의 모임이며, 숫자는 출범 당일 보도 기준이다.
  */
 export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
   slug: "manipulated-indictment-counsel",
   title: "조작기소 특검법 — 수사 대상과 공소취소 조항",
   scope:
-    "2026년 4월 30일 발의된 조작기소 특검법의 수사 대상 12건 구성, 공소취소 권한 조항이 9월 대통령 요청 뒤 11월 4일 법사위 소위 수정안에서 삭제된 경위, 11월 5일 본회의 상정까지",
+    "2026년 2월 23일 출범한 민주당 '공소취소 모임(공취모)'의 규모와 요구, 2026년 4월 30일 발의된 조작기소 특검법의 수사 대상 12건 구성, 공소취소 권한 조항이 9월 대통령 요청 뒤 11월 4일 법사위 소위 수정안에서 삭제된 경위, 11월 5일 본회의 상정까지",
   ministries: ["국회 법제사법위원회"],
   categories: ["institution"],
-  asOf: "2026-11-05",
+  asOf: "2026-11-10",
   rumors: [
+    {
+      id: "rumor-105",
+      text: "여당 의원 105명이 공소취소를 추진하는 모임(李공취모)을 출범시켰다",
+      claimIds: ["claim-caucus-launch", "claim-caucus-demands", "claim-caucus-departures", "claim-caucus-party", "claim-caucus-opposition"],
+    },
     {
       id: "rumor-eight-of-twelve",
       text: "조작기소 특검법의 수사 대상 12건 중 8건이 이재명 대통령 관련 사건이다",
@@ -35,6 +42,52 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
     },
   ],
   claims: [
+    {
+      id: "claim-caucus-launch",
+      text:
+        "더불어민주당 의원들의 '이재명 대통령 사건 공소취소와 국정조사 추진을 위한 의원모임(공취모)'이 2026년 2월 23일 출범했다. 참여 의원은 현역 민주당 의원 162명의 64.8%인 " +
+        "105명으로 보도됐고, 출범식에는 약 60명이 참석했다. 상임대표는 박성준 의원, 간사는 이건태 의원이다. 정청래 대표와 이성윤 최고위원은 참여하지 않았다.",
+      assertionType: "FACT",
+      sourceIds: ["src-news1-20260223", "src-imbc-20260223", "src-sedaily-20260223"],
+      verified: true,
+    },
+    {
+      id: "claim-caucus-demands",
+      text:
+        "공취모는 출범식에서 대장동·쌍방울 대북송금·위증교사 사건 등을 검찰의 조작기소로 보고 즉각 공소취소를 촉구하며, 조작기소 의혹에 대한 국정조사와 검찰권 남용을 막는 " +
+        "제도 개혁을 추진한다고 결의했다. 박성준 상임대표는 \"최종 목적은 공소취소\"라고 말했다.",
+      assertionType: "CLAIM",
+      assertedBy: "공취모(민주당 의원 모임)",
+      sourceIds: ["src-news1-20260223", "src-imbc-20260223", "src-segye-20260225"],
+      verified: true,
+    },
+    {
+      id: "claim-caucus-departures",
+      text:
+        "105명은 출범 당일 숫자다. 김병주 의원은 사조직이나 계파 모임으로 오해받을 수 있다며 출범 즈음 탈퇴했고, 2월 25일에는 민형배·김기표·부승찬 의원이 탈퇴 의사를 밝혔다. " +
+        "최민희 의원은 모임 해체를 요구했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-news1-20260223", "src-segye-20260225"],
+      verified: true,
+    },
+    {
+      id: "claim-caucus-party",
+      text:
+        "민주당 지도부는 2026년 2월 25일 최고위원회의에서 이 대통령 사건 조작기소 진상규명과 공소취소를 위한 국정조사 추진 특별위원회 설치를 의결하고, 공취모를 당 공식기구로 " +
+        "흡수하겠다고 밝혔다. 박성준 상임대표는 공소취소 때까지 모임을 유지할 필요가 있다고 했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-segye-20260225"],
+      verified: true,
+    },
+    {
+      id: "claim-caucus-opposition",
+      text:
+        "국민의힘은 민주당 최대 모임이 대통령 공소취소를 위해 만들어졌다며 \"대통령 방탄을 위해 헌법을 외면했다\"고 비판하고 재판 재개를 촉구했다. 장동혁 대표는 \"미친 짓\"이라고 했다.",
+      assertionType: "CLAIM",
+      assertedBy: "국민의힘",
+      sourceIds: ["src-imbc-20260223"],
+      verified: true,
+    },
     {
       id: "claim-original-list",
       text:
@@ -147,8 +200,24 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       verified: true,
     },
   ],
-  critiqueIds: ["claim-opposition", "claim-structure"],
+  critiqueIds: ["claim-opposition", "claim-structure", "claim-caucus-opposition"],
   timeline: [
+    {
+      id: "t-caucus",
+      date: "2026-02-23",
+      datePrecision: "day",
+      title: "공취모 출범",
+      summary: "민주당 의원 105명 참여(출범 당일 기준).",
+      claimIds: ["claim-caucus-launch", "claim-caucus-demands"],
+    },
+    {
+      id: "t-caucus-party",
+      date: "2026-02-25",
+      datePrecision: "day",
+      title: "민주당, 당 특위 설치 의결",
+      summary: "공취모를 공식기구로 흡수 방침, 일부 의원 탈퇴.",
+      claimIds: ["claim-caucus-party", "claim-caucus-departures"],
+    },
     {
       id: "t-bill",
       date: "2026-04-30",
@@ -185,7 +254,8 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
   gaps: [
     "원안과 수정안의 조문을 국회 의안정보시스템에서 직접 대조하지 못했다. 수정안 12개 항목의 정확한 문구와 '이 대통령 관련'으로 셀 항목 수는 조문으로 확정되지 않았다.",
     "원안에 있던 김용 전 부원장 금품수수, 허위 보도 의혹 사건이 수정안에서 어떻게 바뀌었는지는 보도로 확인하지 못했다.",
-    "본회의 표결 결과는 이 페이지 기준일(11월 5일)에 아직 나오지 않았다.",
+    "본회의 표결 결과는 11월 5일 기준으로 적었고, 그 뒤 결과는 아직 반영하지 못했다.",
+    "공취모의 현재 참여 의원 수와 당 특위로 흡수됐는지, 모임이 지금도 활동하는지는 확인하지 못했다. 105명은 2월 23일 출범 당일 보도 숫자다.",
   ],
   sources: [
     {
@@ -257,6 +327,42 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       publisher: "뉴스핌",
       url: "https://www.newspim.com/news/view/20261105001312",
       publishedAt: "2026-11-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-news1-20260223",
+      title: "與의원 105명 참여 '공취모' 출범…\"李 조작기소 국조 추진\"(종합)",
+      publisher: "다음 뉴스(뉴스1)",
+      url: "https://v.daum.net/v/20260223162312227",
+      publishedAt: "2026-02-23",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-imbc-20260223",
+      title: "의원 105명 참여 '李 공소취소' 모임 출범‥국힘 \"李 재판 재개해야\"",
+      publisher: "MBC",
+      url: "https://imnews.imbc.com/replay/2026/nwdesk/article/6802694_37004.html",
+      publishedAt: "2026-02-23",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-sedaily-20260223",
+      title: "정청래 뺀 105명 李 ‘공취모’ 발족…당청갈등도 노출",
+      publisher: "서울경제",
+      url: "https://www.sedaily.com/article/20011628",
+      publishedAt: "2026-02-23",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-segye-20260225",
+      title: "당청 엇박자설은 '부인'… '대통령 뒷전 된 일 없어' [전방위 대응 나선 李대통령]",
+      publisher: "세계일보",
+      url: "https://www.segye.com/newsView/20260225516647",
+      publishedAt: "2026-02-25",
       type: "press",
       license: "link-only",
     },

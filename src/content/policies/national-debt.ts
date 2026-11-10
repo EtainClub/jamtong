@@ -15,16 +15,18 @@ import type { PolicyInput } from "./schema";
  *   2026-10-13 이슈 #24(1인당 부채)·#35(IMF 권고)를 더했다.
  *   2026-10-23 신통 이슈 #60(박수영 의원의 'GDP 대비 181%')을 더했다.
  *   2026-10-30 잼통 Voice 이슈 #113('세금을 다 쓰고 빚만 늘린다')을 더했다.
+ *   2026-11-10 factbot-gap #278(IMF '5년 뒤 63%')을 더했다. 63%는 IMF 2026년 4월 재정모니터의
+ *   일반정부부채(D2) 전망이고, 10월호에서 크게 낮아졌다. D2는 국가채무(D1)와 범위가 다르다.
  */
 export const NATIONAL_DEBT: PolicyInput = {
   slug: "national-debt",
   title: "국채 발행과 국가채무 전망",
   scope:
     "2026년 예산의 적자국채·국고채 발행 규모, 2025~2029·2026~2030 국가재정운용계획의 국가채무 전망, " +
-    "1인당 국가채무, IMF 2025년 연례협의 권고, 2024년 말 D1~D3와 연금 부채를 더한 'D4' 주장",
+    "1인당 국가채무, IMF 2025년 연례협의 권고, IMF 2026년 4월·10월 재정모니터의 일반정부부채 전망, 2024년 말 D1~D3와 연금 부채를 더한 'D4' 주장",
   ministries: ["재정경제부", "기획예산처"],
   categories: ["economy"],
-  asOf: "2026-10-30",
+  asOf: "2026-11-10",
   rumors: [
     {
       id: "rumor-spend-all",
@@ -55,6 +57,11 @@ export const NATIONAL_DEBT: PolicyInput = {
       id: "rumor-hidden-181",
       text: "정부가 국가부채를 숨겨 왔고, 숨겨진 진짜 국가부채가 GDP 대비 181%에 달한다",
       claimIds: ["claim-official-2024", "claim-park-d4", "claim-d4-reading"],
+    },
+    {
+      id: "rumor-imf-63",
+      text: "IMF가 한국의 부채비율이 5년 뒤 63%까지 치솟는다고 경고했다",
+      claimIds: ["claim-imf-fm-april", "claim-imf-fm-april-gov", "claim-imf-fm-october", "claim-imf-fm-revised", "claim-imf-fm-reading"],
     },
   ],
   claims: [
@@ -224,6 +231,54 @@ export const NATIONAL_DEBT: PolicyInput = {
       sourceIds: ["src-hankyung-20251216", "src-munhwa-20251216", "src-newsis-20230404", "src-newsis-20240410"],
       verified: true,
     },
+    {
+      id: "claim-imf-fm-april",
+      text:
+        "IMF는 2026년 4월 재정모니터(Fiscal Monitor)에서 한국의 GDP 대비 일반정부부채(D2) 비율이 2027년 56.6%, 2028년 58.5%, 2029년 60.1%, " +
+        "2030년 61.7%를 거쳐 2031년 63.1%에 이른다고 전망했다. 보고서는 벨기에와 한국을 부채비율이 '상당히(significant)' 늘어날 나라로 꼽았다.",
+      assertionType: "CLAIM",
+      assertedBy: "IMF(2026년 4월 재정모니터)",
+      sourceIds: ["src-sedaily-20260417"],
+      verified: true,
+    },
+    {
+      id: "claim-imf-fm-april-gov",
+      text:
+        "박홍근 기획예산처 장관은 2026년 4월 21일 IMF 전망에 대해 과대 전망된 경우가 많았다며, 증가 속도는 철저히 관리하고 있고 재정의 선순환 체계를 갖추는 것이 중요하다고 말했다.",
+      assertionType: "CLAIM",
+      assertedBy: "박홍근 기획예산처 장관",
+      sourceIds: ["src-nate-20260421"],
+      verified: true,
+    },
+    {
+      id: "claim-imf-fm-october",
+      text:
+        "IMF는 2026년 10월 14일 낸 10월 재정모니터에서 한국의 2026년 일반정부부채 비율 전망을 4월의 54.4%에서 46.1%로, 2031년 전망을 63.1%에서 51.3%로 낮췄다. " +
+        "2026~2031년 상승 폭은 5.2%포인트로 G7 평균(9.8%포인트)·선진국 평균(7.0%포인트)보다 작았다. 기획예산처는 반도체 호황에 따른 높은 성장과 세입 여건 개선이 반영됐다고 설명했다.",
+      assertionType: "CLAIM",
+      assertedBy: "IMF(2026년 10월 재정모니터)·기획예산처",
+      sourceIds: ["src-newdaily-20261014"],
+      verified: true,
+    },
+    {
+      id: "claim-imf-fm-revised",
+      text:
+        "기획예산처에 따르면 IMF는 10월 16일 중동전쟁이 길어지는 시나리오를 반영한 수정치를 다시 냈다. 한국의 2026년 비율은 47.3%로 올라가고 2031년은 49.7%로 내려갔다" +
+        "(2027년 46.2%, 2028년 47.0%, 2029년 48.2%, 2030년 49.2%).",
+      assertionType: "CLAIM",
+      assertedBy: "IMF(기획예산처 전언)",
+      sourceIds: ["src-sedaily-20102453"],
+      verified: true,
+    },
+    {
+      id: "claim-imf-fm-reading",
+      text:
+        "'5년 뒤 63%'는 IMF가 2026년 4월에 낸 전망으로 실제 있었던 숫자다. 다만 IMF는 반년 뒤 같은 2031년 전망을 51.3%, 수정치로는 49.7%로 낮췄다. " +
+        "또 이 수치는 중앙·지방정부와 비영리 공공기관을 포함한 일반정부부채(D2)라서, 정부 국가재정운용계획의 국가채무(D1) 전망(2030년 49.0%)과 기준이 다르다.",
+      assertionType: "INTERPRETATION",
+      sourceIds: ["src-sedaily-20260417", "src-newdaily-20261014", "src-sedaily-20102453", "src-newspim-20260901"],
+      verified: true,
+    },
   ],
   critiqueIds: ["claim-debt-growth", "claim-revenue-assumption"],
   timeline: [
@@ -259,6 +314,22 @@ export const NATIONAL_DEBT: PolicyInput = {
       summary: "2030년 국가채무 1,734.1조 전망.",
       claimIds: ["claim-2027-budget", "claim-2026-plan-debt"],
     },
+    {
+      id: "t-imf-fm-april",
+      date: "2026-04-16",
+      datePrecision: "day",
+      title: "IMF 4월 재정모니터",
+      summary: "2031년 일반정부부채 63.1% 전망.",
+      claimIds: ["claim-imf-fm-april"],
+    },
+    {
+      id: "t-imf-fm-october",
+      date: "2026-10-14",
+      datePrecision: "day",
+      title: "IMF 10월 재정모니터",
+      summary: "2031년 전망 51.3%로 하향, 16일 수정치 49.7%.",
+      claimIds: ["claim-imf-fm-october", "claim-imf-fm-revised"],
+    },
   ],
   gaps: [
     "기획예산처·재정경제부 보도자료와 국가재정운용계획 원문을 직접 대조하지 못했다. 수치는 보도와 정책브리핑으로 확인했다.",
@@ -268,6 +339,7 @@ export const NATIONAL_DEBT: PolicyInput = {
     "국회예산정책처의 독자 중기 전망은 싣지 않았다. 2,000조 원이라는 숫자의 출처도 찾지 못했다.",
     "IMF 2025년 연례협의 직원보고서(Country Report No. 25/308)의 장기 부채 전망 표는 직접 확인하지 못했다. '2050년 부채비율 90~130%'라는 보도 수치는 대조하지 못했다.",
     "BIS 국가총부채를 1인당으로 나눈 값은 이 위키의 계산이다. BIS 기준과 정부 국가채무(D1)는 범위가 다르다.",
+    "IMF 재정모니터 원문 표(Statistical Table)를 직접 대조하지 못했다. 4월·10월 수치와 10월 16일 수정치는 보도로 확인했다. 4월호의 2026년 수치(54.4%)는 10월 보도에서 거꾸로 확인한 것이다.",
     "2024회계연도 국가결산의 공무원·군인연금 충당부채 금액은 원자료로 확인하지 못했다. 박 의원이 쓴 1,052조·267조 원과 결산 수치의 차이도 대조하지 못했다.",
   ],
   sources: [
@@ -402,6 +474,42 @@ export const NATIONAL_DEBT: PolicyInput = {
       publisher: "뉴시스",
       url: "https://www.newsis.com/view/NISX20240410_0002694354",
       publishedAt: "2024-04-10",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-sedaily-20260417",
+      title: "“2031년 韓, 정부부채 비율 63.1%...상당히 증가” 우려 [Pick코노미]",
+      publisher: "서울경제",
+      url: "https://www.sedaily.com/article/20033611",
+      publishedAt: "2026-04-17",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-nate-20260421",
+      title: "韓부채비율 IMF지적에 박홍근 \"과대전망 많아…재정선순환 중요\"",
+      publisher: "네이트뉴스(연합뉴스)",
+      url: "https://m.news.nate.com/view/20260421n29093",
+      publishedAt: "2026-04-21",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newdaily-20261014",
+      title: "IMF, 韓 부채비율 54.4→46.1% 하향 … \"2031년 51.3%\"",
+      publisher: "뉴데일리",
+      url: "https://biz.newdaily.co.kr/site/data/html/2026/10/14/2026101400154.html",
+      publishedAt: "2026-10-14",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-sedaily-20102453",
+      title: "IMF, 韓 부채 전망 바꿨다...2031년 51.3%→49.7%",
+      publisher: "서울경제",
+      url: "https://m.sedaily.com/article/20102453",
+      publishedAt: "2026-10-16",
       type: "press",
       license: "link-only",
     },
