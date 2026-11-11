@@ -15,15 +15,16 @@ import type { PolicyInput } from "./schema";
  * ★ 2026-11-05 처음 등록 — factbot-gap #220·#221.
  *   2026-11-10 factbot-gap #280('여당 의원 105명이 李공취모 출범')을 더했다. 특검법 이전, 2월 23일
  *   출범한 민주당 의원 모임이다. 정부 기구가 아니라 의원들의 모임이며, 숫자는 출범 당일 보도 기준이다.
+ *   2026-11-11 11월 6일 본회의 가결과 공포 일정(11월 17일 국무회의 상정 예정)을 더했다.
  */
 export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
   slug: "manipulated-indictment-counsel",
   title: "조작기소 특검법 — 수사 대상과 공소취소 조항",
   scope:
-    "2026년 2월 23일 출범한 민주당 '공소취소 모임(공취모)'의 규모와 요구, 2026년 4월 30일 발의된 조작기소 특검법의 수사 대상 12건 구성, 공소취소 권한 조항이 9월 대통령 요청 뒤 11월 4일 법사위 소위 수정안에서 삭제된 경위, 11월 5일 본회의 상정까지",
+    "2026년 2월 23일 출범한 민주당 '공소취소 모임(공취모)'의 규모와 요구, 2026년 4월 30일 발의된 조작기소 특검법의 수사 대상 12건 구성, 공소취소 권한 조항이 9월 대통령 요청 뒤 11월 4일 법사위 소위 수정안에서 삭제된 경위, 11월 6일 본회의 가결과 공포 일정까지",
   ministries: ["국회 법제사법위원회"],
   categories: ["institution"],
-  asOf: "2026-11-10",
+  asOf: "2026-11-11",
   rumors: [
     {
       id: "rumor-105",
@@ -33,7 +34,7 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
     {
       id: "rumor-eight-of-twelve",
       text: "조작기소 특검법의 수사 대상 12건 중 8건이 이재명 대통령 관련 사건이다",
-      claimIds: ["claim-original-list", "claim-count-differs", "claim-revised-scope", "claim-revised-count"],
+      claimIds: ["claim-original-list", "claim-count-differs", "claim-revised-scope", "claim-revised-count", "claim-passed"],
     },
     {
       id: "rumor-clause-removed",
@@ -168,7 +169,7 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
         "조문을 직접 대조하지는 못했다.",
       assertionType: "FACT",
       sourceIds: ["src-khan-20261105"],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-structure",
@@ -199,8 +200,37 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       sourceIds: ["src-khan-20261105", "src-newspim-20261105"],
       verified: true,
     },
+    {
+      id: "claim-passed",
+      text:
+        "특검법은 2026년 11월 6일 국회 본회의에서 재석 168명 가운데 찬성 167명, 반대 1명으로 가결됐다. " +
+        "국민의힘은 표결에 참여하지 않았다. 특검 후보는 민주당·국민의힘·조국혁신당이 1명씩 추천하고, " +
+        "이 대통령이 그 가운데 1명을 임명한다.",
+      assertionType: "FACT",
+      sourceIds: ["src-fn-20261106", "src-newspim-20261110"],
+      verified: true,
+    },
+    {
+      id: "claim-promulgation",
+      text:
+        "청와대는 11월 17일 국무회의에 특검법 공포안을 올려 심의·의결할 예정이라고 밝혔다. 대통령은 공포하거나 " +
+        "국회에 재의를 요구할 수 있으며, 2026년 11월 10일 보도 기준으로 결정은 나오지 않았다.",
+      assertionType: "FACT",
+      sourceIds: ["src-newspim-20261110"],
+      verified: true,
+    },
+    {
+      id: "claim-residual-power",
+      text:
+        "법사위 수정안에서 공소유지 여부 결정·이첩 요구 조항은 빠졌지만, 특검법 6조 7항이 형사소송법상 검사 " +
+        "권한 규정을 특검에 준용해 공소취소 가능성을 두고 해석이 엇갈린다. 민주당 지도부는 불가능하다는 " +
+        "입장이고, 김의겸 법사위 여당 간사는 \"명백한 조작기소가 있다면 공소취소도 가능하다\"고 말했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-newspim-20261110"],
+      verified: true,
+    },
   ],
-  critiqueIds: ["claim-opposition", "claim-structure", "claim-caucus-opposition"],
+  critiqueIds: ["claim-opposition", "claim-structure", "claim-caucus-opposition", "claim-residual-power"],
   timeline: [
     {
       id: "t-caucus",
@@ -250,11 +280,28 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       summary: "6일 종결 표결 예정.",
       claimIds: ["claim-plenary"],
     },
+    {
+      id: "t-passed",
+      date: "2026-11-06",
+      datePrecision: "day",
+      title: "본회의 가결",
+      summary: "찬성 167, 반대 1. 국민의힘 불참.",
+      claimIds: ["claim-passed"],
+    },
+    {
+      id: "t-promulgation",
+      date: "2026-11-17",
+      datePrecision: "day",
+      title: "국무회의 공포안 상정 예정",
+      summary: "공포 또는 재의요구를 정한다.",
+      claimIds: ["claim-promulgation"],
+    },
   ],
   gaps: [
     "원안과 수정안의 조문을 국회 의안정보시스템에서 직접 대조하지 못했다. 수정안 12개 항목의 정확한 문구와 '이 대통령 관련'으로 셀 항목 수는 조문으로 확정되지 않았다.",
     "원안에 있던 김용 전 부원장 금품수수, 허위 보도 의혹 사건이 수정안에서 어떻게 바뀌었는지는 보도로 확인하지 못했다.",
-    "본회의 표결 결과는 11월 5일 기준으로 적었고, 그 뒤 결과는 아직 반영하지 못했다.",
+    "본회의 통과 뒤 공포 여부는 11월 10일 보도 기준이다. 11월 17일 국무회의 결과는 아직 반영하지 못했다.",
+    "통과된 법안의 '이 대통령 관련 사건'은 6건(시대·뉴스핌)으로 보도됐지만, 수정안 단계에서 경향신문은 7건으로 셌다. 조문으로 확정하지 못했다.",
     "공취모의 현재 참여 의원 수와 당 특위로 흡수됐는지, 모임이 지금도 활동하는지는 확인하지 못했다. 105명은 2월 23일 출범 당일 보도 숫자다.",
   ],
   sources: [
@@ -309,6 +356,24 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       publisher: "미디어오늘",
       url: "https://www.mediatoday.co.kr/news/articleView.html?idxno=338213",
       publishedAt: "2026-11-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-fn-20261106",
+      title: "조작기소 특검법, 與주도로 국회 통과…野 장외투쟁 본격화",
+      publisher: "파이낸셜뉴스",
+      url: "https://www.fnnews.com/news/202611061802265727",
+      publishedAt: "2026-11-06",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newspim-20261110",
+      title: "[뉴스분석] '조작기소 특검법' 공 넘겨받은 李대통령…위헌·이해충돌·공소취소 3대 쟁점",
+      publisher: "뉴스핌",
+      url: "https://www.newspim.com/news/view/20261110001264",
+      publishedAt: "2026-11-10",
       type: "press",
       license: "link-only",
     },

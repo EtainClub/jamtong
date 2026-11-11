@@ -10,8 +10,9 @@ import type { Source } from "@/content/schema";
  *
  * ★ 1차 자료와 언론 보도를 구별한다.
  *   `type`이 judicial·official인 것(대법원 보도자료·판결문, 법무부 보도자료, 헌법
- *   조문)은 원문을 받아 대조했다. 그런 자료로 문장 전체가 확인되는 claim만
- *   `verified: true`다. 보도에만 기댄 부분은 claim을 나눠 `verified: false`로 둔다.
+ *   조문)은 원문을 받아 대조했다. 언론 보도는 2026-11-11 기사 본문을 받아 claim의
+ *   날짜·숫자·인용문을 글자 그대로 대조했다. 맞는 claim만 `verified: true`다.
+ *   대조했지만 끝내 확인할 수 없는 부분이 남으면 `verified: false`와 `limit`에 까닭을 적는다.
  */
 type Entry = Omit<Source, "id" | "type" | "license"> &
   Partial<Pick<Source, "type" | "license">>;
@@ -97,12 +98,6 @@ const ENTRIES = {
     publisher: "데일리안",
     url: "https://www.dailian.co.kr/news/view/1214432/",
     publishedAt: "2023-03-22",
-  },
-  "inews-1012": {
-    title: "검찰, 이재명 대표 불구속 기소…\"백현동 먼저\"(종합)",
-    publisher: "아이뉴스24",
-    url: "https://www.inews24.com/view/1641278",
-    publishedAt: "2023-10-12",
   },
   "segye-1031": {
     title: "‘대장동 개발 비리’ 김만배·유동규 등 1심 실형…李대통령 개입 여부 판단 안 해",
@@ -259,6 +254,97 @@ const ENTRIES = {
     publisher: "머니투데이",
     url: "https://www.mt.co.kr/society/2023/09/27/2023092702420373676",
     publishedAt: "2023-09-27",
+  },
+  "kyeonggi-0326": {
+    title: "남아있는 이재명 사법리스크는?…8개 중 5개 재판중",
+    publisher: "경기일보",
+    url: "https://kyeonggi.com/article/20250326580313",
+    publishedAt: "2025-03-26",
+  },
+  "sidae-1106": {
+    title: "이 대통령 재판 6건 등 조작 여부 규명…\"사법독립 침해하는 특검\"",
+    publisher: "시대",
+    url: "https://www.sidae.com/article/2026110617415013643",
+    publishedAt: "2026-11-06",
+  },
+  "khan-1016": {
+    title: "서울고등법원장 \"이재명 대통령 재판 중단, 헌법에 근거\"",
+    publisher: "경향신문",
+    url: "https://khan.co.kr/article/202610161325001",
+    publishedAt: "2026-10-16",
+  },
+  /* ── 확정된 과거 형사처벌(past-convictions.ts) ── */
+  "hankook-20210805": {
+    title: "이재명 \"음주운전 전과 1건뿐\"... '재범 은폐' 의혹에 전과 공개",
+    publisher: "한국일보",
+    url: "https://www.hankookilbo.com/News/Read/A2021080517190000469",
+    publishedAt: "2021-08-05",
+  },
+  "dt-20211006": {
+    title: "이재명, 과거 음주운전 한차례 '벌금 150만원' 선고받은 이유",
+    publisher: "디지털타임스",
+    url: "https://www.dt.co.kr/article/11411294",
+    publishedAt: "2021-10-06",
+  },
+  "hankook-20241125": {
+    title: "이재명 같은 사건으로 세 번 기소... 2002년 '검사 사칭' 전말은",
+    publisher: "한국일보",
+    url: "https://v.daum.net/v/Hdijdx2XHT",
+    publishedAt: "2024-11-25",
+  },
+  "newspim-20241125": {
+    title: "[일지] 이재명, 위증교사 1심 무죄...22년전 '검사 사칭' 사건부터 선고까지",
+    publisher: "뉴스핌",
+    url: "https://www.newspim.com/news/view/20241125000869",
+    publishedAt: "2024-11-25",
+  },
+  "newdaily-20220223": {
+    title: "이재명 또 거짓말?… '검사 사칭' 법원 판결과 선거 공보물이 다르다",
+    publisher: "뉴데일리",
+    url: "https://www.newdaily.co.kr/site/data/html/2022/02/23/2022022300154.html",
+    publishedAt: "2022-02-23",
+  },
+  "dailian-20210811": {
+    title: "[법조계에 물어보니 ⑤] 음주운전 1회 전과 공개한 이재명, 위법일까?",
+    publisher: "데일리안",
+    url: "https://www.dailian.co.kr/news/view/1020872/",
+    publishedAt: "2021-08-11",
+  },
+  "khan-20250604": {
+    title: "“정치 결심하게 된 계기” 성남시의료원 활동가들이 본 이재명은",
+    publisher: "경향신문",
+    url: "https://www.khan.co.kr/article/202506041325001",
+    publishedAt: "2025-06-04",
+  },
+  "newdaily-20210928": {
+    title: "성남의료원 설립한 이재명…\"지방의료원 정부 부담 대폭 늘려야\"",
+    publisher: "뉴데일리",
+    url: "https://www.newdaily.co.kr/site/data/html/2021/09/28/2021092800136.html",
+    publishedAt: "2021-09-28",
+  },
+  "pressian-20251014": {
+    title: "국민의힘, '성남의료원' 판결문 꺼내며 \"이재명·김현지는 범죄공동체\"",
+    publisher: "프레시안",
+    url: "https://v.daum.net/v/20251014112940853",
+    publishedAt: "2025-10-14",
+  },
+  "gjdream-20250520": {
+    title: "이재명 후보 향한 '전과 4범' 프레임, 그 진실은?",
+    publisher: "드림투데이",
+    url: "https://www.gjdream.com/news/articleView.html?idxno=657237",
+    publishedAt: "2025-05-20",
+  },
+  "seoul-20101202": {
+    title: "선거법위반 이재명 성남시장 벌금 50만원 선고",
+    publisher: "서울신문",
+    url: "https://www.seoul.co.kr/news/society/2010/12/02/20101202800072",
+    publishedAt: "2010-12-02",
+  },
+  "lawtimes-20110428": {
+    title: "이재명 변호사 벌금50만원 확정… 성남시장직 유지",
+    publisher: "법률신문",
+    url: "https://www.lawtimes.co.kr/news/57354",
+    publishedAt: "2011-04-28",
   },
 } satisfies Record<string, Entry>;
 

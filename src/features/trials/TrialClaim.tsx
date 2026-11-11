@@ -25,10 +25,13 @@ export function TrialClaim({ policy, claimId }: { policy: Policy; claimId: strin
         )}
         {!claim.verified && (
           <span className="ml-1 rounded bg-pending-tint px-1 text-[10px] font-semibold text-pending">
-            미검증
+            {claim.limit ? "검증 한계" : "미검증"}
           </span>
         )}
       </p>
+      {!claim.verified && claim.limit && (
+        <p className="mt-0.5 text-[11px] leading-relaxed text-pending">{claim.limit}</p>
+      )}
       <details className="group mt-1">
         <summary className="cursor-pointer list-none text-[11px] font-medium text-navy">
           출처 {sources.length}{" "}

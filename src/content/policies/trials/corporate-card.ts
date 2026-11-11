@@ -33,7 +33,7 @@ export const TRIAL_CORPORATE_CARD: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "검찰",
       sourceIds: [s("newsis-1119"), s("yna-1119")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-amount",
@@ -44,7 +44,7 @@ export const TRIAL_CORPORATE_CARD: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "검찰",
       sourceIds: [s("yna-1119"), s("newsis-1119")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-others",
@@ -53,7 +53,7 @@ export const TRIAL_CORPORATE_CARD: PolicyInput = {
         "기소유예 처분을 받았다.",
       assertionType: "FACT",
       sourceIds: [s("newsis-1119"), s("yna-1119")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-police",
@@ -64,7 +64,7 @@ export const TRIAL_CORPORATE_CARD: PolicyInput = {
         "송치 때의 약 200만 원에서 889만 원으로 다시 산정했다.",
       assertionType: "FACT",
       sourceIds: [s("yna-1119")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-defense",
@@ -75,7 +75,7 @@ export const TRIAL_CORPORATE_CARD: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이재명 대통령(당시 더불어민주당 대표)",
       sourceIds: [s("kbmaeil-1120")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-party",
@@ -86,7 +86,7 @@ export const TRIAL_CORPORATE_CARD: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "더불어민주당",
       sourceIds: [s("dailian-1119")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-spouse-court",
@@ -97,7 +97,7 @@ export const TRIAL_CORPORATE_CARD: PolicyInput = {
         "용인\"했다며 공모관계를 인정했고, 김 씨 측은 상고했다. 이 대통령에 대한 판단은 아니다.",
       assertionType: "FACT",
       sourceIds: [s("segye-1114"), s("dailian-0519")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-suspended",
@@ -106,7 +106,7 @@ export const TRIAL_CORPORATE_CARD: PolicyInput = {
         "중단됐다. 이 대통령에 대한 1심 유무죄 판단은 없다.",
       assertionType: "FACT",
       sourceIds: [s("edaily-0609"), s("newsis-0722")],
-      verified: false,
+      verified: true,
     },
   ],
   critiqueIds: ["claim-spouse-court"],

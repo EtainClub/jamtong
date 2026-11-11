@@ -33,7 +33,7 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "검찰",
       sourceIds: [s("seoul-0612")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-defense",
@@ -44,7 +44,7 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이재명 측(기소 당시)",
       sourceIds: [s("seoul-0612")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-lee-final",
@@ -64,7 +64,7 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
         "800만 달러 가운데 394만 달러를 불법 자금으로 인정했다.",
       assertionType: "FACT",
       sourceIds: [s("dailian-0605")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-separate",
@@ -82,7 +82,7 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
         "공판준비기일에서 공소사실을 부인했다.",
       assertionType: "FACT",
       sourceIds: [s("dailian-0605")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-coaxing-court",
@@ -91,7 +91,7 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
         "영상녹화실 구조를 들어 \"납득하기 어렵다\"고 판단했다.",
       assertionType: "FACT",
       sourceIds: [s("newsis-1219")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-coaxing-tf",
@@ -101,7 +101,7 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
         "회유까지 인정한 것인지는 보도에 나오지 않는다.",
       assertionType: "FACT",
       sourceIds: [s("khan-0505")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-prosecutor-reply",
@@ -111,17 +111,17 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "박상용 검사(당시 수사 검사)",
       sourceIds: [s("khan-0505")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-perjury-verdict",
       text:
         "수원지법 형사11부는 2026년 6월 이 전 부지사가 국회에서 한 '연어 술자리' 증언을 위증으로 " +
-        "보고 국회증언감정법 위반으로 징역 4개월을 선고했다(1심, 배심원 7명 중 4명 유죄). " +
+        "보고 국회증언감정법 위반으로 징역 4개월을 선고했다(1심, 국민참여재판에서 배심원 7명 중 4명이 \"술자리 없었다\"고 봤다). " +
         "영상녹화실 관련자들의 진술은 일관되고 피고인 진술은 계속 바뀌었다고 봤다.",
       assertionType: "FACT",
       sourceIds: [s("chosun-0620")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-warrant",
@@ -131,7 +131,7 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
         "여지가 있다\"고 봤다. 구속할지를 정한 판단이고 유무죄 판단은 아니다.",
       assertionType: "FACT",
       sourceIds: [s("mt-0927")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-suspended",
@@ -140,7 +140,7 @@ export const TRIAL_NORTH_REMITTANCE: PolicyInput = {
         "공판절차 기일을 추후 지정했다. 공범 이화영·김성태 씨의 재판은 따로 진행하기로 했다.",
       assertionType: "FACT",
       sourceIds: [s("newsis-0722")],
-      verified: false,
+      verified: true,
     },
   ],
   critiqueIds: ["claim-lee-final", "claim-lee-hwayoung", "claim-coaxing-court", "claim-perjury-verdict"],

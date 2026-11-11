@@ -55,6 +55,11 @@ export const claimSchema = z.object({
   sourceIds: z.array(z.string()).min(1, "근거 없는 Claim은 허용되지 않는다"),
   /** 편집팀 검증 여부. false면 UI에 미검증 표식이 붙는다. */
   verified: z.boolean().default(false),
+  /**
+   * 검증 한계. 출처를 대조했지만 문장 일부를 끝내 확인할 수 없을 때 그 까닭을 적는다.
+   * verified가 false일 때만 쓴다. 화면에는 "미검증" 대신 "검증 한계"와 이 까닭이 뜬다.
+   */
+  limit: z.string().optional(),
 });
 export type Claim = z.infer<typeof claimSchema>;
 

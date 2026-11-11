@@ -19,7 +19,7 @@ import { ModePane, TrialsView, TrialsViewToggle } from "@/features/trials/Trials
 export const metadata: Metadata = {
   title: "대통령 재판",
   description:
-    "이재명 대통령의 다섯 형사재판이 어디까지 왔고 무엇을 다투는지. 검찰 주장, 대통령 측 반론, 법원 판단을 나란히 놓고 문장마다 출처를 붙였습니다.",
+    "이재명 대통령의 다섯 형사재판(여덟 사건)이 어디까지 왔고 무엇을 다투는지. 검찰 주장, 대통령 측 반론, 법원 판단을 나란히 놓고 문장마다 출처를 붙였습니다. 이미 확정된 과거 형사처벌 네 건도 따로 정리했습니다.",
   alternates: { canonical: "/trials" },
 };
 
@@ -44,7 +44,11 @@ const TERMS: [string, string][] = [
   ["재판 중단", "기일을 '추후 지정'해 절차가 멈춘 것. 유무죄도, 사건 종결도 아닙니다."],
 ];
 
+/* "5건이냐 6건이냐" — 재판 수와 특검법이 세는 사건 수가 다른 까닭. */
+const COUNT_CLAIMS = ["claim-count", "claim-six"];
+
 const BACKGROUND_CLAIMS = [
+  "claim-still-stopped",
   "claim-art84",
   "claim-art84-scope",
   "claim-not-acquittal",
@@ -55,6 +59,7 @@ const BACKGROUND_CLAIMS = [
 
 export default function TrialsPage() {
   const background = getPolicy(TRIAL_BACKGROUND_SLUG);
+  const counsel = getPolicy("manipulated-indictment-counsel");
   const easyRows = TRIALS.flatMap((trial) => {
     const easy = getTrialEasy(trial.slug);
     const policy = getPolicy(trial.slug);
@@ -70,13 +75,44 @@ export default function TrialsPage() {
           <div className="flex items-baseline justify-between gap-3">
             <h1 className="text-2xl font-light tracking-[-0.02em] text-ink">대통령 재판</h1>
             <span className="tabular text-[12px] text-ash">
-              {TRIALS.length}건 · 기준일 2026-10-13
+              {TRIALS.length}건 · 기준일 {background?.asOf}
             </span>
           </div>
           <p className="mt-2 text-[13px] leading-relaxed text-smoke">
             이재명 대통령이 취임 전에 기소된 형사재판 다섯 건이 어디까지 왔고 무엇을 다투는지
             모았습니다. 사건마다 검찰 주장, 대통령 측 반론, 법원 판단을 나란히 놓았습니다.
           </p>
+
+          {background && (
+            <section
+              aria-labelledby="tr-count"
+              className="mt-4 rounded-card border border-stone bg-eggshell px-4 py-3.5"
+            >
+              <h2 id="tr-count" className="text-[13px] font-bold text-ink">
+                다섯 재판인데 왜 &lsquo;6건&rsquo;이라는 말이 나오나
+              </h2>
+              <ul className="mt-2 space-y-2.5">
+                {COUNT_CLAIMS.map((id) => (
+                  <TrialClaim key={id} policy={background} claimId={id} />
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <Link
+            href="/trials/record"
+            className="mt-3 flex items-center justify-between rounded-card border border-stone bg-taupe/60 px-4 py-3"
+          >
+            <span>
+              <span className="block text-[13px] font-bold text-ink">확정된 과거 형사처벌 4건</span>
+              <span className="mt-0.5 block text-[12px] text-smoke">
+                검사 사칭·음주운전·시의회 항의·선거 명함 — 경위와 해명, 비판까지
+              </span>
+            </span>
+            <span aria-hidden="true" className="text-navy">
+              →
+            </span>
+          </Link>
 
           <div className="mt-4">
             <TrialsViewToggle />
@@ -191,6 +227,16 @@ export default function TrialsPage() {
                   <TrialClaim key={id} policy={background} claimId={id} />
                 ))}
               </ul>
+              {counsel && (
+                <>
+                  <h3 className="mt-5 text-[13px] font-bold text-ink">조작기소 특검법, 국회 통과 뒤</h3>
+                  <ul className="mt-2 space-y-3">
+                    {["claim-passed", "claim-promulgation", "claim-residual-power"].map((id) => (
+                      <TrialClaim key={id} policy={counsel} claimId={id} />
+                    ))}
+                  </ul>
+                </>
+              )}
               <Link
                 href={`/wiki/policy/${background.slug}`}
                 className="mt-3 inline-block text-[12px] font-semibold text-navy"
@@ -203,11 +249,12 @@ export default function TrialsPage() {
           <section className="mt-9 border-t border-stone pt-6">
             <h2 className="text-[13px] font-bold text-ink">이 화면의 한계</h2>
             <p className="mt-2 text-[12px] leading-relaxed text-smoke">
-              대법원 보도자료·판결문, 법무부 보도자료, 헌법 조문과 대조한 문장에는 표시가 없고, 언론
-              보도에만 기댄 문장에는 미검증 표시가 붙습니다. 위증교사·대장동·법인카드 사건은
-              판결문이나 공소장을 공개 자료에서 찾지 못해 모두 보도 기준입니다. 금액은 따로 밝히지
-              않으면 검찰이 주장한 금액이며 법원이 인정한 액수가 아닙니다. 공범의 유죄 판결은 대통령
-              본인에 대한 판단이 아닙니다.
+              문장마다 인용한 1차 자료(대법원 보도자료·판결문, 법무부 보도자료, 헌법 조문)나 기사 본문과
+              날짜·숫자·인용문을 대조했고, 맞는 문장에는 표시가 없습니다. 대조했지만 끝내 확인하지 못한
+              부분이 남은 문장에는 &lsquo;검증 한계&rsquo;와 그 까닭이 붙습니다. 위증교사·대장동·법인카드 사건은
+              판결문이나 공소장을 공개 자료에서 찾지 못해 보도와 대조했습니다. 금액은 따로 밝히지 않으면
+              검찰이 주장한 금액이며 법원이 인정한 액수가 아닙니다. 공범의 유죄 판결은 대통령 본인에 대한
+              판단이 아닙니다.
             </p>
           </section>
         </main>

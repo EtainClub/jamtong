@@ -3,6 +3,7 @@ import { TRIAL_CORPORATE_CARD } from "./corporate-card";
 import { TRIAL_DAEJANG } from "./daejang";
 import { TRIAL_ELECTION_LAW } from "./election-law";
 import { TRIAL_NORTH_REMITTANCE } from "./north-remittance";
+import { PAST_CONVICTIONS, TRIAL_PAST_CONVICTIONS } from "./past-convictions";
 import { TRIAL_PERJURY } from "./perjury";
 import { TRIAL_SUSPENSION } from "./suspension";
 
@@ -48,9 +49,12 @@ export const TRIAL_POLICIES: Policy[] = [
   TRIAL_NORTH_REMITTANCE,
   TRIAL_CORPORATE_CARD,
   TRIAL_SUSPENSION,
+  TRIAL_PAST_CONVICTIONS,
 ].map(parse);
 
 export const TRIAL_BACKGROUND_SLUG = TRIAL_SUSPENSION.slug;
+export const PAST_CONVICTIONS_SLUG = TRIAL_PAST_CONVICTIONS.slug;
+export { PAST_CONVICTIONS };
 
 export const TRIALS: TrialCase[] = [
   {
@@ -144,6 +148,33 @@ for (const trial of TRIALS) {
       if (!claim) throw new Error(`재판 ${trial.name}: ${column}에 없는 claim ${id}`);
       if (claim.assertionType !== expected) {
         throw new Error(`재판 ${trial.name}: ${column}의 ${id}는 ${expected}여야 한다`);
+      }
+    }
+  }
+}
+
+/* 확정된 과거 형사처벌 카드도 같은 규칙으로 검사한다. */
+{
+  const policy = bySlug.get(TRIAL_PAST_CONVICTIONS.slug)!;
+  const claims = new Map(policy.claims.map((c) => [c.id, c]));
+  for (const pc of PAST_CONVICTIONS) {
+    const sentence = claims.get(pc.sentenceClaimId);
+    if (!sentence?.text.includes(pc.sentence)) {
+      throw new Error(`과거 형사처벌 ${pc.name}: 형량 "${pc.sentence}"가 claim 원문에 없다`);
+    }
+    const columns: [string, string[], string[]][] = [
+      ["facts", pc.facts, ["FACT"]],
+      ["defense", pc.defense, ["CLAIM"]],
+      ["critique", pc.critique, ["CLAIM", "FACT"]],
+      ["after", pc.after, ["FACT"]],
+    ];
+    for (const [column, ids, allowed] of columns) {
+      for (const id of ids) {
+        const claim = claims.get(id);
+        if (!claim) throw new Error(`과거 형사처벌 ${pc.name}: ${column}에 없는 claim ${id}`);
+        if (!allowed.includes(claim.assertionType)) {
+          throw new Error(`과거 형사처벌 ${pc.name}: ${column}의 ${id}는 ${allowed.join("·")}여야 한다`);
+        }
       }
     }
   }

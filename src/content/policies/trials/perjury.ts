@@ -21,12 +21,12 @@ export const TRIAL_PERJURY: PolicyInput = {
     {
       id: "claim-charge",
       text:
-        "검찰은 이재명 대통령이 2019년 2월 자신의 공직선거법 위반 재판(검사 사칭 관련)에서 " +
-        "김병량 전 성남시장의 비서였던 김진성 씨에게 거짓 증언을 요구했다고 보고 기소했다.",
+        "검찰은 이재명 대통령이 검사 사칭 관련 공직선거법 위반 재판이 진행 중이던 2018년 12월 " +
+        "김병량 전 성남시장의 비서였던 김진성 씨에게 여러 차례 전화를 걸어 거짓 증언을 요구했다고 보고 기소했다.",
       assertionType: "CLAIM",
       assertedBy: "검찰",
       sourceIds: [s("lawtimes-1125")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-prosecution-sentence",
@@ -36,7 +36,7 @@ export const TRIAL_PERJURY: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "검찰",
       sourceIds: [s("lawtimes-0930")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-defense",
@@ -47,7 +47,7 @@ export const TRIAL_PERJURY: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이재명 대통령(당시 더불어민주당 대표)",
       sourceIds: [s("lawtimes-0930")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-defense-after",
@@ -55,7 +55,7 @@ export const TRIAL_PERJURY: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이재명 대통령(당시 더불어민주당 대표)",
       sourceIds: [s("lawtimes-1125")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-acquitted",
@@ -64,7 +64,7 @@ export const TRIAL_PERJURY: PolicyInput = {
         "위증교사 혐의에 1심 무죄를 선고했다.",
       assertionType: "FACT",
       sourceIds: [s("lawtimes-1125")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-reason",
@@ -74,7 +74,7 @@ export const TRIAL_PERJURY: PolicyInput = {
         "요청했다고 봤다. 그래서 교사의 고의를 인정할 증거가 부족하다고 판단했다.",
       assertionType: "FACT",
       sourceIds: [s("lawtimes-1125")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-defense-right",
@@ -83,7 +83,7 @@ export const TRIAL_PERJURY: PolicyInput = {
         "범위 안이라고 봤다.",
       assertionType: "FACT",
       sourceIds: [s("lawtimes-1125")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-witness",
@@ -92,7 +92,7 @@ export const TRIAL_PERJURY: PolicyInput = {
         "선고받았다.",
       assertionType: "FACT",
       sourceIds: [s("lawtimes-1125")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-prosecution-appeal",
@@ -103,7 +103,7 @@ export const TRIAL_PERJURY: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "서울중앙지검",
       sourceIds: [s("lawtimes-1125")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-suspended",
@@ -112,7 +112,7 @@ export const TRIAL_PERJURY: PolicyInput = {
         "않았고, 이후 재판 중단 상태다.",
       assertionType: "FACT",
       sourceIds: [s("edaily-0609"), s("newsis-0722")],
-      verified: false,
+      verified: true,
     },
   ],
   critiqueIds: ["claim-prosecution-appeal"],

@@ -26,12 +26,19 @@ function isVerified(policy: Policy, id?: string) {
   return id ? (policy.claims.find((c) => c.id === id)?.verified ?? false) : true;
 }
 
-function Pending() {
+function Pending({ limit }: { limit?: string }) {
   return (
-    <span className="ml-1 whitespace-nowrap rounded bg-pending-tint px-1 align-middle text-[9px] font-semibold text-pending">
-      미검증
+    <span
+      title={limit}
+      className="ml-1 whitespace-nowrap rounded bg-pending-tint px-1 align-middle text-[9px] font-semibold text-pending"
+    >
+      {limit ? "검증 한계" : "미검증"}
     </span>
   );
+}
+
+function limitOf(policy: Policy, id?: string) {
+  return id ? policy.claims.find((c) => c.id === id)?.limit : undefined;
 }
 
 /* ── 단계 막대 ─────────────────────────────────────────────────────── */
@@ -107,7 +114,9 @@ export function StepTrack({
           {step.result && (
             <span className="mt-1 text-[10px] leading-snug text-graphite">
               {step.result}
-              {showPending && !isVerified(policy, step.claimId) && <Pending />}
+              {showPending && !isVerified(policy, step.claimId) && (
+                <Pending limit={limitOf(policy, step.claimId)} />
+              )}
             </span>
           )}
         </li>
@@ -125,7 +134,7 @@ function Voice({ voice, policy }: { voice: EasyVoice; policy: Policy }) {
       <p className={`text-[10px] font-bold tracking-[0.04em] ${style.label}`}>{voice.label}</p>
       <p className="mt-1 text-[13px] font-semibold leading-snug text-ink">
         {voice.text}
-        {!isVerified(policy, voice.claimId) && <Pending />}
+        {!isVerified(policy, voice.claimId) && <Pending limit={limitOf(policy, voice.claimId)} />}
       </p>
     </div>
   );
@@ -203,7 +212,7 @@ export function TrialEasyCard({
                 </dd>
                 <dd className="mt-1 text-[10px] font-semibold text-ash">
                   {n.who}
-                  {!isVerified(policy, n.claimId) && <Pending />}
+                  {!isVerified(policy, n.claimId) && <Pending limit={limitOf(policy, n.claimId)} />}
                 </dd>
               </div>
             );

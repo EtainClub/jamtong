@@ -16,6 +16,9 @@ const s = (key: Parameters<typeof sid>[1]) => sid(P, key);
  *   재판을 언제 다시 여느냐는 재판부가 정할 일이라 날짜를 단정하지 않는다.
  * ★ 2026-10-30 잼통 Voice 이슈 #108: "재임 중 대통령 형사재판 진행"을 묻는 방문자 요청.
  *   새 사실은 없어 질문 형태의 항목을 더하고 기준일을 옮겼다.
+ * ★ 2026-11-11 "재판이 5건이 아니라 6건 아니냐"는 질문. 재판은 다섯이다. 여섯은 조작기소
+ *   특검법 수사 대상 가운데 이 대통령 사건을 셀 때 나온 숫자다(같은 재판에서 다루는
+ *   대장동 묶음과 성남FC를 따로 센다). 그 셈법을 claim-count·claim-six로 적는다.
  */
 export const TRIAL_SUSPENSION: PolicyInput = {
   slug: "trial-suspension",
@@ -23,12 +26,17 @@ export const TRIAL_SUSPENSION: PolicyInput = {
   scope: "재임 중 대통령 형사재판이 진행되는지 — 헌법 제84조에 따른 다섯 재판의 중단, 2026년 검찰 수사 과정 재조사와 조작기소 특검법 논의",
   ministries: ["법무부"],
   categories: ["institution"],
-  asOf: "2026-10-30",
+  asOf: "2026-11-11",
   rumors: [
     {
       id: "rumor-in-office",
       text: "대통령이 재임하는 동안 본인의 형사재판은 진행되는가",
       claimIds: ["claim-art84", "claim-art84-scope", "claim-all-stopped", "claim-not-acquittal"],
+    },
+    {
+      id: "rumor-six-trials",
+      text: "이재명 대통령이 받는 재판은 5건이 아니라 6건이다",
+      claimIds: ["claim-count", "claim-six", "claim-all-stopped"],
     },
     {
       id: "rumor-when-trial",
@@ -52,8 +60,8 @@ export const TRIAL_SUSPENSION: PolicyInput = {
         "조문은 '소추'라는 말만 쓰고, 취임 전에 이미 시작된 재판을 어떻게 할지는 따로 정하지 " +
         "않았다. 그래서 진행 중이던 재판까지 멈춰야 하는지를 두고 해석이 갈린다.",
       assertionType: "FACT",
-      sourceIds: [s("constitution"), s("newsis-0722")],
-      verified: false,
+      sourceIds: [s("constitution"), s("newsis-0722"), s("heraldk-1102")],
+      verified: true,
     },
     {
       id: "claim-all-stopped",
@@ -63,7 +71,7 @@ export const TRIAL_SUSPENSION: PolicyInput = {
         "추후 지정됐다.",
       assertionType: "FACT",
       sourceIds: [s("newsis-0722")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-not-acquittal",
@@ -72,7 +80,37 @@ export const TRIAL_SUSPENSION: PolicyInput = {
         "재판부가 기일을 잡지 않아 중단된 상태다.",
       assertionType: "FACT",
       sourceIds: [s("inews-0814")],
-      verified: false,
+      verified: true,
+    },
+    {
+      id: "claim-count",
+      text:
+        "이 대통령은 취임 전 8개 사건으로 기소돼 5개 재판을 받았다. 8개 사건은 공직선거법 위반, 대장동, " +
+        "위례신도시, 백현동 개발비리, 성남FC 후원금, 경기도 법인카드, 쌍방울 대북송금, 위증교사다. 이 가운데 " +
+        "대장동·위례·백현동·성남FC 4건은 서울중앙지법 형사합의33부 한 재판부가 함께 심리했다.",
+      assertionType: "FACT",
+      sourceIds: [s("kyeonggi-0326")],
+      verified: true,
+    },
+    {
+      id: "claim-six",
+      text:
+        "2026년 11월 6일 국회를 통과한 조작기소 특검법의 수사 대상 12건 가운데 이 대통령 사건은 " +
+        "대장동·위례·백현동 개발, 허위사실 공표, 성남FC 후원, 위증교사, 쌍방울 대북송금·주가조작, 경기도 " +
+        "법인카드 6건으로 보도됐다. 이 셈법은 한 재판에서 다루는 대장동 묶음과 성남FC를 따로 센다.",
+      assertionType: "FACT",
+      sourceIds: [s("sidae-1106"), s("kyeonggi-0326")],
+      verified: true,
+    },
+    {
+      id: "claim-still-stopped",
+      text:
+        "김대웅 서울고등법원장은 2026년 10월 16일 국정감사에서 선거법 파기환송심을 \"헌법 84조를 근거로\" " +
+        "중단해 놓은 상태라고 했다. 재개 일정은 \"재판부가 결정한 사항이라 법원장인 저로서도 알 수가 " +
+        "없다\"고 답했다.",
+      assertionType: "FACT",
+      sourceIds: [s("khan-1016")],
+      verified: true,
     },
     {
       id: "claim-lawyer",
@@ -80,7 +118,7 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이 대통령 측 변호인(2025년 7월)",
       sourceIds: [s("newsis-0722")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-bill-withdrawn",
@@ -91,7 +129,7 @@ export const TRIAL_SUSPENSION: PolicyInput = {
         "기일 추후 지정에 기대고 있다.",
       assertionType: "FACT",
       sourceIds: [s("heraldk-1102")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-resume-debate",
@@ -100,7 +138,7 @@ export const TRIAL_SUSPENSION: PolicyInput = {
         "국민의힘 장동혁 대표는 재판 재개를 거듭 요구했다. 재판을 언제 다시 열지는 각 재판부가 정한다.",
       assertionType: "FACT",
       sourceIds: [s("heraldk-1102")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-committee",
@@ -132,6 +170,9 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       assertionType: "FACT",
       sourceIds: [s("moj-0610"), s("moj-0814")],
       verified: false,
+      limit:
+        "법무부 보도자료의 상세 내용은 첨부파일에 있어 본문 문구를 대조하지 못했다. '조사 결과가 나오지 않았다'는 " +
+        "결과 발표 보도를 찾지 못했다는 뜻이다.",
     },
     {
       id: "claim-committee-critique",
@@ -142,7 +183,7 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "전 수원지검장·서울중앙지검장 4명",
       sourceIds: [s("inews-0814")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-president-request",
@@ -153,7 +194,7 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이재명 대통령",
       sourceIds: [s("seoul-0918"), s("ilyo-1009")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-bill-delay",
@@ -163,7 +204,7 @@ export const TRIAL_SUSPENSION: PolicyInput = {
         "국정감사 이후로 미뤘고, 구체적 날짜는 정하지 않았다.",
       assertionType: "FACT",
       sourceIds: [s("ilyo-1009")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-opposition",
@@ -174,7 +215,7 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "국민의힘",
       sourceIds: [s("ilyo-1009")],
-      verified: false,
+      verified: true,
     },
   ],
   critiqueIds: ["claim-committee-critique", "claim-opposition"],
@@ -235,12 +276,29 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       summary: "날짜는 정하지 않았다.",
       claimIds: ["claim-bill-delay"],
     },
+    {
+      id: "t-still-stopped",
+      date: "2026-10-16",
+      datePrecision: "day",
+      title: "서울고법원장 \"헌법 84조 근거로 중단\"",
+      summary: "재개 일정은 재판부가 정한다고 했다.",
+      claimIds: ["claim-still-stopped"],
+    },
+    {
+      id: "t-bill-passed",
+      date: "2026-11-06",
+      datePrecision: "day",
+      title: "조작기소 특검법 국회 통과",
+      summary: "수사 대상 12건 가운데 이 대통령 사건 6건.",
+      claimIds: ["claim-six"],
+    },
   ],
   gaps: [
-    "2026년 10월 30일까지 다섯 재판 가운데 기일이 다시 잡힌 재판이 있다는 보도는 찾지 못했다.",
+    "2026년 11월 11일까지 다섯 재판 가운데 기일이 다시 잡힌 재판이 있다는 보도는 찾지 못했다.",
+    "'8개 사건·5개 재판'의 묶음은 2025년 3월 보도 기준이다. 각 재판부의 병합 결정문은 확인하지 못했다.",
     "헌법 조문과 법무부 보도자료는 원문과 대조했다. 법원의 기일 변경 결정문과 대통령 기자회견 질의응답 녹취는 확인하지 못했다(대통령실이 공개한 모두발언에는 특검 관련 문장이 없다).",
     "검찰미래위 조사 결과는 아직 나오지 않았다.",
-    "특검법의 그 뒤 경과(11월 4일 법사위 수정안에서 공소유지 여부 결정·이첩 요구 조항 삭제, 11월 5일 본회의 상정)는 policy:manipulated-indictment-counsel에 따로 적었다. 조문은 의안정보시스템에서 대조하지 못했다.",
+    "특검법의 그 뒤 경과(11월 4일 법사위 수정안에서 공소유지 여부 결정·이첩 요구 조항 삭제, 11월 6일 본회의 통과, 공포 여부)는 policy:manipulated-indictment-counsel에 따로 적었다. 조문은 의안정보시스템에서 대조하지 못했다.",
   ],
-  sources: sourcesFor(P, ["constitution", "moj-0610", "moj-0814", "newsis-0722", "heraldk-1102", "inews-0814", "nocut-0610", "seoul-0918", "ilyo-1009"]),
+  sources: sourcesFor(P, ["constitution", "moj-0610", "moj-0814", "newsis-0722", "heraldk-1102", "inews-0814", "nocut-0610", "seoul-0918", "ilyo-1009", "kyeonggi-0326", "sidae-1106", "khan-1016"]),
 };
