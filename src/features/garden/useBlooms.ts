@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { giveCare, watchBlooms, type Bloom } from "@/lib/firebase/blooms";
 import { firebaseConfigured } from "@/lib/firebase/client";
@@ -58,7 +58,23 @@ export function useBlooms(uid: string | null): Blooms {
     return watchBlooms(setBlooms);
   }, []);
 
-  const care = useCallback(
+  /*
+   * 이 브라우저 안의 꽃밭(파이어베이스 없는 환경)의 최신 값. 줄 세운 가꿈이 앞 차례의
+   * 결과를 바로 읽어야 하는데, state는 다음 렌더 전까지 옛 값이다.
+   */
+  const localRef = useRef(blooms);
+
+  /*
+   * 같은 업적의 가꿈은 한 줄로 세운다.
+   *
+   * '모두 수확'은 칸마다 가꿈을 한꺼번에 보낸다. 같은 업적이 두 칸에 있으면 두 트랜잭션이
+   * 같은 옛 값을 읽고 같은 값을 쓴다. 앞의 것이 먼저 들어가면 뒤의 것은 규칙 눈에
+   * "가꿈 +0"이라 권한 거부(permission-denied)로 떨어진다 — 재시도되지 않고 한 칸의
+   * 가꿈이 사라진다. 앞 차례가 끝난 뒤 다음 차례가 그 결과를 읽게 하면 둘 다 들어간다.
+   */
+  const queue = useRef(new Map<string, Promise<unknown>>());
+
+  const careNow = useCallback(
     async (speciesId: string, delta: number): Promise<CareOutcome> => {
       const garden = useGarden.getState();
       const room = garden.careRoom(speciesId, delta);
@@ -66,10 +82,10 @@ export function useBlooms(uid: string | null): Blooms {
       if (room <= 0 || !nick) return NOTHING;
 
       if (!firebaseConfigured) {
-        const prev = blooms.get(speciesId);
+        const prev = localRef.current.get(speciesId);
         const total = (prev?.care ?? 0) + room;
         const mine = (garden.data?.care[speciesId] ?? 0) + room;
-        const next = new Map(blooms);
+        const next = new Map(localRef.current);
         next.set(speciesId, {
           care: total,
           bloomedAt: prev?.bloomedAt ?? (total >= BLOOM_CARE ? Date.now() : null),
@@ -78,6 +94,7 @@ export function useBlooms(uid: string | null): Blooms {
           ownerCare: mine,
           hiddenNick: null,
         });
+        localRef.current = next;
         writeLocal(next);
         setBlooms(next);
         garden.recordCare(speciesId, room, mine);
@@ -91,7 +108,21 @@ export function useBlooms(uid: string | null): Blooms {
       garden.recordCare(speciesId, room, result.mine);
       return { given: room, bloomedNow: result.bloomedNow, becameOwner: result.becameOwner };
     },
-    [blooms, uid],
+    [uid],
+  );
+
+  const care = useCallback(
+    (speciesId: string, delta: number): Promise<CareOutcome> => {
+      const before = queue.current.get(speciesId) ?? Promise.resolve();
+      const run = before.catch(() => {}).then(() => careNow(speciesId, delta));
+      queue.current.set(speciesId, run);
+      // 줄이 비면 지운다. 업적 수만큼 Promise가 쌓여 남지 않게.
+      void run.finally(() => {
+        if (queue.current.get(speciesId) === run) queue.current.delete(speciesId);
+      });
+      return run;
+    },
+    [careNow],
   );
 
   return { blooms, care };
