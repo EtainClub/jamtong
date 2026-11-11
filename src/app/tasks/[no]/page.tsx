@@ -55,7 +55,14 @@ export default async function TaskPage({ params }: { params: Promise<{ no: strin
 
   return (
     <>
-      <AppTopBar />
+      <AppTopBar
+        share={{
+          title: `국정과제 ${task.no}. ${task.title}`,
+          surface: "task",
+          aria: "이 국정과제 공유",
+          copied: "이 국정과제의 링크를 클립보드에 복사했습니다.",
+        }}
+      />
 
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-10 pt-6">
         <Link href="/tasks" className="text-[12px] font-medium text-navy">

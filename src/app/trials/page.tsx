@@ -68,7 +68,14 @@ export default function TrialsPage() {
 
   return (
     <>
-      <AppTopBar />
+      <AppTopBar
+        share={{
+          title: "대통령 재판",
+          surface: "trials",
+          aria: "대통령 재판 화면 공유",
+          copied: "대통령 재판 화면의 링크를 클립보드에 복사했습니다.",
+        }}
+      />
 
       <TrialsView>
         <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-10 pt-6">
