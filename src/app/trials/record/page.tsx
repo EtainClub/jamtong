@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 
 import { getPolicy } from "@/content/policies";
 import { PAST_CONVICTIONS, PAST_CONVICTIONS_SLUG } from "@/content/policies/trials";
-import { AppTopBar } from "@/features/app/AppTopBar";
+import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
+import { ShareLinkButton } from "@/features/app/ShareLinkButton";
 import { TrialClaim, VoiceColumn } from "@/features/trials/TrialClaim";
 import { TermCards } from "@/features/trials/TrialEasyCard";
 
@@ -35,13 +36,33 @@ export default function TrialsRecordPage() {
 
   return (
     <>
-      <AppTopBar />
+      {/* 언행·위키 상세와 같은 머리 — 왼쪽은 나가는 길, 오른쪽은 공유. */}
+      <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
+        <div className="mx-auto flex h-full max-w-[560px] items-center justify-between gap-2 px-4">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <BackButton fallback="/trials" />
+            <Link
+              href="/trials"
+              className="shrink-0 text-sm font-semibold text-smoke transition-colors hover:text-ink"
+            >
+              재판
+            </Link>
+          </div>
+          <ShareLinkButton
+            title="확정된 과거 형사처벌"
+            surface="trials"
+            label={{
+              text: "공유",
+              aria: "확정된 과거 형사처벌 화면 공유",
+              copied: "이 화면의 링크를 클립보드에 복사했습니다.",
+            }}
+            compact
+          />
+        </div>
+      </header>
 
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4 pb-10 pt-6">
-        <Link href="/trials" className="text-[12px] font-semibold text-navy">
-          ← 대통령 재판
-        </Link>
-        <div className="mt-2 flex items-baseline justify-between gap-3">
+        <div className="flex items-baseline justify-between gap-3">
           <h1 className="text-2xl font-light tracking-[-0.02em] text-ink">확정된 과거 형사처벌</h1>
           <span className="tabular text-[12px] text-ash">
             {PAST_CONVICTIONS.length}건 · 기준일 {policy.asOf}

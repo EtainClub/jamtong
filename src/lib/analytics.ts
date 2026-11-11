@@ -30,6 +30,7 @@ export type AnalyticsEvent =
    * 지금 이 화면의 링크를 만들었다.
    * surface: achievement | words | book(자서전 한 권) | chapter(그 안의 장)
    *          | novel(소설 시리즈) | episode(그 안의 한 편) | garden(내 정원)
+   *          | trials(대통령 재판) | wiki(위키 한 쪽) | task(국정과제 하나)
    */
   | "share_create"
   /**

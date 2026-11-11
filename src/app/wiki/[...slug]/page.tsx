@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { TRIAL_POLICIES } from "@/content/policies/trials";
 import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
+import { ShareLinkButton } from "@/features/app/ShareLinkButton";
 import { WikiNotes } from "@/features/wiki/WikiNotes";
 import { contentPages, getPublicPage, pageSummary, publicTitles } from "@/lib/wiki/load";
 import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
@@ -92,14 +93,26 @@ export default async function WikiPage({
       />
 
       <header className="sticky top-0 z-40 h-14 border-b border-stone bg-canvas/85 backdrop-blur">
-        <div className="mx-auto flex h-full max-w-[560px] items-center gap-1.5 px-4">
-          <BackButton />
-          <Link
-            href="/wiki"
-            className="shrink-0 text-sm font-semibold text-smoke transition-colors hover:text-ink"
-          >
-            위키
-          </Link>
+        <div className="mx-auto flex h-full max-w-[560px] items-center justify-between gap-2 px-4">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <BackButton />
+            <Link
+              href="/wiki"
+              className="shrink-0 text-sm font-semibold text-smoke transition-colors hover:text-ink"
+            >
+              위키
+            </Link>
+          </div>
+          <ShareLinkButton
+            title={page.title}
+            surface="wiki"
+            label={{
+              text: "공유",
+              aria: "이 위키 페이지 공유",
+              copied: "이 위키 페이지의 링크를 클립보드에 복사했습니다.",
+            }}
+            compact
+          />
         </div>
       </header>
 

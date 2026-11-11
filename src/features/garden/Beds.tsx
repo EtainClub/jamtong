@@ -159,18 +159,25 @@ export function Beds({
 
       <RipeAlarm beds={data.beds} now={now} />
 
+      {/*
+       * 작물 자세히 보기는 아래쪽 시트로 띄운다. 예전에는 텃밭 아래에 펼쳐졌는데, 휴대폰에서는
+       * 그 자리가 화면 밖이라 눌러도 아무 일이 없는 줄 알았다. 씨앗 주머니와 같은 모양이다.
+       */}
       {selected !== null && data.beds[selected] && (
         <BedDetail
+          onClose={() => setSelected(null)}
           species={byId.get(data.beds[selected]!.speciesId)}
           plant={data.beds[selected]!}
           now={now}
           have={data.tools.have}
           onFeed={(id) => {
             const before = data.beds[selected]!.ripeAt - now;
-            if (!feed(selected, id)) return;
+            if (!feed(selected, id)) return null;
             gardenFeedback("plant");
             const after = (useGarden.getState().data?.beds[selected]?.ripeAt ?? 0) - now;
-            say(`${TOOLS[id].icon} ${TOOLS[id].label}! ${formatLeft(before)} → ${formatLeft(after)}`);
+            const message = `${TOOLS[id].icon} ${TOOLS[id].label}! ${formatLeft(before)} → ${formatLeft(after)}`;
+            say(message);
+            return message;
           }}
           onDig={() => {
             if (window.confirm("갈아엎을까요? 심은 씨앗은 돌아오지 않습니다.")) {
@@ -297,36 +304,68 @@ function BedDetail({
   have,
   onFeed,
   onDig,
+  onClose,
 }: {
   species: Species | undefined;
   plant: Plant;
   now: number;
   have: Partial<Record<ToolId, number>>;
-  onFeed: (id: ToolId) => void;
+  /** 비료를 줬으면 그 소식을, 못 줬으면 null. 토스트는 시트 뒤에 가려지므로 시트 안에도 띄운다. */
+  onFeed: (id: ToolId) => string | null;
   onDig: () => void;
+  onClose: () => void;
 }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [fedNote, setFedNote] = useState<string | null>(null);
+  useEffect(() => {
+    const element = dialog.current;
+    element?.showModal();
+    return () => element?.close();
+  }, []);
+
   if (!species) return null;
   const left = plant.ripeAt - now;
   const growing = left > 0;
+  const span = plant.ripeAt - plant.plantedAt;
+  const progress = Math.min(1, Math.max(0, 1 - left / span));
   const fed = plant.fed === plant.harvests;
   const owned = TOOL_ORDER.filter((id) => (have[id] ?? 0) > 0);
   return (
-    <div className="mt-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3 text-[13px]">
-    <div className="flex items-center gap-3">
+    <dialog
+      ref={dialog}
+      aria-label={`${species.title} 자세히 보기`}
+      className="garden-seed-dialog fixed inset-0 z-50 m-0 h-dvh max-h-none w-full max-w-none items-end border-0 bg-transparent p-0 text-inherit open:flex"
+      onClick={onClose}
+      onCancel={onClose}
+    >
+    <div
+      className="mx-auto max-h-[70vh] w-full max-w-[560px] overflow-y-auto rounded-t-3xl bg-[var(--g-bg)] p-4 pb-8 text-[13px]"
+      onClick={(e) => e.stopPropagation()}
+    >
+    <div className="flex items-center justify-between">
+      <h3 className="text-[15px] font-bold">내 작물</h3>
+      <button type="button" onClick={onClose} className="text-[13px] text-smoke">
+        닫기
+      </button>
+    </div>
+    <div className="mt-3 flex items-center gap-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3">
+      <span className="garden-seed-packet shrink-0"><PlantArt species={species} progress={progress} /></span>
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{species.title}</p>
+        <p className="font-semibold leading-snug">{species.title}</p>
         <p className="text-[12px] text-smoke">
           {TIER_LABEL[species.tier]}
           {species.tier === "perennial" ? ` · ${plant.harvests}번 수확함 · 다시 열립니다` : ""}
         </p>
       </div>
-      <Link href={species.href} className="shrink-0 text-[12px] text-graphite underline underline-offset-2">
-        원본
-      </Link>
-      <button type="button" onClick={onDig} className="shrink-0 text-[12px] text-smoke">
-        갈아엎기
-      </button>
     </div>
+    <p className="mt-3 text-[12.5px] text-smoke">
+      {growing ? `다 익을 때까지 ${formatLeft(left)} 남았어요.` : "다 익었어요! 텃밭에서 눌러 수확하세요."}
+    </p>
+    {fedNote && (
+      <p role="status" className="mt-2 rounded-xl bg-[var(--g-panel)] px-3 py-2 text-[12.5px] font-semibold">
+        {fedNote}
+      </p>
+    )}
     {growing && (
       <div className="mt-2.5 border-t border-stone/60 pt-2.5">
         <p className="text-[12px] text-smoke">
@@ -342,7 +381,7 @@ function BedDetail({
               <button
                 key={id}
                 type="button"
-                onClick={() => onFeed(id)}
+                onClick={() => setFedNote(onFeed(id))}
                 className="rounded-full bg-[var(--g-leaf)] px-3 py-1.5 text-[12px] font-semibold text-white"
               >
                 {TOOLS[id].icon} {TOOLS[id].label} ×{have[id]} · −{formatLeft(fertilizerCut(id, left))}
@@ -352,7 +391,16 @@ function BedDetail({
         )}
       </div>
     )}
+    <div className="mt-4 flex items-center gap-4 border-t border-stone/60 pt-3">
+      <Link href={species.href} className="text-[12.5px] font-semibold text-graphite underline underline-offset-2">
+        이 업적 원본 보기
+      </Link>
+      <button type="button" onClick={onDig} className="ml-auto text-[12.5px] text-smoke">
+        갈아엎기
+      </button>
     </div>
+    </div>
+    </dialog>
   );
 }
 
