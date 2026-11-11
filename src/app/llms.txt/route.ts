@@ -55,6 +55,7 @@ export function GET() {
     line("위키", "/wiki", "개념·인물·사건 페이지와 정부 정책 팩트"),
     line("연표", "/timeline"),
     line("재판", "/trials"),
+    line("확정된 과거 형사처벌", "/trials/record", "벌금형 네 건의 경위·판결·해명·비판"),
     line("이 사이트를 읽는 법", "/guide"),
     line("정정·반론 접수", "/correction"),
     line("정정 기록", "/corrections", "실린 내용을 고친 기록. 무엇을 언제 왜 고쳤는지"),

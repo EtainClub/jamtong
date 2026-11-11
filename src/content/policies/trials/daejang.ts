@@ -33,7 +33,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "검찰",
       sourceIds: [s("dailian-0322")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-wirye-charge",
@@ -43,7 +43,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "검찰",
       sourceIds: [s("dailian-0322")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-fc-charge",
@@ -54,7 +54,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "검찰",
       sourceIds: [s("dailian-0322")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-baekhyeon-charge",
@@ -63,8 +63,8 @@ export const TRIAL_DAEJANG: PolicyInput = {
         "배제해 공사에 최소 200억 원의 손해를 끼쳤다며 특경법상 배임 혐의로 추가 기소했다.",
       assertionType: "CLAIM",
       assertedBy: "검찰",
-      sourceIds: [s("inews-1012")],
-      verified: false,
+      sourceIds: [s("khan-1012")],
+      verified: true,
     },
     {
       id: "claim-defense",
@@ -75,7 +75,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이재명 측(기소 당시)",
       sourceIds: [s("dailian-0322")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-baekhyeon-defense",
@@ -87,7 +87,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이재명 대통령(당시 더불어민주당 대표)",
       sourceIds: [s("hani-0817")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-baekhyeon-party",
@@ -98,7 +98,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "더불어민주당",
       sourceIds: [s("khan-1012")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-warrant",
@@ -109,7 +109,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
         "정한 판단이고 유무죄 판단은 아니다.",
       assertionType: "FACT",
       sourceIds: [s("mt-0927")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-police",
@@ -118,7 +118,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
         "2022년 2월 검찰의 보완수사 요구로 다시 수사가 시작됐다.",
       assertionType: "FACT",
       sourceIds: [s("seoul-0704")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-suspended",
@@ -127,7 +127,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
         "있던 대장동·위례·백현동·성남FC 사건 기일을 추후 지정했다. 1심 판단 전에 멈춘 것이다.",
       assertionType: "FACT",
       sourceIds: [s("edaily-0610")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-private-verdict",
@@ -137,7 +137,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
         "법정구속했다. 업무상 배임은 유죄로, 특경법상 배임은 무죄로 판단했다.",
       assertionType: "FACT",
       sourceIds: [s("segye-1031")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-private-leadership",
@@ -146,7 +146,7 @@ export const TRIAL_DAEJANG: PolicyInput = {
         "밝히지 않았고, 최종 결재권자였던 이 대통령이 관여했는지는 판단하지 않았다.",
       assertionType: "FACT",
       sourceIds: [s("segye-1031")],
-      verified: false,
+      verified: true,
     },
   ],
   critiqueIds: ["claim-private-verdict", "claim-private-leadership"],
@@ -208,5 +208,5 @@ export const TRIAL_DAEJANG: PolicyInput = {
     "구속영장 기각 결정문 원문은 보지 못했다.",
     "민간업자 재판의 항소심 결과는 확인하지 못했다.",
   ],
-  sources: sourcesFor(P, ["dailian-0322", "inews-1012", "hani-0817", "khan-1012", "mt-0927", "seoul-0704", "edaily-0610", "segye-1031"]),
+  sources: sourcesFor(P, ["dailian-0322", "hani-0817", "khan-1012", "mt-0927", "seoul-0704", "edaily-0610", "segye-1031"]),
 };

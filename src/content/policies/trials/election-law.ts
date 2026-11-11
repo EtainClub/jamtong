@@ -45,7 +45,7 @@ export const TRIAL_ELECTION_LAW: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이재명 측",
       sourceIds: [s("inews-0908")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-defense-first",
@@ -56,7 +56,7 @@ export const TRIAL_ELECTION_LAW: PolicyInput = {
       assertionType: "CLAIM",
       assertedBy: "이재명 대통령(당시 더불어민주당 대표)",
       sourceIds: [s("tf-1115")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-dates",
@@ -64,8 +64,8 @@ export const TRIAL_ELECTION_LAW: PolicyInput = {
         "1심 선고는 2024년 11월 15일 서울중앙지법 형사합의34부에서, 2심 선고는 2025년 3월 " +
         "26일 서울고등법원에서 있었다.",
       assertionType: "FACT",
-      sourceIds: [s("tf-1115"), s("seoul-0326")],
-      verified: false,
+      sourceIds: [s("tf-1115"), s("seoul-0326"), s("segye-1114")],
+      verified: true,
     },
     {
       id: "claim-golf",
@@ -154,7 +154,7 @@ export const TRIAL_ELECTION_LAW: PolicyInput = {
       text: "반대의견을 낸 두 대법관은 이흥구·오경미 대법관이다.",
       assertionType: "FACT",
       sourceIds: [s("lawtimes-0501"), s("ohmy-0501")],
-      verified: false,
+      verified: true,
     },
     {
       id: "claim-suspended",
@@ -163,7 +163,7 @@ export const TRIAL_ELECTION_LAW: PolicyInput = {
         "6월 18일로 잡혀 있던 기일을 추후 지정으로 바꿨다. 이 재판은 재판 중단 상태다.",
       assertionType: "FACT",
       sourceIds: [s("edaily-0609")],
-      verified: false,
+      verified: true,
     },
   ],
   critiqueIds: ["claim-majority"],
@@ -211,8 +211,8 @@ export const TRIAL_ELECTION_LAW: PolicyInput = {
   ],
   gaps: [
     "대법원 판결 전문이 아니라 대법원 보도자료와 대조했다. 1·2심 판결문은 보지 못했다.",
-    "1·2심 선고일과 재판부는 언론 보도 기준이다.",
-    "반대의견 대법관의 이름은 보도자료에 없어 언론 보도 기준이다.",
+    "1·2심 선고일과 재판부는 판결문이 아니라 언론 보도(더팩트·서울신문·세계일보)와 대조했다.",
+    "반대의견 대법관의 이름은 보도자료에 없어 법률신문 보도와 대조했다.",
     "파기환송심의 기일 변경 결정문은 확인하지 못했다.",
   ],
   sources: sourcesFor(P, [
@@ -223,5 +223,6 @@ export const TRIAL_ELECTION_LAW: PolicyInput = {
     "inews-0908",
     "tf-1115",
     "seoul-0326",
+    "segye-1114",
   ]),
 };
