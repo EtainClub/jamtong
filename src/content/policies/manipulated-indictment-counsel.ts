@@ -16,15 +16,19 @@ import type { PolicyInput } from "./schema";
  *   2026-11-10 factbot-gap #280('여당 의원 105명이 李공취모 출범')을 더했다. 특검법 이전, 2월 23일
  *   출범한 민주당 의원 모임이다. 정부 기구가 아니라 의원들의 모임이며, 숫자는 출범 당일 보도 기준이다.
  *   2026-11-11 11월 6일 본회의 가결과 공포 일정(11월 17일 국무회의 상정 예정)을 더했다.
+ *   2026-11-12 factbot-gap #283('대통령이 자기 재판을 스스로 판결하는 구조')·#284('검사들을 사기꾼으로
+ *   만든다')를 더했다. 판결은 법원이 하고 특검은 검사의 수사·기소 과정을 수사한다는 구조를 적되,
+ *   이해충돌 비판과 특검 결과가 공소기각 주장으로 이어질 수 있다는 해석, 검사들의 반발을 같이 싣는다.
+ *   '조작'은 아직 의혹이다 — 수사 대상이 됐다는 것과 조작이 입증됐다는 것을 섞지 않는다.
  */
 export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
   slug: "manipulated-indictment-counsel",
   title: "조작기소 특검법 — 수사 대상과 공소취소 조항",
   scope:
-    "2026년 2월 23일 출범한 민주당 '공소취소 모임(공취모)'의 규모와 요구, 2026년 4월 30일 발의된 조작기소 특검법의 수사 대상 12건 구성, 공소취소 권한 조항이 9월 대통령 요청 뒤 11월 4일 법사위 소위 수정안에서 삭제된 경위, 11월 6일 본회의 가결과 공포 일정까지",
+    "2026년 2월 23일 출범한 민주당 '공소취소 모임(공취모)'의 규모와 요구, 2026년 4월 30일 발의된 조작기소 특검법의 수사 대상 12건 구성, 공소취소 권한 조항이 9월 대통령 요청 뒤 11월 4일 법사위 소위 수정안에서 삭제된 경위, 11월 6일 본회의 가결과 공포 일정, 특검이 수사하는 것(검사의 수사·기소 과정)과 재판·판결의 관계, 임명 구조의 이해충돌 논란과 검사들의 반발까지",
   ministries: ["국회 법제사법위원회"],
   categories: ["institution"],
-  asOf: "2026-11-11",
+  asOf: "2026-11-12",
   rumors: [
     {
       id: "rumor-105",
@@ -40,6 +44,34 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       id: "rumor-clause-removed",
       text: "대통령이 기자회견에서 공소취소 조항을 빼 달라고 하자 소위에서 삭제할 방침이다",
       claimIds: ["claim-original-power", "claim-president-request", "claim-subcommittee", "claim-chair", "claim-opposition"],
+    },
+    {
+      id: "rumor-self-judge",
+      text: "이재명 대통령이 자신의 재판을 스스로 판결하는 구조가 만들어졌다",
+      claimIds: [
+        "claim-who-judges",
+        "claim-trials-stopped",
+        "claim-target-prosecutors",
+        "claim-passed",
+        "claim-conflict-critique",
+        "claim-conflict-rebuttal",
+        "claim-residual-power",
+        "claim-dismissal-route",
+        "claim-lee-wonseok",
+      ],
+    },
+    {
+      id: "rumor-prosecutors",
+      text: "검사들을 사기꾼으로 만들면서까지 정권이 이 재판 관련 조치를 추진하고 있다",
+      claimIds: [
+        "claim-target-prosecutors",
+        "claim-target-conduct",
+        "claim-allegation-only",
+        "claim-park-discipline",
+        "claim-prosecutor-backlash",
+        "claim-court-concerns",
+        "claim-conflict-rebuttal",
+      ],
     },
   ],
   claims: [
@@ -229,8 +261,149 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       sourceIds: ["src-newspim-20261110"],
       verified: true,
     },
+
+    {
+      id: "claim-who-judges",
+      text:
+        "헌법 제101조 제1항은 \"사법권은 법관으로 구성된 법원에 속한다\"고 정한다. 특별검사는 수사하고 공소를 " +
+        "제기·유지하는 검사의 자리이며, 이 대통령 재판의 유무죄와 공소기각 여부는 특검법이 시행돼도 각 재판부가 " +
+        "판결로 정한다. 특검법에 대통령이나 특검이 재판을 판결하게 하는 조항이 있다는 보도는 찾지 못했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-constitution", "src-dt-20261108"],
+      verified: true,
+    },
+    {
+      id: "claim-trials-stopped",
+      text:
+        "이 대통령의 재판은 취임 뒤 헌법 제84조를 근거로 멈춰 있다. 김대웅 서울고등법원장은 2026년 10월 16일 " +
+        "국정감사에서 재개 일정은 \"재판부가 결정한 사항\"이라고 답했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-khan-20261016"],
+      verified: true,
+    },
+    {
+      id: "claim-target-prosecutors",
+      text:
+        "통과된 법의 정식 명칭은 '윤석열 정권 검찰청, 국가정보원, 감사원 등의 조작수사·조작기소 등 의혹의 " +
+        "진상규명을 위한 특별검사 임명 등에 관한 법률'이다. 특검이 직접 수사하는 것은 이 대통령이 아니라 " +
+        "당시 수사기관이 사건을 수사·기소한 과정이다. 다만 12개 항목 가운데 절반가량이 이 대통령이 기소된 " +
+        "사건이다.",
+      assertionType: "FACT",
+      sourceIds: ["src-hdnews-20261112", "src-dt-20261108", "src-newspim-20261110"],
+      verified: true,
+    },
+    {
+      id: "claim-target-conduct",
+      text:
+        "보도에 따르면 법은 증거 누락, 위법수집증거 사용, 허위 내용의 의견서 제출, 이른바 쪼개기 기소 같은 " +
+        "공소권 오남용 의혹을 수사하도록 했다. 당시 대장동·대북송금·성남FC 수사를 지휘하거나 맡은 " +
+        "전·현직 검사들이 조사 대상으로 거론되지만, 실제 수사 대상에 들어갈지와 혐의가 인정될지는 수사로 " +
+        "가려질 일이다.",
+      assertionType: "FACT",
+      sourceIds: ["src-sstp-20261106", "src-hdnews-20261112"],
+      verified: true,
+    },
+    {
+      id: "claim-allegation-only",
+      text:
+        "법 이름과 조문이 쓰는 말은 '의혹의 진상규명'이다. 특검은 2026년 11월 12일 현재 공포되지 않아 " +
+        "출범하지 않았고, 특정 검사가 조작했다고 판단한 수사 결과나 법원 판결은 아직 없다.",
+      assertionType: "FACT",
+      sourceIds: ["src-hdnews-20261112", "src-sstp-20261106", "src-newspim-20261110"],
+      verified: true,
+    },
+    {
+      id: "claim-park-discipline",
+      text:
+        "특검법과 별개로, 대검찰청은 2026년 5월 대북송금 사건을 수사한 박상용 검사에게 정직 징계를 청구했다. " +
+        "사유는 다른 사건 수사를 언급하며 변호인을 통해 자백을 요구한 점, 수용자 조사 뒤 수사과정 확인서를 " +
+        "쓰지 않은 점, 음식물·접견 편의를 정당한 사유 없이 준 점이다. 수원지검 내 술 반입('연어·술 파티') 의혹은 " +
+        "징계 사유에서 빠졌다. 박 검사는 \"저는 자백을 요구하는 검사이지, 자백을 거부시키는 사람이 아니다\"라며 " +
+        "다투겠다고 했고, 11월 1일 보도 기준 법무부 징계위원회는 열리지 않았다.",
+      assertionType: "FACT",
+      sourceIds: ["src-kmib-20260513", "src-yna-20261101"],
+      verified: true,
+    },
+    {
+      id: "claim-prosecutor-backlash",
+      text:
+        "수사 대상으로 거론되는 일부 검사는 특검법이 위헌이라며 헌법소원과 소환 불응을 검토한다고 했다. " +
+        "공봉숙 서울광역공소청 검사는 여당 주도 특검과 대통령 임명을 '권력 사유화'라고 비판했고, 장진영 " +
+        "광주지방공소청 부장검사는 또 다른 조작기소 특검이 무한 반복될 것이라고 우려했다.",
+      assertionType: "CLAIM",
+      assertedBy: "전·현직 검사들",
+      sourceIds: ["src-hdnews-20261112", "src-newscj-20261107"],
+      verified: true,
+    },
+    {
+      id: "claim-court-concerns",
+      text:
+        "법원행정처는 검토 의견에서 검찰권 남용의 기준이 모호하고, 특검이 직무 범위를 벗어난 수사를 할 때 " +
+        "법원에 이의를 제기하는 절차가 없으며, 영장 재판을 서울중앙지법에 전속시킨 점 등을 문제로 들었다.",
+      assertionType: "CLAIM",
+      assertedBy: "법원행정처",
+      sourceIds: ["src-newscj-20261107", "src-hdnews-20261112"],
+      verified: true,
+    },
+    {
+      id: "claim-conflict-critique",
+      text:
+        "국회 법사위 전문위원 검토보고서는 수사 대상이 될 수 있는 대통령이 속한 여당에 특검 추천권을 주는 " +
+        "규정은 신중한 논의가 필요하다고 지적했다. 이창현 한국외대 교수는 \"당연히 이해충돌에 해당하는 문제\"라고 " +
+        "했고, 김선택 고려대 명예교수는 야당만 추천하게 했다면 이해충돌 논란을 피할 수 있었을 것이라고 했다. " +
+        "법조계 일각은 \"누구도 자기 사건의 심판이 될 수 없다\"는 원칙을 들어 위헌이라고 본다.",
+      assertionType: "CLAIM",
+      assertedBy: "국회 법사위 전문위원·법학자",
+      sourceIds: ["src-newspim-20261110", "src-dt-20261108"],
+      verified: true,
+    },
+    {
+      id: "claim-conflict-rebuttal",
+      text:
+        "법안을 낸 천준호 민주당 의원은 특검의 수사 대상은 이 대통령이 아니라 윤석열 정부 검사들이며, 특검 " +
+        "추천권을 누구에게 줄지는 헌법재판소가 국회의 입법재량으로 인정했다고 반박했다. 헌재는 2017헌바196 " +
+        "결정에서 여당의 추천권을 배제한 입법이 \"합리성과 정당성을 상실했다고 보기 어렵다\"고 했다. 김선택 " +
+        "교수도 \"특별검사 임명권은 원래 대통령에게 있는 권한\"이라고 했다.",
+      assertionType: "CLAIM",
+      assertedBy: "천준호 더불어민주당 의원",
+      sourceIds: ["src-newspim-20261110"],
+      verified: true,
+    },
+    {
+      id: "claim-dismissal-route",
+      text:
+        "개정 형사소송법 제327조는 중대한 위법수사에 기초한 기소를 공소기각 사유로 새로 넣었고, 시행 전에 " +
+        "기소된 사건을 빼는 경과규정이 없다. 그래서 특검 수사 결과가 이 대통령 재판에서 공소기각을 주장하는 " +
+        "근거로 쓰일 수 있다는 해석이 나온다. 이창현 교수는 특검이 \"공소기각 판결을 끌어낼 증거를 찾으려는\" " +
+        "것이라고 비판했다. 이 경우에도 공소기각 여부는 재판부가 판결로 정한다.",
+      assertionType: "FACT",
+      sourceIds: ["src-newspim-20261110"],
+      verified: true,
+    },
+    {
+      id: "claim-lee-wonseok",
+      text:
+        "이원석 전 검찰총장은 재판 절차가 멈춘 대통령이 임명하는 임시 조직이 재판 중이거나 확정된 사건을 " +
+        "사법부보다 먼저 판단하는 것은 재판의 독립과 권력분립을 침해한다며, 이 법을 '공소 취소를 위한 " +
+        "특검'이라고 했다. 반대쪽에서는 수사·기소권 행사의 적정성을 따지는 행정 작용일 뿐 재판권 침해는 " +
+        "아니라고 본다.",
+      assertionType: "CLAIM",
+      assertedBy: "이원석 전 검찰총장",
+      sourceIds: ["src-newscj-20261107", "src-dt-20261108"],
+      verified: true,
+    },
   ],
-  critiqueIds: ["claim-opposition", "claim-structure", "claim-caucus-opposition", "claim-residual-power"],
+  critiqueIds: [
+    "claim-opposition",
+    "claim-structure",
+    "claim-caucus-opposition",
+    "claim-residual-power",
+    "claim-conflict-critique",
+    "claim-dismissal-route",
+    "claim-lee-wonseok",
+    "claim-prosecutor-backlash",
+    "claim-court-concerns",
+  ],
   timeline: [
     {
       id: "t-caucus",
@@ -255,6 +428,14 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       title: "조작기소 특검법 발의",
       summary: "12개 사건, 공소유지 여부 결정·이첩 요구 권한 포함.",
       claimIds: ["claim-original-list", "claim-original-power"],
+    },
+    {
+      id: "t-park-discipline",
+      date: "2026-05-12",
+      datePrecision: "day",
+      title: "대검, 대북송금 수사 검사 징계 청구",
+      summary: "자백 요구 등 절차 위반. '연어·술 파티' 의혹은 사유에서 빠졌다.",
+      claimIds: ["claim-park-discipline"],
     },
     {
       id: "t-request",
@@ -298,6 +479,8 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
     },
   ],
   gaps: [
+    "법원행정처 검토 의견서와 법사위 전문위원 검토보고서 원문은 보도로만 확인했다.",
+    "박상용 검사에 대한 법무부 징계위원회 결론은 11월 1일 보도 기준 나오지 않았다.",
     "원안과 수정안의 조문을 국회 의안정보시스템에서 직접 대조하지 못했다. 수정안 12개 항목의 정확한 문구와 '이 대통령 관련'으로 셀 항목 수는 조문으로 확정되지 않았다.",
     "원안에 있던 김용 전 부원장 금품수수, 허위 보도 의혹 사건이 수정안에서 어떻게 바뀌었는지는 보도로 확인하지 못했다.",
     "본회의 통과 뒤 공포 여부는 11월 10일 보도 기준이다. 11월 17일 국무회의 결과는 아직 반영하지 못했다.",
@@ -428,6 +611,77 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       publisher: "세계일보",
       url: "https://www.segye.com/newsView/20260225516647",
       publishedAt: "2026-02-25",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-constitution",
+      title: "대한민국헌법 제101조",
+      publisher: "국가법령정보센터",
+      url: "https://www.law.go.kr/법령/대한민국헌법",
+      type: "official",
+      license: "public",
+    },
+    {
+      id: "src-khan-20261016",
+      title: "서울고등법원장 \"이재명 대통령 재판 중단, 헌법에 근거\"",
+      publisher: "경향신문",
+      url: "https://khan.co.kr/article/202610161325001",
+      publishedAt: "2026-10-16",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-dt-20261108",
+      title: "대통령이 본인 사건 특검 임명하는데…조작기소특검 위헌 찬반 쟁점은",
+      publisher: "디지털타임스",
+      url: "https://www.dt.co.kr/article/12093843",
+      publishedAt: "2026-11-08",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-hdnews-20261112",
+      title: "'조작기소 특검' 출범 앞두고 검찰 반발…\"헌법소원·소환 불응 검토\"",
+      publisher: "현대경제",
+      url: "https://www.hdnews.co.kr/news/articleView.html?idxno=362383",
+      publishedAt: "2026-11-12",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-sstp-20261106",
+      title: "조작기소 특검법 가결…12개 사건 검찰권 남용 의혹 수사한다",
+      publisher: "시사타파NEWS",
+      url: "https://sstpnews.com/news/view/1065604288468715",
+      publishedAt: "2026-11-06",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newscj-20261107",
+      title: "'조작 기소 특검법' 국회 통과 후폭풍… 법조계서 위헌 논란 확산",
+      publisher: "천지일보",
+      url: "https://www.newscj.com/news/articleView.html?idxno=3446752",
+      publishedAt: "2026-11-07",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-kmib-20260513",
+      title: "대검 '대북송금 수사' 박상용 검사 '정직' 징계 청구",
+      publisher: "국민일보",
+      url: "https://www.kmib.co.kr/article/view_amp.asp?arcid=1778590455",
+      publishedAt: "2026-05-13",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-yna-20261101",
+      title: "직무정지 6개월 넘은 박상용 검사…법무부 징계위 개최 미정",
+      publisher: "연합뉴스(한민족센터 게재)",
+      url: "https://www.koreancenter.or.kr/news/articleView.html?idxno=1432775",
+      publishedAt: "2026-11-01",
       type: "press",
       license: "link-only",
     },
