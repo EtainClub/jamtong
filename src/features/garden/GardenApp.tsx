@@ -11,7 +11,7 @@ import { loadTodayRaids } from "@/lib/firebase/raid";
 
 import styles from "./garden.module.css";
 import { GardenScenery } from "./GardenArt";
-import { gardenFeedback, leaveGardenSound, restoreGardenSound, savedGardenSound, setGardenSound } from "./feedback";
+import { gardenFeedback, leaveGardenSound, restoreGardenSound, savedGardenSound, setGardenSound, setGardenTrack } from "./feedback";
 
 import { Beds } from "./Beds";
 import { CoachQuest, TabTip } from "./GardenCoach";
@@ -147,6 +147,12 @@ export function GardenApp({
   useEffect(() => {
     restoreGardenSound();
   }, []);
+
+  // 내 방 음악. 남의 방에 있는 동안은 VisitView가 그 방의 곡을 틀고, 돌아오면 여기서 내 곡으로 되돌린다.
+  const myBgm = useGarden((s) => s.data?.room.bgm);
+  useEffect(() => {
+    if (myBgm && !visit) setGardenTrack(myBgm);
+  }, [myBgm, visit]);
 
   // 시계. 성장·상점·단비가 모두 이 값으로 그려진다.
   useEffect(() => {

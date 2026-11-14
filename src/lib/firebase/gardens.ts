@@ -70,6 +70,8 @@ export interface PublicRoom {
   wall: string;
   floor: string;
   mood: string;
+  /** 방 음악 id. 보는 화면이 곡표에 있는 것만 튼다. 예전 문서에는 없다. */
+  bgm?: string;
   placed: PublicPlaced[];
 }
 
@@ -218,7 +220,7 @@ function toRoom(raw: unknown): PublicRoom | undefined {
       });
     }
   }
-  return { size: Number(r.size) || 0, wall: str(r.wall), floor: str(r.floor), mood: str(r.mood), placed };
+  return { size: Number(r.size) || 0, wall: str(r.wall), floor: str(r.floor), mood: str(r.mood), bgm: str(r.bgm), placed };
 }
 
 function toTitles(raw: unknown): PublicGarden["titles"] {

@@ -1,5 +1,6 @@
 import type { PublicPlaced, PublicRoom } from "@/lib/firebase/gardens";
 
+import { DEFAULT_TRACK, isGardenTrack, type GardenTrackId } from "../feedback";
 import { hash, kstDayNumber, MUTATION_ORDER, rng } from "../rules";
 import { isRaidKind } from "../raid/rules";
 import type { Fruit, Mutation, Species } from "../types";
@@ -42,6 +43,8 @@ export interface RoomData {
   floor: string;
   /** 오늘의 기분 id. */
   mood: string;
+  /** 방 음악(feedback.ts의 곡 id). 손님도 이 방에서는 이 곡을 듣는다. */
+  bgm: GardenTrackId;
   placed: Placed[];
   /** 산 가구의 수. 처음부터 가진 벽지·바닥재(값 0)는 적지 않는다. */
   owned: Record<string, number>;
@@ -69,7 +72,7 @@ export const PUBLIC_ID_MAX = 40;
 export const WEEKLY_SIZE = 4;
 
 export function freshRoom(): RoomData {
-  return { size: 0, wall: DEFAULT_WALL, floor: DEFAULT_FLOOR, mood: DEFAULT_MOOD, placed: [], owned: {}, shown: [] };
+  return { size: 0, wall: DEFAULT_WALL, floor: DEFAULT_FLOOR, mood: DEFAULT_MOOD, bgm: DEFAULT_TRACK, placed: [], owned: {}, shown: [] };
 }
 
 /** 방이 생기기 전에 저장된 정원, 또는 모양이 어긋난 방. */
@@ -82,6 +85,7 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined): RoomData {
     wall: typeof raw.wall === "string" ? raw.wall : base.wall,
     floor: typeof raw.floor === "string" ? raw.floor : base.floor,
     mood: typeof raw.mood === "string" ? raw.mood : base.mood,
+    bgm: isGardenTrack(raw.bgm) ? raw.bgm : base.bgm,
     placed: Array.isArray(raw.placed) ? raw.placed.filter((p) => p && typeof p.at === "string" && typeof p.it === "string") : [],
     owned: raw.owned && typeof raw.owned === "object" ? raw.owned : {},
     shown: Array.isArray(raw.shown) ? raw.shown.filter((s) => s && typeof s.id === "string") : [],
@@ -379,7 +383,7 @@ export function publicRoom(room: RoomData): PublicRoom {
       placed.push({ a: p.at, k: s.kind, s: s.species!, m: s.mut ?? [] });
     }
   }
-  return { size: room.size, wall: room.wall, floor: room.floor, mood: room.mood, placed };
+  return { size: room.size, wall: room.wall, floor: room.floor, mood: room.mood, bgm: room.bgm, placed };
 }
 
 /**
@@ -391,7 +395,8 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
   const wall = FURNITURE_BY_ID.get(pub.wall)?.kind === "wallpaper" ? pub.wall : DEFAULT_WALL;
   const floor = FURNITURE_BY_ID.get(pub.floor)?.kind === "flooring" ? pub.floor : DEFAULT_FLOOR;
   const mood = MOODS.some((m) => m.id === pub.mood) ? pub.mood : DEFAULT_MOOD;
-  let room: RoomData = { size, wall, floor, mood, placed: [], owned: {}, shown: [] };
+  const bgm = isGardenTrack(pub.bgm) ? pub.bgm : DEFAULT_TRACK;
+  let room: RoomData = { size, wall, floor, mood, bgm, placed: [], owned: {}, shown: [] };
   pub.placed.slice(0, PUBLIC_PLACED_MAX).forEach((p, n) => {
     if ("i" in p) {
       // 남의 방은 가진 수를 모른다. 놓인 만큼 가졌다고 본다.
