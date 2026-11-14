@@ -21,8 +21,8 @@ export async function generateMetadata({ params }: { params: Promise<{ gid: stri
   const { gid } = await params;
   const card = await loadGardenCard(gid);
   if (!card) return { robots: { index: false, follow: false } };
-  const image = `/api/garden-card?gid=${gid}`;
-  const title = "친구가 잼통 정원에 초대했어요";
+  const image = `/api/garden-card?gid=${gid}&v=room`;
+  const title = "친구가 내 방에 초대했어요 · 잼통 정원";
   const description = gardenSummary(card);
   return {
     title,
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ gid: stri
       type: "website",
       title,
       description,
-      images: [{ url: image, width: 1200, height: 630, alt: "잼통 정원 자랑 카드" }],
+      images: [{ url: image, width: 1200, height: 630, alt: "친구가 꾸민 잼통 정원의 방" }],
     },
     twitter: { card: "summary_large_image", images: [image] },
   };
