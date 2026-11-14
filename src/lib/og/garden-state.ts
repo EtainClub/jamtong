@@ -1,3 +1,6 @@
+import { freshRoom, roomFromPublic, type RoomData } from "@/features/garden/room/rules";
+import type { PublicRoom } from "@/lib/firebase/gardens";
+
 import { buildCatalog } from "@/features/garden/catalog";
 import { PUBLIC_ID } from "@/features/garden/rules";
 import type { Species } from "@/features/garden/types";
@@ -38,6 +41,7 @@ export const GARDEN_FRUIT: Record<string, string> = {
 
 export interface GardenCard {
   gid: string;
+  room: RoomData;
   dex: number;
   total: number;
   golden: number;
@@ -57,6 +61,31 @@ type Value = {
 };
 
 const num = (v?: Value) => Number(v?.integerValue ?? v?.doubleValue ?? 0) || 0;
+
+/** Firestore REST values to plain data; roomFromPublic applies the same allowlist as visits. */
+function plain(v: Value): unknown {
+  if (v.mapValue) return Object.fromEntries(Object.entries(v.mapValue.fields ?? {}).map(([key, value]) => [key, plain(value)]));
+  if (v.arrayValue) return (v.arrayValue.values ?? []).map(plain);
+  return v.stringValue ?? v.booleanValue ?? (v.integerValue !== undefined || v.doubleValue !== undefined ? num(v) : null);
+}
+
+export function cardRoom(value: Value | undefined, byId: ReadonlyMap<string, Species>): RoomData {
+  if (!value?.mapValue) return freshRoom();
+  const raw = plain(value) as PublicRoom;
+  // Only known fields are rendered, and malformed placements are ignored before normalization.
+  raw.placed = Array.isArray(raw.placed)
+    ? raw.placed.filter((p) =>
+        p && typeof p === "object" && typeof p.a === "string" &&
+        ("i" in p ? typeof p.i === "string" : typeof p.k === "string" && typeof p.s === "string") &&
+        (!("m" in p) || Array.isArray(p.m)),
+      )
+    : [];
+  raw.keys = Array.isArray(raw.keys) ? raw.keys : undefined;
+  const room = roomFromPublic(raw, byId);
+  // Free text stays inside the room, never on the public-domain share card.
+  room.motto = "";
+  return room;
+}
 
 let catalog: Species[] | null = null;
 
@@ -85,8 +114,19 @@ export async function loadGardenCard(gid: string): Promise<GardenCard | null> {
     .filter((b): b is { species: Species; ripe: boolean } => Boolean(b.species))
     .sort((a, b) => Number(b.ripe) - Number(a.ripe));
 
+  const room = cardRoom(fields.room, byId);
+  if (room.placed.some((p) => p.it === "keyboard")) {
+    const moderation = await fetch(`${url.split("?key=")[0]}/mod/keys?key=${key}`, { cache: "no-store" }).catch(() => null);
+    // If moderation cannot be checked, show blank keys rather than a possibly hidden drawing.
+    const hidden = moderation?.ok
+      ? ((await moderation.json()) as { fields?: Record<string, Value> }).fields?.hidden?.booleanValue === true
+      : moderation?.status !== 404;
+    if (hidden) room.keys = room.keys.map((k) => ({ ...k, face: "0".repeat(144) }));
+  }
+
   return {
     gid,
+    room,
     dex: num(fields.dex),
     total: catalog.length,
     golden: num(fields.golden),
@@ -96,7 +136,5 @@ export async function loadGardenCard(gid: string): Promise<GardenCard | null> {
 }
 
 export function gardenSummary(card: GardenCard): string {
-  const names = [...new Set(card.growing.map((b) => b.species.title))].slice(0, 2);
-  const growing = names.length ? `지금 「${names.join("」, 「")}」 등을 키우고 있어요. ` : "";
-  return `${growing}도감 ${card.dex}/${card.total}. 물을 주면 친구 정원도, 내 정원도 빨리 자라요.`;
+  return `가구와 수확한 품종으로 꾸민 친구의 방을 구경해 보세요. 도감 ${card.dex}/${card.total}.`;
 }

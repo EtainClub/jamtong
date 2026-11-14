@@ -1,5 +1,8 @@
 "use client";
 
+import { DEFAULT_TRACK, type GardenTrackId } from "./musicTracks";
+export { DEFAULT_TRACK, TRACK_ORDER, isGardenTrack, type GardenTrackId } from "./musicTracks";
+
 /**
  * 정원의 소리 — 효과음과 배경음악. 둘 다 Web Audio로 그 자리에서 만든다(내려받는 파일 없음).
  *
@@ -483,14 +486,6 @@ const TRACKS = {
     bassType: "triangle",
   },
 } satisfies Record<string, Track>;
-
-export type GardenTrackId = keyof typeof TRACKS;
-export const DEFAULT_TRACK: GardenTrackId = "orgel";
-export const TRACK_ORDER: GardenTrackId[] = ["orgel", "waltz", "walk", "lullaby", "festival"];
-
-export function isGardenTrack(id: unknown): id is GardenTrackId {
-  return typeof id === "string" && Object.prototype.hasOwnProperty.call(TRACKS, id);
-}
 
 export function gardenTrack(id: GardenTrackId): { label: string; icon: string; hint: string } {
   const t: Track = TRACKS[id];
