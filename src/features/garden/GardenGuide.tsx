@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
+import { FRAME_BLANK, FURNITURE_BY_ID } from "./room/catalog";
+import { ROOM_SIZES } from "./room/rules";
+import { CHEER_MIN, KIT, KIT_ORDER, ROOTS_CHEER, ROOTS_ESCAPE, ROOTS_FULL, SAMPLES_PER_TROPHY, SPORE_COUNT, STAR_MINUTES } from "./raid/rules";
+
 import {
   BLOOM_BONUS,
   BLOOM_CARE,
@@ -38,12 +42,22 @@ import {
   RAID_EVERY_HOURS,
   RAID_FIRST_HOUR,
   RAID_GAP,
-  RAID_HITS_PER_PERSON,
+  RAID_USES_PER_PERSON,
+  RAID_AID_ORDER,
+  RAID_AIDS,
+  RAID_BOX_FAST_PERENNIAL,
+  RAID_FRENZY_GAP_MINUTES,
+  RAID_GAP_MINUTES,
+  RAID_GAP_MULT,
   RAID_HP_MIN,
   RAID_KINDS,
   RAID_LIFE,
+  RAID_MAX_FIGHTERS,
   RAID_MIN_FIGHTERS,
   RAID_PER_DAY,
+  FINISHER_ORDER,
+  FINISHERS,
+  raidNeed,
   RAIN_LENGTH,
   RAIN_SPEED,
   RAIN_STARTS,
@@ -93,6 +107,8 @@ const minutes = (ms: number) => `${Math.round(ms / MINUTE)}분`;
 const duration = (min: number) => (min < 60 ? `${min}분` : min % 60 ? `${Math.floor(min / 60)}시간 ${min % 60}분` : `${min / 60}시간`);
 const span = ([lo, hi]: [number, number]) => `${duration(lo)}–${duration(hi)}`;
 
+const FRAME_PRICE = FURNITURE_BY_ID.get(FRAME_BLANK)?.price ?? 0;
+
 export const GUIDE_SECTIONS = [
   { id: "loop", label: "기본" },
   { id: "seeds", label: "씨앗" },
@@ -104,6 +120,7 @@ export const GUIDE_SECTIONS = [
   { id: "flowers", label: "꽃밭" },
   { id: "greenhouse", label: "온실" },
   { id: "dex", label: "도감" },
+  { id: "room", label: "내 방" },
   { id: "visit", label: "친구" },
 ] as const;
 
@@ -257,7 +274,7 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
         </Section>
 
         <Section id="tools" title="도구">
-          <p>상점 아래 ‘도구’ 칸에서 늘 같은 값으로 팔아요. 무작위는 없어요.</p>
+          <p>상점의 ‘도구’ 칸에서 늘 같은 값으로 팔아요. 무작위는 없어요.</p>
           <ul>
             {TOOL_ORDER.map((id) => (
               <li key={id}>
@@ -286,16 +303,36 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
               열려요. 앞 거대 잡초가 끝나고 {duration(RAID_GAP / MINUTE)}이 지나야 다음이 나와요.
             </li>
             <li>
-              한 사람은 거대 잡초 하나에 {RAID_HITS_PER_PERSON}방까지만 칠 수 있어요. 체력은 적어도 {RAID_HP_MIN}이라 혼자서는 못
-              잡고, 적어도 {RAID_MIN_FIGHTERS}명이 모여야 해요.
+              한 사람은 거대 잡초 하나에 기력 {RAID_USES_PER_PERSON}번까지 쓸 수 있어요. 매 시 정각과 30분부터 {RAID_GAP_MINUTES}분은
+              ‘빈틈’이라 그때 친 한 번은 ×{RAID_GAP_MULT}로 들어가요(도망 30분 전 폭주 때는 빈틈이 {RAID_FRENZY_GAP_MINUTES}분). 체력은 적어도{" "}
+              {RAID_HP_MIN}이라 혼자서도 둘이서도 못 잡아요 — 모두 빈틈에 모이면 {RAID_MIN_FIGHTERS}–4명, 아무 때나 치면 5–{RAID_MAX_FIGHTERS}명이 들어요.
             </li>
             <li>
               거대 잡초는 사회를 갉아먹는 악초예요. 하루 {RAID_PER_DAY}번 서로 다른 놈이 나오고, 종류마다 체력이 달라요:{" "}
-              {RAID_KINDS.map((k) => `${k.name} ${k.hp}(${Math.ceil(k.hp / RAID_HITS_PER_PERSON)}명)`).join(" · ")}.
+              {RAID_KINDS.map((k) => `${k.name} ${k.hp}(${raidNeed(k.hp).least}–${raidNeed(k.hp).most}명)`).join(" · ")}.
             </li>
             <li>
-              {duration(RAID_LIFE / MINUTE)} 안에 쓰러뜨리면 한 번이라도 때린 모두가 잼 {RAID_BOX.jam}과 희귀 씨앗 상자를 받아요
-              ({RAID_BOX.odds.map((o) => `${TIER_LABEL[o.tier]} ${pct(o.p)}`).join(" · ")}). 못 잡으면 도망가요.
+              지원은 기력과 따로, 1분에 한 번 걸어요(지원 도구가 있으면 20초):{" "}
+              {RAID_AID_ORDER.map((id) => `${RAID_AIDS[id].icon} ${RAID_AIDS[id].label} — ${RAID_AIDS[id].effect}`).join(" · ")}. 센 값은 바뀌지 않고 손맛만 바뀌어요.
+              체력이 절반이 되면 광장 칸에 포자 {SPORE_COUNT}개가 돋고, 다 뽑으면 다음 빈틈 동안 내 문지르기가 절반이에요.
+            </li>
+            <li>
+              싸움 도구(잼, 하루 상한, 무작위 없음):{" "}
+              {FINISHER_ORDER.map((id) => `${FINISHERS[id].icon} ${FINISHERS[id].label} 🍯${FINISHERS[id].price}·하루 ${FINISHERS[id].perDay}`).join(" · ")} ·{" "}
+              {KIT_ORDER.map((id) => `${KIT[id].icon} ${KIT[id].label} 🍯${KIT[id].price}·하루 ${KIT[id].perDay}`).join(" · ")}. 기력을 더 주는 도구는 없어요.
+            </li>
+            <li>
+              {duration(RAID_LIFE / MINUTE)} 안에 쓰러뜨리면 한 번이라도 쳤거나 지원한 모두가 잼 {RAID_BOX.jam}과 희귀 씨앗 상자를 받아요
+              ({RAID_BOX.odds.map((o) => `${TIER_LABEL[o.tier]} ${pct(o.p)}`).join(" · ")}, ★★★이면 {TIER_LABEL.flagship} {pct(1 - RAID_BOX_FAST_PERENNIAL)} ·{" "}
+              {TIER_LABEL.perennial} {pct(RAID_BOX_FAST_PERENNIAL)}). 같은 물결·같은 사람이면 같은 씨앗이에요.
+            </li>
+            <li>
+              🌰 뿌리 조각: 빠른 처치 ★★★({STAR_MINUTES[0]}분 안) 3 · ★★({STAR_MINUTES[1]}분 안) 2 · ★ 1, 기력을 다 쓰면 +{ROOTS_FULL}, 지원 {CHEER_MIN}번 이상이면 +{ROOTS_CHEER}.
+              도망가면 친 사람에게 {ROOTS_ESCAPE}. 뿌리 조각은 상점 🏆 전리품에서만 쓰고, 잼으로 사거나 남에게 줄 수 없어요.
+            </li>
+            <li>
+              쓰러뜨릴 때마다 그 악초의 표본 조각 하나. {SAMPLES_PER_TROPHY}개면 그 악초의 박제가 방에 생기고, 여섯 박제를 다 모으면 벽지 ‘광장을 지킨 방’을 받아요.
+              가장 많이 친 사람은 뽑지 않아요 — 쓰러뜨린 뒤에는 함께한 사람들의 이름이 한 줄에 올라요.
             </li>
             <li>
               가끔 떨어지는 시든 잎은 링크가 열리지 않았던 출처예요. 열리는지 확인해 주면 잼 {LEAF_JAM}을 받아요(하루{" "}
@@ -338,6 +375,16 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
               지도에서 거둔 품종과 이어진 품종은 실루엣으로 보여요. 그 원본을 읽으면 씨앗을 받아요(품종마다 한 번, 하루{" "}
               {TRAIL_PER_DAY}번).
             </li>
+          </ul>
+        </Section>
+
+        <Section id="room" title="내 방">
+          <ul>
+            <li>바구니의 열매를 잼으로 졸이는 대신 ‘전시하기’로 방에 둘 수 있어요. 다년생은 나무, 나머지는 화분이 되고, 변이는 화분 빛깔로 남아요. 전시한 열매는 다시 열매로 되돌릴 수 없어요.</li>
+            <li>도감의 쪽지를 ‘액자에 걸기’로 벽에 걸어요(빈 액자틀 🍯 {FRAME_PRICE}). 반론·한계 쪽지도 같은 액자예요. 액자를 누르면 쪽지 전문과 출처, 원본 페이지가 열려요.</li>
+            <li>가구·벽지·바닥재는 상점의 ‘가구’·‘벽·바닥’ 칸에서 정해진 값에 사요. 무작위로 나오는 것은 없고, 효과도 없어요 — 꾸밈일 뿐이에요. 책장은 도감, 라디오는 음악으로 가는 바로가기예요.</li>
+            <li>방 넓히기: {ROOM_SIZES.map((r) => `${r.label} 벽 ${r.width}칸${r.price ? `(🍯 ${r.price.toLocaleString()})` : ""}`).join(" → ")}.</li>
+            <li>‘자랑하기’를 켜면 방도 함께 보여요. 액자는 쪽지 번호만 싣고, 글은 보는 화면이 원본에서 읽어요.</li>
           </ul>
         </Section>
 

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-import { formatLeft } from "@/features/garden/rules";
+import { formatClock, formatLeft } from "@/features/garden/rules";
 import { OG_CONTENT_TYPE, OG_SIZE, dataUri, ogFonts } from "@/lib/og/card";
 import { loadRaidCard, raidTitle, type RaidCard } from "@/lib/og/raid-state";
 
@@ -67,7 +67,7 @@ function lines(card: RaidCard | null): { big: string; small: string; ratio: numb
   if (card.phase === "escaped") return { big: "놓쳤어요", small: `다음에는 ${card.need}명이 모여 잡아요`, ratio: card.left / card.hp };
   return {
     big: `체력 ${card.left} / ${card.hp}`,
-    small: `함께 ${card.fighters}명 · ${card.need}명이면 잡아요 · ${formatLeft(card.escapeIn)} 뒤 도망`,
+    small: `함께 ${card.fighters}명 · ${card.gapAt !== null ? `빈틈 ${formatClock(card.gapAt, Date.now())}에 ${card.needLeast}명이면` : `${card.need}명이면`} 잡아요 · ${formatLeft(card.escapeIn)} 뒤 도망`,
     ratio: card.left / card.hp,
   };
 }
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
           <div style={{ display: "flex", marginTop: 18, fontSize: 28, fontWeight: 300, color: R.muted }}>{small}</div>
           <div style={{ display: "flex", marginTop: "auto" }}>
             <div style={{ display: "flex", padding: "10px 22px", borderRadius: 999, background: R.chip, fontSize: 26, fontWeight: 600, color: R.ink }}>
-              쓰러뜨리면 모두에게 희귀 씨앗 상자
+              쓰러뜨리면 모두에게 희귀 씨앗 상자·뿌리 조각
             </div>
           </div>
         </div>

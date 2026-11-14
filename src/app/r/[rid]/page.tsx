@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-import { formatLeft, INVITE_CODE } from "@/features/garden/rules";
+import { formatClock, formatLeft, INVITE_CODE } from "@/features/garden/rules";
 import { GardenLanding } from "@/features/garden/GardenLanding";
 import { loadRaidCard, raidTitle, type RaidCard } from "@/lib/og/raid-state";
 
@@ -29,7 +29,9 @@ function describe(card: RaidCard | null): string {
   if (!card) return "잼통 정원 광장에 거대 잡초가 나타나요. 혼자서는 못 잡아요 — 여럿이 모여 쓰러뜨리고 희귀 씨앗을 받아요.";
   if (card.phase === "defeated") return `${card.fighters}명이 함께 쓰러뜨렸어요. 다음 거대 잡초는 광장이 다시 무성해지면 나타나요.`;
   if (card.phase === "escaped") return `${card.fighters}명이 모였지만 놓쳤어요. 다음 거대 잡초는 ${card.need}명이 모여 잡아요.`;
-  return `체력 ${card.left}/${card.hp} 남음 · 함께 ${card.fighters}명 · ${formatLeft(card.escapeIn)} 뒤 도망가요. ${card.need}명이 모이면 잡아요.`;
+  return `체력 ${card.left}/${card.hp} 남음 · 함께 ${card.fighters}명 · ${formatLeft(card.escapeIn)} 뒤 도망가요. ${
+    card.gapAt !== null ? `빈틈(${formatClock(card.gapAt, Date.now())}부터 3분)에 모이면 ${card.needLeast}명, 아니면 ${card.need}명이면 잡아요.` : `${card.need}명이 모이면 잡아요.`
+  }`;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

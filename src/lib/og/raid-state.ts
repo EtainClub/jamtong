@@ -1,4 +1,4 @@
-import { josa, RAID_HITS_PER_PERSON, RAID_LIFE, raidKind, raidPhase, type RaidKind, type RaidPhase, type RaidWave } from "@/features/garden/rules";
+import { josa, RAID_LIFE, raidGapWindow, raidKind, raidNeed, raidPhase, type RaidKind, type RaidPhase, type RaidWave } from "@/features/garden/rules";
 
 /**
  * 거대 잡초 한 물결을 서버에서 읽는다 — "같이 잡자" 링크(/r/[rid])와 그 카드(/api/raid-card)가 쓴다.
@@ -18,8 +18,11 @@ export interface RaidCard extends RaidWave {
   phase: RaidPhase;
   /** 남은 체력. */
   left: number;
-  /** 잡는 데 필요한 사람. */
+  /** 잡는 데 필요한 사람 — 모두 빈틈에 치면 least, 빈틈을 쓰지 않으면 most. */
   need: number;
+  needLeast: number;
+  /** 지금이나 다음 빈틈의 시작(ms). 빈틈이 없는 옛 물결이거나 끝났으면 null. */
+  gapAt: number | null;
   /** 도망까지 남은 ms. 끝났으면 0. */
   escapeIn: number;
 }
@@ -65,7 +68,9 @@ export async function loadRaidCard(rid: string): Promise<RaidCard | null> {
     kind: raidKind(day, wave),
     phase,
     left: phase === "defeated" ? 0 : Math.max(0, raid.hp - raid.hits),
-    need: Math.ceil(raid.hp / RAID_HITS_PER_PERSON),
+    need: raidNeed(raid.hp).most,
+    needLeast: raidNeed(raid.hp).least,
+    gapAt: phase === "active" ? (raidGapWindow(now, raid.spawnedAt, raid.hp)?.start ?? null) : null,
     escapeIn: phase === "active" && raid.spawnedAt !== null ? Math.max(0, raid.spawnedAt + RAID_LIFE - now) : 0,
   };
 }

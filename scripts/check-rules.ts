@@ -662,13 +662,14 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
   const S = 3; // 이 점검이 올리는 칸
   const fresh = (hp: number) => ({ hp, hits: 0, fighters: 0, spawnedAt: serverTimestamp(), defeatedAt: null });
   // 세울 때 빈 칸 여덟을 함께 만든다(lib/firebase/raid.ts의 spawnRaid).
-  const spawn = (wave = 1, hp = 180) => {
+  const spawn = (wave = 1, hp = 270) => {
     const batch = writeBatch(db);
     batch.set(raidRef(wave), fresh(hp));
     for (let n = 0; n < SHARDS; n++) batch.set(doc(db, "plazaRaids", id(wave), "shards", String(n)), { hits: 0, fighters: 0 });
     return batch.commit();
   };
-  // 한 방 = 내 표식(mine) + 내 칸(shard=S)의 hits·fighters.
+  // 한 방 = 내 표식(mine) + 내 칸(shard=S)의 hits·fighters. 이 점검은 2.0 이전 화면의 모양(uses 없음)으로 친다 —
+  // 그 길이 새 규칙에서도 열려 있는지를 운영 프로젝트에서 본다. 빈틈·기력·지원은 check:raid-rules(에뮬레이터)가 본다.
   const strike = (mine: number, hits: number, fighters: number, shard = S, target = S) => {
     const batch = writeBatch(db);
     batch.set(mineRef, { hits: mine, lastAt: serverTimestamp(), shard });
@@ -677,12 +678,12 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
   };
   const wait = () => new Promise((r) => setTimeout(r, 1_200));
 
-  await expectDenied("옛 id(날짜 번호만)로 세우기", () => setDoc(doc(db, "plazaRaids", String(today)), fresh(180)));
-  await expectDenied("어제 번호로 세우기", () => setDoc(raidRef(1, today - 1), fresh(180)));
-  await expectDenied("여섯째 물결 세우기", () => setDoc(raidRef(6), fresh(180)));
-  await expectDenied("체력 150(둘이 잡을 수 있는 크기)으로 세우기", () => setDoc(raidRef(), fresh(150)));
+  await expectDenied("옛 id(날짜 번호만)로 세우기", () => setDoc(doc(db, "plazaRaids", String(today)), fresh(270)));
+  await expectDenied("어제 번호로 세우기", () => setDoc(raidRef(1, today - 1), fresh(270)));
+  await expectDenied("여섯째 물결 세우기", () => setDoc(raidRef(6), fresh(270)));
+  await expectDenied("체력 240(둘이 빈틈에 잡을 수 있는 크기)으로 세우기", () => setDoc(raidRef(), fresh(240)));
   await expectDenied("체력 5000으로 세우기", () => setDoc(raidRef(), fresh(5000)));
-  await expectDenied("맞은 수 5로 세우기", () => setDoc(raidRef(), { ...fresh(180), hits: 5 }));
+  await expectDenied("맞은 수 5로 세우기", () => setDoc(raidRef(), { ...fresh(270), hits: 5 }));
 
   if (!adminDb) {
     console.log("  거대 잡초 통과 검사는 건너뛴다 (sa.json 없음)");
@@ -706,7 +707,7 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
 
   try {
     await expectDenied("첫 물결 없이 둘째 물결 세우기", () => spawn(2));
-    await expectAllowed("오늘 첫 물결을 체력 180으로, 빈 칸 여덟과 함께 세우기", () => spawn());
+    await expectAllowed("오늘 첫 물결을 체력 270으로, 빈 칸 여덟과 함께 세우기", () => spawn());
     await expectDenied("첫 물결이 싸우는 중에 둘째 물결 세우기", () => spawn(2));
     await expectDenied("칸에 1을 넣어 두기(내 표식 없이)", () => updateDoc(shardRef(S), { hits: 1 }));
     await expectDenied("물결 문서 합계를 바로 +1(표식 없이)", () => updateDoc(raidRef(), { hits: 1 }));
@@ -749,10 +750,10 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
     await wait();
     await expectDenied("필살기로 내 몫 60방을 넘기(50 + 20)", () => strike(70, 28, 1));
 
-    // 합계 = 물결 문서 1 + 칸 8 = 9. 체력 180에 못 미친다.
+    // 합계 = 물결 문서 1 + 칸 8 = 9. 체력 270에 못 미친다.
     await expectDenied("합계가 체력에 못 미쳐 쓰러뜨리기", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp() }));
-    // 칸을 올려 합계를 180으로(1 + 179).
-    await adminShard(S).update({ hits: 179 });
+    // 칸을 올려 합계를 270으로(1 + 269).
+    await adminShard(S).update({ hits: 269 });
     await expectDenied("쓰러뜨리며 체력도 바꾸기", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp(), hp: 1 }));
     await expectDenied("쓰러진 시각을 옛날로 찍기", () => updateDoc(raidRef(), { defeatedAt: Timestamp.fromMillis(Date.now() - 3_600_000) }));
     // 칸 하나가 없으면 합을 못 낸다. 쓰러뜨리는 커밋이 빈 칸을 함께 만든다.
@@ -773,7 +774,7 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
     await expectDenied("칸 지우기", () => deleteDoc(shardRef(S)));
 
     // 도망: 태어난 지 3시간이 지난 물결은 칠 수 없다.
-    await live.set({ hp: 180, hits: 0, fighters: 0, spawnedAt: Timestamp.fromMillis(Date.now() - 3.5 * 3_600_000), defeatedAt: null });
+    await live.set({ hp: 270, hits: 0, fighters: 0, spawnedAt: Timestamp.fromMillis(Date.now() - 3.5 * 3_600_000), defeatedAt: null });
     await adminShard(S).update({ hits: 1, fighters: 1 });
     await adminMine.update({ hits: 1 });
     await wait();

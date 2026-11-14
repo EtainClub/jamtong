@@ -18,6 +18,7 @@ import {
   TRAIL_PER_DAY,
   openRaidBox,
   RAID_BOX,
+  RAID_KINDS,
   WATER_PER_DAY,
   waterBeds,
   PLAZA_SPEED,
@@ -35,6 +36,7 @@ import {
   WEED_SEED_ODDS,
   withRainbow,
   fertilize,
+  MUTATION,
   TOOLS,
   FINISHERS,
   type FinisherId,
@@ -45,9 +47,28 @@ import {
   caseReward,
   openCaseBox,
   type CaseLedger,
+  type RaidKindId,
   type WeedStage,
 } from "./rules";
+import {
+  addSample,
+  freshKit,
+  freshLoot,
+  KIT,
+  LEDGER_KEEP,
+  normalizeKit,
+  normalizeLoot,
+  TROPHY_WALLPAPER,
+  trophyId,
+  type KitId,
+  type KitLedger,
+  type LootLedger,
+  type RaidLoot,
+} from "./raid/rules";
 import { initialCoach, normalizeCoach, type CoachData, type CoachMark, type TipTab } from "./coach";
+import * as room from "./room/rules";
+import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_ILCHON, type IlchonData, type NewsEntry } from "./ilchon/rules";
+import { MOODS } from "./room/catalog";
 import type { Case, Fruit, Mutation, Plant, PlazaLevel, Species } from "./types";
 
 /**
@@ -110,6 +131,15 @@ export interface GardenData {
   tools: { have: Partial<Record<ToolId, number>>; day: string; bought: Partial<Record<ToolId, number>> };
   /** 가진 거대 잡초 필살기(rules.ts의 FINISHERS)와 오늘(한국 날짜) 산 수. */
   finishers: { have: Partial<Record<FinisherId, number>>; day: string; bought: Partial<Record<FinisherId, number>> };
+  /** 거대 잡초 싸움 도구(raid/rules.ts의 KIT) — 가진 것, 오늘 산 수, 켜 둔 물결. */
+  kit: KitLedger;
+  /**
+   * 뿌리 조각 — 거대 잡초에서만 나오는 두 번째 재화(docs/garden-miniroom.md §7.4). 🏆 전리품만 산다.
+   * 잼으로 바꾸지 못하고 남에게 주지 못한다. 개인 장부라 손으로 고치면 혼자의 문제다(본문서 §3.12).
+   */
+  roots: number;
+  /** 거대 잡초 보상 장부 — 도망간 물결의 조각, 표본, 고른 필살기 연출(raid/rules.ts). */
+  loot: LootLedger;
   /** 첫 한 바퀴 코치와 탭 첫 방문 팁(coach.ts). 기기를 옮겨도 다시 뜨지 않게 정원과 함께 간다. */
   coach: CoachData;
   /**
@@ -118,6 +148,12 @@ export interface GardenData {
    * claimed=초대한 친구 몫으로 받은 상자 수.
    */
   invite: { code: string | null; registered: boolean; by: string | null; done: boolean; claimed: number };
+  /** 내 방(docs/garden-miniroom.md §4). 규칙과 모양은 room/rules.ts. */
+  room: room.RoomData;
+  /** 1촌(docs/garden-miniroom.md §5). 설정과 사본. 모양은 ilchon/rules.ts. */
+  ilchon: IlchonData;
+  /** 1촌 소식 — 공개 문서에 싣는 종류 번호(ilchon/rules.ts의 NewsEntry). 최근 것부터. */
+  news: NewsEntry[];
   /**
    * 이 정원을 마지막으로 맞춘 계정. 없으면 아직 어느 계정과도 맞춘 적 없는
    * 이 기기만의 정원이다. updatedAt만으로 고르면 새 기기에서 갓 만든 빈 정원이
@@ -135,6 +171,15 @@ const STORAGE_KEY = "jamtong-garden-v1";
 /** 친구 목록에 남길 정원 수. 비교 화면이 정원마다 문서 하나를 읽는다. */
 export const FRIENDS_MAX = 30;
 
+/**
+ * 바구니 상한. 넘으면 가장 오래된 열매부터 빠진다(firestore.rules도 120까지 받는다).
+ * 빠지기 전에 화면이 알린다 — nav.ts의 BASKET_WARN_AT, Beds.tsx.
+ */
+export const BASKET_MAX = 120;
+
+/** 새 정원의 첫 새싹이 익는 데 걸리는 시간. 첫 수확을 첫 세션 안에(docs/garden-miniroom.md §8의 1). */
+const STARTER_RIPE = 60_000;
+
 const NO_INVITE: GardenData["invite"] = { code: null, registered: false, by: null, done: false, claimed: 0 };
 
 function fresh(catalog: Species[]): GardenData {
@@ -151,10 +196,17 @@ function fresh(catalog: Species[]): GardenData {
     const c = commons[Math.floor(roll() * commons.length)];
     seeds[c.id] = (seeds[c.id] ?? 0) + 1;
   }
+  // 곧 익는 새싹 한 포기를 심어 둔다. 코치의 첫 걸음이 심기가 아니라 거두기가 된다(coach.ts).
+  const beds: Array<Plant | null> = Array(START_PLOTS).fill(null);
+  const starter = sprouts.length ? sprouts[Math.floor(roll() * sprouts.length)] : undefined;
+  const now = Date.now();
+  if (starter) {
+    beds[0] = { id: uid(), speciesId: starter.id, plantedAt: now, ripeAt: now + STARTER_RIPE, speed: 1, harvests: 0 };
+  }
   return {
     v: 1,
     jam: START_JAM,
-    beds: Array(START_PLOTS).fill(null),
+    beds,
     seeds,
     basket: [],
     dex: {},
@@ -176,8 +228,14 @@ function fresh(catalog: Species[]): GardenData {
     coach: initialCoach(),
     tools: { have: {}, day: "", bought: {} },
     finishers: { have: {}, day: "", bought: {} },
+    kit: freshKit(),
+    roots: 0,
+    loot: freshLoot(),
     invite: NO_INVITE,
     friends: [],
+    room: room.freshRoom(),
+    ilchon: freshIlchon(),
+    news: [],
     updatedAt: Date.now(),
   };
 }
@@ -199,8 +257,14 @@ function normalize(data: GardenData): GardenData {
     coach: normalizeCoach(data.coach),
     tools: data.tools ?? { have: {}, day: "", bought: {} },
     finishers: data.finishers ?? { have: {}, day: "", bought: {} },
+    kit: normalizeKit(data.kit),
+    roots: Number.isFinite(data.roots) ? Math.max(0, data.roots) : 0,
+    loot: normalizeLoot(data.loot),
     invite: data.invite ?? NO_INVITE,
     friends: data.friends ?? [],
+    room: room.normalizeRoom(data.room),
+    ilchon: normalizeIlchon(data.ilchon),
+    news: Array.isArray(data.news) ? data.news.slice(0, NEWS_MAX) : [],
   };
 }
 
@@ -325,8 +389,29 @@ interface GardenState {
   recordCare: (speciesId: string, delta: number, mine?: number) => void;
   rename: (nick: string) => void;
   takeNectar: (speciesIds: string[]) => number;
-  /** 거대 잡초의 희귀 씨앗 상자를 연다. 물결마다 한 번(key=raidKey). 이미 받았으면 null. */
-  claimRaid: (key: number, seed: string, catalog: Species[]) => { species?: Species; jam: number } | null;
+  /**
+   * 쓰러뜨린 거대 잡초의 보상을 받는다 — 상자·뿌리 조각·그 종류의 표본. 물결마다 한 번(key=raidKey).
+   * 이미 받았으면 null. 표본이 셋이 되면 박제가, 여섯 박제가 모이면 벽지가 생긴다.
+   */
+  claimRaid: (
+    key: number,
+    seed: string,
+    catalog: Species[],
+    loot: RaidLoot,
+    kind: RaidKindId,
+  ) => { species?: Species; jam: number; roots: number; trophy: RaidKindId | null; wallpaper: boolean } | null;
+  /** 도망간 거대 잡초에서 친 사람의 뿌리 조각. 물결마다 한 번. 이미 받았으면 null. */
+  claimEscape: (key: number, roots: number) => number | null;
+  /** 싸움 도구를 산다. 잼이 모자라거나 오늘 상한에 닿았으면 false. */
+  buyKit: (id: KitId) => boolean;
+  /** 싸움 도구 하나를 이 물결에 켠다. 없거나 이미 켰으면 false. */
+  armKit: (id: KitId, raid: string) => boolean;
+  /** 반격에 맞는 순간 가죽 장갑 하나를 쓴다. 없으면 false(묶인다). */
+  useGlove: () => boolean;
+  /** 🏆 전리품을 뿌리 조각으로 산다. */
+  buyTrophy: (id: string) => true | room.BuyRefusal;
+  /** 필살기 연출을 고른다(가진 것만). null이면 기본. */
+  setFx: (id: string | null) => void;
   /** 도구를 산다. 잼이 모자라거나 오늘 상한에 닿았으면 false. */
   buyTool: (id: ToolId) => boolean;
   /** 필살기를 산다. 잼이 모자라거나 오늘 상한에 닿았으면 false. */
@@ -345,14 +430,18 @@ interface GardenState {
   setShare: (on: boolean) => string | null;
   /** 오늘 이 정원에 물을 줄 수 있는가. 남은 횟수(0이면 못 준다). */
   waterRoom: (gid: string) => number;
-  /** 물을 준 뒤 부른다. 내 텃밭도 함께 자란다. */
-  gaveWater: (gid: string) => void;
+  /** 물을 준 뒤 부른다. 내 텃밭도 함께 자란다. ilchon이면 1촌에게 준 물이라 더 줄인다. */
+  gaveWater: (gid: string, ilchon?: boolean) => void;
   /** 남의 공개 정원에 놀러 갔다. 친구 목록 맨 앞에 둔다. */
   metFriend: (gid: string, nick: string) => void;
   /** 친구 목록에서 뺀다(공개를 껐거나 더 보고 싶지 않다). */
   forgetFriend: (gid: string) => void;
-  /** 받은 물을 쓴다. 오늘 처음 보는 방문자만, 하루 WATER_PER_DAY까지. 쓴 방문자를 돌려준다. */
-  receiveWaters: <T extends { uid: string }>(visitors: T[]) => T[];
+  /** 받은 물을 쓴다. 오늘 처음 보는 방문자만, 하루 WATER_PER_DAY까지. 쓴 방문자를 돌려준다. il이면 1촌의 물. */
+  receiveWaters: <T extends { uid: string; il?: boolean }>(visitors: T[]) => T[];
+  /** 공개 id를 새로 만든다. 이 id의 공개 문서가 다른 계정 것일 때(share.ts). */
+  renewShareId: () => void;
+  /** 1촌 칸을 고친다(설정·1촌 사본·보낸 신청·차단). */
+  updateIlchon: (fn: (il: IlchonData) => IlchonData) => void;
   /** 코치를 끈다(마쳤거나 건너뛰었다). */
   endCoach: () => void;
   /** 탭 첫 방문 팁을 닫았다. */
@@ -367,6 +456,19 @@ interface GardenState {
   finishInvite: (reward: { key: string; catalog: Species[] } | null) => Species | undefined | null;
   /** 첫 열매를 거둔 친구 수를 보고, 아직 받지 않은 상자를 연다(평생 INVITE_CAP까지). */
   claimInvites: (joined: number, catalog: Species[]) => Array<Species | undefined>;
+  /** 가구·벽지를 산다. 샀으면 true, 못 샀으면 그 까닭. */
+  buyFurniture: (id: string) => true | room.BuyRefusal;
+  /** 방을 넓힌다. 잼이 모자라거나 다 넓혔으면 false. */
+  upgradeRoom: () => boolean;
+  setMood: (id: string) => void;
+  /** 가진 벽지·바닥재를 바른다. */
+  applySurface: (id: string) => boolean;
+  /** 꾸미기를 마쳤다. 초안이 맞지 않으면(room/rules.ts의 validRoom) 받지 않고 false. */
+  saveRoom: (draft: room.RoomData) => boolean;
+  /** 바구니의 열매를 방에 전시한다(열매는 사라진다). 놓인 칸(빈 칸이 없으면 null)과 전시품. */
+  showFruit: (fruitId: string, catalog: Map<string, Species>) => { shown: room.Shown; at: string | null } | null;
+  /** 쪽지를 액자에 건다. 빈 액자틀이 없으면 잼으로 하나 사서. */
+  frameNote: (noteId: string, speciesId: string) => { at: string | null; bought: boolean } | null;
 }
 
 function marked(coach: CoachData, mark: CoachMark): CoachData {
@@ -457,8 +559,10 @@ export const useGarden = create<GardenState>((set, get) => {
       commit({
         ...d,
         beds,
-        basket: [fruit, ...d.basket].slice(0, 120),
+        basket: [fruit, ...d.basket].slice(0, BASKET_MAX),
         dex: { ...d.dex, [species.id]: [...seen] },
+        // 처음 거둔 품종은 1촌 소식이 된다.
+        news: d.dex[species.id] ? d.news : pushNews(d.news, newsEntry("species", species.id, now)),
         notes: fruit.noteId && !d.notes.includes(fruit.noteId) ? [...d.notes, fruit.noteId] : d.notes,
       });
       return fruit;
@@ -661,13 +765,15 @@ export const useGarden = create<GardenState>((set, get) => {
       commit({ ...d, friends: d.friends.filter((f) => f.id !== gid) });
     },
 
-    gaveWater: (gid) => {
+    gaveWater: (gid, ilchon) => {
       const d = get().data;
       if (!d) return;
       const today = kstDayNumber(Date.now());
       const w = d.waters.day === today ? d.waters : { day: today, given: [], received: [] };
       if (w.given.includes(gid)) return;
-      commit({ ...d, beds: waterBeds(d.beds, Date.now()), waters: { ...w, given: [...w.given, gid] } });
+      // 1촌인지는 주는 쪽 화면이 안다. 속여도 빨라지는 것은 제 텃밭뿐이다(받는 쪽은 규칙이 본 표시를 쓴다).
+      const cut = ilchon ? WATER_CUT_ILCHON : undefined;
+      commit({ ...d, beds: waterBeds(d.beds, Date.now(), cut), waters: { ...w, given: [...w.given, gid] } });
     },
 
     receiveWaters: (visitors) => {
@@ -680,23 +786,91 @@ export const useGarden = create<GardenState>((set, get) => {
         .slice(0, Math.max(0, WATER_PER_DAY - w.received.length));
       if (fresh.length === 0) return [];
       let beds = d.beds;
-      for (let i = 0; i < fresh.length; i++) beds = waterBeds(beds, Date.now());
+      for (const v of fresh) beds = waterBeds(beds, Date.now(), v.il ? WATER_CUT_ILCHON : undefined);
       commit({ ...d, beds, waters: { ...w, received: [...w.received, ...fresh.map((v) => v.uid)] } });
       return fresh;
     },
 
-    claimRaid: (key, seed, catalog) => {
+    claimRaid: (key, seed, catalog, loot, kind) => {
       const d = get().data;
-      if (!d || d.raids.includes(key)) return null;
-      const species = openRaidBox(seed, catalog);
+      if (!d || d.raids.includes(key) || !loot.box) return null;
+      const species = openRaidBox(seed, catalog, loot.perennial);
+      // 표본 하나. 셋이면 그 악초의 박제가 방 보관함에 생긴다(놓을 칸이 있으면 바로 놓는다).
+      const have = new Set(d.room.shown.filter((x) => x.kind === "trophy").map((x) => x.species as RaidKindId));
+      const sample = addSample(d.loot.samples, kind, have);
+      let nextRoom = d.room;
+      if (sample.trophy) nextRoom = room.addShown(nextRoom, { id: trophyId(sample.trophy), kind: "trophy", species: sample.trophy })?.room ?? nextRoom;
+      const trophies = nextRoom.shown.filter((x) => x.kind === "trophy").length;
+      const wallpaper = Boolean(sample.trophy) && trophies >= RAID_KINDS.length && !(nextRoom.owned[TROPHY_WALLPAPER] ?? 0);
+      if (wallpaper) nextRoom = room.grantItem(nextRoom, TROPHY_WALLPAPER);
       commit({
         ...d,
         jam: d.jam + RAID_BOX.jam,
+        roots: d.roots + loot.roots,
         seeds: species ? give(d.seeds, species.id) : d.seeds,
         // 오래된 날은 버린다. 문서가 끝없이 커지지 않게.
         raids: [...d.raids, key].slice(-60),
+        loot: { ...d.loot, samples: sample.samples },
+        room: nextRoom,
       });
-      return { species, jam: RAID_BOX.jam };
+      return { species, jam: RAID_BOX.jam, roots: loot.roots, trophy: sample.trophy, wallpaper };
+    },
+
+    claimEscape: (key, roots) => {
+      const d = get().data;
+      if (!d || roots <= 0 || d.loot.fled.includes(key)) return null;
+      commit({ ...d, roots: d.roots + roots, loot: { ...d.loot, fled: [...d.loot.fled, key].slice(-LEDGER_KEEP) } });
+      return roots;
+    },
+
+    buyKit: (id) => {
+      const d = get().data;
+      if (!d) return false;
+      const item = KIT[id];
+      const today = kstDay(Date.now());
+      const bought = d.kit.day === today ? d.kit.bought : {};
+      if ((bought[id] ?? 0) >= item.perDay || d.jam < item.price) return false;
+      commit({
+        ...d,
+        jam: d.jam - item.price,
+        kit: { ...d.kit, have: { ...d.kit.have, [id]: (d.kit.have[id] ?? 0) + 1 }, day: today, bought: { ...bought, [id]: (bought[id] ?? 0) + 1 } },
+      });
+      return true;
+    },
+
+    armKit: (id, raid) => {
+      const d = get().data;
+      const have = d?.kit.have[id] ?? 0;
+      if (!d || have <= 0 || d.kit.on[id] === raid) return false;
+      const left: KitLedger["have"] = { ...d.kit.have, [id]: have - 1 };
+      if (have - 1 <= 0) delete left[id];
+      commit({ ...d, kit: { ...d.kit, have: left, on: { ...d.kit.on, [id]: raid } } });
+      return true;
+    },
+
+    useGlove: () => {
+      const d = get().data;
+      const have = d?.kit.have.glove ?? 0;
+      if (!d || have <= 0) return false;
+      const left: KitLedger["have"] = { ...d.kit.have, glove: have - 1 };
+      if (have - 1 <= 0) delete left.glove;
+      commit({ ...d, kit: { ...d.kit, have: left } });
+      return true;
+    },
+
+    buyTrophy: (id) => {
+      const d = get().data;
+      if (!d) return "unknown";
+      const out = room.buyTrophyItem(d.room, d.roots, id);
+      if (typeof out === "string") return out;
+      commit({ ...d, room: out.room, roots: out.roots });
+      return true;
+    },
+
+    setFx: (id) => {
+      const d = get().data;
+      if (!d || d.loot.fx === id || (id !== null && !(d.room.owned[id] ?? 0))) return;
+      commit({ ...d, loot: { ...d.loot, fx: id } });
     },
 
     buyTool: (id) => {
@@ -850,6 +1024,20 @@ export const useGarden = create<GardenState>((set, get) => {
       return boxes;
     },
 
+    renewShareId: () => {
+      const d = get().data;
+      if (!d) return;
+      commit({ ...d, share: { id: newPublicId(), on: d.share.on } });
+    },
+
+    updateIlchon: (fn) => {
+      const d = get().data;
+      if (!d) return;
+      const next = fn(d.ilchon);
+      if (next === d.ilchon) return;
+      commit({ ...d, ilchon: next });
+    },
+
     endCoach: () => {
       const d = get().data;
       if (!d || d.coach.off) return;
@@ -860,6 +1048,69 @@ export const useGarden = create<GardenState>((set, get) => {
       const d = get().data;
       if (!d || d.coach.tips.includes(tab)) return;
       commit({ ...d, coach: { ...d.coach, tips: [...d.coach.tips, tab] } });
+    },
+
+    buyFurniture: (id) => {
+      const d = get().data;
+      if (!d) return "unknown";
+      const out = room.buyItem(d.room, d.jam, id, Date.now());
+      if (typeof out === "string") return out;
+      commit({ ...d, room: out.room, jam: out.jam });
+      return true;
+    },
+
+    upgradeRoom: () => {
+      const d = get().data;
+      const out = d && room.upgradeRoom(d.room, d.jam);
+      if (!d || !out) return false;
+      commit({ ...d, room: out.room, jam: out.jam, news: pushNews(d.news, newsEntry("room", "", Date.now(), String(out.room.size))) });
+      return true;
+    },
+
+    setMood: (id) => {
+      const d = get().data;
+      if (!d || d.room.mood === id || !MOODS.some((m) => m.id === id)) return;
+      commit({ ...d, room: { ...d.room, mood: id } });
+    },
+
+    applySurface: (id) => {
+      const d = get().data;
+      const next = d && room.applySurface(d.room, id);
+      if (!d || !next) return false;
+      commit({ ...d, room: next });
+      return true;
+    },
+
+    saveRoom: (draft) => {
+      const d = get().data;
+      // 꾸미는 동안 산 것·전시한 것이 있을 수 있다. 장부(owned·shown·size)는 지금 것을 쓰고, 배치만 받는다.
+      const next = d && { ...d.room, wall: draft.wall, floor: draft.floor, placed: draft.placed };
+      if (!d || !next || !room.validRoom(next)) return false;
+      commit({ ...d, room: next });
+      return true;
+    },
+
+    showFruit: (fruitId, catalog) => {
+      const d = get().data;
+      const fruit = d?.basket.find((f) => f.id === fruitId);
+      const species = fruit && catalog.get(fruit.speciesId);
+      if (!d || !fruit || !species) return null;
+      const shown = room.shownFromFruit(fruit, species);
+      const added = room.addShown(d.room, shown);
+      if (!added) return null;
+      // 변이 화분을 놓으면 1촌 소식이 된다. 가장 값진 변이 하나로.
+      const top = [...fruit.mutations].sort((a, b) => MUTATION[b].multiplier - MUTATION[a].multiplier)[0];
+      const news = top && added.at ? pushNews(d.news, newsEntry("mutant", species.id, Date.now(), top)) : d.news;
+      commit({ ...d, room: added.room, basket: d.basket.filter((f) => f.id !== fruitId), news });
+      return { shown, at: added.at };
+    },
+
+    frameNote: (noteId, speciesId) => {
+      const d = get().data;
+      const out = d && room.frameNote(d.room, d.jam, noteId, speciesId);
+      if (!d || !out) return null;
+      commit({ ...d, room: out.room, jam: out.jam });
+      return { at: out.at, bought: out.bought };
     },
   };
 });

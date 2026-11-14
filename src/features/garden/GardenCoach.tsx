@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 
 import { track } from "@/lib/analytics";
 
-import { COACH_STEPS, coachCard, coachStep, TIPS, type TipTab } from "./coach";
+import { COACH_DOTS, coachCard, coachDot, coachStep, TIPS, type TipTab } from "./coach";
+import type { Place } from "./nav";
 import { gardenFeedback } from "./feedback";
 import { useGarden, type GardenData } from "./store";
 
@@ -21,8 +22,9 @@ export function CoachQuest({
 }: {
   data: GardenData;
   now: number;
+  /** 지금 보고 있는 자리(nav.ts의 칸). 같은 자리로 보내는 단추는 그리지 않는다. */
   tab: string;
-  onGo: (tab: "shop" | "greenhouse" | "beds") => void;
+  onGo: (place: Place) => void;
   onGuide: () => void;
 }) {
   const step = coachStep(data, now);
@@ -37,8 +39,8 @@ export function CoachQuest({
 
   if (!step) return null;
   const card = coachCard(step, { now, beds: data.beds, hasSeeds: Object.keys(data.seeds).length > 0 });
-  const index = COACH_STEPS.indexOf(step);
-  const total = COACH_STEPS.length - 1;
+  const index = coachDot(step);
+  const total = COACH_DOTS.length;
   const { endCoach } = useGarden.getState();
   const finish = (skipped: boolean) => {
     gardenFeedback("tap");
@@ -64,7 +66,7 @@ export function CoachQuest({
         )}
       </div>
       <ol className="garden-coach-dots mt-1.5" aria-hidden="true">
-        {COACH_STEPS.slice(0, total).map((s, i) => (
+        {COACH_DOTS.map((s, i) => (
           <li key={s} className={i < index || step === "done" ? "is-done" : i === index ? "is-now" : ""} />
         ))}
       </ol>
@@ -93,7 +95,7 @@ export function CoachQuest({
   );
 }
 
-/** 탭에 처음 들어왔을 때 한 번 보이는 팁. 닫으면 다시 뜨지 않는다. */
+/** 자리(nav.ts의 칸)에 처음 들어왔을 때 한 번 보이는 팁. 닫으면 다시 뜨지 않는다. */
 export function TabTip({ tab, data, onGuide }: { tab: string; data: GardenData; onGuide: (section: string) => void }) {
   if (!(tab in TIPS) || data.coach.tips.includes(tab)) return null;
   const tip = TIPS[tab as TipTab];
@@ -109,7 +111,7 @@ export function TabTip({ tab, data, onGuide }: { tab: string; data: GardenData; 
         >
           알겠어요
         </button>
-        <button type="button" onClick={() => onGuide(tab)} className="text-smoke underline underline-offset-2">
+        <button type="button" onClick={() => onGuide(tip.section)} className="min-h-[44px] text-smoke underline underline-offset-2">
           자세히
         </button>
       </div>

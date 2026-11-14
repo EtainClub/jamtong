@@ -6,7 +6,8 @@
  *
  * 무엇을 볼 수 있고 무엇을 볼 수 없나:
  *   - 볼 수 있다: 정원 수와 마지막 활동, 광장 기록판(날마다 뽑힌 수·정원지기 수),
- *     거대 잡초 물결마다의 결과·걸린 시간·모인 사람, 꽃밭, 초대, 공개 정원.
+ *     거대 잡초 물결마다의 결과·걸린 시간·모인 사람, 꽃밭, 초대, 공개 정원,
+ *     잼 분포, 방(공개·가림), 1촌 수 분포, 방명록 수, 공개 장부와 공개 문서의 어긋남(docs/garden-miniroom.md §8).
  *   - 볼 수 없다: 재방문율(D1·D7), 하루 세션 수, 근거 열람률. 이것은 계측 이벤트
  *     (src/lib/analytics.ts)로만 보인다 — Firestore에는 "언제 왔는가"의 이력이 없고
  *     정원 문서의 updatedAt은 마지막 한 번뿐이다.
@@ -18,7 +19,8 @@ import { readFileSync } from "node:fs";
 
 import type { Firestore, Timestamp } from "firebase-admin/firestore";
 
-import { BLOOM_CARE, kstDay, RAID_HP_MIN, RAID_LIFE, RAID_MIN_FIGHTERS, RAID_SHARDS } from "../src/features/garden/rules";
+import { BLOOM_CARE, kstDay, RAID_HP_MIN, RAID_LIFE, RAID_MIN_FIGHTERS, RAID_SHARDS, RAID_USES_PER_PERSON } from "../src/features/garden/rules";
+import { raidStars } from "../src/features/garden/raid/rules";
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -60,7 +62,7 @@ function title(s: string) {
 
 // ── 개인 정원 ──────────────────────────────────────────────────────
 
-async function gardens(db: Firestore) {
+async function gardens(db: Firestore): Promise<Array<{ uid: string; share?: { id?: string | null; on?: boolean }; updatedAt: number }>> {
   title("개인 정원 (계정에 올라간 것만)");
   const snap = await db.collectionGroup("garden").get();
   const states = snap.docs.filter((d) => d.id === "state").map((d) => d.data());
@@ -78,13 +80,25 @@ async function gardens(db: Firestore) {
   );
   console.log(`지금 텃밭에 심긴 정원 ${planted} · 공개 중 ${shared} · 초대 링크를 받아들인 정원 ${invited}`);
 
-  const buckets = [0, 1, 10, 40, 100];
-  const row = buckets.map((lo, i) => {
-    const hi = buckets[i + 1] ?? Infinity;
-    const n = dexSize.filter((x) => x >= lo && x < hi).length;
-    return `${lo}${hi === Infinity ? "+" : `–${hi - 1}`}종 ${n}`;
-  });
-  console.log(`도감 품종 수 — ${row.join(" · ")}`);
+  console.log(`도감 품종 수 — ${histogram(dexSize, [0, 1, 10, 40, 100], "종")}`);
+
+  // 잼 분포 — 가구 값을 맞출 근거(docs/garden-miniroom.md §6.2, §8의 5).
+  const jam = states.map((s) => Number(s.jam) || 0);
+  console.log(`잼 — ${histogram(jam, [0, 100, 500, 1500, 5000, 20000], "")} · 중앙값 ${median(jam) ?? "-"}`);
+
+  return snap.docs
+    .filter((d) => d.id === "state")
+    .map((d) => ({ uid: d.ref.parent.parent?.id ?? "", share: d.get("share") as { id?: string | null; on?: boolean } | undefined, updatedAt: ms(d.get("updatedAt")) ?? 0 }));
+}
+
+function histogram(xs: number[], buckets: number[], unit: string): string {
+  return buckets
+    .map((lo, i) => {
+      const hi = buckets[i + 1] ?? Infinity;
+      const n = xs.filter((x) => x >= lo && x < hi).length;
+      return `${lo}${hi === Infinity ? "+" : `–${hi - 1}`}${unit} ${n}`;
+    })
+    .join(" · ");
 }
 
 // ── 광장 기록판 ────────────────────────────────────────────────────
@@ -111,8 +125,13 @@ interface Wave {
   hp: number;
   hits: number;
   fighters: number;
-  /** 한 사람이 때린 수. */
+  /** 한 사람이 넣은 센 값. */
   each: number[];
+  /** 한 사람이 쓴 기력(2.0 이전 표식은 센 값과 같다)과 건 지원 수. */
+  uses: number[];
+  aids: number[];
+  /** 물결 문서에 직접 오른 몫 — 칸 이전(2026-11-06 전) 화면의 옛 길로 들어온 것. */
+  legacy: number;
 }
 
 async function raids(db: Firestore) {
@@ -133,6 +152,9 @@ async function raids(db: Firestore) {
         hits: (d.get("hits") ?? 0) + sum("hits"),
         fighters: (d.get("fighters") ?? 0) + sum("fighters"),
         each: fighters.docs.map((f) => (f.get("hits") as number | undefined) ?? 0),
+        uses: fighters.docs.map((f) => (f.get("uses") as number | undefined) ?? ((f.get("hits") as number | undefined) ?? 0)),
+        aids: fighters.docs.map((f) => (f.get("aids") as number | undefined) ?? 0),
+        legacy: d.get("hits") ?? 0,
       };
     }),
   );
@@ -145,10 +167,17 @@ async function raids(db: Firestore) {
     const end = w.defeatedAt ?? (w.spawnedAt !== null && NOW >= w.spawnedAt + RAID_LIFE ? w.spawnedAt + RAID_LIFE : null);
     const result = w.defeatedAt ? "쓰러짐" : end ? "도망  " : "싸우는 중";
     const minutes = end && w.spawnedAt ? Math.round((end - w.spawnedAt) / 60_000) : null;
-    const top = Math.max(0, ...w.each);
+    // 빈틈 비율: 빈틈의 한 번은 두 번으로 세므로 (센 값 − 쓴 기력) = 빈틈에 쓴 기력. 표식에 새 필드를 두지 않고 셈한다.
+    const used = w.uses.reduce((a, b) => a + b, 0);
+    const gapUses = w.each.reduce((a, b, i) => a + Math.max(0, b - w.uses[i]), 0);
+    const supporters = w.aids.filter((a) => a > 0).length;
+    const supportOnly = w.aids.filter((a, i) => a > 0 && w.uses[i] === 0).length;
+    const stars = raidStars(w.spawnedAt, w.defeatedAt);
     console.log(
       `${w.id}  ${w.spawnedAt ? kstTime(w.spawnedAt) : "?"}  ${result}  ${minutes === null ? "   -" : String(minutes).padStart(4)}분  ` +
-        `${String(w.fighters).padStart(3)}명  ${w.hits}/${w.hp}방  가장 많이 때린 한 사람 ${top}`,
+        `${String(w.fighters).padStart(3)}명  ${w.hits}/${w.hp}  ${stars ? "★".repeat(stars).padEnd(3) : "   "}  ` +
+        `빈틈 ${pct(gapUses, used).padStart(4)}  지원 ${supporters}명(지원만 ${supportOnly})  기력 다 쓴 사람 ${w.uses.filter((u) => u >= RAID_USES_PER_PERSON).length}` +
+        (w.legacy ? `  옛 길 ${w.legacy}` : ""),
     );
   }
 
@@ -166,8 +195,24 @@ async function raids(db: Firestore) {
   console.log(`쓰러뜨리기까지 중앙값 ${median(toKill) ?? "-"}분 · 쓰러뜨린 물결의 인원 중앙값 ${median(won.map((w) => w.fighters)) ?? "-"}명`);
   console.log(`도망간 물결 중 때린 사람이 ${RAID_MIN_FIGHTERS}명보다 적었던 것 ${escapedShort} · 아무도 안 때린 것 ${ended.filter((w) => w.fighters === 0).length}`);
   console.log(
-    `물결별 등장 — ${[1, 2, 3].map((n) => `${n}번 ${current.filter((w) => w.wave === n).length}`).join(" · ")}`,
+    `물결별 등장 — ${[1, 2, 3, 4, 5].map((n) => `${n}번 ${current.filter((w) => w.wave === n).length}`).join(" · ")}`,
   );
+
+  // 거대 잡초 2.0(docs/garden-miniroom.md §8의 5). 체력 RAID_HP_MIN 이상인 물결만 빈틈이 있다.
+  const v2 = ended.filter((w) => w.hp >= RAID_HP_MIN);
+  if (v2.length) {
+    const used = v2.reduce((n, w) => n + w.uses.reduce((a, b) => a + b, 0), 0);
+    const gap = v2.reduce((n, w) => n + w.each.reduce((a, b, i) => a + Math.max(0, b - w.uses[i]), 0), 0);
+    const starOf = v2.filter((w) => w.defeatedAt).map((w) => raidStars(w.spawnedAt, w.defeatedAt));
+    console.log(
+      `2.0 물결 ${v2.length} · 처치 ${pct(starOf.length, v2.length)} (70% 아래로 내려가거나 도망 30%를 넘으면 체력을 되돌린다) · ` +
+        `쓴 기력 중 빈틈 ${pct(gap, used)} · ★★★ ${starOf.filter((n) => n === 3).length} · ★★ ${starOf.filter((n) => n === 2).length} · ★ ${starOf.filter((n) => n === 1).length}`,
+    );
+    console.log(`물결당 지원한 사람 중앙값 ${median(v2.map((w) => w.aids.filter((a) => a > 0).length)) ?? "-"} · 지원만 한 사람이 있던 물결 ${v2.filter((w) => w.aids.some((a, i) => a > 0 && w.uses[i] === 0)).length}`);
+  }
+  // 옛 길(물결 문서 직접 +1)이 칸 도입 뒤에도 쓰였는가. 0이 이어지면 규칙의 그 길을 지운다(배포 메모).
+  const sinceShards = current.filter((w) => (w.spawnedAt ?? 0) >= Date.parse("2026-11-07T00:00:00+09:00"));
+  console.log(`옛 길(물결 문서 hits)로 들어온 물결 — 11-07 이후 ${sinceShards.filter((w) => w.legacy > 0).length}/${sinceShards.length}`);
   console.log("");
   console.log(`필요 인원(RAID_MIN_FIGHTERS) 판단: 쓰러뜨림 비율이 높고 처치 시간이 짧으며 인원 중앙값이 ${RAID_MIN_FIGHTERS}보다 넉넉하면 올린다.`);
   console.log("도망이 많고 그 대부분이 인원 부족이면 그대로 두거나 사람을 모으는 장치(같이 잡자)부터 본다.");
@@ -192,6 +237,47 @@ async function community(db: Firestore) {
   console.log(`공개 정원 ${gardensSnap.size}`);
 }
 
+// ── 방·1촌 (docs/garden-miniroom.md §5, §8의 2·5) ──────────────────
+
+async function rooms(db: Firestore, states: Awaited<ReturnType<typeof gardens>>) {
+  title(`방과 1촌 (방명록은 최근 ${DAYS}일)`);
+  const docs = (await db.collection("gardens").get()).docs;
+  const hidden = docs.filter((d) => d.get("hidden") === true);
+  const withRoom = docs.filter((d) => d.get("hidden") !== true && d.get("room"));
+  console.log(`공개 문서 ${docs.length} · 열린 방 ${docs.length - hidden.length} (방을 꾸민 것 ${withRoom.length}) · 가린 방 ${hidden.length}`);
+
+  // 1촌 수와 방명록은 방마다 서버가 센다(문서를 받지 않는다). 컬렉션 하나 안의 조건이라 자동 색인으로 된다.
+  const since = new Date(SINCE);
+  const per = await Promise.all(
+    docs.map(async (d) => {
+      const [il, gb] = await Promise.all([
+        d.ref.collection("ilchon").count().get(),
+        d.ref.collection("guestbook").where("at", ">=", since).count().get(),
+      ]);
+      return { ilchon: il.data().count, guestbook: gb.data().count };
+    }),
+  );
+  const friends = per.map((p) => p.ilchon);
+  console.log(`1촌 수 — ${histogram(friends, [0, 1, 3, 10, 30, 50], "명")} · 1촌이 하나라도 있는 방 ${friends.filter((n) => n > 0).length}`);
+  console.log(`방명록 — 최근 ${DAYS}일 ${per.reduce((n, p) => n + p.guestbook, 0)}장 · 받은 방 ${per.filter((p) => p.guestbook > 0).length}`);
+
+  // §8의 2: 공개를 켠 장부와 공개 문서의 어긋남. 사람을 되짚을 값(uid·공개 id)은 찍지 않는다.
+  const byId = new Map(docs.map((d) => [d.id, d]));
+  const on = states.filter((s) => s.share?.on && s.share.id);
+  const ids = new Map<string, number>();
+  for (const s of on) ids.set(s.share!.id!, (ids.get(s.share!.id!) ?? 0) + 1);
+  const missing = on.filter((s) => !byId.has(s.share!.id!));
+  const foreign = on.filter((s) => byId.has(s.share!.id!) && byId.get(s.share!.id!)!.get("ownerUid") !== s.uid);
+  console.log(
+    `공개를 켠 장부 ${on.length} · 서로 다른 공개 id ${ids.size} · 같은 id를 둘 이상이 가진 것 ${[...ids.values()].filter((n) => n > 1).length}`,
+  );
+  console.log(`  그중 공개 문서가 없는 장부 ${missing.length} · 문서가 다른 계정 것인 장부 ${foreign.length}`);
+  console.log(
+    `  문서가 없는 장부의 마지막 활동 — 7일 안 ${missing.filter((s) => s.updatedAt > NOW - 7 * DAY).length} · 그 전 ${missing.filter((s) => s.updatedAt <= NOW - 7 * DAY).length}`,
+  );
+  console.log("  (문서가 다른 계정 것 = 로그아웃·계정 바꾸기로 공개 id가 새 계정에 딸려 간 것. 새 화면은 새 id를 만든다 — share.ts)");
+}
+
 async function main() {
   readFileSync("sa.json", "utf8");
   const appMod = await import("firebase-admin/app");
@@ -200,10 +286,11 @@ async function main() {
   const db = getFirestore();
 
   console.log(`잼통 정원 지표 · ${kstTime(NOW)} KST · 최근 ${DAYS}일`);
-  await gardens(db);
+  const states = await gardens(db);
   await plaza(db);
   await raids(db);
   await community(db);
+  await rooms(db, states);
 
   console.log("\n재방문율·하루 세션 수·근거 열람률은 여기서 보이지 않는다 — 계측 이벤트(analytics.ts)로 본다.");
 }

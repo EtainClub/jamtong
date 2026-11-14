@@ -12,6 +12,7 @@ import type { Species } from "@/features/garden/types";
  *   공개 문서에서 받는 것은 품종 id와 숫자뿐이고, 품종 이름은 품종표에서 꺼낸다.
  *   사람이 지은 정원 이름은 카드와 미리보기에 싣지 않는다 — 우리 도메인의 카드에
  *   아무 말이나 박히면 안 된다(api/share-card와 같은 원칙). 이름은 정원 안에서만 보인다.
+ *   방명록·1촌평·소식도 싣지 않는다(docs/garden-miniroom.md §5.3).
  */
 
 /** 정원 카드의 색. 자랑 카드(/api/garden-card)와 정원 첫 카드(/garden)가 같이 쓴다. */
@@ -49,6 +50,7 @@ type Value = {
   stringValue?: string;
   integerValue?: string;
   doubleValue?: number;
+  booleanValue?: boolean;
   nullValue?: null;
   mapValue?: { fields?: Record<string, Value> };
   arrayValue?: { values?: Value[] };
@@ -70,6 +72,8 @@ export async function loadGardenCard(gid: string): Promise<GardenCard | null> {
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`공개 정원을 읽지 못했다: ${res.status}`);
   const fields = ((await res.json()) as { fields?: Record<string, Value> }).fields ?? {};
+  // 1촌이 있는 방은 공개를 꺼도 지우지 않고 가린다(docs/garden-miniroom.md §5.5). 가린 방은 없는 방과 같다.
+  if (fields.hidden?.booleanValue === true) return null;
 
   catalog ??= buildCatalog();
   const byId = new Map(catalog.map((s) => [s.id, s]));

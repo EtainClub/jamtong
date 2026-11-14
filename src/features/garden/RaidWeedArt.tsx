@@ -211,3 +211,20 @@ export function RaidWeedArt({ kind }: { kind: RaidKindId }) {
     </svg>
   );
 }
+
+/**
+ * 악초 박제 — 쓰러뜨린 거대 잡초를 유리 덮개 아래 나무 받침에 세운 방 전시품(docs/garden-miniroom.md §7.4).
+ * 몸은 위의 그림을 그대로 작게 쓰고, 눈 위에 X를 그어 "잡혔다"를 보인다. 잼통 고유의 그림이다.
+ */
+export function RaidTrophyArt({ kind }: { kind: RaidKindId }) {
+  return (
+    <svg viewBox="0 0 120 120" aria-hidden="true" className="garden-raid-trophy">
+      <rect x="18" y="98" width="84" height="14" rx="2" fill="#9a6439" stroke="#3a2f2a" strokeWidth="3" />
+      <rect x="40" y="102" width="40" height="6" fill="#ffd85c" stroke="#3a2f2a" strokeWidth="1.5" />
+      <g transform="translate(26 22) scale(.57)">{ART[kind]}</g>
+      <path d="M48 54l7 6M55 54l-7 6M57 54l7 6M64 54l-7 6" stroke="#1d1208" strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M22 98V40Q22 10 60 10T98 40V98" fill="#cfeefc" fillOpacity=".25" stroke="#3a2f2a" strokeWidth="3" />
+      <path d="M32 40Q34 22 50 17" stroke="#fff" strokeWidth="3" strokeLinecap="round" fill="none" opacity=".8" />
+    </svg>
+  );
+}

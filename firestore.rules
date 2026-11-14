@@ -217,29 +217,29 @@ service cloud.firestore {
     }
 
     /*
-     * 거대 잡초 — 광장이 무성해지면 나타나는 레이드 (docs/garden-game.md §3.8).
+     * 거대 잡초 — 광장이 무성해지면 나타나는 레이드 (docs/garden-game.md §3.8, docs/garden-miniroom.md §7).
      *
-     * plazaRaids/{한국 날짜 번호}-{물결}   하루 세 마리까지. 체력(hp)·태어난 때·쓰러진 때.
+     * plazaRaids/{한국 날짜 번호}-{물결}   하루 다섯 마리까지. 체력(hp)·태어난 때·쓰러진 때.
      *   ├ shards/{0–7}                    맞은 수(hits)·참여 인원(fighters)을 나눠 센다. 누구나 읽는다.
-     *   └ fighters/{uid}                  한 사람이 이 물결에 때린 수와 올리는 칸. 본인만 읽는다.
+     *   │                                 함께한 사람 이름(names, 칸마다 30)과 마지막 지원(aid·aidAt·aidBy)도 싣는다.
+     *   └ fighters/{uid}                  한 사람의 센 값(hits)·쓴 기력(uses)·지원(aid·aidAt·aids)·칸. 본인만 읽는다.
      *
-     * 규칙이 지키는 것. 값은 src/features/garden/rules.ts의 RAID_*와 같다(rules.test.ts가 본다).
-     *   1. 오늘 번호로만, 물결 1–3으로, 체력 [180, 3000]으로, 맞은 수 0에서 태어난다.
-     *   2. 2·3번째 물결은 앞 물결이 끝난 뒤 2시간이 지나야 태어난다.
-     *      끝남 = 쓰러졌거나(defeatedAt) 태어나고 3시간이 지나 도망갔다.
-     *   3. 한 번 칠 때마다 내 칸(shards/{0–7}, 표식의 shard)과 내 수가 같은 커밋에서 같은 만큼 오른다.
-     *      보통은 1, 필살기는 20까지(rules.ts RAID_FINISHER_MAX). 필살기 아이템은 규칙이 볼 수 없는
-     *      내 정원 문서에 있으므로, 규칙은 한 커밋의 크기와 내 몫(60)만 지킨다 — 혼자 잡지는 못한다.
-     *      맞은 수를 칸에 나눠 세는 것은 한 문서에 몰리는 쓰기를 흩기 위해서다(분산 카운터).
-     *      합계 = 물결 문서의 hits(칸 이전 화면의 몫) + 칸의 합. 쓰러지기 직전 몇 방은 체력을 넘을 수 있다.
-     *   4. 한 사람은 1초에 한 번만, 한 물결에 60번까지만 친다 — 혼자 몰아 잡지 못하게.
-     *      체력 하한 180 = 60 × 3명이다.
-     *   5. 태어나고 3시간이 지나면 칠 수 없다(도망갔다).
-     *   6. 쓰러진 시각은 합계가 체력에 닿았을 때 한 번만 찍히고(규칙이 칸을 모두 읽는다),
-     *      쓰러진 뒤에는 칠 수 없다.
-     *   7. 참여 인원(칸의 fighters)은 내 표식이 처음 생기는 커밋에서만 오른다.
-     * 광장이 정말 무성한지는 규칙이 보지 못한다(칸 24개를 다 읽어야 한다). 그 반칙은
-     * 거대 잡초가 일찍 나오는 것뿐이라 감당한다.
+     * 규칙이 지키는 것. 값은 src/features/garden/rules.ts의 RAID_*와 같다(raid.test.ts가 본다).
+     *   1. 오늘 번호로만, 물결 1–5로, 체력 [270, 3000]으로, 맞은 수 0에서 태어난다.
+     *      270 = 3명 × 기력 60 × 1.5. 한 사람이 넣을 수 있는 맞은 수는 120(60 × 빈틈 2)이라 혼자도 둘도 못 잡는다.
+     *   2. 다음 물결은 제 시각(8·11·14·17·20시)이 됐고 앞 물결이 끝나고 30분이 지나야 태어난다.
+     *   3. 한 번 칠 때마다 내 칸과 내 표식이 같은 커밋에서 같은 만큼 오른다. 기력 1(필살기는 20까지)을 쓰고,
+     *      빈틈이면 그 두 배를 센다 — 빈틈은 request.time의 분과 물결의 spawnedAt으로만 본다(raidGap).
+     *      아이템은 규칙이 볼 수 없는 내 정원 문서에 있으므로, 규칙은 한 커밋의 크기와 기력 60만 지킨다.
+     *   4. 한 사람은 1초에 한 번만, 한 물결에 기력 60까지만 쓴다.
+     *   5. 지원은 종류 1–3, 앞선 지원에서 20초 뒤. 센 값은 그대로다(효과는 화면의 손맛뿐).
+     *   6. 태어나고 3시간이 지나면 칠 수 없다(도망갔다).
+     *   7. 쓰러진 시각은 합계(물결 문서 hits + 칸 8)가 체력에 닿았을 때 한 번만 찍힌다. 쓰러진 뒤에는 칠 수 없다.
+     *   8. 참여 인원(칸의 fighters)과 이름(names)은 내 표식이 처음 생기는 커밋에서만 하나 는다.
+     *
+     * 옛 화면(기력 2.0 이전)과 함께 산다. uses 없이 hits만 올리는 표식은 빈틈 없이 한 번 = 1로 받는다
+     * (기력 = 센 값). 옛 화면은 칸을 set으로 통째로 쓰므로 names·aid가 지워질 수 있다 — 화면의 연출만 잃는다.
+     * 광장이 정말 무성한지는 규칙이 보지 못한다(칸 24개를 다 읽어야 한다). 그 반칙은 거대 잡초가 일찍 나오는 것뿐이다.
      */
     /*
      * 시든 잎 확인 (docs/garden-game.md §3.8) — 원문 링크가 열리는지 사람이 본 결과.
@@ -284,19 +284,37 @@ service cloud.firestore {
     }
 
     /*
-     * 공개 정원과 놀러 가기 (docs/garden-game.md §3.10).
+     * 공개 정원과 놀러 가기 (docs/garden-game.md §3.10), 1촌·방명록·손님 수 (docs/garden-miniroom.md §5.5).
      *
-     * gardens/{공개id}           주인이 직접 켠 정원의 모습. 누구나 읽는다.
-     *                            정원 이름·텃밭·도감 수·칭호 단계만 담는다. 본명은 없다.
-     *   └ waters/{방문자 uid}    그 정원에 물을 준 날. 주인과 그 방문자만 읽는다.
+     * gardens/{공개id}            주인이 직접 켠 정원의 모습. 누구나 읽는다.
+     *                             정원 이름·텃밭·도감 수·칭호 단계·방·소식(종류 번호)만 담는다. 본명은 없다.
+     *                             1촌이 있는 방은 공개를 꺼도 지우지 않고 가린다(hidden) — 그때는 주인과 hidden만 남긴다.
+     *   ├ waters/{방문자 uid}     그 정원에 물을 준 날. 주인과 그 방문자만 읽는다.
+     *   ├ knocks/{신청자 uid}     1촌 신청. 주인과 신청자만 읽고 지운다.
+     *   ├ ilchon/{1촌 uid}        1촌. 주인과 그 1촌만 읽는다. 양쪽이 한 커밋에서 생기고 함께 지워진다.
+     *   ├ blocks/{uid}            차단. 주인만.
+     *   ├ guestbook/{uid}_{날}    방명록. 방을 가리지 않았으면 누구나 읽는다.
+     *   ├ notes/{1촌 uid}         1촌평. 방을 가리지 않았으면 누구나 읽는다.
+     *   ├ visits/{손님 uid}       손님이 온 날. 주인과 그 손님만 읽는다.
+     *   └ meta/counter            오늘 손님·모든 손님.
      *
      * 공개 id는 uid가 아니다 — 링크가 돌아도 계정을 되짚지 못하게. ownerUid는 규칙이
-     * "주인인가"를 보려고 남긴다(blooms와 같다).
+     * "주인인가"를 보려고 남긴다(blooms와 같다). 하위 문서의 주인은 언제나 get(gardens/{gid}).ownerUid로 본다.
      *
-     * 규칙이 지키는 것.
+     * 규칙이 지키는 것. 값은 src/features/garden/ilchon/rules.ts와 같다(ilchon/rules.test.ts가 본다).
      *   1. 정원 문서는 주인만 쓰고 지운다. 주인은 바뀌지 않는다. 운영자는 지울 수 있다.
-     *   2. 물은 남의 정원에만, 한 사람이 한 정원에 하루(한국 날짜) 한 번.
-     * 텃밭 목록 안의 값은 규칙이 하나하나 보지 못한다. 화면은 품종표에 있는 id만 그린다.
+     *   2. 물은 남의 (가리지 않은) 정원에만, 한 사람이 한 정원에 하루(한국 날짜) 한 번.
+     *      1촌의 물(il)은 정말 1촌일 때만 적힌다 — 받는 쪽은 이 표시를 믿고 더 줄인다.
+     *   3. 신청: 신청자가 그 공개 id의 주인이고 그 방이 열려 있다. 남의 열린 방에만, 받기를 켰을 때만,
+     *      차단되지 않았고 아직 1촌이 아닐 때만.
+     *   4. 1촌: 수락하는 사람이 양쪽 1촌 문서를 한 커밋으로 쓰고 신청을 지운다. 신청이 있었을 때만,
+     *      신청의 공개 id·이름표와 맞을 때만. 지울 때도 양쪽이 함께(상대 방이 없어졌으면 내 쪽만).
+     *   5. 방명록: 남의 열린 방에만, 하루 한 번(문서 id = uid_오늘), 주인이 받기를 고른 대로, 차단되지 않았을 때.
+     *      1촌평: 1촌만, 한 사람 한 줄. 둘 다 문구 번호·스티커 번호가 표 안에 있고 직접 쓴 글은 60자까지.
+     *      운영자는 hidden만 바꾼다(가리기). 주인·쓴 사람·운영자가 지운다.
+     *   6. 손님 수: 표식(visits)이 오늘 처음 생기는 커밋에서만 1 오른다. 내 방은 세지 않는다.
+     * 1촌 50명·보낸 신청 10건의 상한은 세지 못한다(문서를 셀 길이 없다). 화면이 지킨다.
+     * 텃밭·방·소식 목록 안의 값은 규칙이 하나하나 보지 못한다. 화면은 표에 있는 id만 그린다.
      */
     match /gardens/{gid} {
       allow read: if true;
@@ -304,32 +322,257 @@ service cloud.firestore {
       allow create: if request.auth != null
         && gid.matches('^g[0-9a-z]{8,12}$')
         && request.resource.data.ownerUid == request.auth.uid
-        && publicGarden();
+        && (publicGarden() || hiddenGarden());
 
       allow update: if request.auth != null
         && resource.data.ownerUid == request.auth.uid
         && request.resource.data.ownerUid == resource.data.ownerUid
-        && publicGarden();
+        && (publicGarden() || hiddenGarden());
 
       allow delete: if (request.auth != null && resource.data.ownerUid == request.auth.uid) || isAdmin();
 
       match /waters/{uid} {
         allow read: if request.auth != null
-          && (request.auth.uid == uid
-            || get(/databases/$(database)/documents/gardens/$(gid)).data.ownerUid == request.auth.uid);
+          && (request.auth.uid == uid || isGardenOwner(gid));
         allow create, update: if request.auth != null
           && request.auth.uid == uid
-          && request.resource.data.keys().hasOnly(['day', 'at', 'nick'])
+          && request.resource.data.keys().hasOnly(['day', 'at', 'nick', 'il'])
           && request.resource.data.day == kstDayNumber()
           && request.resource.data.at == request.time
-          && request.resource.data.nick is string
-          && request.resource.data.nick.size() >= 1
-          && request.resource.data.nick.size() <= 12
+          && nickOk(request.resource.data.nick)
           && (resource == null || resource.data.day < kstDayNumber())
-          && exists(/databases/$(database)/documents/gardens/$(gid))
-          && get(/databases/$(database)/documents/gardens/$(gid)).data.ownerUid != request.auth.uid;
+          && roomOpenToMe(gid)
+          && (!('il' in request.resource.data)
+            || (request.resource.data.il == true && exists(ilchonPath(gid, request.auth.uid))));
         allow delete: if false;
       }
+
+      match /knocks/{uid} {
+        allow read, delete: if request.auth != null
+          && (request.auth.uid == uid || isGardenOwner(gid));
+        allow create: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['g', 'n', 'tag', 'at'])
+          && request.resource.data.at == request.time
+          && nickOk(request.resource.data.n)
+          && tagOk(request.resource.data.tag)
+          && request.resource.data.g is string
+          && request.resource.data.g.matches('^g[0-9a-z]{8,12}$')
+          && request.resource.data.g != gid
+          && myOpenRoom(request.resource.data.g)
+          && roomOpenToMe(gid)
+          && get(gardenPath(gid)).data.get('accept', true) == true
+          && !exists(blockPath(gid, request.auth.uid))
+          && !exists(ilchonPath(gid, request.auth.uid));
+        allow update: if false;
+      }
+
+      match /ilchon/{uid} {
+        allow read: if request.auth != null
+          && (request.auth.uid == uid || isGardenOwner(gid));
+        allow create: if request.auth != null
+          && request.resource.data.keys().hasOnly(['g', 'n', 'tag', 'at'])
+          && request.resource.data.at == request.time
+          && nickOk(request.resource.data.n)
+          && tagOk(request.resource.data.tag)
+          && request.resource.data.g is string
+          && request.resource.data.g.matches('^g[0-9a-z]{8,12}$')
+          && request.resource.data.g != gid
+          && (ilchonMine(gid, uid) || ilchonTheirs(gid, uid));
+        // 내 쪽 이름표만 바꾼다.
+        allow update: if isGardenOwner(gid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tag'])
+          && tagOk(request.resource.data.tag);
+        // 끊기: 주인이나 그 1촌이, 상대 쪽 문서도 같은 커밋에서 지울 때만. 상대 방이 없어졌으면 이쪽만.
+        allow delete: if request.auth != null
+          && (
+            (request.auth.uid == uid && !exists(gardenPath(gid)))
+            || ((request.auth.uid == uid || isGardenOwner(gid))
+              && (!exists(gardenPath(resource.data.g))
+                || !existsAfter(ilchonPath(resource.data.g, gardenOwner(gid)))))
+          );
+      }
+
+      match /blocks/{uid} {
+        allow read, delete: if isGardenOwner(gid);
+        allow create, update: if isGardenOwner(gid)
+          && uid != request.auth.uid
+          && request.resource.data.keys().hasOnly(['n', 'at'])
+          && nickOk(request.resource.data.n)
+          && request.resource.data.at == request.time;
+      }
+
+      match /guestbook/{eid} {
+        allow read: if roomVisible(gid) || isGardenOwner(gid) || isAdmin();
+        allow create: if request.auth != null
+          && eid == request.auth.uid + '_' + string(int(kstDayNumber()))
+          && request.resource.data.keys().hasOnly(['g', 'n', 'p', 'x', 'k', 'at'])
+          && request.resource.data.at == request.time
+          && nickOk(request.resource.data.n)
+          && lineOk(request.resource.data)
+          && authorRoomOk(request.resource.data.g)
+          && roomOpenToMe(gid)
+          && guestbookOpen(gid)
+          && !exists(blockPath(gid, request.auth.uid));
+        allow update: if isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden'])
+          && request.resource.data.hidden is bool;
+        allow delete: if request.auth != null
+          && (eid.split('_')[0] == request.auth.uid || isGardenOwner(gid) || isAdmin());
+      }
+
+      match /notes/{uid} {
+        allow read: if roomVisible(gid) || isGardenOwner(gid) || isAdmin();
+        allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['g', 'n', 'tag', 'p', 'x', 'k', 'at'])
+          && request.resource.data.at == request.time
+          && nickOk(request.resource.data.n)
+          && tagOk(request.resource.data.tag)
+          && lineOk(request.resource.data)
+          && (resource == null || resource.data.get('hidden', false) != true)
+          && request.resource.data.g == get(ilchonPath(gid, uid)).data.g;
+        allow update: if isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden'])
+          && request.resource.data.hidden is bool;
+        allow delete: if request.auth != null
+          && (request.auth.uid == uid || isGardenOwner(gid) || isAdmin());
+      }
+
+      match /visits/{uid} {
+        allow read: if request.auth != null
+          && (request.auth.uid == uid || isGardenOwner(gid));
+        allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['day'])
+          && request.resource.data.day == kstDayNumber()
+          && (resource == null || resource.data.day < kstDayNumber())
+          && roomOpenToMe(gid)
+          && getAfter(counterPath(gid)).data.total
+            == (exists(counterPath(gid)) ? get(counterPath(gid)).data.total : 0) + 1;
+        allow delete: if false;
+      }
+
+      match /meta/{docId} {
+        allow read: if docId == 'counter' && (roomVisible(gid) || isGardenOwner(gid));
+        allow create, update: if request.auth != null
+          && docId == 'counter'
+          && request.resource.data.keys().hasOnly(['day', 'today', 'total'])
+          && request.resource.data.day == kstDayNumber()
+          && request.resource.data.total == (resource == null ? 0 : resource.data.total) + 1
+          && request.resource.data.today
+            == ((resource != null && resource.data.day == kstDayNumber()) ? resource.data.today : 0) + 1
+          && (!exists(visitPath(gid)) || get(visitPath(gid)).data.day < kstDayNumber())
+          && getAfter(visitPath(gid)).data.day == kstDayNumber();
+        allow delete: if false;
+      }
+    }
+
+    function gardenPath(gid) {
+      return /databases/$(database)/documents/gardens/$(gid);
+    }
+
+    function gardenOwner(gid) {
+      return get(gardenPath(gid)).data.ownerUid;
+    }
+
+    function isGardenOwner(gid) {
+      return request.auth != null && gardenOwner(gid) == request.auth.uid;
+    }
+
+    // 가리지 않은 방. 없는 방이면 get이 실패해 거절된다.
+    function roomVisible(gid) {
+      return get(gardenPath(gid)).data.get('hidden', false) != true;
+    }
+
+    // 남이 들어올 수 있는 방: 있고, 가리지 않았고, 내 방이 아니다.
+    function roomOpenToMe(gid) {
+      return gardenOwner(gid) != request.auth.uid && roomVisible(gid);
+    }
+
+    // 내가 주인인 열린 방(신청은 서로 가리킬 공개 id가 있어야 한다).
+    function myOpenRoom(g) {
+      return gardenOwner(g) == request.auth.uid && roomVisible(g);
+    }
+
+    function ilchonPath(gid, uid) {
+      return /databases/$(database)/documents/gardens/$(gid)/ilchon/$(uid);
+    }
+
+    function knockPath(gid, uid) {
+      return /databases/$(database)/documents/gardens/$(gid)/knocks/$(uid);
+    }
+
+    function blockPath(gid, uid) {
+      return /databases/$(database)/documents/gardens/$(gid)/blocks/$(uid);
+    }
+
+    function counterPath(gid) {
+      return /databases/$(database)/documents/gardens/$(gid)/meta/counter;
+    }
+
+    function visitPath(gid) {
+      return /databases/$(database)/documents/gardens/$(gid)/visits/$(request.auth.uid);
+    }
+
+    function nickOk(n) {
+      return n is string && n.size() >= 1 && n.size() <= 12;
+    }
+
+    // 1촌 이름표 번호(ilchon/rules.ts의 TAGS).
+    function tagOk(t) {
+      return t is int && t >= 0 && t < 8;
+    }
+
+    // 한 줄: 정해 둔 문구(p, PHRASES) 또는 직접 쓴 글(x, 60자) 중 하나와 스티커(k, STICKERS).
+    function lineOk(d) {
+      return d.p is int && d.p >= -1 && d.p < 30
+        && d.k is int && d.k >= 0 && d.k < 12
+        && d.x is string
+        && (d.p == -1 ? (d.x.size() >= 1 && d.x.size() <= 60) : d.x.size() == 0);
+    }
+
+    // 방명록에 적는 내 공개 id. 방을 열지 않았으면 ""(이름을 눌러도 갈 곳이 없다). 적었다면 내 것이어야 한다.
+    function authorRoomOk(g) {
+      return g is string
+        && (g == '' || (g.matches('^g[0-9a-z]{8,12}$') && gardenOwner(g) == request.auth.uid));
+    }
+
+    function guestbookOpen(gid) {
+      let mode = get(gardenPath(gid)).data.get('guestbook', 'all');
+      return mode == 'all' || (mode == 'ilchon' && exists(ilchonPath(gid, request.auth.uid)));
+    }
+
+    /*
+     * 수락하는 주인이 내 쪽(gardens/{gid}/ilchon/{신청자 uid})을 쓴다.
+     * 신청이 있었고 이 커밋에서 지워지며, 공개 id가 신청과 같고, 상대 쪽 문서도 이 커밋에서 생긴다.
+     */
+    function ilchonMine(gid, uid) {
+      let d = request.resource.data;
+      return uid != request.auth.uid
+        && isGardenOwner(gid)
+        && exists(knockPath(gid, uid))
+        && !existsAfter(knockPath(gid, uid))
+        && get(knockPath(gid, uid)).data.g == d.g
+        && existsAfter(ilchonPath(d.g, request.auth.uid));
+    }
+
+    /*
+     * 수락하는 사람이 상대 쪽(gardens/{신청자 공개id}/ilchon/{내 uid})을 쓴다. d.g는 내 공개 id.
+     * 상대가 내 방에 보낸 신청이 있었고 이 커밋에서 지워지며, 그 신청이 이 방을 가리키고,
+     * 이름표는 상대가 신청할 때 고른 것이고, 내 쪽 문서도 이 커밋에서 생긴다.
+     */
+    function ilchonTheirs(gid, uid) {
+      let d = request.resource.data;
+      let them = gardenOwner(gid);
+      return uid == request.auth.uid
+        && them != request.auth.uid
+        && gardenOwner(d.g) == request.auth.uid
+        && exists(knockPath(d.g, them))
+        && !existsAfter(knockPath(d.g, them))
+        && get(knockPath(d.g, them)).data.g == gid
+        && get(knockPath(d.g, them)).data.tag == d.tag
+        && existsAfter(ilchonPath(d.g, them));
     }
 
     /*
@@ -377,7 +620,7 @@ service cloud.firestore {
 
     function publicGarden() {
       let d = request.resource.data;
-      return d.keys().hasOnly(['ownerUid', 'nick', 'beds', 'dex', 'golden', 'rainbow', 'titles', 'updatedAt'])
+      return d.keys().hasOnly(['ownerUid', 'nick', 'beds', 'dex', 'golden', 'rainbow', 'titles', 'room', 'news', 'accept', 'showIlchon', 'guestbook', 'ilchonList', 'updatedAt'])
         && d.nick is string
         && d.nick.size() >= 1
         && d.nick.size() <= 12
@@ -387,7 +630,42 @@ service cloud.firestore {
         && d.golden is int && d.golden >= 0 && d.golden <= 5000
         && d.rainbow is int && d.rainbow >= 0 && d.rainbow <= 5000
         && (!('titles' in d) || publicTitles(d.titles))
+        && (!('room' in d) || publicRoom(d.room))
+        && publicIlchon(d)
         && d.updatedAt == request.time;
+    }
+
+    // 1촌 칸(docs/garden-miniroom.md §5.5). 모두 없어도 된다(옛 화면). 소식은 종류 번호 목록 5개까지,
+    // 1촌 목록은 주인이 보이기를 켰을 때만 50개까지. 값은 ilchon/rules.ts의 NEWS_MAX·ILCHON_MAX와 같다.
+    function publicIlchon(d) {
+      return (!('news' in d) || (d.news is list && d.news.size() <= 5))
+        && (!('accept' in d) || d.accept is bool)
+        && (!('showIlchon' in d) || d.showIlchon is bool)
+        && (!('guestbook' in d) || d.guestbook in ['all', 'ilchon', 'off'])
+        && (!('ilchonList' in d)
+          || (d.get('showIlchon', false) == true && d.ilchonList is list && d.ilchonList.size() <= 50));
+    }
+
+    // 가린 방. 1촌이 있는 방이 공개를 끄면 지우지 않고 이것으로 덮는다 — 방·텃밭은 걷어 낸다.
+    // 규칙은 누구나 읽는 문서의 칸을 숨기지 못하므로, 숨길 것은 문서에서 빼야 한다.
+    function hiddenGarden() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['ownerUid', 'hidden', 'updatedAt'])
+        && d.hidden == true
+        && d.updatedAt == request.time;
+    }
+
+    // 내 방(docs/garden-miniroom.md §4.4). 키와 크기만 본다 — 목록 안의 값은 규칙이 하나하나 보지 못한다.
+    // 화면이 가구표·품종표에 있는 id만 그린다. 액자는 쪽지 id만 싣고 글은 싣지 않는다.
+    // 값은 src/features/garden/room/rules.ts의 PUBLIC_PLACED_MAX·PUBLIC_ID_MAX와 같다(room/rules.test.ts가 본다).
+    function publicRoom(r) {
+      return r is map
+        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'placed'])
+        && r.size is int && r.size >= 0 && r.size <= 2
+        && r.wall is string && r.wall.size() <= 40
+        && r.floor is string && r.floor.size() <= 40
+        && r.mood is string && r.mood.size() <= 40
+        && r.placed is list && r.placed.size() <= 40;
     }
 
     // 칭호 단계(0~3)만. 이름은 화면이 정해 둔 표에서 읽는다 — 사람이 지은 글이 아니다.
@@ -408,7 +686,7 @@ service cloud.firestore {
         && raidOpened(raidId)
         && request.resource.data.keys().hasOnly(['hp', 'hits', 'fighters', 'spawnedAt', 'defeatedAt'])
         && request.resource.data.hp is int
-        && request.resource.data.hp >= 180
+        && request.resource.data.hp >= 270
         && request.resource.data.hp <= 3000
         && request.resource.data.hits == 0
         && request.resource.data.fighters == 0
@@ -423,8 +701,9 @@ service cloud.firestore {
         && request.resource.data.defeatedAt == request.time
         && resource.data.hits + raidShardHits(raidId) >= resource.data.hp;
 
-      // 옛 화면의 한 방(물결 문서를 직접 1씩 올림). 칸으로 세기 전에 연 탭이 막혀 끝없이 다시
-      // 보내지 않게 남겨 둔다. 그 탭들이 사라지면 지운다.
+      // 칸 이전(2026-11-06 전)에 연 탭의 한 방(물결 문서를 직접 1씩 올림). 그 화면은 막히면 끝없이
+      // 다시 보내므로 남겨 둔다. 한 사람 60번·1:1이라 불변식(혼자·둘이 못 잡음)에 닿지 않는다.
+      // garden:stats의 "옛 길로 들어온 물결"이 0으로 이어지면 지운다(docs/garden-miniroom.md 배포 메모).
       allow update: if request.auth != null
         && resource.data.defeatedAt == null
         && request.time < resource.data.spawnedAt + duration.value(3, 'h')
@@ -438,26 +717,30 @@ service cloud.firestore {
 
       allow delete: if false;
 
-      // 맞은 수를 나눠 세는 칸. 한 방은 내 표식과 내 칸(표식의 shard)을 같은 커밋에서 1씩 올린다.
+      // 맞은 수를 나눠 세는 칸. 한 번 치거나 지원할 때 내 표식과 내 칸(표식의 shard)을 같은 커밋에서 쓴다.
+      // 얼마나 오르는지는 표식 규칙이 맞춘다(표식이 오른 만큼 칸도 올라야 한다). 여기서는 상한과 짝만.
       match /shards/{n} {
         allow read: if true;
         allow create: if request.auth != null
           && n.matches('^[0-7]$')
-          && request.resource.data.keys().hasOnly(['hits', 'fighters'])
-          && getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.defeatedAt == null
-          && ((request.resource.data.hits == 0 && request.resource.data.fighters == 0)
+          && request.resource.data.keys().hasOnly(['hits', 'fighters', 'names', 'aid', 'aidAt', 'aidBy'])
+          && getAfter(raidPath(raidId)).data.defeatedAt == null
+          && ((request.resource.data.keys().hasOnly(['hits', 'fighters'])
+              && request.resource.data.hits == 0
+              && request.resource.data.fighters == 0)
             || (request.resource.data.hits is int
-              && request.resource.data.hits >= 1
-              && request.resource.data.hits <= 20
+              && request.resource.data.hits >= 0
+              && request.resource.data.hits <= 40
               && request.resource.data.fighters == (exists(raidFighter(raidId)) ? 0 : 1)
+              && raidShardExtras(raidId, {})
               && raidShardPaired(raidId, n)));
-        // 얼마나 오르는지는 표식 규칙이 맞춘다(표식이 오른 만큼 칸도 올라야 한다). 여기서는 상한만.
         allow update: if request.auth != null
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hits', 'fighters'])
+          && request.resource.data.keys().hasOnly(['hits', 'fighters', 'names', 'aid', 'aidAt', 'aidBy'])
           && request.resource.data.hits is int
-          && request.resource.data.hits > resource.data.hits
-          && request.resource.data.hits <= resource.data.hits + 20
+          && request.resource.data.hits >= resource.data.hits
+          && request.resource.data.hits <= resource.data.hits + 40
           && request.resource.data.fighters == resource.data.fighters + (exists(raidFighter(raidId)) ? 0 : 1)
+          && raidShardExtras(raidId, resource.data)
           && raidShardPaired(raidId, n);
         allow delete: if false;
       }
@@ -466,39 +749,121 @@ service cloud.firestore {
         allow read: if request.auth != null && request.auth.uid == uid;
         allow create, update: if request.auth != null
           && request.auth.uid == uid
-          && request.resource.data.keys().hasOnly(['hits', 'lastAt', 'shard'])
+          && request.resource.data.keys().hasOnly(['hits', 'uses', 'lastAt', 'shard', 'aid', 'aidAt', 'aids'])
           && request.resource.data.lastAt == request.time
           && request.resource.data.hits is int
-          && request.resource.data.hits > (resource == null ? 0 : resource.data.hits)
-          && request.resource.data.hits <= (resource == null ? 0 : resource.data.hits) + 20
-          && request.resource.data.hits <= 60
           && (resource == null || request.time > resource.data.lastAt + duration.value(1, 's'))
-          && get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.defeatedAt == null
-          && request.time < get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.spawnedAt + duration.value(3, 'h')
-          && ('shard' in request.resource.data
-            // 지금: 내 칸이 내 수가 오른 만큼 오르고 물결 문서는 그대로다.
-            ? request.resource.data.shard is int
-              && request.resource.data.shard >= 0
-              && request.resource.data.shard <= 7
-              && getAfter(raidShardPath(raidId, string(request.resource.data.shard))).data.hits
-                == (exists(raidShardPath(raidId, string(request.resource.data.shard)))
-                  ? get(raidShardPath(raidId, string(request.resource.data.shard))).data.hits
-                  : 0) + (request.resource.data.hits - (resource == null ? 0 : resource.data.hits))
-              && getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
-                == get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
-            // 옛 화면: 한 방씩만, 물결 문서의 합계가 1 오른다.
-            : request.resource.data.hits == (resource == null ? 0 : resource.data.hits) + 1
-              && getAfter(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits
-              == get(/databases/$(database)/documents/plazaRaids/$(raidId)).data.hits + 1);
+          && raidLive(raidId)
+          && ('uses' in request.resource.data ? raidMove(raidId) : raidOldStrike(raidId));
         allow delete: if false;
       }
+    }
+
+    function raidPath(raidId) {
+      return /databases/$(database)/documents/plazaRaids/$(raidId);
     }
 
     function raidShardPath(raidId, n) {
       return /databases/$(database)/documents/plazaRaids/$(raidId)/shards/$(n);
     }
 
-    // 이 칸을 올리는 커밋에 내 표식도 함께 올랐고, 그 표식이 이 칸을 가리킨다.
+    // 쓰러지지 않았고 도망가지 않았다.
+    function raidLive(raidId) {
+      let raid = get(raidPath(raidId)).data;
+      return raid.defeatedAt == null
+        && request.time < raid.spawnedAt + duration.value(3, 'h');
+    }
+
+    // 빈틈(rules.ts의 raidGapAt). 분이 0–2·30–32, 폭주(도망 30분 전부터)면 0–5·30–35.
+    // 한국 시각과 UTC는 9시간 차이라 분이 같다. 체력 270 아래(2.0 이전에 태어난) 물결에는 빈틈이 없다.
+    function raidGap(raid) {
+      let m = request.time.minutes() % 30;
+      return raid.hp >= 270
+        && (m < 3 || (m < 6 && request.time >= raid.spawnedAt + duration.value(150, 'm')));
+    }
+
+    // 지금 화면의 한 커밋: 치기(기력 1–20, 빈틈이면 두 배를 센다) 또는 지원(센 값 그대로).
+    // 기력(uses)이 없는 옛 표식은 센 값이 곧 쓴 기력이다 — 옛 화면은 한 번을 1로만 셌다.
+    function raidMove(raidId) {
+      let d = request.resource.data;
+      let was = resource == null ? {} : resource.data;
+      let hitsWas = was.get('hits', 0);
+      let usesWas = was.get('uses', hitsWas);
+      let used = d.uses - usesWas;
+      let raid = get(raidPath(raidId)).data;
+      let cell = raidShardPath(raidId, string(d.shard));
+      return d.uses is int
+        && d.uses <= 60
+        && d.shard is int
+        && d.shard >= 0
+        && d.shard <= 7
+        && getAfter(cell).data.hits == (exists(cell) ? get(cell).data.hits : 0) + (d.hits - hitsWas)
+        && getAfter(raidPath(raidId)).data.hits == raid.hits
+        && ((used >= 1
+            && used <= 20
+            && d.hits == hitsWas + used * (raidGap(raid) ? 2 : 1)
+            && d.get('aid', 0) == was.get('aid', 0)
+            && d.get('aidAt', null) == was.get('aidAt', null)
+            && d.get('aids', 0) == was.get('aids', 0))
+          || (used == 0
+            && d.hits == hitsWas
+            && d.aid in [1, 2, 3]
+            && d.aidAt == request.time
+            && (!('aidAt' in was) || request.time > was.aidAt + duration.value(20, 's'))
+            && d.aids == was.get('aids', 0) + 1));
+    }
+
+    // 2.0 이전 화면의 한 방(uses 없음). 한 번 = 1, 한 커밋에 20까지, 60까지.
+    // 칸이 있으면 내 칸이 같은 만큼 오르고 물결 문서는 그대로, 없으면(칸 이전 화면) 물결 문서가 1 오른다.
+    function raidOldStrike(raidId) {
+      let d = request.resource.data;
+      let before = resource == null ? 0 : resource.data.hits;
+      return d.keys().hasOnly(['hits', 'lastAt', 'shard'])
+        && request.resource.data.hits > before
+        && request.resource.data.hits <= (resource == null ? 0 : resource.data.hits) + 20
+        && request.resource.data.hits <= 60
+        && ('shard' in d
+          ? d.shard is int
+            && d.shard >= 0
+            && d.shard <= 7
+            && getAfter(raidShardPath(raidId, string(d.shard))).data.hits
+              == (exists(raidShardPath(raidId, string(d.shard))) ? get(raidShardPath(raidId, string(d.shard))).data.hits : 0) + (d.hits - before)
+            && getAfter(raidPath(raidId)).data.hits == get(raidPath(raidId)).data.hits
+          : d.hits == before + 1
+            && getAfter(raidPath(raidId)).data.hits == get(raidPath(raidId)).data.hits + 1);
+    }
+
+    // 칸의 이름·지원. 이름은 내 표식이 처음 생기는 커밋에서만 한 줄(12자) 붙고, 칸마다 30까지.
+    // 지원은 그대로이거나, 이 커밋에서 내 표식에 건 지원과 같다. 셋은 함께 있거나 함께 없다.
+    // 옛 화면은 칸을 {hits, fighters}로 통째로 쓴다 — 이름·지원이 빠지는 것은 받는다.
+    function raidShardExtras(raidId, before) {
+      let d = request.resource.data;
+      let mine = getAfter(raidFighter(raidId)).data;
+      let names = d.get('names', []);
+      let had = before.get('names', []);
+      return ('aid' in d) == ('aidAt' in d)
+        && ('aid' in d) == ('aidBy' in d)
+        && (!('names' in d)
+          || names == had
+          || (!exists(raidFighter(raidId))
+            && names is list
+            && names.size() == had.size() + 1
+            && names.size() <= 30
+            && (had.size() == 0 || names[0:had.size()] == had)
+            && names[had.size()] is string
+            && names[had.size()].size() >= 1
+            && names[had.size()].size() <= 12))
+        && (!('aid' in d)
+          || (d.aid == before.get('aid', 0) && d.aidAt == before.get('aidAt', null) && d.aidBy == before.get('aidBy', ''))
+          || (d.aid == mine.get('aid', 0)
+            && d.aidAt == request.time
+            && mine.get('aidAt', null) == request.time
+            && d.aidBy is string
+            && d.aidBy.size() >= 1
+            && d.aidBy.size() <= 12));
+    }
+
+    // 이 칸을 쓰는 커밋에 내 표식도 함께 썼고, 그 표식이 이 칸을 가리킨다.
     function raidShardPaired(raidId, n) {
       let mine = getAfter(raidFighter(raidId)).data;
       return mine.lastAt == request.time && 'shard' in mine && string(mine.shard) == n;

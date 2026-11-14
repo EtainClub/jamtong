@@ -6,13 +6,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { Bloom } from "@/lib/firebase/blooms";
 import { firebaseConfigured } from "@/lib/firebase/client";
 import { countCheerNotes } from "@/lib/firebase/cheers";
-import { loadPublicGardens, type PublicGarden } from "@/lib/firebase/gardens";
+import { findRoomOf } from "@/lib/firebase/gardens";
 import { loadTogether, type Together } from "@/lib/firebase/together";
 
 import { gardenFeedback } from "./feedback";
-import { TitleChips } from "./parts";
-import { publicSnapshot } from "./share";
-import { useGarden, type GardenData } from "./store";
 import type { Species } from "./types";
 
 /**
@@ -21,8 +18,8 @@ import type { Species } from "./types";
  * 1. 함께 쌓은 기록: 이번 주 다 같이 한 것. 개인은 없다.
  * 2. 정원지기 명패판: 꽃밭 명패를 정원 이름별로 모은다. 명패는 Firestore 규칙이 정직성을
  *    지키는 값이라(blooms) 손으로 만든 요청으로 부풀릴 수 없다. 번호·메달을 달지 않는다.
- * 3. 친구 정원 비교: 내가 놀러 간 공개 정원끼리만 나란히 본다. 공개 정원의 숫자는 주인
- *    브라우저가 적는 값이라 모두에게 보이는 순위로 쓰지 않는다.
+ * 3. (옛) 친구 정원 비교는 1촌 탭의 "가 본 방"으로 옮겼다(ilchon/IlchonTab.tsx).
+ * 명패의 이름에서 그 정원지기의 방으로 건너갈 수 있다(마실, docs/garden-miniroom.md §5.4).
  *
  * ★ 사진은 어디에도 싣지 않는다. 남에게 보이는 것은 정원 이름뿐이다.
  */
@@ -31,25 +28,24 @@ const WEEK = 7 * 86_400_000;
 const BOARD_MAX = 20;
 
 export function Neighbors({
-  data,
   uid,
   blooms,
   byId,
   now,
   onVisit,
+  say,
 }: {
-  data: GardenData;
   uid: string | null;
   blooms: Map<string, Bloom>;
   byId: Map<string, Species>;
   now: number;
   onVisit: (gid: string) => void;
+  say: (text: string) => void;
 }) {
   return (
     <div className="space-y-5">
       <TogetherCard blooms={blooms} now={now} />
-      <KeeperBoard blooms={blooms} byId={byId} uid={uid} />
-      <FriendCompare data={data} onVisit={onVisit} />
+      <KeeperBoard blooms={blooms} byId={byId} uid={uid} onVisit={onVisit} say={say} />
     </div>
   );
 }
@@ -161,7 +157,19 @@ export function keeperBoard(blooms: Map<string, Bloom>, byId: Map<string, Specie
   );
 }
 
-function KeeperBoard({ blooms, byId, uid }: { blooms: Map<string, Bloom>; byId: Map<string, Species>; uid: string | null }) {
+function KeeperBoard({
+  blooms,
+  byId,
+  uid,
+  onVisit,
+  say,
+}: {
+  blooms: Map<string, Bloom>;
+  byId: Map<string, Species>;
+  uid: string | null;
+  onVisit: (gid: string) => void;
+  say: (text: string) => void;
+}) {
   const keepers = useMemo(() => keeperBoard(blooms, byId), [blooms, byId]);
   const [open, setOpen] = useState<string | null>(null);
   const shown = keepers.slice(0, BOARD_MAX);
@@ -205,14 +213,34 @@ function KeeperBoard({ blooms, byId, uid }: { blooms: Map<string, Bloom>; byId: 
                   <span aria-hidden="true" className="shrink-0 text-[10px] text-smoke">{expanded ? "▴" : "▾"}</span>
                 </button>
                 {expanded && (
-                  <ul className="mt-1.5 flex flex-wrap gap-1">
-                    {k.plates.map((p) => (
-                      <li key={p.id} className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] ring-1 ring-stone">
-                        {p.bloomed ? "🌸 " : ""}
-                        {p.title}
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    <ul className="mt-1.5 flex flex-wrap gap-1">
+                      {k.plates.map((p) => (
+                        <li key={p.id} className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] ring-1 ring-stone">
+                          {p.bloomed ? "🌸 " : ""}
+                          {p.title}
+                        </li>
+                      ))}
+                    </ul>
+                    {k.uid !== uid && firebaseConfigured && (
+                      // 명패에는 uid만 있다. 누를 때만 그 사람의 공개 방을 하나 찾는다(gardens.ts의 findRoomOf).
+                      <button
+                        type="button"
+                        className="garden-chip-btn mt-1.5"
+                        onClick={() => {
+                          gardenFeedback("tap");
+                          findRoomOf(k.uid)
+                            .then((gid) => (gid ? onVisit(gid) : say("이 정원지기는 방을 열지 않았어요")))
+                            .catch((error) => {
+                              console.error("[neighbors] 정원지기의 방을 찾지 못했다", error);
+                              say("방을 찾지 못했어요. 잠시 뒤 다시 해 보세요");
+                            });
+                        }}
+                      >
+                        방 구경 →
+                      </button>
+                    )}
+                  </>
                 )}
               </li>
             );
@@ -221,121 +249,6 @@ function KeeperBoard({ blooms, byId, uid }: { blooms: Map<string, Bloom>; byId: 
       )}
       {keepers.length > BOARD_MAX && <p className="mt-1 text-[11px] text-smoke">명패가 있는 정원 {keepers.length}곳 중 {BOARD_MAX}곳을 보여요.</p>}
     </section>
-  );
-}
-
-// ── 친구 정원 비교 ─────────────────────────────────────────────────
-
-function FriendCompare({ data, onVisit }: { data: GardenData; onVisit: (gid: string) => void }) {
-  const ids = useMemo(() => data.friends.map((f) => f.id), [data.friends]);
-  const key = ids.join(",");
-  const [loaded, setLoaded] = useState<{ key: string; gardens: Map<string, PublicGarden | null> } | "error" | null>(null);
-
-  useEffect(() => {
-    if (!firebaseConfigured || !key) return;
-    let alive = true;
-    loadPublicGardens(key.split(","))
-      .then((gardens) => alive && setLoaded({ key, gardens }))
-      .catch((error) => {
-        console.error("[neighbors] 친구 정원을 읽지 못했다", error);
-        if (alive) setLoaded("error");
-      });
-    return () => {
-      alive = false;
-    };
-  }, [key]);
-
-  const me = publicSnapshot(data);
-  const gardens = loaded && loaded !== "error" && loaded.key === key ? loaded.gardens : null;
-  const rows = data.friends.map((f) => ({ ...f, garden: gardens ? (gardens.get(f.id) ?? null) : undefined }));
-  const live = rows.filter((r) => r.garden).sort((a, b) => b.garden!.dex - a.garden!.dex);
-  const gone = rows.filter((r) => r.garden === null);
-
-  return (
-    <section aria-labelledby="friends-title" className="rounded-2xl bg-[var(--g-panel)] px-4 py-3.5">
-      <h2 id="friends-title" className="text-[14px] font-bold">🌿 친구 정원과 나란히</h2>
-      <p className="mt-0.5 text-[11.5px] leading-relaxed text-smoke">
-        내가 놀러 간 공개 정원만 보여요. 모두에게 보이는 순위가 아니라 내 화면에서만 나란히 놓아 보는 거예요.
-      </p>
-
-      <Row nick={`${data.nick} (나)`} garden={me} mine />
-
-      {data.friends.length === 0 ? (
-        <p className="mt-3 text-[12px] leading-relaxed text-smoke">
-          아직 놀러 간 정원이 없어요. 친구가 보낸 정원 링크를 열면 여기에 친구 정원이 생겨요.
-        </p>
-      ) : loaded === "error" ? (
-        <p className="mt-3 text-[12px] text-smoke">친구 정원을 불러오지 못했어요. 잠시 뒤 다시 열어 보세요.</p>
-      ) : gardens === null ? (
-        <p className="mt-3 text-[12px] text-smoke">친구 정원을 불러오는 중…</p>
-      ) : (
-        <>
-          {live.map((r) => (
-            <Row key={r.id} nick={r.garden!.nick || r.nick} garden={r.garden!} onOpen={() => onVisit(r.id)} />
-          ))}
-          {gone.length > 0 && (
-            <div className="mt-3 text-[11.5px] text-smoke">
-              <p>공개를 끈 정원 {gone.length}곳</p>
-              <ul className="mt-1 flex flex-wrap gap-1">
-                {gone.map((r) => (
-                  <li key={r.id}>
-                    <button
-                      type="button"
-                      onClick={() => useGarden.getState().forgetFriend(r.id)}
-                      className="rounded-full bg-white/70 px-2 py-0.5 ring-1 ring-stone"
-                      aria-label={`${r.nick} 목록에서 빼기`}
-                    >
-                      {r.nick} ✕
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </>
-      )}
-      {!data.share.on && (
-        <p className="mt-3 text-[11px] text-smoke">내 정원은 공개하지 않아서 친구 화면에는 보이지 않아요(정원 머리의 ‘자랑하기’).</p>
-      )}
-    </section>
-  );
-}
-
-function Row({ nick, garden, mine, onOpen }: { nick: string; garden: PublicGarden; mine?: boolean; onOpen?: () => void }) {
-  // 칭호 목록(ul)과 숫자(dl)는 단추 안에 둘 수 없다. 놀러 가기는 따로 작은 단추로.
-  return (
-    <div className="mt-2 flex items-center gap-3 rounded-xl bg-white/70 px-3 py-2 ring-1 ring-stone/70">
-      <div className="min-w-0 flex-1">
-        <p className={`truncate text-[13px] font-semibold ${mine ? "text-[var(--g-leaf)]" : ""}`}>{nick}</p>
-        <TitleChips levels={garden.titles} className="mt-1" />
-        {onOpen && (
-          <button
-            type="button"
-            onClick={() => {
-              gardenFeedback("tap");
-              onOpen();
-            }}
-            className="mt-1 text-[11px] font-medium text-smoke underline underline-offset-2"
-          >
-            놀러 가기 →
-          </button>
-        )}
-      </div>
-      <dl className="grid shrink-0 grid-cols-3 gap-2 text-center text-[11px]">
-        <Mini value={garden.dex} label="도감" />
-        <Mini value={garden.golden} label="황금" />
-        <Mini value={garden.rainbow} label="무지개" />
-      </dl>
-    </div>
-  );
-}
-
-function Mini({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="flex w-9 flex-col-reverse">
-      <dt className="text-smoke">{label}</dt>
-      <dd className="text-[13px] font-bold tabular-nums">{value}</dd>
-    </div>
   );
 }
 

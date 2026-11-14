@@ -435,8 +435,8 @@ export function regrowMinutes(gardenersToday: number, roll: number): number {
 /**
  * 거대 잡초는 하루 여러 번(물결) 나타난다. 물결마다 Firestore 문서 하나 — plazaRaids/{날짜번호}-{물결}.
  *
- * ★ 혼자서는 잡지 못한다. 한 사람은 물결마다 RAID_HITS_PER_PERSON방까지만 칠 수 있고,
- *   체력은 적어도 RAID_MIN_FIGHTERS명이 끝까지 쳐야 닿는다. 규칙이 둘 다 지킨다.
+ * ★ 혼자서는 잡지 못한다. 한 사람은 물결마다 기력 RAID_USES_PER_PERSON번까지만 쓸 수 있고(빈틈이면
+ *   한 번이 RAID_GAP_MULT), 체력은 적어도 RAID_MIN_FIGHTERS명이 빈틈에 끝까지 쳐야 닿는다. 규칙이 둘 다 지킨다.
  * ★ 오래 버티면 도망간다(RAID_LIFE). 그래서 "지금 같이 잡자"가 된다. 도망가면 상자는 없다.
  * ★ 물결마다 여는 시각이 있다(한국 시각 RAID_FIRST_HOUR시부터 RAID_EVERY_HOURS시간마다).
  *   앞 물결이 끝나고(쓰러지거나 도망가고) RAID_GAP이 지났고, 제 시각이 됐고, 광장이 무성할 때 나온다.
@@ -455,18 +455,29 @@ export const RAID_EVERY_HOURS = 3;
 export function raidOpensAt(day: number, wave: number): number {
   return day * 24 * HOUR - KST + (RAID_FIRST_HOUR + RAID_EVERY_HOURS * (wave - 1)) * HOUR;
 }
-export const RAID_HITS_PER_PERSON = 60;
+/**
+ * 기력 — 한 사람이 한 물결에 쓸 수 있는 횟수(거대 잡초 2.0, docs/garden-miniroom.md §7.2).
+ * 센 값(hits)과 따로 센다. 빈틈에 쓴 한 번은 RAID_GAP_MULT로 센다 — 그래서 한 사람이 넣을 수 있는
+ * 맞은 수는 RAID_USES_PER_PERSON × RAID_GAP_MULT(120)까지다. 상한 60은 규칙이 기력(uses)에 건다.
+ */
+export const RAID_USES_PER_PERSON = 60;
+export const RAID_GAP_MULT = 2;
+export const RAID_HITS_MAX_PER_PERSON = RAID_USES_PER_PERSON * RAID_GAP_MULT;
 export const RAID_MIN_FIGHTERS = 3;
-export const RAID_HP_MIN = RAID_MIN_FIGHTERS * RAID_HITS_PER_PERSON;
+/**
+ * 체력 하한 = RAID_MIN_FIGHTERS × 60 × 1.5 = 270. 혼자(120)도, 둘(240)도 어느 체력에도 닿지 못한다.
+ * 빈틈의 두 배를 받기 전의 하한(180)은 둘이 빈틈에만 치면(240) 닿았다 — 그래서 빈틈과 함께 올린다.
+ */
+export const RAID_HP_MIN = (RAID_MIN_FIGHTERS * RAID_USES_PER_PERSON * 3) / 2;
 export const RAID_HP_MAX = 3000;
 
 /**
  * 거대 잡초의 종류 — 사회를 갉아먹는 악초들. 종류마다 체력·생김새·성질(대사)이 다르다.
  *
  * ★ 종류는 물결 id(날짜·물결)에서 정한다. 문서에 적지 않아도 모두가 같은 잡초를 본다.
- *   하루 세 물결은 서로 다른 종류다(날마다 섞은 순서에서 앞의 셋).
+ *   하루 다섯 물결(RAID_PER_DAY)은 서로 다른 종류다(날마다 섞은 여섯 종류에서 앞의 다섯).
  * ★ 체력은 종류가 정한다 — 세운 사람이 문서에 적고, 화면은 문서의 체력을 그린다.
- *   어느 종류든 RAID_MIN_FIGHTERS명보다 적게는 못 잡고, RAID_MAX_FIGHTERS명이면 잡는다.
+ *   어느 종류든 RAID_MIN_FIGHTERS명보다 적게는 못 잡고, 빈틈을 쓰지 않아도 RAID_MAX_FIGHTERS명이면 잡는다.
  *   "N명이면 잡아요"는 체력에서 셈하므로 종류마다 화면이 맞게 바뀐다.
  * ★ 특정 사람·정당·집단을 가리키지 않는다. 누구에게나 해로운 행동만 잡초로 삼는다.
  */
@@ -486,13 +497,14 @@ export interface RaidKind {
   bg: [string, string];
 }
 
-export const RAID_MAX_FIGHTERS = 5;
+/** 빈틈을 하나도 쓰지 않고 모두 기력을 다 쓰면 잡히는 인원(가장 센 450 ÷ 60 → 8). */
+export const RAID_MAX_FIGHTERS = 8;
 
 export const RAID_KINDS: RaidKind[] = [
   {
     id: "troll",
     name: "악플 가시풀",
-    hp: 180,
+    hp: 270,
     trait: "익명 뒤에 숨어 가시를 날려요",
     taunts: ["ㅋㅋ 그게 최선이야?", "얼굴 안 보이니까 아무 말이나 해도 되지~", "가시 하나에 하루가 망가지지? 그게 재밌거든", "잠깐, 신고는 하지 마…"],
     escaped: "악플 가시풀이 가시를 뿌리고 숨어 버렸어요",
@@ -501,7 +513,7 @@ export const RAID_KINDS: RaidKind[] = [
   {
     id: "hate",
     name: "혐오 쐐기풀",
-    hp: 180,
+    hp: 270,
     trait: "닿기만 해도 따끔, 편을 갈라 번져요",
     taunts: ["너희끼리 싸우면 내가 자라지", "다르면 틀린 거야, 몰랐어?", "한 포기 뽑아도 미움은 씨를 남겨", "어… 다 같이 덤비는 건 반칙이야!"],
     escaped: "혐오 쐐기풀이 씨를 날리고 사라졌어요",
@@ -510,7 +522,7 @@ export const RAID_KINDS: RaidKind[] = [
   {
     id: "rumor",
     name: "가짜뉴스 덩굴",
-    hp: 240,
+    hp: 360,
     trait: "근거 없는 말을 먹고 퍼져요",
     taunts: ["근거? 그런 거 없어도 잘만 퍼지는데!", "퍼 나르는 손이 많을수록 난 커진다고", "제목만 읽고 가, 본문은 내가 지어 줄게", "원문을 확인하다니… 그건 반칙이야!"],
     escaped: "가짜뉴스 덩굴이 광장 밖으로 퍼져 나갔어요",
@@ -519,7 +531,7 @@ export const RAID_KINDS: RaidKind[] = [
   {
     id: "bribe",
     name: "검은돈 독초",
-    hp: 240,
+    hp: 360,
     trait: "탁자 밑으로 오가는 돈에 뿌리를 내려요",
     taunts: ["이거 받고 못 본 척해", "영수증? 그런 건 없어", "뿌리는 땅 밑으로, 돈은 탁자 밑으로", "장부를 펼치지 마!"],
     escaped: "검은돈 독초가 돈다발을 챙겨 달아났어요",
@@ -528,7 +540,7 @@ export const RAID_KINDS: RaidKind[] = [
   {
     id: "bossy",
     name: "갑질 엉겅퀴",
-    hp: 300,
+    hp: 450,
     trait: "높은 자리에서 남을 짓눌러요",
     taunts: ["내가 누군 줄 알아?", "꼬우면 네가 올라오든가", "물? 내 화분부터 줘", "여, 여럿이 오면 얘기가 다르지…"],
     escaped: "갑질 엉겅퀴가 큰소리만 남기고 떠났어요",
@@ -537,7 +549,7 @@ export const RAID_KINDS: RaidKind[] = [
   {
     id: "grab",
     name: "땅투기 칡",
-    hp: 300,
+    hp: 450,
     trait: "남의 땅까지 휘감아 차지해요",
     taunts: ["여기도 내 땅, 저기도 내 땅", "빈칸 보이면 바로 감는다", "광장도 곧 내 거야", "놔, 놔! 내 덩굴 놓으라고!"],
     escaped: "땅투기 칡이 광장 구석까지 휘감고 사라졌어요",
@@ -642,12 +654,105 @@ export const RAID_RUBS_PER_STRIKE = 4;
 /** 한 사람이 한 방을 보내는 간격. 규칙은 1초를 지키고, 화면은 여유를 둔다. */
 export const RAID_STRIKE_GAP = 1_200;
 
+// ── 빈틈 (거대 잡초 2.0, docs/garden-miniroom.md §7.2) ─────────────
+
 /**
- * 필살기 — 상점에서 잼으로 사서 거대 잡초에 쓴다. 쓰면 내 몫(RAID_HITS_PER_PERSON)에서
- * 여러 방을 한 커밋에 한꺼번에 보낸다.
+ * 빈틈 — 매 시 정각과 30분부터 RAID_GAP_MINUTES분(한국 시각). 빈틈 안의 한 번은 RAID_GAP_MULT로 센다.
+ *
+ * ★ 시각에서만 정해진다. 규칙이 request.time의 분만 보고 같은 판단을 한다 — 한국 시각과 UTC는
+ *   9시간 차이라 분이 같다. 화면이 속여 두 배를 적으면 규칙이 막는다.
+ * ★ 폭주(도망 RAID_FRENZY 전부터)에는 빈틈이 RAID_FRENZY_GAP_MINUTES분으로 길어진다. 규칙은
+ *   spawnedAt으로 본다.
+ * ★ 체력이 RAID_HP_MIN보다 작은 물결(2.0 이전에 태어난 것)에는 빈틈이 없다 — 규칙도 같다.
+ *   배포하는 날 이미 떠 있던 체력 180짜리를 둘이 빈틈에 잡지 못하게.
+ * 값을 바꾸면 firestore.rules의 raidGap()도 같이 바꾼다 — raid.test.ts가 짝을 본다.
+ */
+export const RAID_GAP_EVERY = 30;
+export const RAID_GAP_MINUTES = 3;
+export const RAID_FRENZY_GAP_MINUTES = 6;
+export const RAID_FRENZY = 30 * MINUTE;
+
+/** 폭주 중인가 — 도망 RAID_FRENZY 전부터. */
+export function raidFrenzy(spawnedAt: number | null, t: number): boolean {
+  return spawnedAt !== null && t >= spawnedAt + RAID_LIFE - RAID_FRENZY;
+}
+
+/** t가 빈틈 안인가. 규칙의 raidGap()과 같은 판단. */
+export function raidGapAt(t: number, spawnedAt: number | null, hp: number): boolean {
+  if (hp < RAID_HP_MIN) return false;
+  const m = new Date(t).getUTCMinutes() % RAID_GAP_EVERY;
+  return m < (raidFrenzy(spawnedAt, t) ? RAID_FRENZY_GAP_MINUTES : RAID_GAP_MINUTES);
+}
+
+/**
+ * 지금이 빈틈이면 그 끝, 아니면 다음 빈틈의 시작과 끝. 체력이 작은 옛 물결이면 null.
+ * 폭주가 빈틈 한가운데서 시작하는 드문 경우는 화면이 1–3분 일찍 끝을 말할 뿐이다(규칙이 세는 값은 같다).
+ */
+export function raidGapWindow(t: number, spawnedAt: number | null, hp: number): { start: number; end: number; now: boolean } | null {
+  if (hp < RAID_HP_MIN) return null;
+  const slot = RAID_GAP_EVERY * MINUTE;
+  const length = (at: number) => (raidFrenzy(spawnedAt, at) ? RAID_FRENZY_GAP_MINUTES : RAID_GAP_MINUTES) * MINUTE;
+  const start = Math.floor(t / slot) * slot;
+  if (raidGapAt(t, spawnedAt, hp)) return { start, end: start + length(t), now: true };
+  // 폭주가 이 칸의 3–6분 사이에서 시작하면 그때부터가 빈틈이다.
+  const frenzyAt = spawnedAt === null ? Infinity : spawnedAt + RAID_LIFE - RAID_FRENZY;
+  if (frenzyAt > t && frenzyAt < start + RAID_FRENZY_GAP_MINUTES * MINUTE) {
+    return { start: frenzyAt, end: start + RAID_FRENZY_GAP_MINUTES * MINUTE, now: false };
+  }
+  const next = start + slot;
+  return { start: next, end: next + length(next + 1), now: false };
+}
+
+/** 한 번(기력 1)이 몇으로 세지는가. */
+export function raidStrikeValue(t: number, spawnedAt: number | null, hp: number): number {
+  return raidGapAt(t, spawnedAt, hp) ? RAID_GAP_MULT : 1;
+}
+
+/**
+ * 잡는 데 드는 사람 — 모두 빈틈에만 치면(least), 빈틈을 하나도 쓰지 않으면(most).
+ * 체력이 작은 옛 물결은 빈틈이 없어 둘이 같다.
+ */
+export function raidNeed(hp: number): { least: number; most: number } {
+  const most = Math.ceil(hp / RAID_USES_PER_PERSON);
+  return { least: hp < RAID_HP_MIN ? most : Math.ceil(hp / RAID_HITS_MAX_PER_PERSON), most };
+}
+
+// ── 지원 (거대 잡초 2.0, §7.2) ───────────────────────────────────────
+
+/**
+ * 지원 — 기력과 따로, 물결에 든 누구나 건다. 내 표식(fighters/{uid})에 종류(aid)와 때(aidAt)를,
+ * 내 칸(shards/{n})에도 같은 것을 적어 모두가 이미 보고 있는 칸 구독으로 본다.
+ *
+ * ★ 효과는 손맛에만 닿는다(문지르기 수·반격·가짜 약점). 센 값은 바뀌지 않는다 — 반칙해도 얻을 것이 없다.
+ * ★ 규칙은 종류(1–3)와 RAID_AID_MIN_GAP 간격만 본다. 60초/20초(아이템)는 화면이 지킨다 —
+ *   아이템은 규칙이 못 보는 내 정원 장부에 있다.
+ * 값을 바꾸면 firestore.rules의 raidAid()도 같이 바꾼다 — raid.test.ts가 짝을 본다.
+ */
+export type RaidAidId = "drum" | "umbrella" | "torch";
+
+export const RAID_AIDS: Record<RaidAidId, { code: 1 | 2 | 3; icon: string; label: string; did: string; effect: string; ms: number }> = {
+  drum: { code: 1, icon: "🥁", label: "응원 북", did: "북을 쳤어요", effect: "20초 동안 모두 문지르기 절반", ms: 20_000 },
+  umbrella: { code: 2, icon: "☂️", label: "큰 우산", did: "우산을 펼쳤어요", effect: "다음 반격 한 번을 모두가 피해요", ms: 0 },
+  torch: { code: 3, icon: "🔦", label: "손전등", did: "손전등을 켰어요", effect: "30초 동안 가짜 약점이 사라지고 약점이 자주 떠요", ms: 30_000 },
+};
+export const RAID_AID_ORDER: RaidAidId[] = ["drum", "umbrella", "torch"];
+export function raidAidOf(code: unknown): RaidAidId | null {
+  return RAID_AID_ORDER.find((id) => RAID_AIDS[id].code === code) ?? null;
+}
+/** 지원 사이의 기다림. 아이템이 있으면 짧다(화면이 지킨다). 규칙은 RAID_AID_MIN_GAP만. */
+export const RAID_AID_COOLDOWN = 60_000;
+export const RAID_AID_COOLDOWN_ITEM = 20_000;
+export const RAID_AID_MIN_GAP = 20_000;
+
+/** 함께한 사람 이름을 칸마다 이만큼까지 적는다(쓰러뜨린 뒤 "함께한 사람들"). 칸 8 × 30 = 240명. */
+export const RAID_NAMES_PER_SHARD = 30;
+
+/**
+ * 필살기 — 상점에서 잼으로 사서 거대 잡초에 쓴다. 쓰면 내 기력(RAID_USES_PER_PERSON)에서
+ * 여러 번을 한 커밋에 한꺼번에 쓴다. 빈틈에 쓰면 그것도 RAID_GAP_MULT배로 센다.
  *
  * ★ 필살기는 내 몫을 넘지 못한다. 아이템은 내 정원 문서(클라이언트가 쓴다)에 있어
- *   규칙이 샀는지 볼 수 없다. 그래서 규칙은 "한 커밋에 RAID_FINISHER_MAX방까지, 내 몫 안에서"만
+ *   규칙이 샀는지 볼 수 없다. 그래서 규칙은 "한 커밋에 기력 RAID_FINISHER_MAX번까지, 내 기력 안에서"만
  *   본다. 위조해도 얻는 것은 모아 둔 몫을 한 번에 쓰는 것뿐이고, 혼자서는 여전히 못 잡는다.
  * 값을 바꾸면 firestore.rules의 fighters·shards 절도 같이 바꾼다 — raid.test.ts가 짝을 본다.
  */
@@ -665,24 +770,24 @@ export const FINISHER_ORDER: FinisherId[] = ["pick", "whirl", "sun"];
 
 /** 쓰러뜨리면 참여한 사람이 받는 희귀 씨앗 상자. 확률을 공개한다. */
 export const RAID_BOX = { jam: 50, odds: [{ tier: "flagship" as Tier, p: 0.8 }, { tier: "perennial" as Tier, p: 0.2 }] };
+/** ★★★(빠른 처치)이면 상자의 다년생 확률이 이만큼으로 오른다(§7.4). 공개한다. */
+export const RAID_BOX_FAST_PERENNIAL = 0.35;
 
-/** 상자를 연다. 같은 날·같은 사람이면 같은 씨앗이다 — 새로고침으로 다시 굴리지 못하게. */
-export function openRaidBox(seed: string, catalog: Species[]): Species | undefined {
-  return openBox(`raid:${seed}`, catalog);
+/**
+ * 상자를 연다. 같은 물결·같은 사람이면 같은 씨앗이다 — 새로고침으로 다시 굴리지 못하게.
+ * perennial은 다년생 확률. 굴림 값 r이 1 − perennial 이상이면 다년생이다 — 확률이 오르면 다년생 쪽만
+ * 넓어지므로, 20%에서 다년생이던 상자는 35%에서도 다년생이다. 품종을 고르는 둘째 굴림은 그대로다.
+ * 이미 연 상자는 장부(raids)가 다시 열지 않고, 별은 쓰러진 뒤 바뀌지 않으므로 다시 굴러가는 일이 없다.
+ */
+export function openRaidBox(seed: string, catalog: Species[], perennial = RAID_BOX.odds[1].p): Species | undefined {
+  return openBox(`raid:${seed}`, catalog, perennial);
 }
 
 /** 희귀 씨앗 상자(업적 80%, 다년생 20%). key가 같으면 같은 씨앗이다. */
-function openBox(key: string, catalog: Species[]): Species | undefined {
+function openBox(key: string, catalog: Species[], perennial = RAID_BOX.odds[1].p): Species | undefined {
   const roll = rng(hash(key));
-  let r = roll();
-  let tier: Tier = "flagship";
-  for (const o of RAID_BOX.odds) {
-    if (r < o.p) {
-      tier = o.tier;
-      break;
-    }
-    r -= o.p;
-  }
+  const r = roll();
+  const tier: Tier = r >= 1 - perennial ? "perennial" : "flagship";
   const pool = catalog.filter((s) => s.tier === tier);
   const fallback = catalog.filter((s) => s.tier === "flagship" || s.tier === "perennial");
   const from = pool.length ? pool : fallback;
@@ -897,12 +1002,13 @@ export const WATER_PER_DAY = 5;
 export const WATER_CUT = 0.1;
 
 /**
- * 물을 준다. 아직 익지 않은 포기의 남은 시간을 WATER_CUT만큼 줄인다.
+ * 물을 준다. 아직 익지 않은 포기의 남은 시간을 cut만큼 줄인다(보통 WATER_CUT, 1촌의 물은
+ * ilchon/rules.ts의 WATER_CUT_ILCHON).
  * 단비 창은 다시 계산하지 않는다 — 남은 시간이 조금 짧아질 뿐이라 차이가 작다.
  */
-export function waterBeds(beds: Array<Plant | null>, now: number): Array<Plant | null> {
+export function waterBeds(beds: Array<Plant | null>, now: number, cut = WATER_CUT): Array<Plant | null> {
   return beds.map((p) =>
-    p && p.ripeAt > now ? { ...p, ripeAt: Math.round(now + (p.ripeAt - now) * (1 - WATER_CUT)) } : p,
+    p && p.ripeAt > now ? { ...p, ripeAt: Math.round(now + (p.ripeAt - now) * (1 - cut)) } : p,
   );
 }
 

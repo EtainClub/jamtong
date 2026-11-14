@@ -3,11 +3,16 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { track } from "@/lib/analytics";
+
 import { DexMap } from "./DexMap";
+import { gardenFeedback } from "./feedback";
 import { PlantArt } from "./GardenArt";
 import { MutationChips, NoteCard } from "./parts";
 import { MUTATION, MUTATION_ORDER, TIER_LABEL, TITLE_MAX, TITLE_ORDER, TITLES, titleCounts, titleLevel, titleNext } from "./rules";
-import type { GardenData } from "./store";
+import { FURNITURE_BY_ID, FRAME_BLANK } from "./room/catalog";
+import { framed } from "./room/rules";
+import { useGarden, type GardenData } from "./store";
 import type { Species, Tier } from "./types";
 
 /**
@@ -134,7 +139,10 @@ export function Dex({
               {open === s.id && (
                 <div className="space-y-2 px-3.5 pb-3.5">
                   {mine.map((n) => (
-                    <NoteCard key={n.id} note={n} pageHref={s.href} />
+                    <div key={n.id}>
+                      <NoteCard note={n} pageHref={s.href} />
+                      <FrameButton data={data} noteId={n.id} kind={n.kind} species={s} say={say} />
+                    </div>
                   ))}
                   {mine.length < s.notes.length && (
                     <p className="text-[12px] text-smoke">
@@ -154,6 +162,39 @@ export function Dex({
       </>
       )}
     </div>
+  );
+}
+
+/**
+ * 쪽지를 액자에 걸기 (docs/garden-miniroom.md §4.2). 빈 액자틀이 있으면 그것을, 없으면 잼으로 하나 사서 건다.
+ * 반론·한계 쪽지도 같은 단추·같은 액자다 — 사실 쪽지만 거는 길을 따로 두지 않는다.
+ */
+function FrameButton({ data, noteId, kind, species, say }: { data: GardenData; noteId: string; kind: string; species: Species; say: (text: string) => void }) {
+  const price = FURNITURE_BY_ID.get(FRAME_BLANK)?.price ?? 0;
+  const blanks = data.room.owned[FRAME_BLANK] ?? 0;
+  if (framed(data.room, noteId)) {
+    return <p className="mt-1 text-[12px] font-semibold text-[#2f9bd8]">🖼 방에 걸려 있어요</p>;
+  }
+  const short = blanks > 0 ? 0 : Math.max(0, price - data.jam);
+  return (
+    <button
+      type="button"
+      disabled={short > 0}
+      onClick={() => {
+        const out = useGarden.getState().frameNote(noteId, species.id);
+        if (!out) {
+          say("액자에 걸지 못했어요");
+          return;
+        }
+        gardenFeedback("reward");
+        // 액자에 걸린 쪽지의 종류 비율을 본다(§9 가드레일). 액자는 tier 대신 쪽지 종류를 싣는다.
+        track("room_show", { kind: "frame", tier: kind, mutated: false });
+        say(out.at ? "🖼 액자에 걸어 방에 놓았어요" : "🖼 액자를 보관함에 넣었어요 · 방 꾸미기에서 걸어요");
+      }}
+      className="mt-1.5 min-h-[40px] rounded-full border border-[#2f9bd8] bg-white px-3 py-1.5 text-[12.5px] font-semibold text-[#1f78ad] disabled:opacity-50"
+    >
+      {blanks > 0 ? `🖼 액자에 걸기 · 빈 틀 ${blanks}개` : short > 0 ? `🖼 액자에 걸기 · 잼 ${short} 더 필요해요` : `🖼 액자틀 사서 걸기 · 🍯 ${price}`}
+    </button>
   );
 }
 
