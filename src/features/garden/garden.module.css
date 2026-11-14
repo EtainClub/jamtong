@@ -397,6 +397,9 @@
 .game :global(.garden-today b) { color: var(--d-orange); font-size: 12px; font-variant-numeric: tabular-nums; }
 .game :global(.garden-diary-name) { margin-top: 2px; font-size: 18px; font-weight: 900; letter-spacing: -.02em; color: var(--d-sky-ink); }
 .game :global(.garden-music-band) { display: flex; width: 100%; align-items: center; min-height: 36px; margin-top: 8px; padding: 0 10px; border-radius: 8px; background: repeating-linear-gradient(90deg, #eef6fb 0 10px, #f7fbfd 10px 20px); border: 1px solid #d3e6f2; font-size: 12.5px; font-weight: 700; color: var(--d-sky-ink); text-align: left; }
+.game :global(.garden-music-band) { gap: 6px; }
+.game :global(.garden-track-btn) { display: flex; width: 100%; min-height: 56px; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; border: 1px dashed #c9dbe7; background: #fff; color: var(--d-sky-ink); }
+.game :global(.garden-track-btn[aria-pressed="true"]) { border: 2px solid var(--d-orange, #f47b20); background: #fff6ec; color: #8a4510; }
 .game :global(.garden-diary-title) { font-size: 14px; font-weight: 900; color: var(--d-sky-ink); }
 .game :global(.garden-diary-title::before) { content: "▸ "; color: var(--d-orange); }
 .game :global(.garden-diary-box) { border-radius: 12px; border: 1px dashed var(--d-line); padding: 10px 12px; background: #fbfdff; }

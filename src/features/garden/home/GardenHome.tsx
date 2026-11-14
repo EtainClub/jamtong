@@ -5,7 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { LineDoc } from "@/lib/firebase/ilchon";
 
 import { Dex } from "../Dex";
-import { gardenFeedback } from "../feedback";
+import { gardenFeedback, gardenTrack, setGardenTrack } from "../feedback";
 import { SEGMENTS, type NewsItem, type Place, type Segment } from "../nav";
 import { TitleChips } from "../parts";
 import { FURNITURE_BY_ID, moodOf, type Shortcut } from "../room/catalog";
@@ -16,7 +16,7 @@ import { isShownId, type Placed } from "../room/rules";
 import type { TitleId } from "../rules";
 import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
-import { Guestbook, IlchonNotes, MoodSheet, NewsPanel, VisitorCount } from "./HomeParts";
+import { Guestbook, IlchonNotes, MoodSheet, MusicSheet, NewsPanel, VisitorCount } from "./HomeParts";
 import { GuestbookModePicker, OpenRoomPrompt } from "../ilchon/parts";
 import { RoomLineList } from "../ilchon/RoomLines";
 
@@ -72,6 +72,8 @@ export function GardenHome({
 }) {
   const [editing, setEditing] = useState(false);
   const [moodOpen, setMoodOpen] = useState(false);
+  const [musicOpen, setMusicOpen] = useState(false);
+  const track = gardenTrack(data.room.bgm);
   const [opened, setOpened] = useState<Placed | null>(null);
   const mood = moodOf(data.room.mood);
   const gid = data.share.on ? data.share.id : null;
@@ -127,8 +129,10 @@ export function GardenHome({
         <VisitorCount today={visitors?.today} total={visitors?.total} />
         <h1 className="garden-diary-name">{data.nick}의 방</h1>
         <TitleChips levels={levels} className="mt-1" />
-        <button type="button" className="garden-music-band" aria-pressed={sound} onClick={onSound}>
-          ♪ {sound ? "정원 음악 듣는 중 · 끄기" : "정원 음악 켜기"}
+        <button type="button" className="garden-music-band" aria-haspopup="dialog" onClick={() => { gardenFeedback("tap"); setMusicOpen(true); }}>
+          <span aria-hidden="true">♪ {track.icon}</span>
+          <span className="min-w-0 flex-1 truncate">{track.label} · {sound ? "듣는 중" : "꺼짐"}</span>
+          <span className="shrink-0 text-smoke">곡 고르기 ▸</span>
         </button>
       </header>
 
@@ -148,15 +152,7 @@ export function GardenHome({
         </div>
       ) : (
         <>
-          {/* 새 소식이 첫 화면의 일이다. 코치 카드와 팁은 그 아래. */}
-          <div className="mt-4">
-            <NewsPanel news={news} onGo={onGo} />
-          </div>
-          {!data.share.on && <div className="mt-4"><OpenRoomPrompt say={say} /></div>}
-          {coach}
-          {tip && <div className="mt-4">{tip}</div>}
-
-          <section aria-labelledby="garden-my-room" className="mt-4">
+          <section aria-labelledby="garden-my-room" className="mt-3">
             <h2 id="garden-my-room" className="garden-diary-title">내 방</h2>
             <div className="mt-1.5">
               <RoomScene
@@ -191,6 +187,14 @@ export function GardenHome({
               </p>
             )}
           </section>
+          {/* 새 소식은 방 아래. 방이 이 화면의 얼굴이다(2026-11-14). 코치 카드와 팁은 그 아래. */}
+          <div className="mt-4">
+            <NewsPanel news={news} onGo={onGo} />
+          </div>
+          {!data.share.on && <div className="mt-4"><OpenRoomPrompt say={say} /></div>}
+          {coach}
+          {tip && <div className="mt-4">{tip}</div>}
+
 
           <div className="mt-4 space-y-3">
             <IlchonNotes>{notes}</IlchonNotes>
@@ -199,6 +203,21 @@ export function GardenHome({
         </>
       )}
 
+      {musicOpen && (
+        <MusicSheet
+          current={data.room.bgm}
+          sound={sound}
+          onToggle={onSound}
+          onPick={(id) => {
+            useGarden.getState().setBgm(id);
+            setGardenTrack(id);
+            // 고르는 손길이 곧 "듣고 싶다"다. 꺼져 있으면 켠다(사용자 터치 안이라 소리가 열린다).
+            if (!sound) onSound();
+            else gardenFeedback("tap");
+          }}
+          onClose={() => setMusicOpen(false)}
+        />
+      )}
       {moodOpen && (
         <MoodSheet
           current={data.room.mood}

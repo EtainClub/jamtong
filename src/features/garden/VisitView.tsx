@@ -8,7 +8,7 @@ import { loadPublicGarden, waterGarden, type PublicGarden } from "@/lib/firebase
 import { countVisit, isIlchonOf, loadCounter, sendKnock, signGuestbook, writeNote, type Counter } from "@/lib/firebase/ilchon";
 
 import { PlantArt } from "./GardenArt";
-import { gardenFeedback } from "./feedback";
+import { DEFAULT_TRACK, gardenFeedback, gardenTrack, isGardenTrack, setGardenTrack } from "./feedback";
 import { VisitorCount } from "./home/HomeParts";
 import { useRoomLines } from "./ilchon/live";
 import { LineComposer, TagSheet } from "./ilchon/parts";
@@ -108,6 +108,13 @@ export function VisitView({
   const current = state?.gid === gid && state.uid === uid ? state.loaded : undefined;
   const live = current && current !== "error";
   const lines = useRoomLines(gid, Boolean(live));
+  // 남의 방에서는 그 방의 음악. 방을 공개하지 않은 예전 문서면 내 곡 그대로, 곡이 없는 방은 기본 곡.
+  // 돌아가면 GardenApp이 내 곡으로 되돌린다. 소리를 켜는 것은 여전히 손님이 한다.
+  const theirRoomDoc = current && current !== "error" ? current.garden.room : undefined;
+  const theirBgm = theirRoomDoc ? (isGardenTrack(theirRoomDoc.bgm) ? theirRoomDoc.bgm : DEFAULT_TRACK) : null;
+  useEffect(() => {
+    if (theirBgm) setGardenTrack(theirBgm);
+  }, [theirBgm]);
 
   const back = (
     <button
@@ -194,7 +201,11 @@ export function VisitView({
               onItem={(p) => { gardenFeedback("tap"); setOpened(p); }}
             />
           </div>
-          <p className="mt-1.5 text-[12px] text-smoke">화분과 액자를 누르면 그 품종과 쪽지의 원본으로 갈 수 있어요.</p>
+          <p className="mt-1.5 text-[12px] text-smoke">
+            ♪ 이 방의 음악 · <span aria-hidden="true">{gardenTrack(theirRoom.bgm).icon}</span> {gardenTrack(theirRoom.bgm).label}
+            <span className="text-smoke"> (위쪽 ♪로 켜고 꺼요)</span>
+          </p>
+          <p className="mt-1 text-[12px] text-smoke">화분과 액자를 누르면 그 품종과 쪽지의 원본으로 갈 수 있어요.</p>
           {opened && <RoomItemSheet room={theirRoom} placed={opened} byId={byId} onClose={() => setOpened(null)} />}
         </section>
       )}

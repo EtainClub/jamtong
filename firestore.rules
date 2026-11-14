@@ -660,11 +660,12 @@ service cloud.firestore {
     // 값은 src/features/garden/room/rules.ts의 PUBLIC_PLACED_MAX·PUBLIC_ID_MAX와 같다(room/rules.test.ts가 본다).
     function publicRoom(r) {
       return r is map
-        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'placed'])
+        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'bgm', 'placed'])
         && r.size is int && r.size >= 0 && r.size <= 2
         && r.wall is string && r.wall.size() <= 40
         && r.floor is string && r.floor.size() <= 40
         && r.mood is string && r.mood.size() <= 40
+        && (!('bgm' in r) || (r.bgm is string && r.bgm.size() <= 40))
         && r.placed is list && r.placed.size() <= 40;
     }
 

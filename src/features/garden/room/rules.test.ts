@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import type { Fruit, Species } from "../types";
+import { DEFAULT_TRACK, TRACK_ORDER } from "../feedback";
 import { FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS } from "./catalog";
 import {
   addShown,
@@ -252,7 +253,7 @@ test("firestore.rules의 publicRoom()이 같은 상한을 쓴다", () => {
   const fn = rules.slice(rules.indexOf("function publicRoom("));
   assert.ok(fn.length > 0 && rules.includes("publicRoom(d.room)"));
   assert.match(fn, new RegExp(`r\\.placed\\.size\\(\\) <= ${PUBLIC_PLACED_MAX}`));
-  for (const key of ["wall", "floor", "mood"]) assert.match(fn, new RegExp(`r\\.${key}\\.size\\(\\) <= ${PUBLIC_ID_MAX}`));
+  for (const key of ["wall", "floor", "mood", "bgm"]) assert.match(fn, new RegExp(`r\\.${key}\\.size\\(\\) <= ${PUBLIC_ID_MAX}`));
   assert.match(fn, new RegExp(`r\\.size <= ${ROOM_SIZES.length - 1}`));
   // 공개 문서의 키 목록에 room이 있다(1촌 단계가 뒤에 키를 더했다 — ilchon/rules.test.ts).
   assert.match(rules, /hasOnly\(\['ownerUid', 'nick', 'beds', 'dex', 'golden', 'rainbow', 'titles', 'room', [^\]]*'updatedAt'\]\)/);
@@ -283,4 +284,20 @@ test("전리품은 뿌리 조각으로만, 보상 벽지는 팔지 않고 처음
   assert.equal(buyTrophyItem(room, 99, "wp-guard"), "off-sale", "보상 벽지는 팔지 않는다");
   assert.equal(hasSurface(room, "wp-guard", "wallpaper"), false);
   assert.equal(hasSurface({ ...room, owned: { "wp-guard": 1 } }, "wp-guard", "wallpaper"), true);
+});
+
+test("방 음악: 예전 방은 기본 곡, 공개 방에 실리고, 모르는 곡은 기본 곡으로 튼다", () => {
+  assert.equal(TRACK_ORDER.length, 5);
+  assert.equal(new Set(TRACK_ORDER).size, 5);
+  assert.equal(normalizeRoom({}).bgm, DEFAULT_TRACK);
+  assert.equal(normalizeRoom({ bgm: "nope" as never }).bgm, DEFAULT_TRACK);
+  const room = { ...freshRoom(), bgm: "lullaby" as const };
+  assert.equal(normalizeRoom(room).bgm, "lullaby");
+  const pub = publicRoom(room);
+  assert.equal(pub.bgm, "lullaby");
+  assert.equal(roomFromPublic(pub, new Map()).bgm, "lullaby");
+  assert.equal(roomFromPublic({ ...pub, bgm: "../../evil.mp3" }, new Map()).bgm, DEFAULT_TRACK);
+  const before = { ...pub };
+  delete before.bgm;
+  assert.equal(roomFromPublic(before, new Map()).bgm, DEFAULT_TRACK, "곡이 생기기 전에 공개한 방");
 });

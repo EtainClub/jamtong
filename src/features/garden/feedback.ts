@@ -5,7 +5,7 @@
  *
  * ★ 켜는 것은 사람이다. 자동 재생하지 않는다. 켠 설정은 이 기기에 기억하지만,
  *   다시 열었을 때도 첫 터치가 있어야 소리가 난다(브라우저가 그 전의 재생을 막는다).
- * ★ 음악은 잼통 고유의 짧은 오르골 곡이다(docs/garden-game.md §1 "음악은 잼통 고유로").
+ * ★ 음악은 잼통 고유의 짧은 곡 다섯이다(docs/garden-game.md §1 "음악은 잼통 고유로"). 방 주인이 고른다.
  *
  * 모바일에서 소리가 나지 않던 이유와 대응:
  * - iOS 무음 스위치는 따른다. 무음이면 음악도 효과음도 나지 않는다 — 이건 고장이 아니다.
@@ -308,56 +308,200 @@ function tone(ctx: AudioContext, out: AudioNode, hz: number, at: number, length:
   };
 }
 
-// ── 배경음악: 잼통 오르골 ─────────────────────────────────────────────
+// ── 배경음악: 내 방 음악 다섯 곡 ──────────────────────────────────────
+//
+// 모두 잼통 고유의 짧은 곡이다(docs/garden-game.md §1 "음악은 잼통 고유로"). 파일을 내려받지 않고
+// 악보를 Web Audio로 그 자리에서 연주한다 — 번들이 몇 KB 느는 것뿐이고, 저작권이 걸린 곡이 끼어들 길이 없다.
+// 곡을 더하려면 TRACKS에 한 줄. id는 공개 방 문서에 실리므로 바꾸지 않는다(GardenTrackId).
 
-/** 느긋한 8분음표 오르골. 네 마디 화성(도·라·파·솔) 위에 두 갈래 선율이 번갈아 돈다. */
-const BPM = 84;
-const EIGHTH = 60 / BPM / 2;
-const BAR = 8;
-const CHORDS = [
-  [48, 52, 55], // 도
-  [45, 48, 52], // 라
-  [41, 45, 48], // 파
-  [43, 47, 50], // 솔
-];
 type Line = Array<number | null>;
-const MELODY: Line[] = [
-  // 첫째 갈래
-  [76, null, 79, 76, 72, null, 74, null],
-  [72, null, 76, 74, 69, null, null, 72],
-  [69, null, 72, 77, 76, null, 72, null],
-  [74, null, 71, 74, 79, null, 77, 74],
-  // 둘째 갈래
-  [79, null, 76, null, 79, 81, 79, null],
-  [76, null, 72, null, 76, 74, 72, null],
-  [77, null, 76, 72, 69, null, 72, 74],
-  [71, null, 74, null, 72, null, null, null],
-];
-const LOOP = MELODY.length * BAR;
+
+interface Track {
+  label: string;
+  icon: string;
+  /** 고르는 화면의 한 줄 설명. */
+  hint: string;
+  bpm: number;
+  /** 한 마디의 8분음표 칸 수. 8=4/4, 6=3/4. */
+  bar: number;
+  /** 마디마다 돌아가는 화음(낮은 MIDI 음 셋). */
+  chords: number[][];
+  melody: Line[];
+  lead: { type: OscillatorType; length: number; peak: number };
+  /** 베이스: [마디 안의 칸, 뿌리음에서 반음 수]. */
+  bass: Array<[number, number]>;
+  bassType: OscillatorType;
+}
+
+const C = [48, 52, 55];
+const AM = [45, 48, 52];
+const F = [41, 45, 48];
+const G = [43, 47, 50];
+
+const TRACKS = {
+  /** 처음부터 있던 곡. 기본값이라 예전에 음악을 켜 둔 사람은 같은 곡을 듣는다. */
+  orgel: {
+    label: "잼통 오르골",
+    icon: "🎐",
+    hint: "느긋한 오르골. 정원의 처음 곡",
+    bpm: 84,
+    bar: 8,
+    chords: [C, AM, F, G],
+    melody: [
+      [76, null, 79, 76, 72, null, 74, null],
+      [72, null, 76, 74, 69, null, null, 72],
+      [69, null, 72, 77, 76, null, 72, null],
+      [74, null, 71, 74, 79, null, 77, 74],
+      [79, null, 76, null, 79, 81, 79, null],
+      [76, null, 72, null, 76, 74, 72, null],
+      [77, null, 76, 72, 69, null, 72, 74],
+      [71, null, 74, null, 72, null, null, null],
+    ],
+    lead: { type: "triangle", length: 0.9, peak: 0.07 },
+    bass: [[0, 0], [4, 7]],
+    bassType: "sine",
+  },
+  waltz: {
+    label: "단비 왈츠",
+    icon: "☔",
+    hint: "쿵짝짝 세 박자. 창밖에 비가 올 때",
+    bpm: 100,
+    bar: 6,
+    chords: [C, G, AM, F],
+    melody: [
+      [72, null, 76, null, 79, null],
+      [79, null, 77, null, 74, null],
+      [76, null, 72, null, 69, null],
+      [72, null, 77, 76, 74, null],
+      [72, null, 76, null, 79, 81],
+      [83, null, 79, null, 74, null],
+      [76, null, 72, null, 69, 72],
+      [77, null, 76, null, 74, null],
+    ],
+    lead: { type: "triangle", length: 0.7, peak: 0.065 },
+    bass: [[0, 0], [2, 12], [4, 7]],
+    bassType: "sine",
+  },
+  walk: {
+    label: "햇살 산책",
+    icon: "🌤",
+    hint: "통통 튀는 8비트. 옛 휴대폰 벨소리 같은",
+    bpm: 112,
+    bar: 8,
+    chords: [C, F, G, C],
+    melody: [
+      [72, 74, 76, 72, 76, null, 79, null],
+      [77, 76, 74, 72, 69, null, 72, null],
+      [74, null, 74, 76, 77, null, 74, null],
+      [76, 74, 72, null, 72, null, null, null],
+      [79, null, 79, 77, 76, null, 72, null],
+      [81, 79, 77, 76, 77, null, 81, null],
+      [79, 77, 76, 74, 74, null, 71, null],
+      [72, null, 76, null, 72, null, null, null],
+    ],
+    lead: { type: "square", length: 0.22, peak: 0.028 },
+    bass: [[0, 0], [2, 12], [4, 7], [6, 12]],
+    bassType: "triangle",
+  },
+  lullaby: {
+    label: "별밤 자장가",
+    icon: "🌙",
+    hint: "느리고 조용한 단조. 밤에 듣기 좋은",
+    bpm: 62,
+    bar: 8,
+    chords: [AM, F, C, G],
+    melody: [
+      [69, null, null, 72, 76, null, null, null],
+      [77, null, 76, null, 72, null, null, null],
+      [72, null, null, 74, 76, null, 79, null],
+      [79, null, null, 77, 74, null, null, null],
+      [69, null, null, 72, 76, null, 81, null],
+      [77, null, null, 76, 72, null, 69, null],
+      [67, null, null, 72, 76, null, 72, null],
+      [71, null, null, null, 74, null, null, null],
+    ],
+    lead: { type: "sine", length: 1.6, peak: 0.08 },
+    bass: [[0, 0], [2, 7], [4, 12], [6, 7]],
+    bassType: "sine",
+  },
+  festival: {
+    label: "광장 축제",
+    icon: "🎉",
+    hint: "신나는 행진. 거대 잡초를 잡으러 갈 때",
+    bpm: 126,
+    bar: 8,
+    chords: [C, G, AM, F],
+    melody: [
+      [72, null, 74, 76, null, 79, null, 76],
+      [74, null, 71, null, 67, null, 71, 74],
+      [76, null, 72, null, 69, 72, 76, null],
+      [77, 76, 74, 72, 74, null, null, null],
+      [72, null, 74, 76, null, 79, null, 81],
+      [79, null, 74, null, 71, null, 74, null],
+      [72, 76, 79, null, 76, 72, 69, null],
+      [77, null, 74, null, 72, null, null, null],
+    ],
+    lead: { type: "square", length: 0.2, peak: 0.026 },
+    bass: [[0, 0], [2, 12], [4, 0], [6, 12]],
+    bassType: "triangle",
+  },
+} satisfies Record<string, Track>;
+
+export type GardenTrackId = keyof typeof TRACKS;
+export const DEFAULT_TRACK: GardenTrackId = "orgel";
+export const TRACK_ORDER: GardenTrackId[] = ["orgel", "waltz", "walk", "lullaby", "festival"];
+
+export function isGardenTrack(id: unknown): id is GardenTrackId {
+  return typeof id === "string" && Object.prototype.hasOwnProperty.call(TRACKS, id);
+}
+
+export function gardenTrack(id: GardenTrackId): { label: string; icon: string; hint: string } {
+  const t: Track = TRACKS[id];
+  return { label: t.label, icon: t.icon, hint: t.hint };
+}
+
+let current: GardenTrackId = DEFAULT_TRACK;
+
+/**
+ * 곡을 바꾼다. 음악이 흐르는 중이면 곧바로 갈아 끼우고(살짝 줄였다가), 꺼져 있으면 다음에 켤 때 이 곡이다.
+ * 남의 방에 놀러 가면 그 방의 곡으로, 돌아오면 내 곡으로 — 부르는 쪽이 정한다.
+ */
+export function setGardenTrack(id: GardenTrackId) {
+  if (id === current) return;
+  current = id;
+  if (timer) {
+    stopMusic();
+    startMusic();
+  }
+}
 
 const midi = (n: number) => 440 * Math.pow(2, (n - 69) / 12);
 
-function playStep(ctx: AudioContext, out: AudioNode, s: number, at: number) {
-  const bar = Math.floor(s / BAR) % MELODY.length;
-  const beat = s % BAR;
-  const chord = CHORDS[bar % CHORDS.length];
-  const note = MELODY[bar][beat];
-  if (note !== null) tone(ctx, out, midi(note), at, 0.9, 0.07, "triangle");
-  // 베이스: 마디 첫 박과 셋째 박에 뿌리음과 5도.
-  if (beat === 0) tone(ctx, out, midi(chord[0]), at, 1.4, 0.06, "sine");
-  if (beat === 4) tone(ctx, out, midi(chord[0] + 7), at, 1.2, 0.04, "sine");
+function playStep(ctx: AudioContext, out: AudioNode, t: Track, s: number, at: number) {
+  const eighth = 60 / t.bpm / 2;
+  const bar = Math.floor(s / t.bar) % t.melody.length;
+  const beat = s % t.bar;
+  const chord = t.chords[bar % t.chords.length];
+  const note = t.melody[bar][beat];
+  if (note !== null) tone(ctx, out, midi(note), at, t.lead.length, t.lead.peak, t.lead.type);
+  for (const [at8, up] of t.bass) {
+    if (at8 === beat) tone(ctx, out, midi(chord[0] + up), at, at8 === 0 ? 1.4 : 1.0, at8 === 0 ? 0.06 : 0.04, t.bassType);
+  }
   // 화음: 마디 첫 박에 낮게 깐다.
-  if (beat === 0) for (const n of chord) tone(ctx, out, midi(n + 12), at, BAR * EIGHTH, 0.012, "sine");
+  if (beat === 0) for (const n of chord) tone(ctx, out, midi(n + 12), at, t.bar * eighth, 0.012, "sine");
 }
 
 function schedule() {
   if (!audio || !music || audio.state !== "running") return;
+  const t: Track = TRACKS[current];
+  const eighth = 60 / t.bpm / 2;
+  const loop = t.melody.length * t.bar;
   // 멈췄다 돌아왔으면 박자를 지금으로 당긴다. 밀린 음을 한꺼번에 쏟지 않게.
   if (nextAt < audio.currentTime) nextAt = audio.currentTime + 0.05;
   while (nextAt < audio.currentTime + 0.6) {
-    playStep(audio, music, step, nextAt);
-    nextAt += EIGHTH;
-    step = (step + 1) % LOOP;
+    playStep(audio, music, t, step, nextAt);
+    nextAt += eighth;
+    step = (step + 1) % loop;
   }
 }
 

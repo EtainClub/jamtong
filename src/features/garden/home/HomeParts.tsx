@@ -1,6 +1,6 @@
 "use client";
 
-import { gardenFeedback } from "../feedback";
+import { gardenFeedback, gardenTrack, TRACK_ORDER, type GardenTrackId } from "../feedback";
 import type { NewsItem, Place } from "../nav";
 import { MOODS } from "../room/catalog";
 import { Sheet } from "../Sheet";
@@ -65,6 +65,53 @@ export function MoodSheet({ current, onPick, onClose }: { current: string; onPic
           </li>
         ))}
       </ul>
+    </Sheet>
+  );
+}
+
+/**
+ * 방 음악 고르기. 다섯 곡 모두 잼통이 만든 곡이고 공짜다. 고른 곡은 공개 방에 실려 손님도 이 방에서 듣는다.
+ * 곡을 누르면 바로 그 곡이 흐른다(꺼져 있었으면 켠다). 시트는 닫지 않는다 — 들어 보며 고르게.
+ */
+export function MusicSheet({
+  current,
+  sound,
+  onPick,
+  onToggle,
+  onClose,
+}: {
+  current: GardenTrackId;
+  sound: boolean;
+  onPick: (id: GardenTrackId) => void;
+  onToggle: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet label="방 음악 고르기" title="방 음악" onClose={onClose}>
+      <ul className="mt-3 space-y-2">
+        {TRACK_ORDER.map((id) => {
+          const t = gardenTrack(id);
+          const on = current === id;
+          return (
+            <li key={id}>
+              <button type="button" aria-pressed={on} onClick={() => onPick(id)} className="garden-track-btn">
+                <span aria-hidden="true" className="text-[22px] leading-none">{t.icon}</span>
+                <span className="min-w-0 flex-1 text-left">
+                  <b className="block text-[14px]">{t.label}</b>
+                  <span className="block text-[12px] text-smoke">{t.hint}</span>
+                </span>
+                {on && <span className="shrink-0 text-[12px] font-bold">{sound ? "♪ 재생 중" : "고름"}</span>}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <button type="button" onClick={onToggle} className="garden-diary-btn mt-3 min-h-[44px] w-full">
+        {sound ? "음악 끄기" : "음악 켜기"}
+      </button>
+      <p className="mt-2 text-[12px] leading-relaxed text-smoke">
+        고른 곡은 방을 공개하면 손님도 이 방에서 들어요. 무음 모드에서는 들리지 않아요.
+      </p>
     </Sheet>
   );
 }

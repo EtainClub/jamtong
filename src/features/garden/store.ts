@@ -69,6 +69,7 @@ import { initialCoach, normalizeCoach, type CoachData, type CoachMark, type TipT
 import * as room from "./room/rules";
 import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_ILCHON, type IlchonData, type NewsEntry } from "./ilchon/rules";
 import { MOODS } from "./room/catalog";
+import { isGardenTrack, type GardenTrackId } from "./feedback";
 import type { Case, Fruit, Mutation, Plant, PlazaLevel, Species } from "./types";
 
 /**
@@ -461,6 +462,8 @@ interface GardenState {
   /** 방을 넓힌다. 잼이 모자라거나 다 넓혔으면 false. */
   upgradeRoom: () => boolean;
   setMood: (id: string) => void;
+  /** 방 음악. 공개 방에 실려 손님도 이 곡을 듣는다. */
+  setBgm: (id: GardenTrackId) => void;
   /** 가진 벽지·바닥재를 바른다. */
   applySurface: (id: string) => boolean;
   /** 꾸미기를 마쳤다. 초안이 맞지 않으면(room/rules.ts의 validRoom) 받지 않고 false. */
@@ -1071,6 +1074,12 @@ export const useGarden = create<GardenState>((set, get) => {
       const d = get().data;
       if (!d || d.room.mood === id || !MOODS.some((m) => m.id === id)) return;
       commit({ ...d, room: { ...d.room, mood: id } });
+    },
+
+    setBgm: (id) => {
+      const d = get().data;
+      if (!d || d.room.bgm === id || !isGardenTrack(id)) return;
+      commit({ ...d, room: { ...d.room, bgm: id } });
     },
 
     applySurface: (id) => {
