@@ -109,7 +109,7 @@ export function IlchonTab({
           1촌은 서로의 방에 마실을 다니는 사이예요. 1촌에게 준 물은 남은 시간을 15% 줄여요. 1촌 목록은 나만 봐요.
         </p>
         <button type="button" disabled={rolling} onClick={() => void roll()} className="garden-diary-btn mt-2 w-full">
-          🎲 아무 방이나 놀러 가기
+          🎲 파도타기
         </button>
       </section>
 
@@ -187,7 +187,7 @@ export function IlchonTab({
           {loading === "error" && <p className="mt-1 text-[13px] text-smoke">1촌 목록을 불러오지 못했어요. 잠시 뒤 다시 열어 보세요.</p>}
           {il.friends.length === 0 ? (
             <p className="mt-1 text-[13px] leading-relaxed text-smoke">
-              아직 1촌이 없어요. 마음에 드는 방에서 ‘🤝 1촌 신청’을 눌러 보세요. 위의 ‘아무 방이나’로 시작해도 좋아요.
+              아직 1촌이 없어요. 마음에 드는 방에서 ‘🤝 1촌 신청’을 눌러 보세요. 위의 ‘파도타기’로 시작해도 좋아요.
             </p>
           ) : (
             <ul className="mt-1">
