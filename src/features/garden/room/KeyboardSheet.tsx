@@ -13,6 +13,7 @@ import { useGarden } from "../store";
 import { KeyEditor } from "./KeyEditor";
 import { KeyFace } from "./KeyArt";
 import { blankKeys, freshKeys, keyForCode, REC, recSlots, soundLabel, type RoomKey } from "./keyboard";
+import { sharedRecording } from "./rules";
 import { ClipBank, pressKey } from "./keyboardSound";
 
 /**
@@ -26,6 +27,7 @@ import { ClipBank, pressKey } from "./keyboardSound";
  */
 export function KeyboardSheet({
   keys,
+  keyboard = 0,
   owner,
   ownerUid,
   gid,
@@ -35,6 +37,7 @@ export function KeyboardSheet({
   onClose,
 }: {
   keys: RoomKey[];
+  keyboard?: number;
   /** 내 방인가. 주인은 키를 고친다. */
   owner: boolean;
   /** 녹음 경로(roomKeys/{uid}/…)의 주인. 모르면 녹음은 조용하다. */
@@ -123,7 +126,7 @@ export function KeyboardSheet({
   if (typeof mode === "number" && owner) {
     return (
       <Sheet label={`${mode + 1}번 키 고치기`} title={`${mode + 1}번 키 고치기`} onClose={onClose}>
-        <KeyEditor slot={mode} uid={uid} shareOn={shareOn && Boolean(gid)} say={say} onDone={() => setMode("play")} />
+        <KeyEditor keyboard={keyboard} slot={mode} uid={uid} shareOn={shareOn && Boolean(gid)} say={say} onDone={() => setMode("play")} />
       </Sheet>
     );
   }
@@ -132,10 +135,11 @@ export function KeyboardSheet({
     if (!uid && recSlots(keys).length > 0) return say("잠시 뒤 다시 해 보세요");
     setBusy(true);
     try {
-      const recs = recSlots(keys).map((slot) => ({ slot, ver: keys[slot].ver }));
+      const room = useGarden.getState().data?.room;
+      const recs = recSlots(keys).filter((slot) => !room || !sharedRecording(room, keyboard, slot, keys[slot].ver)).map((slot) => ({ slot, ver: keys[slot].ver }));
       // 녹음을 다 지운 뒤에야 키를 되돌린다 — 못 지운 파일이 어디에도 묶이지 않은 채 남지 않게.
       if (recs.length && uid) await deleteKeyRecs(uid, recs);
-      useGarden.getState().setKeys(freshKeys().map((k, i) => ({ ...k, ver: keys[i].ver })));
+      useGarden.getState().setKeys(freshKeys().map((k, i) => ({ ...k, ver: keys[i].ver })), keyboard);
       track("key_edit", { what: "reset" });
       say("⌨️ 키보드를 처음으로 되돌렸어요");
       setConfirmReset(false);

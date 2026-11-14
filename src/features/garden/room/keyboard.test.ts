@@ -10,6 +10,9 @@ import { FURNITURE_BY_ID } from "./catalog";
 import { faceHistoryReducer, initialFaceHistory } from "./faceHistory";
 import {
   blankFace,
+  blankKeys,
+  packKeyboard,
+  unpackKeyboard,
   decodeFace,
   encodeFace,
   FACE_CELLS,
@@ -42,7 +45,7 @@ import {
   type RoomKey,
 } from "./keyboard";
 import { SYNTH } from "./keyboardSound";
-import { freshRoom, normalizeRoom, place, publicRoom, roomFromPublic, validRoom } from "./rules";
+import { freshRoom, normalizeRoom, place, publicRoom, roomFromPublic, validRoom, keyboardKeys, keyboardBanks, withKeyboardKeys, move, stow, recordingCleanup, sharedRecording, nextRecordingVer } from "./rules";
 
 const withRec = (slot: number, ver: number): RoomKey[] => freshKeys().map((k, i) => (i === slot ? { ...k, sound: REC, ver } : k));
 
@@ -173,7 +176,7 @@ test("공개 방: 키보드를 놓았을 때만 키를 싣고, 되돌리면 같�
   assert.equal(pub.keys?.length, KEY_COUNT);
   assert.deepEqual(pub.keys?.[1], { f: room.keys[1].face, s: REC, v: 2 });
   const back = roomFromPublic(pub, new Map());
-  assert.deepEqual(back.placed, [{ at: "b0", it: KEYBOARD_ID }]);
+  assert.deepEqual(back.placed, [{ at: "b0", it: KEYBOARD_ID, kb: 0 }]);
   assert.deepEqual(back.keys[1], room.keys[1]);
   assert.equal(roomFromPublic({ ...pub, keys: undefined }, new Map()).keys[0].sound, SILENT);
 });
@@ -300,4 +303,80 @@ test("키 그림: 바뀌지 않은 획은 기록하지 않고, 되돌린 뒤 새
   state = faceHistoryReducer(state, { type: "undo" });
   state = faceHistoryReducer(state, { type: "undo" });
   assert.equal(state.face, blankFace());
+});
+
+
+test("여러 키보드: 그림·소리는 개체별로 저장하고 이동·보관·다시 읽기에도 유지한다", () => {
+  let room = place({ ...freshRoom(), owned: { keyboard: 3 } }, KEYBOARD_ID, "b0")!;
+  room = place(room, KEYBOARD_ID, "b2")!;
+  const original = keyboardKeys(room, 0);
+  const edited = keyboardKeys(room, 1).map((k, i) => i === 0 ? { ...k, face: "3".repeat(144), sound: "bird" } : k);
+  room = withKeyboardKeys(room, 1, edited);
+  assert.deepEqual(keyboardKeys(room, 0), original);
+  assert.deepEqual(keyboardKeys(room, 1), edited);
+  room = move(room, "b2", "f2")!;
+  assert.equal(room.placed.find((p) => p.at === "f2")?.kb, 1);
+  room = place(stow(room, "f2"), KEYBOARD_ID, "b2")!;
+  assert.equal(room.placed.find((p) => p.at === "b2")?.kb, 1);
+  room = normalizeRoom(JSON.parse(JSON.stringify(room)));
+  assert.deepEqual(keyboardKeys(room, 1), edited);
+  assert.deepEqual(keyboardKeys(room, 0), original);
+  assert.ok(validRoom(room));
+  const visited = roomFromPublic(publicRoom(room), new Map());
+  for (const p of room.placed) {
+    const visible = visited.placed.find((q) => q.at === p.at)!;
+    assert.deepEqual(keyboardKeys(visited, visible.kb), keyboardKeys(room, p.kb));
+  }
+  // 0번을 치워도 공개된 다른 키보드의 키를 올바르게 복원한다.
+  const onlySecond = publicRoom(stow(room, "b0"));
+  assert.equal(onlySecond.keys, undefined);
+  assert.deepEqual(roomFromPublic(onlySecond, new Map()).keys, edited);
+  // 한 개체를 초기화해도 다른 개체는 그대로다.
+  assert.deepEqual(withKeyboardKeys(room, 0, freshKeys()).keyboards?.[1], edited);
+});
+
+test("여러 키보드: 이전 방의 그림과 녹음은 복사하고 서로의 녹음을 삭제하지 않는다", () => {
+  let room = normalizeRoom({ ...freshRoom(), keys: withRec(0, 7), owned: { keyboard: 2 }, placed: [
+    { at: "b0", it: KEYBOARD_ID }, { at: "b2", it: KEYBOARD_ID },
+  ] });
+  assert.deepEqual(room.placed.map((p) => p.kb), [0, 1]);
+  assert.deepEqual(keyboardKeys(room, 0), keyboardKeys(room, 1));
+  assert.notEqual(keyboardKeys(room, 0), keyboardKeys(room, 1));
+  assert.equal(sharedRecording(room, 0, 0, 7), true);
+  assert.equal(nextRecordingVer(room), 8);
+  const oneStowed = recordingCleanup(stow(room, "b0"), true);
+  assert.deepEqual(oneStowed.targets, [{ keyboard: 0, slot: 0, ver: 7 }]);
+  assert.deepEqual(oneStowed.deletions, [], "다른 키보드에서 쓰는 파일은 지우지 않는다");
+  room = withKeyboardKeys(room, 1, withRec(0, nextRecordingVer(room)));
+  assert.equal(keyboardKeys(room, 0)[0].ver, 7);
+  assert.equal(keyboardKeys(room, 1)[0].ver, 8);
+  assert.equal(sharedRecording(room, 0, 0, 7), false);
+  assert.deepEqual(recordingCleanup(stow(room, "b0"), true).deletions, [{ keyboard: 0, slot: 0, ver: 7 }]);
+  assert.equal(recordingCleanup(room, true).targets.length, 0);
+  assert.equal(recordingCleanup(room, false).deletions.length, 2);
+  const pub = roomFromPublic(publicRoom(room), new Map());
+  assert.equal(keyboardKeys(pub, 0)[0].ver, 7);
+  assert.equal(keyboardKeys(pub, 1)[0].ver, 8);
+  assert.equal(nextRecordingVer(withKeyboardKeys(room, 1, withRec(0, KEY_VER_MAX - 1))), KEY_VER_MAX);
+  assert.throws(() => nextRecordingVer(withKeyboardKeys(room, 1, withRec(0, KEY_VER_MAX))));
+});
+
+test("여러 키보드: 중복·범위 밖 개체 번호를 정리하고 저장 검증에서 거부한다", () => {
+  const raw = { ...freshRoom(), owned: { keyboard: 2 }, placed: [
+    { at: "b0", it: KEYBOARD_ID, kb: 1 }, { at: "b2", it: KEYBOARD_ID, kb: 1 },
+  ] };
+  assert.equal(validRoom(raw), false);
+  const normalized = normalizeRoom(raw);
+  assert.equal(validRoom(normalized), true);
+  assert.equal(new Set(normalized.placed.map((p) => p.kb)).size, 2);
+  assert.equal(keyboardBanks(normalizeRoom({ ...raw, keyboards: { "99": freshKeys() } })).length, 2);
+});
+
+
+test("추가 키보드 공개 압축: 그림·소리·녹음을 복원하고 잘못된 입력은 비운다", () => {
+  const keys = withRec(2, 9999999);
+  assert.deepEqual(unpackKeyboard(packKeyboard(keys)), keys);
+  assert.deepEqual(unpackKeyboard(packKeyboard(keys).replace(":rec:", ":https://evil:")), blankKeys());
+  assert.deepEqual(unpackKeyboard(null), blankKeys());
+  assert.deepEqual(unpackKeyboard(packKeyboard(keys) + ";"), blankKeys());
 });

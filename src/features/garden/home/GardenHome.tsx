@@ -13,7 +13,7 @@ import { KeyboardSheet } from "../room/KeyboardSheet";
 import { RoomEditor } from "../room/RoomEditor";
 import { RoomItemSheet } from "../room/RoomItemSheet";
 import { RoomScene } from "../room/RoomArt";
-import { isShownId, type Placed } from "../room/rules";
+import { keyboardKeys, isShownId, type Placed } from "../room/rules";
 import type { TitleId } from "../rules";
 import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
@@ -75,7 +75,7 @@ export function GardenHome({
   const [moodOpen, setMoodOpen] = useState(false);
   const [musicOpen, setMusicOpen] = useState(false);
   const [mottoOpen, setMottoOpen] = useState(false);
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState<number | null>(null);
   const track = gardenTrack(data.room.bgm);
   const [opened, setOpened] = useState<Placed | null>(null);
   const mood = moodOf(data.room.mood);
@@ -111,11 +111,11 @@ export function GardenHome({
     </>
   ) : undefined;
 
-  const shortcut = (s: Shortcut) => {
+  const shortcut = (s: Shortcut, keyboard = 0) => {
     gardenFeedback("tap");
     if (s === "dex") onSeg("dex");
     else if (s === "guestbook") onSeg("guestbook");
-    else if (s === "keyboard") setKeyboardOpen(true);
+    else if (s === "keyboard") setKeyboardOpen(keyboard);
     else onSound();
   };
 
@@ -178,7 +178,7 @@ export function GardenHome({
                 isItemActive={(p) => isShownId(p.it) || Boolean(FURNITURE_BY_ID.get(p.it)?.shortcut)}
                 onItem={(p) => {
                   const s = FURNITURE_BY_ID.get(p.it)?.shortcut;
-                  if (s) shortcut(s);
+                  if (s) shortcut(s, p.kb ?? 0);
                   else {
                     gardenFeedback("tap");
                     setOpened(p);
@@ -246,8 +246,8 @@ export function GardenHome({
         />
       )}
       {opened && <RoomItemSheet room={data.room} placed={opened} byId={byId} onClose={() => setOpened(null)} />}
-      {keyboardOpen && (
-        <KeyboardSheet keys={data.room.keys} owner ownerUid={uid} gid={gid} uid={uid} nick={data.nick} say={say} onClose={() => setKeyboardOpen(false)} />
+      {keyboardOpen !== null && (
+        <KeyboardSheet keyboard={keyboardOpen} keys={keyboardKeys(data.room, keyboardOpen)} owner ownerUid={uid} gid={gid} uid={uid} nick={data.nick} say={say} onClose={() => setKeyboardOpen(null)} />
       )}
     </div>
   );

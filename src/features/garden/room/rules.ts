@@ -6,7 +6,7 @@ import { cleanLine, lineProblem, type LineProblem } from "../ilchon/text";
 import { isRaidKind } from "../raid/rules";
 import type { Fruit, Mutation, Species } from "../types";
 import { DEFAULT_FLOOR, DEFAULT_MOOD, DEFAULT_WALL, FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS, ROOM_SIZES, type Furniture } from "./catalog";
-import { freshKeys, KEYBOARD_ID, keysFromPublic, normalizeKeys, publicKeys, type RoomKey } from "./keyboard";
+import { freshKeys, KEYBOARD_ID, KEY_VER_MAX, recSlots, keysFromPublic, normalizeKeys, publicKeys, packKeyboard, unpackKeyboard, type RoomKey } from "./keyboard";
 
 /**
  * 내 방의 규칙 — 순수 함수만 둔다. 설계는 docs/garden-miniroom.md §4.
@@ -35,6 +35,8 @@ export interface Placed {
   at: string;
   /** 가구 id 또는 전시품 id. */
   it: string;
+  /** 키보드 개체 번호(0–8). 옮겨도 유지한다. */
+  kb?: number;
 }
 
 export interface RoomData {
@@ -53,6 +55,8 @@ export interface RoomData {
   shown: Shown[];
   /** 내 키보드의 키 넷(docs/garden-miniroom.md §4.5, keyboard.ts). 키보드를 사기 전에도 있다(처음 키). */
   keys: RoomKey[];
+  /** 두 번째부터의 키보드. 0번은 기존 keys를 사용한다. */
+  keyboards?: Record<string, RoomKey[]>;
   /** 방 한마디. '내 방' 옆에 걸리는 한 줄(MOTTO_MAX자). 사람이 쓴 글이라 걸러서 받고, 그 방 안에서만 보인다. */
   motto: string;
 }
@@ -99,7 +103,7 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined): RoomData {
   const base = freshRoom();
   if (!raw) return base;
   const size = raw.size === 1 || raw.size === 2 ? raw.size : 0;
-  return {
+  const room: RoomData = {
     size,
     wall: typeof raw.wall === "string" ? raw.wall : base.wall,
     floor: typeof raw.floor === "string" ? raw.floor : base.floor,
@@ -109,8 +113,61 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined): RoomData {
     owned: raw.owned && typeof raw.owned === "object" ? raw.owned : {},
     shown: Array.isArray(raw.shown) ? raw.shown.filter((s) => s && typeof s.id === "string") : [],
     keys: normalizeKeys(raw.keys),
+    keyboards: Object.fromEntries(Object.entries(raw.keyboards ?? {}).filter(([id]) => /^[1-8]$/.test(id)).map(([id, keys]) => [id, normalizeKeys(keys)])),
     motto: typeof raw.motto === "string" ? cleanMotto(raw.motto) : "",
   };
+  // 옛 방의 여러 키보드는 같은 키를 보였다. 각각 복사해서 독립시킨다.
+  const used = new Set<number>();
+  room.placed = room.placed.map((p) => {
+    if (p.it !== KEYBOARD_ID) return p;
+    const id = Number.isInteger(p.kb) && p.kb! >= 0 && p.kb! < OWN_MAX && !used.has(p.kb!)
+      ? p.kb! : Array.from({ length: OWN_MAX }, (_, i) => i).find((i) => !used.has(i));
+    if (id === undefined) return p;
+    used.add(id);
+    if (id > 0 && !room.keyboards![id]) room.keyboards![id] = room.keys.map((k) => ({ ...k }));
+    return { ...p, kb: id };
+  });
+  return room;
+}
+
+/** 키보드별 키. 0번의 기존 저장 형식을 보존한다. */
+export function keyboardKeys(room: RoomData, id = 0): RoomKey[] {
+  return id === 0 ? room.keys : room.keyboards?.[id] ?? room.keys;
+}
+
+export function keyboardBanks(room: RoomData): Array<{ id: number; keys: RoomKey[] }> {
+  return [{ id: 0, keys: room.keys }, ...Object.entries(room.keyboards ?? {}).map(([id, keys]) => ({ id: Number(id), keys }))];
+}
+
+export function withKeyboardKeys(room: RoomData, id: number, keys: RoomKey[]): RoomData {
+  if (!Number.isInteger(id) || id < 0 || id >= OWN_MAX) return room;
+  return id === 0 ? { ...room, keys: normalizeKeys(keys) }
+    : { ...room, keyboards: { ...room.keyboards, [id]: normalizeKeys(keys) } };
+}
+
+/** 이 녹음을 다른 키보드도 가리키는가(옛 방 이전 때만 공유 가능). */
+export function sharedRecording(room: RoomData, id: number, slot: number, ver: number): boolean {
+  return keyboardBanks(room).some((b) => b.id !== id && b.keys[slot]?.sound === "rec" && b.keys[slot].ver === ver);
+}
+
+/** 방 전체에서 새 녹음 판을 고른다. 키보드끼리 Storage 주소가 겹치지 않는다. */
+export function nextRecordingVer(room: RoomData): number {
+  const max = Math.max(...keyboardBanks(room).flatMap((b) => b.keys.map((k) => k.ver)));
+  if (max >= KEY_VER_MAX) throw new Error("녹음 판 번호를 모두 사용했어요");
+  return max + 1;
+}
+
+/** 치운 키보드의 녹음 표시와 실제로 지울 파일. 이전한 방의 공유 녹음은 마지막 참조까지 보존한다. */
+export function recordingCleanup(room: RoomData, shareOn: boolean) {
+  const banks = keyboardBanks(room);
+  const placed = new Set(room.placed.filter((p) => p.it === KEYBOARD_ID).map((p) => p.kb ?? 0));
+  const targets = banks.flatMap((b) => shareOn && placed.has(b.id) ? []
+    : recSlots(b.keys).map((slot) => ({ keyboard: b.id, slot, ver: b.keys[slot].ver })));
+  const protectedRefs = new Set(banks.filter((b) => shareOn && placed.has(b.id))
+    .flatMap((b) => recSlots(b.keys).map((slot) => `${slot}-${b.keys[slot].ver}`)));
+  const deletions = targets.filter((r) => !protectedRefs.has(`${r.slot}-${r.ver}`))
+    .filter((r, i, all) => all.findIndex((x) => x.slot === r.slot && x.ver === r.ver) === i);
+  return { targets, deletions };
 }
 
 /** 키보드가 방에 놓였는가. 놓였을 때만 공개 방에 키를 싣고, 녹음을 남겨 둔다. */
@@ -131,7 +188,7 @@ export function isShownId(it: string): boolean {
   return it.includes(":");
 }
 
-/** 놓는 곳과 크기. 놓을 수 없는 것(벽지·액자틀·연출·모르는 id)은 null. 박제는 벽에도 바닥에도(any). */
+/** 놓는 곳과 크기. 놓을 수 없는 것(벽지·연출·모르는 id)은 null. 박제는 벽에도 바닥에도(any). */
 export function placement(it: string, shown: readonly Shown[]): { on: "wall" | "floor" | "any"; size: 1 | 2 } | null {
   if (isShownId(it)) {
     const s = shown.find((x) => x.id === it);
@@ -140,7 +197,7 @@ export function placement(it: string, shown: readonly Shown[]): { on: "wall" | "
   }
   const f = FURNITURE_BY_ID.get(it);
   if (!f) return null;
-  if (f.kind === "wall" || f.kind === "window") return { on: "wall", size: f.size };
+  if (f.kind === "wall" || f.kind === "window" || f.kind === "frame-blank") return { on: "wall", size: f.size };
   if (f.kind === "floor") return { on: "floor", size: f.size };
   return null;
 }
@@ -196,13 +253,20 @@ export function stowedCount(room: RoomData, it: string): number {
 /** 보관함 → 칸. 남은 것이 없거나 칸이 맞지 않으면 null. */
 export function place(room: RoomData, it: string, at: string): RoomData | null {
   if (stowedCount(room, it) <= 0 || !canPlace(room, it, at)) return null;
+  if (it === KEYBOARD_ID) {
+    const used = new Set(room.placed.filter((p) => p.it === KEYBOARD_ID).map((p) => p.kb ?? 0));
+    const kb = Array.from({ length: OWN_MAX }, (_, i) => i).find((i) => !used.has(i));
+    if (kb === undefined) return null;
+    const next = kb > 0 && !room.keyboards?.[kb] ? withKeyboardKeys(room, kb, freshKeys()) : room;
+    return { ...next, placed: [...next.placed, { at, it, kb }] };
+  }
   return { ...room, placed: [...room.placed, { at, it }] };
 }
 
 export function move(room: RoomData, from: string, to: string): RoomData | null {
   const item = room.placed.find((p) => p.at === from);
   if (!item || from === to || !canPlace(room, item.it, to, from)) return null;
-  return { ...room, placed: room.placed.map((p) => (p.at === from ? { at: to, it: p.it } : p)) };
+  return { ...room, placed: room.placed.map((p) => (p.at === from ? { ...p, at: to } : p)) };
 }
 
 /** 칸 → 보관함. 치워도 사라지지 않는다. */
@@ -224,7 +288,13 @@ export function validRoom(room: RoomData): boolean {
   const width = roomWidth(room.size);
   const busy = new Set<string>();
   const counts = new Map<string, number>();
+  const keyboards = new Set<number>();
   for (const p of room.placed) {
+    if (p.it === KEYBOARD_ID) {
+      const id = p.kb ?? 0;
+      if (!Number.isInteger(id) || id < 0 || id >= OWN_MAX || keyboards.has(id)) return false;
+      keyboards.add(id);
+    }
     const spec = placement(p.it, room.shown);
     const slot = parseSlot(p.at);
     if (!spec || !slot || !fits(spec.on, slot.row)) return false;
@@ -377,9 +447,18 @@ export function frameNote(
   if (bought && jam < blank.price) return null;
   const owned: Record<string, number> = { ...room.owned, [FRAME_BLANK]: have - (bought ? 0 : 1) };
   if (owned[FRAME_BLANK] <= 0) delete owned[FRAME_BLANK];
-  const added = addShown({ ...room, owned }, { id: `f:${noteId}`, kind: "frame", species: speciesId, note: noteId });
+  // 보관함의 틀부터 쓴다. 남은 틀이 모두 벽에 걸렸다면 그 자리에서 쪽지를 채운다.
+  const usedAt = !bought && stowedCount(room, FRAME_BLANK) === 0
+    ? room.placed.find((p) => p.it === FRAME_BLANK)?.at
+    : undefined;
+  const base = usedAt ? stow(room, usedAt) : room;
+  const id = `f:${noteId}`;
+  const added = addShown({ ...base, owned }, { id, kind: "frame", species: speciesId, note: noteId });
   if (!added) return null;
-  return { room: added.room, jam: bought ? jam - blank.price : jam, at: added.at, bought };
+  const next = usedAt
+    ? { ...added.room, placed: [...added.room.placed.filter((p) => p.it !== id), { at: usedAt, it: id }] }
+    : added.room;
+  return { room: next, jam: bought ? jam - blank.price : jam, at: usedAt ?? added.at, bought };
 }
 
 // ── 공개 ─────────────────────────────────────────────────────────────
@@ -395,7 +474,7 @@ export function publicRoom(room: RoomData): PublicRoom {
   for (const p of room.placed) {
     if (placed.length >= PUBLIC_PLACED_MAX) break;
     if (!isShownId(p.it)) {
-      if (short(p.it)) placed.push({ a: p.at, i: p.it });
+      if (short(p.it)) placed.push({ a: p.at, i: p.it, ...(p.it === KEYBOARD_ID ? { kb: p.kb ?? 0 } : {}) });
       continue;
     }
     const s = room.shown.find((x) => x.id === p.it);
@@ -410,9 +489,11 @@ export function publicRoom(room: RoomData): PublicRoom {
     }
   }
   // 키보드는 방에 놓였을 때만 싣는다 — 그림·소리 id·녹음 판 번호뿐이다(keyboard.ts의 publicKeys).
-  const keys = placed.some((p) => "i" in p && p.i === KEYBOARD_ID) ? { keys: publicKeys(room.keys) } : {};
+  const keys = placed.some((p) => "i" in p && p.i === KEYBOARD_ID && (p.kb ?? 0) === 0) ? { keys: publicKeys(room.keys) } : {};
+  const keyboards = Object.fromEntries(room.placed.filter((p) => p.it === KEYBOARD_ID && (p.kb ?? 0) > 0)
+    .map((p) => [p.kb!, packKeyboard(keyboardKeys(room, p.kb))]));
   const motto = room.motto ? { motto: room.motto } : {};
-  return { size: room.size, wall: room.wall, floor: room.floor, mood: room.mood, bgm: room.bgm, placed, ...keys, ...motto };
+  return { size: room.size, wall: room.wall, floor: room.floor, mood: room.mood, bgm: room.bgm, placed, ...keys, ...(Object.keys(keyboards).length ? { keyboards } : {}), ...motto };
 }
 
 /**
@@ -432,7 +513,14 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
       // 남의 방은 가진 수를 모른다. 놓인 만큼 가졌다고 본다.
       const owned = { ...room.owned, [p.i]: (room.owned[p.i] ?? 0) + 1 };
       const next = place({ ...room, owned }, p.i, p.a);
-      if (next) room = next;
+      if (next) {
+        room = next;
+        if (p.i === KEYBOARD_ID) {
+          const id = room.placed.at(-1)!.kb ?? 0;
+          const source = typeof p.kb === "number" ? p.kb : 0;
+          room = withKeyboardKeys(room, id, source === 0 ? keysFromPublic(pub.keys) : unpackKeyboard(pub.keyboards?.[source]));
+        }
+      }
       return;
     }
     if (p.k === "trophy") {

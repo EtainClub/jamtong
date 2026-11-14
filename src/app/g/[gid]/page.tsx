@@ -21,8 +21,8 @@ export async function generateMetadata({ params }: { params: Promise<{ gid: stri
   const { gid } = await params;
   const card = await loadGardenCard(gid);
   if (!card) return { robots: { index: false, follow: false } };
-  const image = `/api/garden-card?gid=${gid}&v=room`;
-  const title = "친구가 내 방에 초대했어요 · 잼통 정원";
+  const image = `/api/garden-card?gid=${gid}&v=room2`;
+  const title = "내 방과 정원 구경하세요 · 잼통 정원";
   const description = gardenSummary(card);
   return {
     title,
@@ -56,7 +56,7 @@ export default async function GardenLinkPage({
     <main className="mx-auto flex min-h-dvh max-w-[560px] flex-col justify-center px-4 py-16">
       <GardenLanding href={href} />
       <p className="text-[12px] font-semibold text-ash">잼통 정원</p>
-      <h1 className="mt-2 text-2xl font-light tracking-tight text-ink">친구가 정원에 초대했어요</h1>
+      <h1 className="mt-2 text-2xl font-light tracking-tight text-ink">내 방과 정원 구경하세요</h1>
       <p className="mt-3 text-[14px] leading-relaxed text-smoke">{gardenSummary(card)}</p>
       <Link
         href={href}

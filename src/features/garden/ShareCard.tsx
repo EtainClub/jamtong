@@ -24,7 +24,7 @@ export function ShareCard({ data, now, say }: { data: GardenData; now: number; s
 
   const share = async (gid: string | null = id) => {
     if (!gid) return;
-    const result = await sendGardenLink(withInvite(gardenLink(gid), "i"), `${data.nick}의 잼통 정원`, "내 정원에 물 주러 와요 🌱");
+    const result = await sendGardenLink(withInvite(gardenLink(gid), "i"), `${data.nick}의 잼통 정원`, "내 방과 정원 구경하세요");
     if (result === "copied") {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);

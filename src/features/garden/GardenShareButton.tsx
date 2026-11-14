@@ -57,7 +57,7 @@ export function GardenShareButton({
     const result = await sendGardenLink(
       url,
       visit ? "친구의 잼통 정원" : `${nick}의 잼통 정원`,
-      visit ? "이 정원에 물 주러 가요 🌱" : "내 정원에 물 주러 와요 🌱",
+      visit ? "이 정원에 물 주러 가요 🌱" : "내 방과 정원 구경하세요",
     );
     if (result === "copied") {
       setCopied(true);

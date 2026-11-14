@@ -19,7 +19,7 @@ const parseRoom = (value: unknown) => cardRoom(field(value), new Map());
 test("공유 방: 벽·바닥·가구 배치를 보존하고 알 수 없는 가구와 자유글은 제외한다", () => {
   const room = freshRoom();
   room.motto = "방에서만 보이는 말";
-  room.placed = [{ at: "b0", it: "bed" }, { at: "f2", it: "keyboard" }];
+  room.placed = [{ at: "b0", it: "bed" }, { at: "f2", it: "keyboard", kb: 0 }];
   const pub = publicRoom(room);
   pub.placed.push({ a: "w0", i: "unknown-furniture" });
   const actual = parseRoom(pub);
@@ -42,7 +42,8 @@ test("공유 방: 가린 정원은 표시하지 않고, 키보드 가리기도 �
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = "demo-room-card";
   process.env.NEXT_PUBLIC_FIREBASE_API_KEY = "demo-key";
   const room = freshRoom();
-  room.placed = [{ at: "f0", it: "keyboard" }];
+  room.placed = [{ at: "f0", it: "keyboard", kb: 0 }, { at: "b0", it: "keyboard", kb: 1 }];
+  room.keyboards = { "1": room.keys.map((k) => ({ ...k, face: "3".repeat(144) })) };
   let hidden = false;
   let modStatus = 200;
   const requests: string[] = [];
@@ -58,6 +59,7 @@ test("공유 방: 가린 정원은 표시하지 않고, 키보드 가리기도 �
     const card = await loadGardenCard("gabcdefgh");
     assert.ok(card);
     assert.equal(card.room.keys.every((k) => k.face === "0".repeat(144)), true);
+    assert.equal(card.room.keyboards?.[1].every((k) => k.face === "0".repeat(144)), true);
     modStatus = 404;
     assert.deepEqual((await loadGardenCard("gabcdefgh"))?.room.keys, room.keys);
     modStatus = 503;

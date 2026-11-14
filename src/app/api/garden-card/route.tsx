@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       <div style={{ display: "flex", width: "100%", alignItems: "center", gap: 16 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={mark} width={44} height={44} alt="" style={{ borderRadius: 12 }} />
-        <div style={{ display: "flex", fontSize: 42, fontWeight: 600, color: G.ink }}>친구가 내 방에 초대했어요</div>
+        <div style={{ display: "flex", fontSize: 42, fontWeight: 600, color: G.ink }}>내 방과 정원 구경하세요</div>
       </div>
       <div style={{ display: "flex", flex: 1, width: "100%", alignItems: "center", justifyContent: "center", background: "#e7efdf", borderRadius: 20 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}

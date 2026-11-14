@@ -63,9 +63,11 @@ export interface PublicGarden {
  * 방에 놓인 것 하나. a=칸. 가구는 i(가구 id), 전시품은 k(종류)·s(품종 id)·m(변이)·n(쪽지 id).
  * 글은 싣지 않는다 — 액자의 글은 보는 화면이 품종표에서 읽는다.
  */
-export type PublicPlaced = { a: string; i: string } | { a: string; k: string; s: string; m?: string[]; n?: string };
+export type PublicPlaced = { a: string; i: string; kb?: number } | { a: string; k: string; s: string; m?: string[]; n?: string };
 
 export interface PublicRoom {
+  /** 추가 키보드의 키 넷을 압축한 그림·소리·판 문자열. */
+  keyboards?: Record<string, string>;
   size: number;
   wall: string;
   floor: string;

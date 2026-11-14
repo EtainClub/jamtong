@@ -22,7 +22,7 @@ import { KeyboardSheet } from "./room/KeyboardSheet";
 import { blankKeys, KEYBOARD_ID } from "./room/keyboard";
 import { RoomItemSheet } from "./room/RoomItemSheet";
 import { RoomScene } from "./room/RoomArt";
-import { hasKeyboard, isShownId, roomFromPublic, type Placed } from "./room/rules";
+import { keyboardKeys, hasKeyboard, isShownId, roomFromPublic, type Placed } from "./room/rules";
 import { formatLeft, kstDayNumber, TIER_LABEL, WATER_CUT, WATER_PER_DAY } from "./rules";
 import { useGarden } from "./store";
 import type { Species } from "./types";
@@ -71,6 +71,7 @@ export function VisitView({
   const [friendOf, setFriendOf] = useState<{ gid: string; yes: boolean } | null>(null);
   const [sheet, setSheet] = useState<"guestbook" | "note" | "knock" | "keyboard" | null>(null);
   /** 운영자가 이 방의 키보드를 가렸는가(gardens/{gid}/mod/keys). 키보드가 놓인 방만 읽는다. */
+  const [keyboard, setKeyboard] = useState(0);
   const [keysMod, setKeysMod] = useState<{ gid: string; hidden: boolean } | null>(null);
   /** 방 한마디를 운영자가 가렸는가. 한마디가 있는 방만 읽는다. */
   const [mottoMod, setMottoMod] = useState<{ gid: string; hidden: boolean } | null>(null);
@@ -203,7 +204,7 @@ export function VisitView({
       say("바꾸지 못했어요");
     }
   };
-  const theirRoom = parsedRoom && keysBlank ? { ...parsedRoom, keys: blankKeys() } : parsedRoom;
+  const theirRoom = parsedRoom && keysBlank ? { ...parsedRoom, keys: blankKeys(), keyboards: Object.fromEntries(Object.keys(parsedRoom.keyboards ?? {}).map((id) => [id, blankKeys()])) } : parsedRoom;
   const mottoShown = theirRoom?.motto && mottoMod?.gid === gid && (!mottoHidden || admin) ? theirRoom.motto : "";
   const ripe = beds.filter((b) => b && b.r <= now).length;
 
@@ -272,7 +273,7 @@ export function VisitView({
               isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID}
               onItem={(p) => {
                 gardenFeedback("tap");
-                if (p.it === KEYBOARD_ID) setSheet("keyboard");
+                if (p.it === KEYBOARD_ID) { setKeyboard(p.kb ?? 0); setSheet("keyboard"); }
                 else setOpened(p);
               }}
             />
@@ -357,7 +358,7 @@ export function VisitView({
 
       {sheet === "keyboard" && theirRoom && (
         <KeyboardSheet
-          keys={theirRoom.keys}
+          keys={keyboardKeys(theirRoom, keyboard)}
           owner={false}
           ownerUid={current.ownerUid || null}
           gid={gid}

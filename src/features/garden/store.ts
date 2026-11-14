@@ -469,9 +469,9 @@ interface GardenState {
   /** 방 한마디. 걸러낼 것이 있으면 그 까닭을 돌려주고 바꾸지 않는다. 빈 글은 한마디를 지운다. */
   setMotto: (text: string) => LineProblem | null;
   /** 내 키보드의 키 하나를 바꾼다(그림·소리·녹음 판). 모양이 어긋난 값은 room/keyboard.ts가 바로잡는다. */
-  setKey: (slot: number, key: RoomKey) => void;
+  setKey: (slot: number, key: RoomKey, keyboard?: number) => void;
   /** 키 넷을 통째로 바꾼다(처음으로 되돌리기, 녹음을 지운 뒤). */
-  setKeys: (keys: RoomKey[]) => void;
+  setKeys: (keys: RoomKey[], keyboard?: number) => void;
   /** 가진 벽지·바닥재를 바른다. */
   applySurface: (id: string) => boolean;
   /** 꾸미기를 마쳤다. 초안이 맞지 않으면(room/rules.ts의 validRoom) 받지 않고 false. */
@@ -1100,17 +1100,17 @@ export const useGarden = create<GardenState>((set, get) => {
       commit({ ...d, room: { ...d.room, bgm: id } });
     },
 
-    setKey: (slot, key) => {
+    setKey: (slot, key, keyboard = 0) => {
       const d = get().data;
-      if (!d || slot < 0 || slot >= d.room.keys.length) return;
-      const keys = normalizeKeys(d.room.keys.map((k, i) => (i === slot ? key : k)));
-      commit({ ...d, room: { ...d.room, keys } });
+      if (!d || slot < 0 || slot >= room.keyboardKeys(d.room, keyboard).length) return;
+      const keys = normalizeKeys(room.keyboardKeys(d.room, keyboard).map((k, i) => (i === slot ? key : k)));
+      commit({ ...d, room: room.withKeyboardKeys(d.room, keyboard, keys) });
     },
 
-    setKeys: (keys) => {
+    setKeys: (keys, keyboard = 0) => {
       const d = get().data;
       if (!d) return;
-      commit({ ...d, room: { ...d.room, keys: normalizeKeys(keys) } });
+      commit({ ...d, room: room.withKeyboardKeys(d.room, keyboard, keys) });
     },
 
     applySurface: (id) => {
@@ -1124,7 +1124,7 @@ export const useGarden = create<GardenState>((set, get) => {
     saveRoom: (draft) => {
       const d = get().data;
       // 꾸미는 동안 산 것·전시한 것이 있을 수 있다. 장부(owned·shown·size)는 지금 것을 쓰고, 배치만 받는다.
-      const next = d && { ...d.room, wall: draft.wall, floor: draft.floor, placed: draft.placed };
+      const next = d && { ...d.room, wall: draft.wall, floor: draft.floor, placed: draft.placed, keyboards: { ...draft.keyboards, ...d.room.keyboards } };
       if (!d || !next || !room.validRoom(next)) return false;
       commit({ ...d, room: next });
       return true;

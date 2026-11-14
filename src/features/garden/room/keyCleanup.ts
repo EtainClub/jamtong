@@ -6,8 +6,8 @@ import { firebaseConfigured } from "@/lib/firebase/client";
 import { deleteKeyRecs } from "@/lib/firebase/roomKeys";
 
 import { useGarden } from "../store";
-import { mustWipeRecs, wipeRecs } from "./keyboard";
-import { hasKeyboard } from "./rules";
+import { wipeRecs } from "./keyboard";
+import { keyboardKeys, recordingCleanup } from "./rules";
 
 /**
  * 들을 사람이 없는 녹음을 지운다(docs/garden-miniroom.md §4.5).
@@ -20,23 +20,25 @@ import { hasKeyboard } from "./rules";
 export function useKeyCleanup(uid: string | null, synced: boolean, say: (text: string) => void) {
   const room = useGarden((s) => s.data?.room);
   const shareOn = useGarden((s) => Boolean(s.data?.share.on));
-  const slots = room ? mustWipeRecs(room.keys, shareOn, hasKeyboard(room)) : [];
-  const todo = slots.map((slot) => ({ slot, ver: room!.keys[slot].ver }));
-  const signature = todo.map((r) => `${r.slot}-${r.ver}`).join(",");
+  const plan = room ? recordingCleanup(room, shareOn) : { targets: [], deletions: [] };
+  const signature = plan.targets.length ? JSON.stringify(plan) : "";
 
   useEffect(() => {
     if (!firebaseConfigured || !uid || !synced || !signature) return;
     let alive = true;
-    const recs = signature.split(",").map((x) => {
-      const [slot, ver] = x.split("-").map(Number);
-      return { slot, ver };
-    });
-    deleteKeyRecs(uid, recs)
+    const { targets, deletions } = JSON.parse(signature) as ReturnType<typeof recordingCleanup>;
+    deleteKeyRecs(uid, deletions)
       .then(() => {
         if (!alive) return;
         const d = useGarden.getState().data;
         if (!d) return;
-        useGarden.getState().setKeys(wipeRecs(d.room.keys, recs.map((r) => r.slot)));
+        for (const keyboard of new Set(targets.map((r) => r.keyboard))) {
+          const current = useGarden.getState().data;
+          if (!current) return;
+          const keys = keyboardKeys(current.room, keyboard);
+          const slots = targets.filter((r) => r.keyboard === keyboard && keys[r.slot]?.ver === r.ver).map((r) => r.slot);
+          useGarden.getState().setKeys(wipeRecs(keys, slots), keyboard);
+        }
         say("🎙 들을 사람이 없는 키 녹음을 지웠어요 · 그림은 그대로예요");
       })
       .catch((error) => console.error("[keyboard] 녹음을 지우지 못했다 — 다음에 다시 한다", error));

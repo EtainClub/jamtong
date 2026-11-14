@@ -114,6 +114,13 @@ const pub = (owner: string, nick: string, over: Record<string, unknown> = {}) =>
   await expect(false, "키에 다른 칸(주소)을 덧붙이기", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key({ url: "https://x" }), key(), key(), key()]) })));
   await expect(false, "키가 목록이 아니다", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room({ 0: key() }) })));
 
+  const packed = `${face}:drum:0;`.repeat(4);
+  const many = { ...room([key(), key(), key(), key()]), keyboards: Object.fromEntries(Array.from({ length: 8 }, (_, i) => [String(i + 1), packed])) };
+  await expect(true, "키보드 아홉 개의 독립된 키", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: many })));
+  await expect(false, "키보드 개체 번호 범위 밖", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: { ...many, keyboards: { "9": packed } } })));
+  await expect(false, "두 번째 키보드의 잘못된 그림", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: { ...many, keyboards: { "1": `x:drum:0;${packed}` } } })));
+  await expect(false, "키보드 목록 자리에 문자열", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: { ...many, keyboards: "x" } })));
+
   console.log("키보드 가리기(mod/keys)");
   await expect(true, "아무나 가리기 표시 읽기(없는 문서)", () => getDoc(doc(client(null), "gardens", gA, "mod", "keys")));
   await expect(false, "주인이 스스로 가리기 풀기", () => setDoc(doc(a, "gardens", gA, "mod", "keys"), { hidden: false, at: serverTimestamp() }));

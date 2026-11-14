@@ -3,7 +3,7 @@
  *
  * ★ 키 하나 = 그림(face) + 소리(sound). 그림은 12×12 도트, 8색 팔레트(0은 투명)의 144자 문자열이다.
  *   소리는 정해 둔 소리 id(PRESETS), 녹음("rec"), 또는 소리 없음("none").
- * ★ 녹음은 Storage `roomKeys/{uid}/{칸}-{판}.wav`에 있다. 판(ver)은 다시 녹음할 때마다 1 오른다 —
+ * ★ 녹음은 Storage `roomKeys/{uid}/{칸}-{판}.wav`에 있다. 판(ver)은 방 전체의 마지막 판보다 커진다 —
  *   같은 주소를 덮으면 캐시가 옛 목소리를 들려준다. 판은 녹음을 지워도 줄지 않는다.
  * ★ 공개 문서에는 그림·소리 id·녹음 판 번호만 싣는다. 주소도, 글도 싣지 않는다.
  *   공개 문서에는 아무 값이나 담길 수 있으므로 보는 쪽(keysFromPublic)이 모양을 다시 본다.
@@ -310,4 +310,18 @@ export function keyForCode(key: string): number | null {
   if (i >= 0) return i;
   const j = ["a", "s", "d", "f"].indexOf(key.toLowerCase());
   return j >= 0 ? j : null;
+}
+
+
+/** 추가 키보드의 공개 키 넷. Firestore 규칙의 계산 한도 안에서 그림·소리·판을 모두 검사한다. */
+export function packKeyboard(keys: readonly RoomKey[]): string {
+  return publicKeys(keys).map((k) => `${k.f}:${k.s}:${k.v ?? 0};`).join("");
+}
+
+export function unpackKeyboard(raw: unknown): RoomKey[] {
+  if (typeof raw !== "string" || !/^([0-7]{144}:[a-z-]{1,40}:[0-9]{1,7};){4}$/.test(raw)) return blankKeys();
+  return keysFromPublic(raw.slice(0, -1).split(";").map((part) => {
+    const [f, s, v] = part.split(":");
+    return { f, s, v: Number(v) };
+  }));
 }

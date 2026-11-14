@@ -121,7 +121,10 @@ export async function loadGardenCard(gid: string): Promise<GardenCard | null> {
     const hidden = moderation?.ok
       ? ((await moderation.json()) as { fields?: Record<string, Value> }).fields?.hidden?.booleanValue === true
       : moderation?.status !== 404;
-    if (hidden) room.keys = room.keys.map((k) => ({ ...k, face: "0".repeat(144) }));
+    if (hidden) {
+      room.keys = room.keys.map((k) => ({ ...k, face: "0".repeat(144) }));
+      room.keyboards = Object.fromEntries(Object.entries(room.keyboards ?? {}).map(([id, keys]) => [id, keys.map((k) => ({ ...k, face: "0".repeat(144) }))]));
+    }
   }
 
   return {

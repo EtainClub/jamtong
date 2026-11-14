@@ -11,7 +11,7 @@
 
 /**
  * wall=벽에 거는 것, floor=바닥에 놓는 것, window=벽 2칸 창문,
- * wallpaper·flooring=통째로 바뀌는 벽지·바닥재, frame-blank=쪽지를 거는 빈 액자틀(놓지 않고 쓴다),
+ * wallpaper·flooring=통째로 바뀌는 벽지·바닥재, frame-blank=벽에 걸거나 쪽지를 넣는 빈 액자틀,
  * fx=거대 잡초 필살기 연출(방에 놓지 않는다 — 싸움터의 그림만 바뀐다).
  */
 export type FurnitureKind = "wall" | "floor" | "window" | "wallpaper" | "flooring" | "frame-blank" | "fx";
@@ -61,7 +61,7 @@ export const FURNITURE: Furniture[] = [
   { id: "win-round", label: "둥근 창", kind: "window", size: 2, price: 300, art: "win-round", hint: "창밖에 지금 날씨가 보여요. 단비·별똥별도." },
   { id: "win-wide", label: "넓은 창", kind: "window", size: 2, price: 800, art: "win-wide", hint: "커튼 달린 넓은 창. 창밖은 지금 날씨." },
   // 벽에 거는 것
-  { id: "frame", label: "빈 액자틀", kind: "frame-blank", size: 1, price: 30, art: "frame", hint: "도감의 쪽지를 액자에 걸어요. 도감 → 쪽지 → ‘액자에 걸기’." },
+  { id: "frame", label: "빈 액자틀", kind: "frame-blank", size: 1, price: 30, art: "frame", hint: "꾸미기 → 가구에서 벽에 걸어요. 도감 → 쪽지 → ‘액자에 걸기’로 쪽지도 넣을 수 있어요." },
   { id: "clock", label: "벽시계", kind: "wall", size: 1, price: 180, art: "clock", hint: "똑딱똑딱 둥근 시계." },
   { id: "shelf", label: "벽 선반", kind: "wall", size: 1, price: 220, art: "shelf", hint: "작은 화분을 올려 둔 선반." },
   { id: "garland", label: "꽃줄", kind: "wall", size: 2, price: 150, art: "garland", hint: "벽에 늘어뜨린 꽃줄." },

@@ -8,7 +8,7 @@ import type { Mutation, Species } from "../types";
 import { FURNITURE_BY_ID } from "./catalog";
 import { KeyFace } from "./KeyArt";
 import { freshKeys, type RoomKey } from "./keyboard";
-import { parseSlot, placement, roomWidth, type Placed, type RoomData, type Shown } from "./rules";
+import { keyboardKeys, parseSlot, placement, roomWidth, type Placed, type RoomData, type Shown } from "./rules";
 
 export const CELL = 40;
 export const HEIGHT = 170;
@@ -91,7 +91,7 @@ export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected 
             opacity={isGhost ? 0.6 : 1}
             className={selected === p.at ? "garden-room-picked" : undefined}
           >
-            <ItemArt it={p.it} shown={room.shown} keys={room.keys} byId={byId} w={w} h={h} weather={weather} rainbow={`url(#${uid}-rainbow)`} />
+            <ItemArt it={p.it} shown={room.shown} keys={keyboardKeys(room, p.kb)} byId={byId} w={w} h={h} weather={weather} rainbow={`url(#${uid}-rainbow)`} />
           </g>
         );
       })}
