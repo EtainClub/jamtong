@@ -296,7 +296,8 @@ service cloud.firestore {
      *   ├ guestbook/{uid}_{날}    방명록. 방을 가리지 않았으면 누구나 읽는다.
      *   ├ notes/{1촌 uid}         1촌평. 방을 가리지 않았으면 누구나 읽는다.
      *   ├ visits/{손님 uid}       손님이 온 날. 주인과 그 손님만 읽는다.
-     *   └ meta/counter            오늘 손님·모든 손님.
+     *   ├ meta/counter            오늘 손님·모든 손님.
+     *   └ mod/keys                운영자가 이 방의 키보드를 가렸는가. 누구나 읽고 운영자만 쓴다.
      *
      * 공개 id는 uid가 아니다 — 링크가 돌아도 계정을 되짚지 못하게. ownerUid는 규칙이
      * "주인인가"를 보려고 남긴다(blooms와 같다). 하위 문서의 주인은 언제나 get(gardens/{gid}).ownerUid로 본다.
@@ -451,6 +452,20 @@ service cloud.firestore {
           && getAfter(counterPath(gid)).data.total
             == (exists(counterPath(gid)) ? get(counterPath(gid)).data.total : 0) + 1;
         allow delete: if false;
+      }
+
+      // 운영자 가리기(docs/garden-miniroom.md §4.5). mod/keys = 이 방의 키보드를 가렸는가.
+      // 보는 화면이 읽고 가렸으면 빈 키·소리 없음으로 그린다(주인에게는 알림). 누구나 읽고, 운영자만 쓴다.
+      // 주인이 지우거나 고치지 못한다 — 가리기는 주인의 문서(gardens/{gid})와 따로 산다.
+      match /mod/{docId} {
+        // keys=내 키보드, motto=방 한마디. 운영자가 가린 것을 손님 화면이 읽는다.
+        allow read: if docId in ['keys', 'motto'];
+        allow create, update: if isAdmin()
+          && docId in ['keys', 'motto']
+          && request.resource.data.keys().hasOnly(['hidden', 'at'])
+          && request.resource.data.hidden is bool
+          && request.resource.data.at == request.time;
+        allow delete: if isAdmin();
       }
 
       match /meta/{docId} {
@@ -660,13 +675,32 @@ service cloud.firestore {
     // 값은 src/features/garden/room/rules.ts의 PUBLIC_PLACED_MAX·PUBLIC_ID_MAX와 같다(room/rules.test.ts가 본다).
     function publicRoom(r) {
       return r is map
-        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'bgm', 'placed'])
+        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'bgm', 'placed', 'keys', 'motto'])
         && r.size is int && r.size >= 0 && r.size <= 2
         && r.wall is string && r.wall.size() <= 40
         && r.floor is string && r.floor.size() <= 40
         && r.mood is string && r.mood.size() <= 40
         && (!('bgm' in r) || (r.bgm is string && r.bgm.size() <= 40))
-        && r.placed is list && r.placed.size() <= 40;
+        && r.placed is list && r.placed.size() <= 40
+        && (!('keys' in r) || publicKeys(r.keys))
+        && (!('motto' in r) || (r.motto is string && r.motto.size() <= 30));
+    }
+
+    // 내 키보드(docs/garden-miniroom.md §4.5). 키는 꼭 넷 — 넷이라 하나하나 볼 수 있다.
+    // 그림은 12×12칸의 팔레트 번호(0–7) 144자, 소리 id는 40자까지, 녹음 판은 정수 1–9999999(소리가 rec일 때만 싣는다).
+    // 글을 실을 자리가 없다. 소리 id가 표에 있는지는 화면이 본다(모르는 소리는 소리 없음).
+    // 값은 src/features/garden/room/keyboard.ts의 KEY_COUNT·FACE_CELLS·PALETTE·KEY_SOUND_MAX·KEY_VER_MAX와 같다(room/keyboard.test.ts가 본다).
+    function publicKeys(k) {
+      return k is list && k.size() == 4
+        && publicKey(k[0]) && publicKey(k[1]) && publicKey(k[2]) && publicKey(k[3]);
+    }
+
+    function publicKey(k) {
+      return k is map
+        && k.keys().hasOnly(['f', 's', 'v'])
+        && k.f is string && k.f.matches('^[0-7]{144}$')
+        && k.s is string && k.s.size() <= 40
+        && (!('v' in k) || (k.v is int && k.v >= 1 && k.v <= 9999999));
     }
 
     // 칭호 단계(0~3)만. 이름은 화면이 정해 둔 표에서 읽는다 — 사람이 지은 글이 아니다.

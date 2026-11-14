@@ -23,6 +23,9 @@ import {
   kstWeek,
   move,
   normalizeRoom,
+  cleanMotto,
+  mottoProblem,
+  MOTTO_MAX,
   openSlots,
   place,
   PUBLIC_ID_MAX,
@@ -300,4 +303,22 @@ test("방 음악: 예전 방은 기본 곡, 공개 방에 실리고, 모르는 �
   const before = { ...pub };
   delete before.bgm;
   assert.equal(roomFromPublic(before, new Map()).bgm, DEFAULT_TRACK, "곡이 생기기 전에 공개한 방");
+});
+
+test("방 한마디: 걸러서 받고, 있으면 공개 방에 싣고, 남의 방에서 다시 거른다", () => {
+  assert.equal(freshRoom().motto, "");
+  assert.equal(normalizeRoom({}).motto, "");
+  assert.equal(cleanMotto("  오늘도   물 주러 왔어요  "), "오늘도 물 주러 왔어요");
+  assert.equal(cleanMotto("가".repeat(MOTTO_MAX + 1)), "");
+  assert.equal(cleanMotto("놀러와 www.example.com"), "");
+  assert.equal(mottoProblem(""), null, "비우기는 문제가 아니다");
+  assert.equal(mottoProblem("가".repeat(MOTTO_MAX + 1)), "long");
+  assert.equal(mottoProblem("카톡 아이디 abc"), "contact");
+  assert.equal(publicRoom(freshRoom()).motto, undefined, "빈 한마디는 싣지 않는다");
+  const pub = publicRoom({ ...freshRoom(), motto: "볕 드는 방" });
+  assert.equal(pub.motto, "볕 드는 방");
+  assert.equal(roomFromPublic(pub, new Map()).motto, "볕 드는 방");
+  assert.equal(roomFromPublic({ ...pub, motto: "010-1234-5678 연락줘" }, new Map()).motto, "", "손으로 만든 문서도 다시 거른다");
+  const rules = readFileSync("firestore.rules", "utf8");
+  assert.match(rules, new RegExp(`r\\.motto\\.size\\(\\) <= ${MOTTO_MAX}\\b`));
 });

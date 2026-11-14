@@ -1,6 +1,6 @@
 import { MUTATION, MUTATION_ORDER } from "../rules";
 import type { Mutation, Species } from "../types";
-import { ROOM_SIZES } from "../room/rules";
+import { ROOM_SIZES } from "../room/catalog";
 
 /**
  * 1촌의 규칙 — 순수 함수와 표만 둔다. 설계는 docs/garden-miniroom.md §5.

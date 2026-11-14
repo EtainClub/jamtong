@@ -114,6 +114,15 @@ export type AnalyticsEvent =
   | "room_visit"
   | "guestbook_post"
   /**
+   * 내 키보드 (docs/garden-miniroom.md §4.5). 그림·소리의 내용은 보내지 않는다 — 종류만.
+   * key_play: 키보드 시트를 열고 처음 누른 한 번. source(preset|rec), mine(내 방인지). 누를 때마다 보내지 않는다.
+   * key_record: 녹음을 올렸다. mode(robot|high|low|original).
+   * key_edit: 키를 저장했다. what(face|sound|both|reset).
+   */
+  | "key_play"
+  | "key_record"
+  | "key_edit"
+  /**
    * 지지자 응원 — 응원 탭이 사람을 남기게 하는지 본다.
    * cheer_open: 응원 탭을 처음 열었다. from: tab(탭을 눌렀다) | home | garden | neighbors | my | link.
    * cheer_post: 한 줄을 남겼다. starter: none(직접 씀) | edited(첫 문장을 고쳐 씀) | verbatim(첫 문장 그대로),

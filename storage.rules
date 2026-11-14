@@ -3,8 +3,8 @@ rules_version = '2';
 /*
  * 잼통 Storage 규칙.
  *
- * 지금 올리는 것은 업적 인포그래픽 하나다. 경로에 올린 사람의 uid가 들어
- * 있어서, 문서를 읽지 않고 "제 것만 올리고 제 것만 지운다"를 판단한다.
+ * 올리는 것은 업적 인포그래픽·프로필 사진·정원 키보드 녹음이다. 경로에 올린 사람의 uid가
+ * 들어 있어서, 문서를 읽지 않고 "제 것만 올리고 제 것만 지운다"를 판단한다.
  *
  * ★ 읽기는 열어 둔다.
  *   실렸는지는 Firestore 문서의 status가 정한다. 승인 대기인 그림의 주소는
@@ -48,6 +48,30 @@ service firebase.storage {
         && request.auth.uid == uid
         && request.resource.size < 300 * 1024
         && request.resource.contentType.matches('image/(png|jpeg|webp)');
+      allow update: if false;
+      allow delete: if request.auth != null
+        && (request.auth.uid == uid || isAdmin());
+    }
+
+    /*
+     * 내 키보드의 녹음 (docs/garden-miniroom.md §4.5, src/lib/firebase/roomKeys.ts).
+     * 파일 이름은 {칸 0–3}-{판}.wav. 판은 다시 녹음할 때마다 오른다 — 덮어쓰지 않는다(update 없음).
+     *
+     * ★ 읽기는 열어 둔다. 공개 방에 온 누구나 듣는 소리다. 인포그래픽·프로필 사진과 같은 대가를 치른다 —
+     *   경로를 아는 사람은 문서를 거치지 않고 읽을 수 있으므로, 공개를 끄거나 키보드를 치우면 **정말 지워야 한다**.
+     *   지우는 것은 주인의 화면(room/keyCleanup.ts)이고, 남은 파일은 운영자가 지운다.
+     * ★ 익명 계정도 올린다(정원은 익명 계정이 기본이다). 크기를 64KB 아래로 묶는다 — 16kHz 1.5초 WAV는 약 47KB.
+     *   값은 src/features/garden/room/keyboard.ts의 KEY_REC_MAX_BYTES·REC_FILE_RE와 같다(room/keyboard.test.ts가 본다).
+     */
+    match /roomKeys/{uid}/{fileId} {
+      allow read: if true;
+      // resource == null: 이미 있는 파일 위에 올리기(덮어쓰기)를 막는다. 덮어쓰기가 create로 오는 경우가 있다(에뮬레이터에서 확인).
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && resource == null
+        && fileId.matches('^[0-3]-[1-9][0-9]{0,6}[.]wav$')
+        && request.resource.size < 64 * 1024
+        && request.resource.contentType == 'audio/wav';
       allow update: if false;
       allow delete: if request.auth != null
         && (request.auth.uid == uid || isAdmin());

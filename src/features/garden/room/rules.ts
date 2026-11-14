@@ -2,9 +2,11 @@ import type { PublicPlaced, PublicRoom } from "@/lib/firebase/gardens";
 
 import { DEFAULT_TRACK, isGardenTrack, type GardenTrackId } from "../feedback";
 import { hash, kstDayNumber, MUTATION_ORDER, rng } from "../rules";
+import { cleanLine, lineProblem, type LineProblem } from "../ilchon/text";
 import { isRaidKind } from "../raid/rules";
 import type { Fruit, Mutation, Species } from "../types";
-import { DEFAULT_FLOOR, DEFAULT_MOOD, DEFAULT_WALL, FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS, type Furniture } from "./catalog";
+import { DEFAULT_FLOOR, DEFAULT_MOOD, DEFAULT_WALL, FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS, ROOM_SIZES, type Furniture } from "./catalog";
+import { freshKeys, KEYBOARD_ID, keysFromPublic, normalizeKeys, publicKeys, type RoomKey } from "./keyboard";
 
 /**
  * 내 방의 규칙 — 순수 함수만 둔다. 설계는 docs/garden-miniroom.md §4.
@@ -49,16 +51,16 @@ export interface RoomData {
   /** 산 가구의 수. 처음부터 가진 벽지·바닥재(값 0)는 적지 않는다. */
   owned: Record<string, number>;
   shown: Shown[];
+  /** 내 키보드의 키 넷(docs/garden-miniroom.md §4.5, keyboard.ts). 키보드를 사기 전에도 있다(처음 키). */
+  keys: RoomKey[];
+  /** 방 한마디. '내 방' 옆에 걸리는 한 줄(MOTTO_MAX자). 사람이 쓴 글이라 걸러서 받고, 그 방 안에서만 보인다. */
+  motto: string;
 }
 
 export type Row = "w" | "b" | "f";
 
-/** 방 넓히기. 6칸 → 8칸 → 10칸(벽 한 줄의 칸 수, 바닥은 두 줄). */
-export const ROOM_SIZES = [
-  { width: 6, price: 0, label: "작은 방" },
-  { width: 8, price: 1500, label: "넓은 방" },
-  { width: 10, price: 5000, label: "볕 드는 방" },
-] as const;
+// 방 넓히기 표(ROOM_SIZES)는 catalog.ts에 둔다 — ilchon/rules.ts가 이 파일을 거치지 않고 읽게(순환 import를 끊는다).
+export { ROOM_SIZES };
 
 /** 전시품 상한. 장부가 끝없이 커지지 않게. 바구니(120)보다 넉넉하다. */
 export const SHOWN_MAX = 200;
@@ -68,11 +70,28 @@ export const OWN_MAX = 9;
 export const PUBLIC_PLACED_MAX = 40;
 /** 공개 문서의 짧은 글(id)의 길이. firestore.rules의 publicRoom()과 같다. */
 export const PUBLIC_ID_MAX = 40;
+/** 방 한마디의 길이. firestore.rules의 publicRoom()과 같다. */
+export const MOTTO_MAX = 30;
+
+/** 방 한마디를 한 줄로. 걸러낼 것이 있으면 빈 글 — 공개 문서에서 읽을 때도 다시 거른다(손으로 만든 요청). */
+export function cleanMotto(input: string): string {
+  const text = cleanLine(input);
+  return text.length <= MOTTO_MAX && lineProblem(text) === null ? text : "";
+}
+
+/** 방 한마디의 문제. 비우는 것은 문제가 아니다(한마디를 지운다). */
+export function mottoProblem(input: string): LineProblem | null {
+  const text = cleanLine(input);
+  if (text.length === 0) return null;
+  if (text.length > MOTTO_MAX) return "long";
+  return lineProblem(text);
+}
+
 /** 주마다 바뀌는 진열의 칸 수. */
 export const WEEKLY_SIZE = 4;
 
 export function freshRoom(): RoomData {
-  return { size: 0, wall: DEFAULT_WALL, floor: DEFAULT_FLOOR, mood: DEFAULT_MOOD, bgm: DEFAULT_TRACK, placed: [], owned: {}, shown: [] };
+  return { size: 0, wall: DEFAULT_WALL, floor: DEFAULT_FLOOR, mood: DEFAULT_MOOD, bgm: DEFAULT_TRACK, placed: [], owned: {}, shown: [], keys: freshKeys(), motto: "" };
 }
 
 /** 방이 생기기 전에 저장된 정원, 또는 모양이 어긋난 방. */
@@ -89,7 +108,14 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined): RoomData {
     placed: Array.isArray(raw.placed) ? raw.placed.filter((p) => p && typeof p.at === "string" && typeof p.it === "string") : [],
     owned: raw.owned && typeof raw.owned === "object" ? raw.owned : {},
     shown: Array.isArray(raw.shown) ? raw.shown.filter((s) => s && typeof s.id === "string") : [],
+    keys: normalizeKeys(raw.keys),
+    motto: typeof raw.motto === "string" ? cleanMotto(raw.motto) : "",
   };
+}
+
+/** 키보드가 방에 놓였는가. 놓였을 때만 공개 방에 키를 싣고, 녹음을 남겨 둔다. */
+export function hasKeyboard(room: Pick<RoomData, "placed">): boolean {
+  return room.placed.some((p) => p.it === KEYBOARD_ID);
 }
 
 export function roomWidth(size: number): number {
@@ -383,7 +409,10 @@ export function publicRoom(room: RoomData): PublicRoom {
       placed.push({ a: p.at, k: s.kind, s: s.species!, m: s.mut ?? [] });
     }
   }
-  return { size: room.size, wall: room.wall, floor: room.floor, mood: room.mood, bgm: room.bgm, placed };
+  // 키보드는 방에 놓였을 때만 싣는다 — 그림·소리 id·녹음 판 번호뿐이다(keyboard.ts의 publicKeys).
+  const keys = placed.some((p) => "i" in p && p.i === KEYBOARD_ID) ? { keys: publicKeys(room.keys) } : {};
+  const motto = room.motto ? { motto: room.motto } : {};
+  return { size: room.size, wall: room.wall, floor: room.floor, mood: room.mood, bgm: room.bgm, placed, ...keys, ...motto };
 }
 
 /**
@@ -396,7 +425,8 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
   const floor = FURNITURE_BY_ID.get(pub.floor)?.kind === "flooring" ? pub.floor : DEFAULT_FLOOR;
   const mood = MOODS.some((m) => m.id === pub.mood) ? pub.mood : DEFAULT_MOOD;
   const bgm = isGardenTrack(pub.bgm) ? pub.bgm : DEFAULT_TRACK;
-  let room: RoomData = { size, wall, floor, mood, bgm, placed: [], owned: {}, shown: [] };
+  // 키는 모양을 다시 본다 — 어긋난 그림은 빈 그림, 모르는 소리는 소리 없음(keyboard.ts의 keysFromPublic).
+  let room: RoomData = { size, wall, floor, mood, bgm, placed: [], owned: {}, shown: [], keys: keysFromPublic(pub.keys), motto: typeof pub.motto === "string" ? cleanMotto(pub.motto) : "" };
   pub.placed.slice(0, PUBLIC_PLACED_MAX).forEach((p, n) => {
     if ("i" in p) {
       // 남의 방은 가진 수를 모른다. 놓인 만큼 가졌다고 본다.

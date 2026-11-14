@@ -69,7 +69,9 @@ import { initialCoach, normalizeCoach, type CoachData, type CoachMark, type TipT
 import * as room from "./room/rules";
 import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_ILCHON, type IlchonData, type NewsEntry } from "./ilchon/rules";
 import { MOODS } from "./room/catalog";
+import { normalizeKeys, type RoomKey } from "./room/keyboard";
 import { isGardenTrack, type GardenTrackId } from "./feedback";
+import type { LineProblem } from "./ilchon/text";
 import type { Case, Fruit, Mutation, Plant, PlazaLevel, Species } from "./types";
 
 /**
@@ -464,6 +466,12 @@ interface GardenState {
   setMood: (id: string) => void;
   /** 방 음악. 공개 방에 실려 손님도 이 곡을 듣는다. */
   setBgm: (id: GardenTrackId) => void;
+  /** 방 한마디. 걸러낼 것이 있으면 그 까닭을 돌려주고 바꾸지 않는다. 빈 글은 한마디를 지운다. */
+  setMotto: (text: string) => LineProblem | null;
+  /** 내 키보드의 키 하나를 바꾼다(그림·소리·녹음 판). 모양이 어긋난 값은 room/keyboard.ts가 바로잡는다. */
+  setKey: (slot: number, key: RoomKey) => void;
+  /** 키 넷을 통째로 바꾼다(처음으로 되돌리기, 녹음을 지운 뒤). */
+  setKeys: (keys: RoomKey[]) => void;
   /** 가진 벽지·바닥재를 바른다. */
   applySurface: (id: string) => boolean;
   /** 꾸미기를 마쳤다. 초안이 맞지 않으면(room/rules.ts의 validRoom) 받지 않고 false. */
@@ -1076,10 +1084,33 @@ export const useGarden = create<GardenState>((set, get) => {
       commit({ ...d, room: { ...d.room, mood: id } });
     },
 
+    setMotto: (text) => {
+      const d = get().data;
+      if (!d) return "empty";
+      const problem = room.mottoProblem(text);
+      if (problem) return problem;
+      const motto = room.cleanMotto(text);
+      if (d.room.motto !== motto) commit({ ...d, room: { ...d.room, motto } });
+      return null;
+    },
+
     setBgm: (id) => {
       const d = get().data;
       if (!d || d.room.bgm === id || !isGardenTrack(id)) return;
       commit({ ...d, room: { ...d.room, bgm: id } });
+    },
+
+    setKey: (slot, key) => {
+      const d = get().data;
+      if (!d || slot < 0 || slot >= d.room.keys.length) return;
+      const keys = normalizeKeys(d.room.keys.map((k, i) => (i === slot ? key : k)));
+      commit({ ...d, room: { ...d.room, keys } });
+    },
+
+    setKeys: (keys) => {
+      const d = get().data;
+      if (!d) return;
+      commit({ ...d, room: { ...d.room, keys: normalizeKeys(keys) } });
     },
 
     applySurface: (id) => {

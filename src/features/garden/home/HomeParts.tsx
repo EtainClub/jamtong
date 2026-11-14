@@ -1,8 +1,13 @@
 "use client";
 
+import { useState } from "react";
+
 import { gardenFeedback, gardenTrack, TRACK_ORDER, type GardenTrackId } from "../feedback";
 import type { NewsItem, Place } from "../nav";
+import { LINE_PROBLEM_TEXT, type LineProblem } from "../ilchon/text";
 import { MOODS } from "../room/catalog";
+import { MOTTO_MAX } from "../room/rules";
+import { useGarden } from "../store";
 import { Sheet } from "../Sheet";
 
 /**
@@ -65,6 +70,66 @@ export function MoodSheet({ current, onPick, onClose }: { current: string; onPic
           </li>
         ))}
       </ul>
+    </Sheet>
+  );
+}
+
+/**
+ * 방 한마디 쓰기 (§4.6). '내 방' 옆에 걸리는 한 줄. 방을 공개하면 손님도 그 방에서 본다.
+ * 방명록과 같은 걸러내기(링크·연락처·욕)를 거치고, 손님은 신고하고 운영자는 가린다.
+ */
+export function MottoSheet({ current, onClose, say }: { current: string; onClose: () => void; say: (text: string) => void }) {
+  const [text, setText] = useState(current);
+  const [problem, setProblem] = useState<LineProblem | null>(null);
+  const save = () => {
+    const found = useGarden.getState().setMotto(text);
+    setProblem(found);
+    if (found) return;
+    gardenFeedback("reward");
+    say(text.trim() ? "✏️ 방 한마디를 걸었어요" : "방 한마디를 지웠어요");
+    onClose();
+  };
+  return (
+    <Sheet label="방 한마디 쓰기" title="방 한마디" onClose={onClose}>
+      <form
+        className="mt-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save();
+        }}
+      >
+        <label htmlFor="garden-motto-input" className="text-[12.5px] text-smoke">
+          내 방을 한 줄로 소개해요. 방을 공개하면 손님도 봐요.
+        </label>
+        <input
+          id="garden-motto-input"
+          className="garden-motto-input mt-1.5"
+          value={text}
+          maxLength={MOTTO_MAX}
+          autoComplete="off"
+          enterKeyHint="done"
+          placeholder="예) 오늘도 물 주러 왔어요 🌱"
+          onChange={(e) => {
+            setText(e.target.value);
+            setProblem(null);
+          }}
+        />
+        <div className="mt-1 flex justify-between text-[12px]">
+          <span role="alert" className="text-[var(--d-orange)]">{problem ? LINE_PROBLEM_TEXT[problem] : ""}</span>
+          <span className="tabular-nums text-smoke">{text.length}/{MOTTO_MAX}</span>
+        </div>
+        <p className="mt-1 text-[12px] leading-relaxed text-smoke">이름·학교·연락처는 적지 마세요. 링크는 남길 수 없어요.</p>
+        <div className="mt-3 flex gap-2">
+          {current && (
+            <button type="button" className="garden-diary-btn is-quiet min-h-[44px] flex-1" onClick={() => { setText(""); setProblem(null); }}>
+              비우기
+            </button>
+          )}
+          <button type="submit" className="garden-diary-btn min-h-[44px] flex-[2]">
+            걸기
+          </button>
+        </div>
+      </form>
     </Sheet>
   );
 }

@@ -26,6 +26,8 @@ let timer: ReturnType<typeof setInterval> | undefined;
 let nextAt = 0;
 let step = 0;
 let listening = false;
+/** 키 녹음 중. 그동안은 iOS 오디오 세션을 ambient로 되돌리지 않는다(마이크가 끊긴다). */
+let micHeld = false;
 
 type AudioSessionNavigator = Navigator & { audioSession?: { type: string } };
 
@@ -54,7 +56,7 @@ function unlock(): AudioContext | undefined {
   if (typeof window === "undefined") return undefined;
   try {
     const session = (navigator as AudioSessionNavigator).audioSession;
-    if (session && session.type !== "ambient") session.type = "ambient";
+    if (session && !micHeld && session.type !== "ambient") session.type = "ambient";
   } catch {
     // 지원하지 않는 브라우저.
   }
@@ -119,6 +121,38 @@ export function setGardenSound(value: boolean, remember = true) {
     gardenFeedback("tap");
   } else {
     stopMusic();
+  }
+}
+
+// ── 내 키보드(room/keyboardSound.ts)가 쓰는 길 ───────────────────────
+
+/**
+ * 키를 누를 때(사용자 터치 안에서) 부른다. 소리를 꺼 두었어도 연다 — 키를 누른 것이 곧 "소리를 내고 싶다"다.
+ * 배경음악은 켜지 않는다(켜는 것은 ♪ 단추). 무음 스위치는 그대로 따른다.
+ */
+export function keyAudio(): { ctx: AudioContext; out: AudioNode } | undefined {
+  const ctx = unlock();
+  return ctx && master ? { ctx, out: master } : undefined;
+}
+
+/** 방 음악이 흐르고 있으면 그 박자의 격자(다음 8분음표의 때와 길이, AudioContext 시각). 아니면 null. */
+export function musicGrid(): { now: number; nextAt: number; eighth: number } | null {
+  if (!timer || !audio || audio.state !== "running") return null;
+  const t: Track = TRACKS[current];
+  return { now: audio.currentTime, nextAt, eighth: 60 / t.bpm / 2 };
+}
+
+/**
+ * 녹음하는 동안 iOS 오디오 세션을 녹음용으로 둔다. ambient 세션은 마이크를 받지 않는다(Safari 16.4+).
+ * 끝나면 다시 ambient — 다른 앱의 음악을 끊지 않고 무음 스위치를 따르는 원래 자리로.
+ */
+export function holdMicSession(on: boolean) {
+  micHeld = on;
+  try {
+    const session = typeof navigator === "undefined" ? undefined : (navigator as AudioSessionNavigator).audioSession;
+    if (session) session.type = on ? "play-and-record" : "ambient";
+  } catch {
+    // 지원하지 않는 브라우저.
   }
 }
 
@@ -307,6 +341,9 @@ function tone(ctx: AudioContext, out: AudioNode, hz: number, at: number, length:
     gain.disconnect();
   };
 }
+
+/** 소리 조각. 키보드의 정해 둔 소리가 같은 악기로 만든다. */
+export const synth = { tone, noise, sweep, thud };
 
 // ── 배경음악: 내 방 음악 다섯 곡 ──────────────────────────────────────
 //

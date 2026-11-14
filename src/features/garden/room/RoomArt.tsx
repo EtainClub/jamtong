@@ -8,6 +8,8 @@ import { isRaidKind } from "../raid/rules";
 import { HOUR, isMeteor, isRaining, RAID_KINDS } from "../rules";
 import type { Mutation, Species } from "../types";
 import { FURNITURE_BY_ID } from "./catalog";
+import { KeyFace } from "./KeyArt";
+import { freshKeys, type RoomKey } from "./keyboard";
 import { parseSlot, placement, roomWidth, slotsOf, type Placed, type RoomData, type Shown } from "./rules";
 
 /**
@@ -143,7 +145,7 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot
                 opacity={isGhost ? 0.6 : 1}
                 className={selected === p.at ? "garden-room-picked" : undefined}
               >
-                <ItemArt it={p.it} shown={room.shown} byId={byId} w={w} h={h} weather={weather} rainbow={`url(#${uid}-rainbow)`} />
+                <ItemArt it={p.it} shown={room.shown} keys={room.keys} byId={byId} w={w} h={h} weather={weather} rainbow={`url(#${uid}-rainbow)`} />
               </g>
             );
           })}
@@ -227,6 +229,7 @@ export function ShownIcon({ shown, byId, size = 56 }: { shown: Shown; byId: Read
 function ItemArt({
   it,
   shown,
+  keys,
   byId,
   w,
   h,
@@ -235,6 +238,7 @@ function ItemArt({
 }: {
   it: string;
   shown: readonly Shown[];
+  keys?: readonly RoomKey[];
   byId: ReadonlyMap<string, Species>;
   w: number;
   h: number;
@@ -244,7 +248,32 @@ function ItemArt({
   const s = shown.find((x) => x.id === it);
   if (s) return <ShownArt shown={s} byId={byId} w={w} h={h} rainbow={rainbow} />;
   const f = FURNITURE_BY_ID.get(it);
-  return f ? <FurnitureArt art={f.art} w={w} h={h} weather={weather} /> : null;
+  return f ? <FurnitureArt art={f.art} w={w} h={h} weather={weather} keys={keys} /> : null;
+}
+
+const STARTER_KEYS = freshKeys();
+
+/** 내 키보드 — 받침 위의 키 넷. 키마다 그 방 주인이 그린 그림을 작게(docs/garden-miniroom.md §4.5). */
+function KeyboardArt({ w, base, keys }: { w: number; base: number; keys: readonly RoomKey[] }) {
+  const cap = 17;
+  const gap = (w - 6 - cap * 4) / 3;
+  return (
+    <>
+      <B x={6} y={base - 10} w={4} h={10} fill={C.woodD} />
+      <B x={w - 10} y={base - 10} w={4} h={10} fill={C.woodD} />
+      <B x={1} y={base - 22} w={w - 2} h={12} fill={C.greyD} />
+      {keys.slice(0, 4).map((k, i) => {
+        const x = 3 + i * (cap + gap);
+        return (
+          <g key={i}>
+            <B x={x} y={base - 37} w={cap} h={17} fill={C.cream} />
+            <rect x={x + 1} y={base - 23} width={cap - 2} height="2" fill={C.grey} />
+            <KeyFace face={k.face} x={x + 2.5} y={base - 35.5} size={12} />
+          </g>
+        );
+      })}
+    </>
+  );
 }
 
 // ── 전시품 ──────────────────────────────────────────────────────────
@@ -367,7 +396,7 @@ function Sky({ x, y, w, h, weather }: { x: number; y: number; w: number; h: numb
   );
 }
 
-function FurnitureArt({ art, w, h, weather }: { art: string; w: number; h: number; weather: Weather }) {
+function FurnitureArt({ art, w, h, weather, keys }: { art: string; w: number; h: number; weather: Weather; keys?: readonly RoomKey[] }) {
   const base = h; // 바닥 물건은 아래 변에 선다
   const cx = w / 2;
   let body: ReactNode = null;
@@ -437,6 +466,9 @@ function FurnitureArt({ art, w, h, weather }: { art: string; w: number; h: numbe
       break;
     case "mailbox":
       body = <><B x={cx - 2} y={base - 20} w={4} h={20} fill={C.woodD} /><B x={cx - 12} y={base - 36} w={24} h={16} fill={C.red} /><rect x={cx - 8} y={base - 30} width="16" height="2" fill={C.ink} /><B x={cx + 10} y={base - 40} w={3} h={10} fill={C.yellow} /></>;
+      break;
+    case "keyboard":
+      body = <KeyboardArt w={w} base={base} keys={keys ?? STARTER_KEYS} />;
       break;
     case "piano":
       body = <><B x={2} y={base - 40} w={w - 4} h={26} fill={C.ink} /><B x={2} y={base - 18} w={w - 4} h={6} fill={C.white} />{Array.from({ length: 8 }, (_, i) => <rect key={i} x={8 + i * 9} y={base - 18} width="4" height="3" fill={C.ink} />)}<B x={6} y={base - 12} w={5} h={12} fill={C.ink} /><B x={w - 11} y={base - 12} w={5} h={12} fill={C.ink} /></>;
