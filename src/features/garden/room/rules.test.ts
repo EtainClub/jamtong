@@ -9,6 +9,8 @@ import { test } from "node:test";
 
 import type { Fruit, Species } from "../types";
 import { DEFAULT_TRACK, TRACK_ORDER } from "../feedback";
+import { STORY_FURNITURE, STORY_LABEL, STORY_SOURCES, STORY_COLLECTIONS } from "./stories";
+import { PLAY_FURNITURE, VOICE_CLIPS, activityOf, voiceEmbed, voiceOriginal } from "./activities";
 import { FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS } from "./catalog";
 import {
   addShown,
@@ -64,7 +66,7 @@ const owning = (owned: Record<string, number>, over: Partial<RoomData> = {}): Ro
 test("가구표: id가 겹치지 않고, 값과 크기가 설계 범위 안이다", () => {
   assert.equal(new Set(FURNITURE.map((f) => f.id)).size, FURNITURE.length);
   const jam = FURNITURE.filter((f) => !f.cur);
-  assert.ok(jam.length >= 25 && jam.length <= 40);
+  assert.ok(jam.length >= 50);
   // 🏆 전리품: 뿌리 조각 5–30, 8–10개(docs/garden-miniroom.md §4.2·§7.4). 잼 상점에는 나오지 않는다.
   const roots = FURNITURE.filter((f) => f.cur === "root");
   assert.ok(roots.length >= 8 && roots.length <= 10, `${roots.length}`);
@@ -356,4 +358,72 @@ test("빈 액자틀: 벽이 꽉 차도 걸어 둔 틀의 자리에서 쪽지로 
   assert.deepEqual(spare.room.placed.find((p) => p.at === "w3"), { at: "w3", it: FRAME_BLANK });
   assert.equal(spare.at, null, "보관함의 틀을 썼고 벽이 꽉 차면 전시품은 보관한다");
   assert.equal(validRoom(spare.room), true);
+});
+
+
+test("이야기 소품 25종: 상시 구매·가구 배치·이동·공개 복원과 출처 연결", () => {
+  assert.equal(STORY_FURNITURE.length, 25);
+  assert.equal(new Set(STORY_FURNITURE.map((f) => f.id)).size, 25);
+  for (const f of STORY_FURNITURE) {
+    assert.equal(FURNITURE_BY_ID.get(f.id), f);
+    assert.ok(f.id.length <= PUBLIC_ID_MAX);
+    assert.equal(f.art, f.id);
+    assert.ok(f.story && STORY_LABEL[f.story.kind]);
+    assert.ok(STORY_COLLECTIONS.some((c) => c.id === f.collection));
+    const source = STORY_SOURCES[f.story!.source];
+    assert.equal(new URL(source.url).protocol, "https:");
+    assert.ok(source.title && source.date);
+    for (const when of [MONDAY, MONDAY + 60 * DAY]) assert.equal(onSale(f, when), true);
+    const bought = buyItem(freshRoom(), 10000, f.id, MONDAY);
+    assert.ok(typeof bought !== "string");
+    assert.equal(bought.jam, 10000 - f.price);
+    const at = f.kind === "wall" ? "w0" : "b0";
+    const placed = place(bought.room, f.id, at)!;
+    assert.ok(validRoom(placed), f.id);
+    const moved = move(placed, at, f.kind === "wall" ? "w2" : "f2")!;
+    assert.ok(validRoom(moved), f.id);
+    const loaded = normalizeRoom(JSON.parse(JSON.stringify(moved)));
+    const visited = roomFromPublic(publicRoom(loaded), new Map());
+    assert.deepEqual(visited.placed, moved.placed, f.id);
+    assert.equal(stowedCount(stow(moved, moved.placed[0].at), f.id), 1);
+    // 공개 문서에는 이야기나 외부 주소를 넣지 않는다. 소품 id로 현행 설명을 읽는다.
+    assert.equal(JSON.stringify(publicRoom(loaded)).includes(source.url), false);
+  }
+});
+
+test("이야기 소품: 창작·경험·선물을 개인적 선호와 구별한다", () => {
+  const kinds = STORY_FURNITURE.map((f) => f.story!.kind);
+  assert.equal(kinds.filter((k) => k === "affection").length, 1);
+  assert.equal(kinds.filter((k) => k === "inspired").length, 8);
+  assert.equal(kinds.filter((k) => k === "profile").length, 3);
+  assert.equal(FURNITURE_BY_ID.get("puer-tea")?.story?.kind, "experience");
+  assert.equal(FURNITURE_BY_ID.get("hiking-watch")?.story?.kind, "gift");
+  assert.match(FURNITURE_BY_ID.get("baseball-ball")!.label, /인장/);
+  assert.match(FURNITURE_BY_ID.get("baseball-bat")!.story!.text, /친필 사인/);
+  assert.match(FURNITURE_BY_ID.get("jade-inkstone")!.story!.text, /실제 벼루의 재질/);
+});
+
+test("반응 소품도 구매·보관·공유 후 같은 id로 동작하며 공개 데이터에 외부 주소를 저장하지 않는다", () => {
+  for (const f of PLAY_FURNITURE) {
+    assert.ok(activityOf(f.id));
+    const bought = buyItem(freshRoom(), 10000, f.id, MONDAY);
+    assert.ok(typeof bought !== "string");
+    const at = f.kind === "wall" ? "w0" : "b0";
+    const placed = place(bought.room, f.id, at)!;
+    assert.ok(validRoom(placed));
+    const loaded = roomFromPublic(publicRoom(placed), new Map());
+    assert.deepEqual(loaded.placed, placed.placed);
+    assert.ok(activityOf(loaded.placed[0].it));
+    assert.equal(stowedCount(stow(placed, at), f.id), 1);
+    assert.equal(JSON.stringify(publicRoom(placed)).includes("https:"), false);
+    for (const clip of activityOf(f.id)?.clips ?? []) {
+      const c = VOICE_CLIPS[clip];
+      assert.ok(c.end > c.start && c.end-c.start <= 20);
+      const url = new URL(voiceEmbed(clip));
+      assert.equal(url.hostname, "www.youtube-nocookie.com");
+      assert.equal(url.searchParams.get("start"), String(c.start));
+      assert.equal(url.searchParams.get("end"), String(c.end));
+      assert.equal(new URL(voiceOriginal(clip)).searchParams.get("v"), c.video);
+    }
+  }
 });

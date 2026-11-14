@@ -17,10 +17,11 @@ import { LineComposer, TagSheet } from "./ilchon/parts";
 import { RoomLineList } from "./ilchon/RoomLines";
 import { canSign, KNOCK_REFUSAL_TEXT, knockRefusal, tagLabel, WATER_CUT_ILCHON } from "./ilchon/rules";
 import { TitleChips } from "./parts";
-import { moodOf } from "./room/catalog";
+import { FURNITURE_BY_ID, moodOf } from "./room/catalog";
 import { KeyboardSheet } from "./room/KeyboardSheet";
 import { blankKeys, KEYBOARD_ID } from "./room/keyboard";
 import { RoomItemSheet } from "./room/RoomItemSheet";
+import { activityOf } from "./room/activities";
 import { RoomScene } from "./room/RoomArt";
 import { keyboardKeys, hasKeyboard, isShownId, roomFromPublic, type Placed } from "./room/rules";
 import { formatLeft, kstDayNumber, TIER_LABEL, WATER_CUT, WATER_PER_DAY } from "./rules";
@@ -270,7 +271,7 @@ export function VisitView({
               byId={byId}
               now={now}
               label={`${garden.nick || "이름 없는"}의 방`}
-              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID}
+              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.story)}
               onItem={(p) => {
                 gardenFeedback("tap");
                 if (p.it === KEYBOARD_ID) { setKeyboard(p.kb ?? 0); setSheet("keyboard"); }

@@ -22,9 +22,10 @@ import { applySurface, recordingCleanup, hasSurface, isShownId, move, openSlots,
  *   고쳐지지 않는다(share.ts는 장부가 바뀔 때만 올린다).
  * ★ 보관함은 화면 아래에 붙는 판이다. 모달 시트로 띄우면 위의 방을 누를 수 없다.
  */
-type Chip = "shown" | "furniture" | "wall" | "floor";
+type Chip = "all" | "shown" | "furniture" | "wall" | "floor";
 
 const CHIPS: Array<{ id: Chip; label: string }> = [
+  { id: "all", label: "전체" },
   { id: "shown", label: "전시품" },
   { id: "furniture", label: "가구" },
   { id: "wall", label: "벽" },
@@ -45,7 +46,7 @@ export function RoomEditor({
   say: (text: string) => void;
 }) {
   const [draft, setDraft] = useState<RoomData>(data.room);
-  const [chip, setChip] = useState<Chip>("shown");
+  const [chip, setChip] = useState<Chip>("all");
   /** 놓으려고 고른 것. from이 있으면 옮기는 중. */
   const [pick, setPick] = useState<{ it: string; from?: string } | null>(null);
   /** 눌러 둔 놓인 물건의 칸(옮기기 · 넣기를 고른다). */
@@ -102,7 +103,15 @@ export function RoomEditor({
   const focused = focus ? draft.placed.find((p) => p.at === focus) : undefined;
   const shownLeft = draft.shown.filter((s) => stowedCount(draft, s.id) > 0);
   const furnitureLeft = FURNITURE.filter((f) => placement(f.id, draft.shown) && stowedCount(draft, f.id) > 0);
-  const surfaces = FURNITURE.filter((f) => f.kind === (chip === "wall" ? "wallpaper" : "flooring") && hasSurface(draft, f.id, f.kind));
+  const surfaces = FURNITURE.filter((f) => (f.kind === "wallpaper" || f.kind === "flooring") && hasSurface(draft, f.id, f.kind));
+  const allItems = [
+    ...draft.shown.map((s) => s.id),
+    ...FURNITURE.filter((f) => placement(f.id, draft.shown) && (draft.owned[f.id] ?? 0) > 0).map((f) => f.id),
+    ...surfaces.map((f) => f.id),
+  ];
+  const visibleItems = chip === "all" ? allItems : chip === "shown" ? shownLeft.map((s) => s.id)
+    : chip === "furniture" ? furnitureLeft.map((f) => f.id)
+    : surfaces.filter((f) => f.kind === (chip === "wall" ? "wallpaper" : "flooring")).map((f) => f.id);
 
   return (
     <div ref={top} className="garden-room-editor">
@@ -171,52 +180,51 @@ export function RoomEditor({
             </button>
           ))}
         </div>
-        {chip === "shown" || chip === "furniture" ? (
-          (chip === "shown" ? shownLeft.length : furnitureLeft.length) === 0 ? (
+        {chip === "all" && <p className="mt-2 text-[12px] text-smoke">가진 아이템을 모두 모았어요. 배치 중인 물건도 눌러 옮기거나 보관할 수 있어요.</p>}
+        {visibleItems.length === 0 ? (
             <p className="mt-3 text-[12.5px] leading-relaxed text-smoke">
               {chip === "shown"
                 ? "보관함에 전시품이 없어요. 바구니의 열매를 ‘전시하기’로, 도감의 쪽지를 ‘액자에 걸기’로 더해요."
-                : "보관함에 가구가 없어요. 상점 ‘가구’에서 잼으로 사요."}
+                : chip === "furniture" ? "보관함에 가구가 없어요. 상점 ‘가구’에서 잼으로 사요."
+                : "가진 아이템이 없어요. 상점에서 마음에 드는 소품을 골라 보세요."}
             </p>
           ) : (
             <ul className="garden-inventory-grid mt-3">
-              {(chip === "shown" ? shownLeft.map((s) => s.id) : furnitureLeft.map((f) => f.id)).map((it) => {
+              {visibleItems.map((it) => {
                 const shown = isShownId(it) ? draft.shown.find((s) => s.id === it) : undefined;
+                const furniture = FURNITURE_BY_ID.get(it);
+                const surface = furniture?.kind === "wallpaper" || furniture?.kind === "flooring";
+                const applied = surface && (draft.wall === it || draft.floor === it);
+                const stored = surface ? 0 : stowedCount(draft, it);
+                const placed = draft.placed.filter((p) => p.it === it);
                 return (
                   <li key={it}>
-                    <button type="button" aria-pressed={pick?.it === it && !pick.from} onClick={() => choose(it)} className="garden-inventory-item">
+                    <button type="button" aria-pressed={surface ? applied : (pick?.it === it && !pick.from) || (!pick && focused?.it === it)} onClick={() => {
+                      if (surface) {
+                        const next = applySurface(draft, it);
+                        if (next) setDraft(next);
+                        setPick(null);
+                        setFocus(null);
+                        gardenFeedback("tap");
+                      } else if (stored > 0) choose(it);
+                      else if (placed.length > 0) {
+                        setPick(null);
+                        setFocus(focus === placed[0].at ? null : placed[0].at);
+                        gardenFeedback("tap");
+                      }
+                    }} className="garden-inventory-item">
                       {shown ? <ShownIcon shown={shown} byId={byId} size={48} /> : <FurnitureIcon id={it} size={44} />}
                       <span className="line-clamp-2">{itemName(it, draft, byId)}</span>
-                      {!shown && <span className="text-smoke">×{stowedCount(draft, it)}</span>}
+                      <span className="text-[11px] text-smoke">
+                        {surface ? `${furniture.kind === "wallpaper" ? "벽지" : "바닥재"}${applied ? " · 사용 중" : ""}`
+                          : chip === "all" ? `${shown ? "전시품" : "가구"} · 보관 ${stored}개${placed.length ? ` · 배치 ${placed.length}개` : ""}`
+                          : !shown ? `×${stored}` : "전시품"}
+                      </span>
                     </button>
                   </li>
                 );
               })}
             </ul>
-          )
-        ) : (
-          <ul className="garden-inventory-grid mt-3">
-            {surfaces.map((f) => {
-              const on = chip === "wall" ? draft.wall === f.id : draft.floor === f.id;
-              return (
-                <li key={f.id}>
-                  <button
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => {
-                      const next = applySurface(draft, f.id);
-                      if (next) setDraft(next);
-                      gardenFeedback("tap");
-                    }}
-                    className="garden-inventory-item"
-                  >
-                    <FurnitureIcon id={f.id} size={44} />
-                    <span className="line-clamp-2">{FURNITURE_BY_ID.get(f.id)?.label}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
         )}
         {(chip === "wall" || chip === "floor") && (
           <p className="mt-2 text-[12px] text-smoke">새 벽지·바닥재는 상점 ‘벽·바닥’에서 사요.</p>

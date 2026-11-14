@@ -1,10 +1,12 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 
 import { RAID_KINDS } from "../rules";
 import type { Species } from "../types";
 import { FURNITURE_BY_ID } from "./catalog";
+import { activityOf } from "./activities";
+import { playActivitySound } from "./activitySound";
 import { parseSlot, placement, roomWidth, slotsOf, type Placed, type RoomData, type Shown } from "./rules";
 import { CELL, HEIGHT, ROWS, ROOM_COLORS as C, FurnitureArt, RoomSvg, ShownArt, Surface } from "./RoomSvg";
 export { weatherAt, type Weather } from "./RoomSvg";
@@ -62,6 +64,16 @@ interface SceneProps {
 
 export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot, open, selected, ghost }: SceneProps) {
   const uid = useId().replace(/:/g, "");
+  const [pulses, setPulses] = useState<Record<string, number>>({});
+  const [reacted, setReacted] = useState<{ placed: Placed; message: string } | null>(null);
+  function activate(p: Placed) {
+    const action = !onSlot ? activityOf(p.it) : undefined;
+    if (!action) { onItem?.(p); return; }
+    setPulses((prev) => ({ ...prev, [p.at]: (prev[p.at] ?? 0) + 1 }));
+    const played = action.sound ? playActivitySound(action.sound) : true;
+    setReacted({ placed: p, message: played ? action.message : `${action.message} 이 브라우저에서는 소리를 재생할 수 없어요.` });
+    if (action.clips) onItem?.(p);
+  }
   const width = roomWidth(room.size);
   const W = width * CELL;
   const items = [...room.placed, ...(ghost ? [ghost] : [])]
@@ -77,9 +89,10 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot
   });
 
   return (
+    <div>
     <div className="garden-room-scroll">
       <div className="garden-room" style={{ minWidth: width * MIN_CELL_PX, aspectRatio: `${W} / ${HEIGHT}` }}>
-        <RoomSvg room={room} byId={byId} now={now} label={label} uid={uid} ghost={ghost} selected={selected} />
+        <RoomSvg room={room} byId={byId} now={now} label={label} uid={uid} ghost={ghost} selected={selected} pulses={onSlot ? undefined : pulses} />
 
         {onSlot &&
           (["w", "b", "f"] as const).flatMap((row) =>
@@ -108,14 +121,24 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot
               <button
                 key={`hit-${p.at}`}
                 type="button"
-                onClick={() => onItem(p)}
+                onClick={() => activate(p)}
                 aria-pressed={selected !== undefined ? selected === p.at : undefined}
-                aria-label={`${itemName(p.it, room, byId)} · ${slotLabel(p.at)}`}
+                aria-label={`${itemName(p.it, room, byId)} · ${slotLabel(p.at)}${!onSlot && activityOf(p.it) ? " · 눌러서 반응 보기" : ""}`}
                 className={`garden-room-item ${selected === p.at ? "is-picked" : ""}`}
                 style={box(slot.row, slot.i, spec.size)}
               />
             ))}
       </div>
+    </div>
+    {!onSlot && reacted && room.placed.some((p) => p.it === reacted.placed.it && p.at === reacted.placed.at) && (
+      <div className="mt-2 rounded-xl border border-[var(--d-line)] p-2 text-[12px]">
+        <p role="status">{reacted.message}</p>
+        <div className="mt-1 flex flex-wrap gap-2">
+          <button type="button" className="garden-diary-btn" onClick={() => activate(reacted.placed)}>↻ 한 번 더</button>
+          <button type="button" className="garden-diary-btn" onClick={() => onItem?.(reacted.placed)}>이야기·설명 보기</button>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
