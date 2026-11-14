@@ -31,6 +31,20 @@ let step = 0;
 let listening = false;
 /** 키 녹음 중. 그동안은 iOS 오디오 세션을 ambient로 되돌리지 않는다(마이크가 끊긴다). */
 let micHeld = false;
+let musicQuiet = 0;
+
+/** 실제 발언 플레이어가 열려 있는 동안 BGM만 줄인다. 저장한 소리 설정은 보존한다. */
+export function quietGardenMusic(): () => void {
+  musicQuiet++;
+  const apply = () => {
+    if (!audio || !music) return;
+    music.gain.cancelScheduledValues(audio.currentTime);
+    music.gain.setTargetAtTime(musicQuiet ? .035 : .8, audio.currentTime, .08);
+  };
+  apply();
+  let released = false;
+  return () => { if (released) return; released = true; musicQuiet = Math.max(0, musicQuiet-1); apply(); };
+}
 
 type AudioSessionNavigator = Navigator & { audioSession?: { type: string } };
 
@@ -541,7 +555,7 @@ function startMusic() {
   if (!audio || !master || timer) return;
   music = audio.createGain();
   music.gain.setValueAtTime(0.0001, audio.currentTime);
-  music.gain.exponentialRampToValueAtTime(0.8, audio.currentTime + 1.5);
+  music.gain.exponentialRampToValueAtTime(musicQuiet ? .035 : .8, audio.currentTime + 1.5);
   music.connect(master);
   nextAt = audio.currentTime + 0.1;
   step = 0;

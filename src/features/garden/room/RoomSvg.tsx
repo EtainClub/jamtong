@@ -6,6 +6,9 @@ import { isRaidKind } from "../raid/rules";
 import { HOUR, isMeteor, isRaining } from "../rules";
 import type { Mutation, Species } from "../types";
 import { FURNITURE_BY_ID } from "./catalog";
+import { StoryFurnitureArt } from "./StoryFurnitureArt";
+import { PlayFurnitureArt } from "./PlayFurnitureArt";
+import { activityOf } from "./activities";
 import { KeyFace } from "./KeyArt";
 import { freshKeys, type RoomKey } from "./keyboard";
 import { keyboardKeys, parseSlot, placement, roomWidth, type Placed, type RoomData, type Shown } from "./rules";
@@ -49,7 +52,7 @@ export function weatherAt(now: number): Weather {
 }
 
 /** Shared room drawing for the live room and server-rendered share card. */
-export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected }: {
+export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected, pulses }: {
   room: RoomData;
   byId: ReadonlyMap<string, Species>;
   now: number;
@@ -57,6 +60,7 @@ export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected 
   uid?: string;
   ghost?: Placed | null;
   selected?: string | null;
+  pulses?: Readonly<Record<string, number>>;
 }) {
   const width = roomWidth(room.size);
   const W = width * CELL;
@@ -91,7 +95,9 @@ export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected 
             opacity={isGhost ? 0.6 : 1}
             className={selected === p.at ? "garden-room-picked" : undefined}
           >
-            <ItemArt it={p.it} shown={room.shown} keys={keyboardKeys(room, p.kb)} byId={byId} w={w} h={h} weather={weather} rainbow={`url(#${uid}-rainbow)`} />
+            <g key={pulses?.[p.at] ?? 0} className={pulses?.[p.at] && !isGhost ? `garden-room-react garden-room-react-${activityOf(p.it)?.motion}` : undefined}>
+              <ItemArt it={p.it} shown={room.shown} keys={keyboardKeys(room, p.kb)} byId={byId} w={w} h={h} weather={weather} rainbow={`url(#${uid}-rainbow)`} />
+            </g>
           </g>
         );
       })}
@@ -377,7 +383,7 @@ export function FurnitureArt({ art, w, h, weather, keys }: { art: string; w: num
       body = <><ellipse cx={cx} cy={base - 6} rx={cx - 4} ry="6" fill={C.grey} stroke={C.ink} strokeWidth="2" /><ellipse cx={cx} cy={base - 7} rx={cx - 10} ry="3" fill={C.sky} /><B x={cx - 4} y={base - 28} w={8} h={20} fill={C.grey} /><path d={`M${cx} ${base - 30}Q${cx - 12} ${base - 40} ${cx - 16} ${base - 12}M${cx} ${base - 30}Q${cx + 12} ${base - 40} ${cx + 16} ${base - 12}`} stroke={C.skyD} strokeWidth="2" fill="none" /></>;
       break;
     default:
-      body = <B x={8} y={base - 20} w={w - 16} h={20} fill={C.grey} />;
+      body = FURNITURE_BY_ID.get(art)?.story ? <StoryFurnitureArt art={art} w={w} h={h} /> : activityOf(art) ? <PlayFurnitureArt art={art} w={w} h={h} /> : <B x={8} y={base - 20} w={w - 16} h={20} fill={C.grey} />;
   }
   return <g shapeRendering="crispEdges">{body}</g>;
 }

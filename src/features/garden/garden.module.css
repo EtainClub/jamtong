@@ -451,6 +451,18 @@
 .game :global(.garden-room-item.is-picked) { outline: 3px solid var(--d-orange); outline-offset: -2px; background: #f47b201c; }
 .game :global(.garden-room-icon) { display: block; margin: 0 auto; }
 @keyframes slot-glow { 50% { background: #f47b2040; } }
+.game :global(.garden-room-react) { transform-box: fill-box; transform-origin: center bottom; }
+.game :global(.garden-room-react-hop) { animation: room-hop .65s ease-out; }
+.game :global(.garden-room-react-sway) { animation: room-sway .9s ease-in-out; }
+.game :global(.garden-room-react-spin) { animation: room-spin 1.2s ease-in-out; transform-origin: center; }
+.game :global(.garden-room-react-glow) { animation: room-glow .8s ease-out; }
+@keyframes room-hop { 25% { transform: translateY(-9px) rotate(-6deg); } 55% { transform: translateY(0) scale(1.08,.9); } 75% { transform: translateY(-4px) rotate(4deg); } }
+@keyframes room-sway { 20%, 60% { transform: rotate(-10deg); } 40%, 80% { transform: rotate(10deg); } }
+@keyframes room-spin { 50% { transform: scaleX(-1) translateY(-3px); } }
+@keyframes room-glow { 40% { filter: brightness(1.5) drop-shadow(0 0 4px #ffd85c); transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) {
+  .game :global(.garden-room-react) { animation: none; }
+}
 
 .game :global(.garden-room-editor) { scroll-margin-top: 124px; }
 /* 꾸미기의 보관함 판. 하단 탭 위를 덮는다. */

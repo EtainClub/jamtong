@@ -11,7 +11,12 @@ import { RAID_GIMMICKS } from "../raidPlay";
 import { MUTATION, MUTATION_ORDER, RAID_KINDS, TIER_LABEL } from "../rules";
 import { Sheet } from "../Sheet";
 import type { Species } from "../types";
-import { itemName } from "./RoomArt";
+import { itemName, FurnitureIcon } from "./RoomArt";
+import { FURNITURE_BY_ID } from "./catalog";
+import { FurnitureStory } from "./FurnitureStory";
+import { activityOf } from "./activities";
+import { RoomVoicePlayer } from "./RoomVoicePlayer";
+import { playActivitySound } from "./activitySound";
 import type { Placed, RoomData } from "./rules";
 
 /**
@@ -41,6 +46,18 @@ export function RoomItemSheet({
     if (shown?.kind === "frame") track("frame_open", { kind: note?.kind ?? "missing" });
   }, [shown?.kind, note?.kind]);
 
+  const furniture = FURNITURE_BY_ID.get(placed.it);
+  const activity = activityOf(placed.it);
+  if (furniture && (furniture.story || activity)) {
+    return (
+      <Sheet label={`${furniture.label} 자세히 보기`} title={furniture.label} onClose={onClose}>
+        <div className="mt-3 flex justify-center"><FurnitureIcon id={furniture.id} size={96} /></div>
+        <p className="mt-2 text-[13px] text-smoke">{furniture.hint}</p>
+        {activity?.clips ? <RoomVoicePlayer clips={activity.clips} /> : activity?.sound ? <button type="button" className="garden-diary-btn mt-3" onClick={() => { if (activity.sound) playActivitySound(activity.sound); }}>♪ 소리 다시 듣기</button> : null}
+        {furniture.story && <FurnitureStory story={furniture.story} />}
+      </Sheet>
+    );
+  }
   if (!shown) return null;
   const title = itemName(placed.it, room, byId);
   // 악초 박제 — 그 악초의 성질을 적는다. 특정 사람·집단이 아니라 누구에게나 해로운 행동이다.

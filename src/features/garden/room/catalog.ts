@@ -1,3 +1,6 @@
+import { STORY_FURNITURE, type FurnitureStory, type StoryCollection } from "./stories";
+import { PLAY_FURNITURE } from "./activities";
+
 /**
  * 방에 놓는 산 것(가구)과 오늘의 기분. 설계는 docs/garden-miniroom.md §4.2.
  *
@@ -23,7 +26,7 @@ export interface Furniture {
   id: string;
   label: string;
   kind: FurnitureKind;
-  /** 차지하는 칸. 벽지·바닥재·액자틀은 1로 둔다(놓지 않는다). */
+  /** 차지하는 칸. 벽지·바닥재는 1로 둔다(방 전체에 적용한다). */
   size: 1 | 2;
   /** 잼(cur가 root면 뿌리 조각). 0이고 cur가 없으면 처음부터 가진 것. */
   price: number;
@@ -40,9 +43,13 @@ export interface Furniture {
   /** 이날(한국 날짜, 그날 포함)까지 상점 가구 맨 위 "새로 들어온 가구"에 NEW로 보인다. 목록 한가운데 묻히지 않게. */
   newUntil?: string;
   shortcut?: Shortcut;
+  story?: FurnitureStory;
+  collection?: StoryCollection;
 }
 
 export const FURNITURE: Furniture[] = [
+  ...STORY_FURNITURE,
+  ...PLAY_FURNITURE,
   // 벽지
   { id: "wp-cream", label: "크림 벽지", kind: "wallpaper", size: 1, price: 0, art: "wp-cream", hint: "처음 방의 벽지예요." },
   { id: "wp-stripe", label: "연두 줄무늬 벽지", kind: "wallpaper", size: 1, price: 150, art: "wp-stripe", hint: "텃밭 생각이 나는 연두 줄무늬." },

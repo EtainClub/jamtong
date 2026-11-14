@@ -12,6 +12,7 @@ import { FURNITURE_BY_ID, moodOf, type Shortcut } from "../room/catalog";
 import { KeyboardSheet } from "../room/KeyboardSheet";
 import { RoomEditor } from "../room/RoomEditor";
 import { RoomItemSheet } from "../room/RoomItemSheet";
+import { activityOf } from "../room/activities";
 import { RoomScene } from "../room/RoomArt";
 import { keyboardKeys, isShownId, type Placed } from "../room/rules";
 import type { TitleId } from "../rules";
@@ -175,7 +176,7 @@ export function GardenHome({
                 byId={byId}
                 now={now}
                 label={`${data.nick}의 방`}
-                isItemActive={(p) => isShownId(p.it) || Boolean(FURNITURE_BY_ID.get(p.it)?.shortcut)}
+                isItemActive={(p) => isShownId(p.it) || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.shortcut || FURNITURE_BY_ID.get(p.it)?.story)}
                 onItem={(p) => {
                   const s = FURNITURE_BY_ID.get(p.it)?.shortcut;
                   if (s) shortcut(s, p.kb ?? 0);
