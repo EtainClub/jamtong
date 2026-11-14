@@ -363,11 +363,27 @@
 .game :global(.garden-back) { flex-shrink: 0; display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; border-radius: 12px; font-size: 13px; font-weight: 800; color: var(--d-sky-ink); }
 .game :global(.garden-back:hover) { background: #eef6fb; }
 .game :global(.garden-topbar-title) { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: 14px; font-weight: 800; color: #3b4a3a; }
-.game :global(.garden-toolbar) { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; }
-.game :global(.garden-toolbar-actions) { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+/* 위쪽 버튼 줄. 날씨는 텃밭 띠로 옮겼다(2026-11-14) — 한 줄에 함께 두면 좁은 휴대폰에서 배열이 틀어졌다. */
+.game :global(.garden-toolbar) { display: flex; justify-content: flex-end; padding-top: 8px; }
+.game :global(.garden-toolbar-actions) { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 6px; min-width: 0; }
+/* 텃밭 띠의 날씨. 부제 자리에 한 줄로. 띠 높이는 내용만큼(칭호가 두 줄이 되어도 잘리지 않게). */
+.game :global(.garden-world-header.is-band .garden-weather) { max-width: 100%; }
+.game :global(.garden-world-header.is-band .garden-weather-next) { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; border-radius: 999px; padding: 4px 10px; font-size: 12px; background: #fffaf0e6; }
+.game :global(.garden-world-header.is-band .garden-weather:not(.garden-weather-next)) { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-items: center; }
+.game :global(.garden-toolbar-actions .garden-pill) { flex-shrink: 0; white-space: nowrap; }
+@media (max-width: 359px) {
+  .game :global(.garden-toolbar-actions .garden-pill) { padding: 7px 8px; }
+}
+/* '내 방' 제목 줄의 한마디. 남는 칸을 채우고, 길면 말줄임. */
+.game :global(.garden-room-head) { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.game :global(.garden-motto) { min-width: 0; flex: 1; min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px dashed var(--d-line, #c9dbe7); background: #fffdf8; color: #8a4510; font-size: 12.5px; font-weight: 700; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game :global(.garden-motto q) { quotes: "“" "”"; }
+.game :global(.garden-motto.is-empty) { color: #8c98a3; font-weight: 600; }
+.game :global(.garden-motto-line) { margin-top: 4px; font-size: 13px; font-weight: 700; color: #8a4510; overflow-wrap: anywhere; }
+.game :global(.garden-motto-input) { width: 100%; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--d-line, #c9dbe7); background: #fff; font-size: 16px; color: #2b3a44; }
 .game :global(.garden-toolbar-actions .garden-pill) { min-height: 36px; }
-.game :global(.garden-world-header.is-band) { height: 104px; margin: 0 -16px 0; border-radius: 0; }
-.game :global(.garden-world-header.is-band .garden-world-title) { padding: 16px 20px; }
+.game :global(.garden-world-header.is-band) { height: auto; min-height: 104px; margin: 0 -16px 0; border-radius: 0; }
+.game :global(.garden-world-header.is-band .garden-world-title) { max-width: 100%; padding: 16px 20px; }
 .game :global(.garden-world-header.is-band .garden-world-title p) { font-size: 13px; }
 .game :global(.garden-world-header.is-band .garden-butterfly) { bottom: 14px; }
 
@@ -497,6 +513,40 @@
 .game :global(.garden-friend-row) { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dotted var(--d-line); }
 .game :global(.garden-friend-row:last-child) { border-bottom: 0; }
 
+/* 내 키보드 (docs/garden-miniroom.md §4.5). 도트 키캡: 굵은 먹색 테두리, 아래로 두께, 누르면 내려앉는다. */
+.game :global(.garden-keys) { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.game :global(.garden-keycap) { display: grid; place-items: center; width: 100%; min-width: 64px; aspect-ratio: 1; padding: 10%; border-radius: 10px; border: 2px solid #3a2f2a; background: linear-gradient(180deg, #fffdf6 0 78%, #f3e6c8 78%); box-shadow: inset -3px -3px 0 #3a2f2a1a, inset 3px 3px 0 #ffffff, 0 5px 0 #3a2f2a; transition: transform 60ms ease-out, box-shadow 60ms ease-out; touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+.game :global(.garden-keycap:active), .game :global(.garden-keycap.is-down) { transform: translateY(4px); box-shadow: inset -2px -2px 0 #3a2f2a1a, inset 2px 2px 0 #ffffff, 0 1px 0 #3a2f2a; background: linear-gradient(180deg, #fff6e4 0 78%, #f0dfbd 78%); }
+.game :global(.garden-keycap:focus-visible) { outline: 3px solid var(--d-sky); outline-offset: 2px; }
+.game :global(.garden-keycap.is-pick) { border-color: var(--d-orange); box-shadow: inset -3px -3px 0 #3a2f2a1a, 0 5px 0 #d9661a; animation: slot-glow 1.2s ease-in-out infinite; }
+.game :global(.garden-keycap.is-preview) { width: 72px; min-width: 72px; flex-shrink: 0; }
+.game :global(.garden-keycap.is-preview .garden-keycap-face) { width: 50px; height: 50px; }
+.game :global(.garden-keycap-face) { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.game :global(.garden-keycap-tag) { margin-top: 8px; text-align: center; font-size: 12px; font-weight: 800; color: #66707a; }
+.game :global(.garden-key-note) { border-radius: 10px; border: 1px dashed var(--d-orange); background: #fff8f1; padding: 8px 10px; font-size: 12.5px; line-height: 1.55; color: #6b3a12; }
+.game :global(.garden-pixel-grid) { position: relative; width: min(100%, 312px); aspect-ratio: 1; margin: 0 auto; border: 2px solid #3a2f2a; border-radius: 6px; touch-action: none; -webkit-user-select: none; user-select: none; cursor: crosshair; background: repeating-conic-gradient(#eef1f3 0 25%, #fff 0 50%) 0 0 / calc(100% / 6) calc(100% / 6); }
+.game :global(.garden-pixel-grid::after) { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(90deg, #3a2f2a22 1px, transparent 1px), linear-gradient(#3a2f2a22 1px, transparent 1px); background-size: calc(100% / 12) calc(100% / 12); }
+.game :global(.garden-pixel-art) { display: block; width: 100%; height: 100%; pointer-events: none; image-rendering: pixelated; }
+.game :global(.garden-pixel-actions button) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.game :global(.garden-pixel-actions button:disabled) { opacity: .45; cursor: default; }
+.game :global(.garden-palette) { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; max-width: 360px; margin-left: auto; margin-right: auto; }
+.game :global(.garden-swatch) { width: 100%; min-height: 44px; border-radius: 8px; border: 2px solid #3a2f2a33; font-size: 16px; color: #66707a; }
+.game :global(.garden-swatch.is-eraser) { background: repeating-conic-gradient(#eef1f3 0 25%, #fff 0 50%) 0 0 / 12px 12px; }
+.game :global(.garden-swatch[aria-checked=true]) { border: 3px solid var(--d-orange); box-shadow: 0 0 0 2px #fff inset; }
+.game :global(.garden-sound-grid) { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.game :global(.garden-voice-modes) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.game :global(.garden-sound-btn) { display: flex; min-width: 0; min-height: 52px; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px; border-radius: 10px; border: 1px dashed #c9dbe7; background: #fff; font-size: 12px; font-weight: 700; line-height: 1.2; color: var(--d-sky-ink); text-align: center; word-break: keep-all; }
+.game :global(.garden-sound-btn[aria-checked=true]) { border: 2px solid var(--d-orange); background: #fff6ec; color: #8a4510; }
+.game :global(.garden-rec-btn) { display: block; width: 100%; min-height: 52px; border-radius: 999px; background: #d9574a; border: 1px solid #b0412f; box-shadow: 0 3px 0 #8f3226; color: #fff; font-size: 14px; font-weight: 900; }
+.game :global(.garden-rec-btn:disabled) { opacity: .6; }
+.game :global(.garden-meter) { height: 8px; border-radius: 999px; background: #eef1f3; overflow: hidden; }
+.game :global(.garden-meter span) { display: block; height: 100%; background: var(--d-sky); transition: width 60ms linear; }
+.game :global(.garden-meter.is-time span) { background: #d9574a; transition: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .game :global(.garden-room-slot.is-open) { animation: none; }
+  .game :global(.garden-keycap) { transition: none; }
+  .game :global(.garden-keycap:active), .game :global(.garden-keycap.is-down) { transform: none; }
+  .game :global(.garden-keycap.is-pick) { animation: none; }
+  .game :global(.garden-meter span) { transition: none; }
 }

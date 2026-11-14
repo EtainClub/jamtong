@@ -5,7 +5,7 @@ import { useState } from "react";
 import { track } from "@/lib/analytics";
 
 import { gardenFeedback } from "../feedback";
-import { formatLeft, josa } from "../rules";
+import { formatLeft, josa, kstDay } from "../rules";
 import { FURNITURE, FURNITURE_BY_ID, type Furniture } from "../room/catalog";
 import { FurnitureIcon, RoomScene } from "../room/RoomArt";
 import { firstOpenSlot, hasSurface, nextRoomSize, OWN_MAX, ROOM_SIZES, onSale, weekLeft, weeklyPicks, type BuyRefusal } from "../room/rules";
@@ -63,6 +63,9 @@ export function RoomShop({
     say(surface(f) ? `🎨 ${josa(f.label, "을를")} 샀어요 · 시트에서 바로 바를 수 있어요` : `🛋 ${josa(f.label, "을를")} 샀어요 · 방 꾸미기에서 놓아요`);
   };
 
+  const today = kstDay(now);
+  const isNew = (f: Furniture) => Boolean(f.newUntil && today <= f.newUntil);
+
   const card = (f: Furniture) => {
     const have = room.owned[f.id] ?? 0;
     const owned = surface(f) && hasSurface(room, f.id, f.kind as "wallpaper" | "flooring");
@@ -71,6 +74,7 @@ export function RoomShop({
         key={f.id}
         art={<FurnitureIcon id={f.id} size={56} />}
         title={f.label}
+        badge={isNew(f) ? "NEW" : undefined}
         sub={owned ? "가지고 있어요" : have > 0 ? `가진 것 ${have}개` : f.shortcut ? "누르면 바로가기" : f.kind === "window" ? "벽 2칸 · 창밖은 지금 날씨" : f.size === 2 ? "2칸짜리" : "1칸짜리"}
         buyLabel={owned ? "가짐" : priceText(f.price)}
         buyDisabled={owned || data.jam < f.price || have >= OWN_MAX}
@@ -104,6 +108,12 @@ export function RoomShop({
 
       {cat === "furniture" && (
         <>
+          {items.some(isNew) && (
+            <div className="mb-4">
+              <h3 className="garden-diary-title">✨ 새로 들어온 가구</h3>
+              <ul className="garden-shop-grid">{items.filter(isNew).map(card)}</ul>
+            </div>
+          )}
           <p className="garden-shop-notice">🗓 이번 주 진열 · 새 진열까지 {formatLeft(weekLeft(now))}</p>
           <ul className="garden-shop-grid">{weekly.map((id) => FURNITURE_BY_ID.get(id)).filter((f): f is Furniture => Boolean(f)).map(card)}</ul>
           {GROUPS.map((g) => (

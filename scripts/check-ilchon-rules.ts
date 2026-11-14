@@ -96,6 +96,47 @@ const pub = (owner: string, nick: string, over: Record<string, unknown> = {}) =>
   await expect(false, "공개 문서에 hidden 섞기", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { hidden: false })));
   await expect(true, "A 다시 공개", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { guestbook: "all", accept: true })));
 
+  console.log("공개 방의 키보드(docs/garden-miniroom.md §4.5)");
+  const face = "0123456701234567".repeat(9);
+  const key = (over: Record<string, unknown> = {}) => ({ f: face, s: "drum", ...over });
+  const room = (keys: unknown) => ({ size: 0, wall: "wp-cream", floor: "fl-wood", mood: "easy", bgm: "orgel", placed: [{ a: "b0", i: "keyboard" }], keys });
+  await expect(true, "키 넷(녹음 판 포함)", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key(), key({ s: "rec", v: 3 }), key({ s: "bird" }), key({ s: "none" })]) })));
+  await expect(true, "키 없는 방(옛 화면)", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: { size: 0, wall: "wp-cream", floor: "fl-wood", mood: "easy", placed: [] } })));
+  await expect(false, "키 셋", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key(), key(), key()]) })));
+  await expect(false, "키 다섯", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key(), key(), key(), key(), key()]) })));
+  await expect(false, "그림이 143자", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key({ f: face.slice(1) }), key(), key(), key()]) })));
+  await expect(false, "그림에 팔레트 밖의 색(8)", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key({ f: "8" + face.slice(1) }), key(), key(), key()]) })));
+  await expect(false, "그림 자리에 글", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key({ f: "안녕".repeat(72) }), key(), key(), key()]) })));
+  await expect(false, "소리 id 41자", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key({ s: "x".repeat(41) }), key(), key(), key()]) })));
+  await expect(false, "녹음 판 0", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key({ s: "rec", v: 0 }), key(), key(), key()]) })));
+  await expect(false, "녹음 판이 소수", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key({ s: "rec", v: 1.5 }), key(), key(), key()]) })));
+  await expect(false, "녹음 판 1천만", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key({ s: "rec", v: 10_000_000 }), key(), key(), key()]) })));
+  await expect(false, "키에 다른 칸(주소)을 덧붙이기", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room([key({ url: "https://x" }), key(), key(), key()]) })));
+  await expect(false, "키가 목록이 아니다", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: room({ 0: key() }) })));
+
+  console.log("키보드 가리기(mod/keys)");
+  await expect(true, "아무나 가리기 표시 읽기(없는 문서)", () => getDoc(doc(client(null), "gardens", gA, "mod", "keys")));
+  await expect(false, "주인이 스스로 가리기 풀기", () => setDoc(doc(a, "gardens", gA, "mod", "keys"), { hidden: false, at: serverTimestamp() }));
+  await expect(false, "손님이 가리기", () => setDoc(doc(b, "gardens", gA, "mod", "keys"), { hidden: true, at: serverTimestamp() }));
+  await expect(true, "운영자가 가리기", () => setDoc(doc(admin, "gardens", gA, "mod", "keys"), { hidden: true, at: serverTimestamp() }));
+  await expect(false, "운영자가 다른 칸을 덧붙이기", () => setDoc(doc(admin, "gardens", gA, "mod", "keys"), { hidden: true, at: serverTimestamp(), why: "글" }));
+  await expect(false, "운영자가 다른 mod 문서 쓰기", () => setDoc(doc(admin, "gardens", gA, "mod", "beds"), { hidden: true, at: serverTimestamp() }));
+  await expect(true, "아무나 가리기 표시 읽기", () => getDoc(doc(client(null), "gardens", gA, "mod", "keys")).then((x) => { if (x.get("hidden") !== true) throw new Error("가리기가 안 보인다"); }));
+  await expect(false, "주인이 가리기 표시 지우기", () => deleteDoc(doc(a, "gardens", gA, "mod", "keys")));
+  await expect(true, "운영자가 가리기 풀기", () => setDoc(doc(admin, "gardens", gA, "mod", "keys"), { hidden: false, at: serverTimestamp() }));
+
+  console.log("방 한마디(room.motto, mod/motto)");
+  const plain = (over: Record<string, unknown>) => ({ size: 0, wall: "wp-cream", floor: "fl-wood", mood: "easy", bgm: "orgel", placed: [], ...over });
+  await expect(true, "한마디 30자", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ motto: "가".repeat(30) }) })));
+  await expect(false, "한마디 31자", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ motto: "가".repeat(31) }) })));
+  await expect(false, "한마디가 글이 아니다", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ motto: 7 }) })));
+  await expect(true, "아무나 한마디 가리기 표시 읽기", () => getDoc(doc(client(null), "gardens", gA, "mod", "motto")));
+  await expect(false, "주인이 한마디 가리기 표시 쓰기", () => setDoc(doc(a, "gardens", gA, "mod", "motto"), { hidden: false, at: serverTimestamp() }));
+  await expect(true, "운영자가 한마디 가리기", () => setDoc(doc(admin, "gardens", gA, "mod", "motto"), { hidden: true, at: serverTimestamp() }));
+  await expect(false, "운영자도 정해 둔 것 밖의 가리기 문서는 못 쓴다", () => setDoc(doc(admin, "gardens", gA, "mod", "beds"), { hidden: true, at: serverTimestamp() }));
+  await expect(false, "아무나 정해 둔 것 밖의 가리기 문서 읽기", () => getDoc(doc(client(null), "gardens", gA, "mod", "beds")));
+  await expect(true, "A 다시 공개(키 없이)", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { guestbook: "all", accept: true })));
+
   console.log("1촌 신청");
   const knock = (db: Firestore, uid: string, target: string, g: string, tag = 1) => setDoc(doc(db, "gardens", target, "knocks", uid), { g, n: "이름", tag, at: serverTimestamp() });
   await expect(false, "남의 공개 id로 신청", () => knock(d, D, gA, gB));

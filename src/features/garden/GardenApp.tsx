@@ -33,6 +33,7 @@ import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, kstDay, kstDayNu
 import { ShareCard } from "./ShareCard";
 import { GardenShareButton } from "./GardenShareButton";
 import { takeInviteParam, useInvite } from "./invite";
+import { useKeyCleanup } from "./room/keyCleanup";
 import { useShare } from "./share";
 import { Shop } from "./shop/Shop";
 import { VisitView } from "./VisitView";
@@ -277,6 +278,7 @@ export function GardenApp({
   }, [levels, syncing, say]);
 
   useShare(uid, !syncing, now, say);
+  useKeyCleanup(uid, !syncing, say);
   useInvite(uid, hasData && !syncing, inviteIn, catalog, say);
 
   // 1촌(docs/garden-miniroom.md §5). 받은 신청은 가볍게 지켜보고, 내 방의 1촌평·방명록·손님 수는 홈을 볼 때 읽는다.
@@ -364,7 +366,6 @@ export function GardenApp({
         </p>
       </div>
       <div className="garden-toolbar">
-        <WeatherBadge now={now} catalog={catalog} onOpen={() => openGuide("weather")} />
         <div className="garden-toolbar-actions">
           {!visit && (
             <button type="button" className="garden-pill" aria-expanded={showShare} aria-controls="garden-share-card" onClick={() => { gardenFeedback("tap"); setShowShare(!showShare); }}>
@@ -399,7 +400,9 @@ export function GardenApp({
           {(tab === "beds" || tab === "plaza") && (
             <header className="garden-world-header is-band">
               <GardenScenery raining={isRaining(now)} />
-              <div className="garden-world-title"><span className="garden-eyebrow">JAMTONG GARDEN</span><p>{data.nick}의 작은 초록 세상</p><TitleChips levels={levels ?? undefined} className="mt-1.5" /></div>
+              {/* 날씨(단비·별똥별·장마)는 텃밭에만 닿는다. 모든 탭의 머리에 두지 않고 텃밭 띠의 부제 자리에 건다 —
+                  정원 이름은 위쪽 바에 이미 있어 부제가 겹쳤다(2026-11-14). */}
+              <div className="garden-world-title"><span className="garden-eyebrow">JAMTONG GARDEN</span>{seg === "beds" ? <div className="mt-1"><WeatherBadge now={now} catalog={catalog} onOpen={() => openGuide("weather")} /></div> : <p>{data.nick}의 작은 초록 세상</p>}<TitleChips levels={levels ?? undefined} className="mt-1.5" /></div>
             </header>
           )}
           <SegmentSwitch tab={tab} seg={seg} onSeg={onSeg} />

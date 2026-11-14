@@ -3,7 +3,7 @@
  *
  * ★ 화면은 이 표에 있는 id만 그린다. 공개 문서에는 아무 값이나 담길 수 있다 —
  *   품종표처럼, 표에 없는 id는 그리지 않는다.
- * ★ 가구는 꾸밈일 뿐 효과가 없다. 몇 가지는 바로가기(책장 → 도감, 라디오 → 음악)다.
+ * ★ 가구는 꾸밈일 뿐 효과가 없다. 몇 가지는 바로가기(책장 → 도감, 라디오 → 음악, 키보드 → 키 누르기)다.
  *   효과가 아니라 길이다. 성장 버프를 가구에 달면 방이 스펙이 된다.
  * ★ 무작위로 나오는 것(뽑기)은 두지 않는다. 보이는 것을 정해진 값에 산다.
  * ★ 그림은 RoomArt.tsx가 art 열쇠로 그린다. 잼통 고유의 그림이다.
@@ -17,7 +17,7 @@
 export type FurnitureKind = "wall" | "floor" | "window" | "wallpaper" | "flooring" | "frame-blank" | "fx";
 
 /** 바로가기. 눌렀을 때 가는 곳. */
-export type Shortcut = "dex" | "music" | "guestbook";
+export type Shortcut = "dex" | "music" | "guestbook" | "keyboard";
 
 export interface Furniture {
   id: string;
@@ -37,6 +37,8 @@ export interface Furniture {
   hint: string;
   /** 주마다 바뀌는 진열에서만 산다(weeklyPicks). */
   weekly?: boolean;
+  /** 이날(한국 날짜, 그날 포함)까지 상점 가구 맨 위 "새로 들어온 가구"에 NEW로 보인다. 목록 한가운데 묻히지 않게. */
+  newUntil?: string;
   shortcut?: Shortcut;
 }
 
@@ -80,6 +82,7 @@ export const FURNITURE: Furniture[] = [
   { id: "cushion", label: "방석", kind: "floor", size: 1, price: 60, art: "cushion", hint: "앉기 좋은 동그란 방석." },
   { id: "radio", label: "라디오", kind: "floor", size: 1, price: 300, art: "radio", hint: "누르면 정원 음악을 켜고 꺼요.", shortcut: "music" },
   { id: "mailbox", label: "우편함", kind: "floor", size: 1, price: 250, art: "mailbox", hint: "누르면 방명록으로 가요.", shortcut: "guestbook" },
+  { id: "keyboard", label: "내 키보드", kind: "floor", size: 2, price: 400, art: "keyboard", hint: "키 네 개에 그림을 그리고 소리를 골라요. 손님도 눌러 볼 수 있어요.", shortcut: "keyboard", newUntil: "2026-12-14" },
   { id: "piano", label: "피아노", kind: "floor", size: 2, price: 1500, art: "piano", hint: "건반 여든여덟 개." },
   { id: "picnic", label: "피크닉 바구니", kind: "floor", size: 1, price: 450, art: "picnic", hint: "이번 주에만 들어오는 소품.", weekly: true },
   { id: "fishbowl", label: "어항", kind: "floor", size: 1, price: 800, art: "fishbowl", hint: "이번 주에만 들어오는 어항.", weekly: true },
@@ -127,3 +130,10 @@ export const DEFAULT_MOOD = MOODS[0].id;
 export function moodOf(id: string): { id: string; icon: string; label: string } {
   return MOODS.find((m) => m.id === id) ?? MOODS[0];
 }
+
+/** 방 넓히기. 6칸 → 8칸 → 10칸(벽 한 줄의 칸 수, 바닥은 두 줄). */
+export const ROOM_SIZES = [
+  { width: 6, price: 0, label: "작은 방" },
+  { width: 8, price: 1500, label: "넓은 방" },
+  { width: 10, price: 5000, label: "볕 드는 방" },
+] as const;

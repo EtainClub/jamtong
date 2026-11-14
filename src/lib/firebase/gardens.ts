@@ -72,7 +72,14 @@ export interface PublicRoom {
   mood: string;
   /** 방 음악 id. 보는 화면이 곡표에 있는 것만 튼다. 예전 문서에는 없다. */
   bgm?: string;
+  /** 방 한마디. 사람이 쓴 글 — 보는 화면이 다시 거른다(room/rules.ts의 cleanMotto). */
+  motto?: string;
   placed: PublicPlaced[];
+  /**
+   * 내 키보드의 키 넷(docs/garden-miniroom.md §4.5). 키보드가 방에 놓였을 때만. f=그림(144자), s=소리 id, v=녹음 판.
+   * 보는 화면이 features/garden/room/keyboard.ts의 keysFromPublic으로 모양을 다시 본다.
+   */
+  keys?: Array<{ f: string; s: string; v?: number }>;
 }
 
 export async function publishGarden(gid: string, uid: string, garden: PublicGarden): Promise<void> {
@@ -117,7 +124,7 @@ function isLive(d: Record<string, unknown> | undefined): d is Record<string, unk
 export async function loadPublicGarden(
   gid: string,
   uid: string | null,
-): Promise<{ garden: PublicGarden; mine: boolean; wateredToday: boolean } | null> {
+): Promise<{ garden: PublicGarden; mine: boolean; wateredToday: boolean; ownerUid: string } | null> {
   const db = firebaseDb();
   if (!db) return null;
   const snap = await getDoc(doc(db, "gardens", gid));
@@ -130,7 +137,8 @@ export async function loadPublicGarden(
     const w = await getDoc(doc(db, "gardens", gid, "waters", uid));
     wateredToday = w.exists() && w.get("day") === todayNumber();
   }
-  return { garden, mine, wateredToday };
+  // ownerUid는 이미 공개 문서에 있다(규칙이 주인을 보려고 둔다). 키보드 녹음의 경로(roomKeys/{uid}/…)를 찾는 데 쓴다.
+  return { garden, mine, wateredToday, ownerUid: String(d.ownerUid ?? "") };
 }
 
 /**
@@ -220,7 +228,13 @@ function toRoom(raw: unknown): PublicRoom | undefined {
       });
     }
   }
-  return { size: Number(r.size) || 0, wall: str(r.wall), floor: str(r.floor), mood: str(r.mood), bgm: str(r.bgm), placed };
+  const keys = Array.isArray(r.keys)
+    ? r.keys.slice(0, 4).map((k) => {
+        const x = (k && typeof k === "object" ? k : {}) as Record<string, unknown>;
+        return { f: str(x.f), s: str(x.s), ...(typeof x.v === "number" ? { v: x.v } : {}) };
+      })
+    : undefined;
+  return { size: Number(r.size) || 0, wall: str(r.wall), floor: str(r.floor), mood: str(r.mood), bgm: str(r.bgm), motto: str(r.motto), placed, ...(keys ? { keys } : {}) };
 }
 
 function toTitles(raw: unknown): PublicGarden["titles"] {

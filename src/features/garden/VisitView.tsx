@@ -6,19 +6,23 @@ import { track } from "@/lib/analytics";
 import { firebaseConfigured } from "@/lib/firebase/client";
 import { loadPublicGarden, waterGarden, type PublicGarden } from "@/lib/firebase/gardens";
 import { countVisit, isIlchonOf, loadCounter, sendKnock, signGuestbook, writeNote, type Counter } from "@/lib/firebase/ilchon";
+import { loadKeysHidden } from "@/lib/firebase/roomKeys";
+import { loadRoomHidden, reportRoomPart, setRoomHidden } from "@/lib/firebase/roomMod";
 
 import { PlantArt } from "./GardenArt";
 import { DEFAULT_TRACK, gardenFeedback, gardenTrack, isGardenTrack, setGardenTrack } from "./feedback";
 import { VisitorCount } from "./home/HomeParts";
-import { useRoomLines } from "./ilchon/live";
+import { useIlchonLive, useRoomLines } from "./ilchon/live";
 import { LineComposer, TagSheet } from "./ilchon/parts";
 import { RoomLineList } from "./ilchon/RoomLines";
 import { canSign, KNOCK_REFUSAL_TEXT, knockRefusal, tagLabel, WATER_CUT_ILCHON } from "./ilchon/rules";
 import { TitleChips } from "./parts";
 import { moodOf } from "./room/catalog";
+import { KeyboardSheet } from "./room/KeyboardSheet";
+import { blankKeys, KEYBOARD_ID } from "./room/keyboard";
 import { RoomItemSheet } from "./room/RoomItemSheet";
 import { RoomScene } from "./room/RoomArt";
-import { isShownId, roomFromPublic, type Placed } from "./room/rules";
+import { hasKeyboard, isShownId, roomFromPublic, type Placed } from "./room/rules";
 import { formatLeft, kstDayNumber, TIER_LABEL, WATER_CUT, WATER_PER_DAY } from "./rules";
 import { useGarden } from "./store";
 import type { Species } from "./types";
@@ -36,7 +40,7 @@ import type { Species } from "./types";
  *   1촌평은 방 바로 아래(첫 화면), 방명록은 그 아래. 방명록의 이름을 누르면 그 사람 방으로 건너간다(마실).
  * ★ 손님 수는 이 방에서만 보인다. 누가 왔는지는 보이지 않는다.
  */
-type Loaded = { garden: PublicGarden; mine: boolean; wateredToday: boolean };
+type Loaded = { garden: PublicGarden; mine: boolean; wateredToday: boolean; ownerUid: string };
 
 /** 이번 세션에 이미 센 방(공개 id:날). 같은 방을 여러 번 열어도 트랜잭션을 다시 보내지 않는다. */
 const counted = new Set<string>();
@@ -65,7 +69,12 @@ export function VisitView({
   const [counter, setCounter] = useState<{ gid: string; c: Counter } | null>(null);
   /** 내가 이 방 주인의 1촌인가. 규칙이 읽게 해 주는 내 1촌 문서로 확인한다. */
   const [friendOf, setFriendOf] = useState<{ gid: string; yes: boolean } | null>(null);
-  const [sheet, setSheet] = useState<"guestbook" | "note" | "knock" | null>(null);
+  const [sheet, setSheet] = useState<"guestbook" | "note" | "knock" | "keyboard" | null>(null);
+  /** 운영자가 이 방의 키보드를 가렸는가(gardens/{gid}/mod/keys). 키보드가 놓인 방만 읽는다. */
+  const [keysMod, setKeysMod] = useState<{ gid: string; hidden: boolean } | null>(null);
+  /** 방 한마디를 운영자가 가렸는가. 한마디가 있는 방만 읽는다. */
+  const [mottoMod, setMottoMod] = useState<{ gid: string; hidden: boolean } | null>(null);
+  const admin = useIlchonLive((s) => s.admin);
   const room = useGarden((s) => (s.data ? s.waterRoom(gid) : 0));
   const nick = useGarden((s) => s.data?.nick ?? "");
   const share = useGarden((s) => s.data?.share);
@@ -115,6 +124,24 @@ export function VisitView({
   useEffect(() => {
     if (theirBgm) setGardenTrack(theirBgm);
   }, [theirBgm]);
+  const keyboardThere = Boolean(theirRoomDoc?.placed.some((p) => "i" in p && p.i === KEYBOARD_ID));
+  useEffect(() => {
+    if (!keyboardThere) return;
+    let alive = true;
+    void loadKeysHidden(gid).then((hidden) => alive && setKeysMod({ gid, hidden }));
+    return () => {
+      alive = false;
+    };
+  }, [gid, keyboardThere]);
+  const mottoThere = Boolean(theirRoomDoc?.motto);
+  useEffect(() => {
+    if (!mottoThere) return;
+    let alive = true;
+    void loadRoomHidden(gid, "motto").then((hidden) => alive && setMottoMod({ gid, hidden }));
+    return () => {
+      alive = false;
+    };
+  }, [gid, mottoThere]);
 
   const back = (
     <button
@@ -150,7 +177,34 @@ export function VisitView({
   const refusal = il && share ? knockRefusal({ myGid, shareOn: share.on, target: gid, friends: il.friends, sent: il.sent }) : "closed";
   const cut = isFriend ? WATER_CUT_ILCHON : WATER_CUT;
   const beds = garden.beds.map((b) => (b && byId.has(b.s) ? { ...b, species: byId.get(b.s)! } : null));
-  const theirRoom = garden.room ? roomFromPublic(garden.room, byId) : null;
+  const parsedRoom = garden.room ? roomFromPublic(garden.room, byId) : null;
+  // 운영자가 가린 키보드는 방 그림에서도 빈 키다(주인 자신이 이 링크로 와도 같다 — 주인의 알림은 홈의 키보드 시트에).
+  const keysBlank = keysMod?.gid === gid && keysMod.hidden;
+  const mottoHidden = mottoMod?.gid === gid && mottoMod.hidden;
+  // 가린 한마디는 운영자에게만(가렸다는 표시와 함께). 가리기 표시를 아직 못 읽었으면 보이지 않게 기다린다.
+
+  const reportMotto = async () => {
+    if (!uid) return;
+    try {
+      await reportRoomPart(uid, gid, "motto");
+      say("신고했어요 · 운영자가 살펴볼게요");
+    } catch (error) {
+      console.error("[room] 방 한마디를 신고하지 못했다", error);
+      say("신고하지 못했어요. 잠시 뒤 다시 해 보세요");
+    }
+  };
+  const toggleMotto = async () => {
+    try {
+      await setRoomHidden(gid, "motto", !mottoHidden);
+      setMottoMod({ gid, hidden: !mottoHidden });
+      say(mottoHidden ? "방 한마디를 다시 보이게 했어요" : "방 한마디를 가렸어요");
+    } catch (error) {
+      console.error("[room] 방 한마디 가리기를 바꾸지 못했다", error);
+      say("바꾸지 못했어요");
+    }
+  };
+  const theirRoom = parsedRoom && keysBlank ? { ...parsedRoom, keys: blankKeys() } : parsedRoom;
+  const mottoShown = theirRoom?.motto && mottoMod?.gid === gid && (!mottoHidden || admin) ? theirRoom.motto : "";
   const ripe = beds.filter((b) => b && b.r <= now).length;
 
   const water = async () => {
@@ -191,21 +245,45 @@ export function VisitView({
               오늘의 기분 <span aria-hidden="true">{moodOf(theirRoom.mood).icon}</span> {moodOf(theirRoom.mood).label}
             </p>
           </div>
+          {mottoShown && (
+            <div className="flex items-start gap-2">
+              <p className="garden-motto-line min-w-0 flex-1">
+                <q>{mottoShown}</q>
+                {mottoHidden && <span className="ml-1 text-[11.5px] font-semibold text-smoke">(운영자 화면 · 손님에게는 가려짐)</span>}
+              </p>
+              {!mine && uid && !admin && (
+                <button type="button" className="shrink-0 min-h-[44px] px-2 text-[12px] text-smoke underline" onClick={() => void reportMotto()}>
+                  신고
+                </button>
+              )}
+              {!mine && admin && (
+                <button type="button" className="shrink-0 min-h-[44px] px-2 text-[12px] font-bold text-[var(--d-orange)]" onClick={() => void toggleMotto()}>
+                  {mottoHidden ? "다시 보이기" : "가리기"}
+                </button>
+              )}
+            </div>
+          )}
           <div className="mt-1.5">
             <RoomScene
               room={theirRoom}
               byId={byId}
               now={now}
               label={`${garden.nick || "이름 없는"}의 방`}
-              isItemActive={(p) => isShownId(p.it)}
-              onItem={(p) => { gardenFeedback("tap"); setOpened(p); }}
+              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID}
+              onItem={(p) => {
+                gardenFeedback("tap");
+                if (p.it === KEYBOARD_ID) setSheet("keyboard");
+                else setOpened(p);
+              }}
             />
           </div>
           <p className="mt-1.5 text-[12px] text-smoke">
             ♪ 이 방의 음악 · <span aria-hidden="true">{gardenTrack(theirRoom.bgm).icon}</span> {gardenTrack(theirRoom.bgm).label}
             <span className="text-smoke"> (위쪽 ♪로 켜고 꺼요)</span>
           </p>
-          <p className="mt-1 text-[12px] text-smoke">화분과 액자를 누르면 그 품종과 쪽지의 원본으로 갈 수 있어요.</p>
+          <p className="mt-1 text-[12px] text-smoke">
+            화분과 액자를 누르면 그 품종과 쪽지의 원본으로 갈 수 있어요.{hasKeyboard(theirRoom) ? " ⌨️ 키보드를 누르면 키를 눌러 볼 수 있어요." : ""}
+          </p>
           {opened && <RoomItemSheet room={theirRoom} placed={opened} byId={byId} onClose={() => setOpened(null)} />}
         </section>
       )}
@@ -277,6 +355,18 @@ export function VisitView({
         <RoomLineList kind="guestbook" gid={gid} lines={lines.guestbook} uid={uid} owner={mine} empty="아직 방명록이 없어요. 첫 줄을 남겨 보세요." onVisit={onVisit} onChanged={lines.reload} say={say} />
       </section>
 
+      {sheet === "keyboard" && theirRoom && (
+        <KeyboardSheet
+          keys={theirRoom.keys}
+          owner={false}
+          ownerUid={current.ownerUid || null}
+          gid={gid}
+          uid={uid}
+          nick={garden.nick || "이름 없는"}
+          say={say}
+          onClose={() => setSheet(null)}
+        />
+      )}
       {sheet === "guestbook" && uid && (
         <LineComposer
           title={`${garden.nick || "이 방"}의 방명록`}

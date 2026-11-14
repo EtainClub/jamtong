@@ -9,7 +9,8 @@ import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
 import { FURNITURE, FURNITURE_BY_ID } from "./catalog";
 import { FurnitureIcon, itemName, RoomScene, ShownIcon, slotLabel } from "./RoomArt";
-import { applySurface, hasSurface, isShownId, move, openSlots, place, placement, stow, stowedCount, type RoomData } from "./rules";
+import { recSlots } from "./keyboard";
+import { applySurface, hasKeyboard, hasSurface, isShownId, move, openSlots, place, placement, stow, stowedCount, type RoomData } from "./rules";
 
 /**
  * 꾸미기 (docs/garden-miniroom.md §4.3). 손가락 기준이다.
@@ -124,6 +125,9 @@ export function RoomEditor({
             ? `${itemName(focused.it, draft, byId)} · ${slotLabel(focused.at)}`
             : "아래 보관함에서 물건을 고르거나, 놓인 물건을 눌러요."}
       </p>
+      {hasKeyboard(data.room) && !hasKeyboard(draft) && recSlots(data.room.keys).length > 0 && (
+        <p className="garden-key-note mt-1.5" role="status">키보드를 보관함에 넣고 완료하면 키에 녹음한 목소리가 지워져요. 그림은 남아요.</p>
+      )}
 
       <div className="mt-2">
         <RoomScene

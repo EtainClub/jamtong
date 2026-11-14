@@ -9,6 +9,7 @@ import { gardenFeedback, gardenTrack, setGardenTrack } from "../feedback";
 import { SEGMENTS, type NewsItem, type Place, type Segment } from "../nav";
 import { TitleChips } from "../parts";
 import { FURNITURE_BY_ID, moodOf, type Shortcut } from "../room/catalog";
+import { KeyboardSheet } from "../room/KeyboardSheet";
 import { RoomEditor } from "../room/RoomEditor";
 import { RoomItemSheet } from "../room/RoomItemSheet";
 import { RoomScene } from "../room/RoomArt";
@@ -16,7 +17,7 @@ import { isShownId, type Placed } from "../room/rules";
 import type { TitleId } from "../rules";
 import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
-import { Guestbook, IlchonNotes, MoodSheet, MusicSheet, NewsPanel, VisitorCount } from "./HomeParts";
+import { Guestbook, IlchonNotes, MoodSheet, MottoSheet, MusicSheet, NewsPanel, VisitorCount } from "./HomeParts";
 import { GuestbookModePicker, OpenRoomPrompt } from "../ilchon/parts";
 import { RoomLineList } from "../ilchon/RoomLines";
 
@@ -73,6 +74,8 @@ export function GardenHome({
   const [editing, setEditing] = useState(false);
   const [moodOpen, setMoodOpen] = useState(false);
   const [musicOpen, setMusicOpen] = useState(false);
+  const [mottoOpen, setMottoOpen] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const track = gardenTrack(data.room.bgm);
   const [opened, setOpened] = useState<Placed | null>(null);
   const mood = moodOf(data.room.mood);
@@ -112,6 +115,7 @@ export function GardenHome({
     gardenFeedback("tap");
     if (s === "dex") onSeg("dex");
     else if (s === "guestbook") onSeg("guestbook");
+    else if (s === "keyboard") setKeyboardOpen(true);
     else onSound();
   };
 
@@ -153,7 +157,18 @@ export function GardenHome({
       ) : (
         <>
           <section aria-labelledby="garden-my-room" className="mt-3">
-            <h2 id="garden-my-room" className="garden-diary-title">내 방</h2>
+            <div className="garden-room-head">
+              <h2 id="garden-my-room" className="garden-diary-title shrink-0">내 방</h2>
+              <button
+                type="button"
+                className={`garden-motto${data.room.motto ? "" : " is-empty"}`}
+                aria-haspopup="dialog"
+                aria-label={data.room.motto ? `방 한마디: ${data.room.motto} · 고치기` : "방 한마디 쓰기"}
+                onClick={() => { gardenFeedback("tap"); setMottoOpen(true); }}
+              >
+                {data.room.motto ? <q>{data.room.motto}</q> : "✏️ 내 방 한마디를 적어 보세요"}
+              </button>
+            </div>
             <div className="mt-1.5">
               <RoomScene
                 room={data.room}
@@ -203,6 +218,7 @@ export function GardenHome({
         </>
       )}
 
+      {mottoOpen && <MottoSheet current={data.room.motto} onClose={() => setMottoOpen(false)} say={say} />}
       {musicOpen && (
         <MusicSheet
           current={data.room.bgm}
@@ -230,6 +246,9 @@ export function GardenHome({
         />
       )}
       {opened && <RoomItemSheet room={data.room} placed={opened} byId={byId} onClose={() => setOpened(null)} />}
+      {keyboardOpen && (
+        <KeyboardSheet keys={data.room.keys} owner ownerUid={uid} gid={gid} uid={uid} nick={data.nick} say={say} onClose={() => setKeyboardOpen(false)} />
+      )}
     </div>
   );
 }
