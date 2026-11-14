@@ -103,7 +103,8 @@ test("벽 물건은 벽 줄에만, 바닥 물건은 바닥 두 줄에만", () =>
   assert.ok(canPlace(room, "chair", "f5"));
   assert.ok(!canPlace(room, "chair", "w0"));
   assert.ok(!canPlace(room, "chair", "f6"), "작은 방은 6칸");
-  assert.ok(!canPlace(room, FRAME_BLANK, "w0"), "빈 액자틀은 놓지 않는다");
+  assert.ok(canPlace(room, FRAME_BLANK, "w0"), "빈 액자틀도 벽에 걸 수 있다");
+  assert.ok(!canPlace(room, FRAME_BLANK, "f0"), "빈 액자틀은 바닥에 놓지 않는다");
   assert.ok(!canPlace(room, "wp-cream", "w0"));
 });
 
@@ -321,4 +322,38 @@ test("방 한마디: 걸러서 받고, 있으면 공개 방에 싣고, 남의 �
   assert.equal(roomFromPublic({ ...pub, motto: "010-1234-5678 연락줘" }, new Map()).motto, "", "손으로 만든 문서도 다시 거른다");
   const rules = readFileSync("firestore.rules", "utf8");
   assert.match(rules, new RegExp(`r\\.motto\\.size\\(\\) <= ${MOTTO_MAX}\\b`));
+});
+
+test("빈 액자틀: 구매한 틀을 걸고 옮기고 보관하며 공개 방에서도 보인다", () => {
+  const bought = buyItem(freshRoom(), 30, FRAME_BLANK, Date.now());
+  assert.ok(typeof bought !== "string");
+  let room = bought.room;
+  assert.equal(stowedCount(room, FRAME_BLANK), 1);
+  assert.ok(openSlots(room, FRAME_BLANK).includes("w0"));
+  room = place(room, FRAME_BLANK, "w0")!;
+  assert.equal(stowedCount(room, FRAME_BLANK), 0);
+  room = move(room, "w0", "w3")!;
+  assert.equal(validRoom(room), true);
+  assert.deepEqual(roomFromPublic(publicRoom(room), new Map()).placed, room.placed);
+  room = stow(room, "w3");
+  assert.equal(stowedCount(room, FRAME_BLANK), 1);
+});
+
+test("빈 액자틀: 벽이 꽉 차도 걸어 둔 틀의 자리에서 쪽지로 바뀐다", () => {
+  let room = owning({ [FRAME_BLANK]: 1, clock: 5 });
+  room = place(room, FRAME_BLANK, "w3")!;
+  for (const at of ["w0", "w1", "w2", "w4", "w5"]) room = place(room, "clock", at)!;
+  const filled = frameNote(room, 0, "w:x#n1", "w:x")!;
+  assert.equal(filled.bought, false);
+  assert.equal(filled.jam, 0);
+  assert.equal(filled.at, "w3");
+  assert.equal(filled.room.owned[FRAME_BLANK], undefined);
+  assert.equal(filled.room.placed.length, 6);
+  assert.deepEqual(filled.room.placed.find((p) => p.at === "w3"), { at: "w3", it: "f:w:x#n1" });
+  assert.equal(validRoom(filled.room), true);
+
+  const spare = frameNote({ ...room, owned: { ...room.owned, [FRAME_BLANK]: 2 } }, 0, "w:x#n2", "w:x")!;
+  assert.deepEqual(spare.room.placed.find((p) => p.at === "w3"), { at: "w3", it: FRAME_BLANK });
+  assert.equal(spare.at, null, "보관함의 틀을 썼고 벽이 꽉 차면 전시품은 보관한다");
+  assert.equal(validRoom(spare.room), true);
 });

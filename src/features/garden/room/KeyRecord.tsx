@@ -5,9 +5,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 import { deleteKeyRec, uploadKeyRec } from "@/lib/firebase/roomKeys";
 
+import { keyboardKeys, sharedRecording, nextRecordingVer } from "./rules";
+
 import { gardenFeedback } from "../feedback";
 import { useGarden } from "../store";
-import { KEY_REC_MAX_BYTES, nextVer, REC } from "./keyboard";
+import { KEY_REC_MAX_BYTES, REC } from "./keyboard";
 import { KeyRecorder, RECORD_ERROR_TEXT, recordErrorOf } from "./recorder";
 import { applyVoice, DEFAULT_VOICE, encodeWav, MAX_RECORD_SECONDS, VOICE_MODES, type Take, type VoiceMode } from "./voice";
 
@@ -43,18 +45,24 @@ function markNotice() {
 
 export function KeyRecord({
   slot,
+  keyboard,
   uid,
   shareOn,
   say,
   onUploaded,
 }: {
   slot: number;
+  keyboard: number;
   uid: string | null;
   /** 방을 열었는가. */
   shareOn: boolean;
   say: (text: string) => void;
   onUploaded: () => void;
 }) {
+  const currentKey = () => {
+    const room = useGarden.getState().data?.room;
+    return room ? keyboardKeys(room, keyboard)[slot] : undefined;
+  };
   const [phase, setPhase] = useState<Phase>(() => (noticeSeen() ? "idle" : "notice"));
   const [error, setError] = useState<string | null>(null);
   const [count, setCount] = useState(3);
@@ -158,13 +166,14 @@ export function KeyRecord({
   };
 
   const upload = async () => {
-    const stored = useGarden.getState().data?.room.keys[slot];
+    const stored = currentKey();
     if (!uid || !stored || !wav) return say("잠시 뒤 다시 해 보세요");
     if (mode === "original" && !originalOk) return;
     if (wav.size >= KEY_REC_MAX_BYTES) return say("녹음이 너무 커요. 다시 녹음해 주세요");
     setPhase("upload");
-    const ver = nextVer(stored);
+    let ver: number;
     try {
+      ver = nextRecordingVer(useGarden.getState().data!.room);
       await uploadKeyRec(uid, slot, ver, wav);
     } catch (e) {
       console.error("[keyboard] 녹음을 올리지 못했다", e);
@@ -172,10 +181,11 @@ export function KeyRecord({
       setPhase("review");
       return;
     }
-    const now = useGarden.getState().data?.room.keys[slot] ?? stored;
-    useGarden.getState().setKey(slot, { ...now, sound: REC, ver });
+    const now = currentKey() ?? stored;
+    useGarden.getState().setKey(slot, { ...now, sound: REC, ver }, keyboard);
     // 옛 판은 올리기가 끝난 뒤에 지운다. 못 지우면 어디에도 묶이지 않은 파일이 남는다(배포 메모의 "남은 녹음 치우기").
-    if (now.sound === REC && now.ver > 0 && now.ver !== ver) {
+    const room = useGarden.getState().data?.room;
+    if (now.sound === REC && now.ver > 0 && now.ver !== ver && room && !sharedRecording(room, keyboard, slot, now.ver)) {
       deleteKeyRec(uid, slot, now.ver).catch((e) => console.error("[keyboard] 옛 녹음을 지우지 못했다", e));
     }
     track("key_record", { mode });

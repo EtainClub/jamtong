@@ -5,6 +5,8 @@ import { useReducer, useRef, useState, type PointerEvent } from "react";
 import { track } from "@/lib/analytics";
 import { deleteKeyRec } from "@/lib/firebase/roomKeys";
 
+import { keyboardKeys, sharedRecording } from "./rules";
+
 import { gardenFeedback } from "../feedback";
 import { useGarden } from "../store";
 import { KeyFace } from "./KeyArt";
@@ -23,18 +25,24 @@ import { KeyRecord } from "./KeyRecord";
  */
 export function KeyEditor({
   slot,
+  keyboard,
   uid,
   shareOn,
   say,
   onDone,
 }: {
   slot: number;
+  keyboard: number;
   uid: string | null;
   shareOn: boolean;
   say: (text: string) => void;
   onDone: () => void;
 }) {
-  const stored = useGarden((s) => s.data?.room.keys[slot]);
+  const currentKey = () => {
+    const room = useGarden.getState().data?.room;
+    return room ? keyboardKeys(room, keyboard)[slot] : undefined;
+  };
+  const stored = useGarden((s) => s.data ? keyboardKeys(s.data.room, keyboard)[slot] : undefined);
   const [{ face, history }, dispatchFace] = useReducer(faceHistoryReducer, stored?.face ?? blankFace(), initialFaceHistory);
   const [sound, setSound] = useState(() => stored?.sound ?? SILENT);
   const [color, setColor] = useState(1);
@@ -69,10 +77,11 @@ export function KeyEditor({
       // 녹음을 버리는 저장: 파일을 먼저 지운다. 못 지우면 저장하지 않는다 — 가리키는 곳 없는 파일을 남기지 않게.
       if (hasRec && sound !== REC) {
         if (!uid) return say("잠시 뒤 다시 해 보세요");
-        await deleteKeyRec(uid, slot, stored.ver);
+        const room = useGarden.getState().data?.room;
+        if (room && !sharedRecording(room, keyboard, slot, stored.ver)) await deleteKeyRec(uid, slot, stored.ver);
       }
-      const now = useGarden.getState().data?.room.keys[slot] ?? stored;
-      useGarden.getState().setKey(slot, { ...now, face, sound: sound === REC && !(now.sound === REC && now.ver > 0) ? now.sound : sound });
+      const now = currentKey() ?? stored;
+      useGarden.getState().setKey(slot, { ...now, face, sound: sound === REC && !(now.sound === REC && now.ver > 0) ? now.sound : sound }, keyboard);
       const what = face !== stored.face && sound !== stored.sound ? "both" : face !== stored.face ? "face" : sound !== stored.sound ? "sound" : "none";
       if (what !== "none") track("key_edit", { what });
       gardenFeedback("reward");
@@ -218,7 +227,7 @@ export function KeyEditor({
           >
             🎙 {hasRec ? "목소리 다시 녹음하기" : "내 목소리 녹음하기"}
           </button>
-          {recOpen && <KeyRecord slot={slot} uid={uid} shareOn={shareOn} say={say} onUploaded={() => { setSound(REC); setRecOpen(false); }} />}
+          {recOpen && <KeyRecord keyboard={keyboard} slot={slot} uid={uid} shareOn={shareOn} say={say} onUploaded={() => { setSound(REC); setRecOpen(false); }} />}
         </div>
       )}
 

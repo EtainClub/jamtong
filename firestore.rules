@@ -675,7 +675,7 @@ service cloud.firestore {
     // 값은 src/features/garden/room/rules.ts의 PUBLIC_PLACED_MAX·PUBLIC_ID_MAX와 같다(room/rules.test.ts가 본다).
     function publicRoom(r) {
       return r is map
-        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'bgm', 'placed', 'keys', 'motto'])
+        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'bgm', 'placed', 'keys', 'keyboards', 'motto'])
         && r.size is int && r.size >= 0 && r.size <= 2
         && r.wall is string && r.wall.size() <= 40
         && r.floor is string && r.floor.size() <= 40
@@ -683,6 +683,7 @@ service cloud.firestore {
         && (!('bgm' in r) || (r.bgm is string && r.bgm.size() <= 40))
         && r.placed is list && r.placed.size() <= 40
         && (!('keys' in r) || publicKeys(r.keys))
+        && (!('keyboards' in r) || publicKeyboards(r.keyboards))
         && (!('motto' in r) || (r.motto is string && r.motto.size() <= 30));
     }
 
@@ -690,6 +691,23 @@ service cloud.firestore {
     // 그림은 12×12칸의 팔레트 번호(0–7) 144자, 소리 id는 40자까지, 녹음 판은 정수 1–9999999(소리가 rec일 때만 싣는다).
     // 글을 실을 자리가 없다. 소리 id가 표에 있는지는 화면이 본다(모르는 소리는 소리 없음).
     // 값은 src/features/garden/room/keyboard.ts의 KEY_COUNT·FACE_CELLS·PALETTE·KEY_SOUND_MAX·KEY_VER_MAX와 같다(room/keyboard.test.ts가 본다).
+    function publicKeyboards(k) {
+      return k is map && k.keys().hasOnly(['1', '2', '3', '4', '5', '6', '7', '8'])
+        && (!('1' in k) || publicKeyboard(k['1']))
+        && (!('2' in k) || publicKeyboard(k['2']))
+        && (!('3' in k) || publicKeyboard(k['3']))
+        && (!('4' in k) || publicKeyboard(k['4']))
+        && (!('5' in k) || publicKeyboard(k['5']))
+        && (!('6' in k) || publicKeyboard(k['6']))
+        && (!('7' in k) || publicKeyboard(k['7']))
+        && (!('8' in k) || publicKeyboard(k['8']));
+    }
+
+    // 키 4개를 문자열 하나로 검사해 개체 9개도 1000 expression 한도 안에 든다.
+    function publicKeyboard(k) {
+      return k is string && k.matches('^([0-7]{144}:[a-z-]{1,40}:[0-9]{1,7};){4}$');
+    }
+
     function publicKeys(k) {
       return k is list && k.size() == 4
         && publicKey(k[0]) && publicKey(k[1]) && publicKey(k[2]) && publicKey(k[3]);

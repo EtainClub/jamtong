@@ -141,7 +141,7 @@ export function RoomShop({
           art={<FurnitureIcon id={opened.id} size={96} />}
           facts={[
             ["가진 것", surface(opened) ? (hasSurface(room, opened.id, opened.kind as "wallpaper") ? "있어요" : "없어요") : `${room.owned[opened.id] ?? 0}개`],
-            ["크기", surface(opened) ? "방 전체" : opened.kind === "frame-blank" ? "쪽지 한 장" : `${opened.size}칸`],
+            ["크기", surface(opened) ? "방 전체" : opened.kind === "frame-blank" ? "벽 1칸 · 쪽지 한 장" : `${opened.size}칸`],
           ]}
           price={opened.price}
           wallet={data.jam}
@@ -164,27 +164,25 @@ export function RoomShop({
           onClose={() => setOpen(null)}
         >
           <p>{opened.hint}</p>
-          {opened.kind !== "frame-blank" && (
-            <div className="mt-3">
-              <p className="text-[12px] font-semibold text-smoke">방에 놓아 보기</p>
-              <div className="mt-1">
-                <RoomScene
-                  room={
-                    surface(opened)
-                      ? { ...room, [opened.kind === "wallpaper" ? "wall" : "floor"]: opened.id }
-                      : room
-                  }
-                  ghost={!surface(opened) ? previewSlot(room, opened.id) : null}
-                  byId={byId}
-                  now={now}
-                  label={`${opened.label} 놓아 본 내 방`}
-                />
-              </div>
-              {!surface(opened) && !previewSlot(room, opened.id) && (
-                <p className="mt-1 text-[12px] text-smoke">지금 방에는 빈 칸이 없어요. 놓인 것을 넣거나 방을 넓혀 보세요.</p>
-              )}
+          <div className="mt-3">
+            <p className="text-[12px] font-semibold text-smoke">방에 놓아 보기</p>
+            <div className="mt-1">
+              <RoomScene
+                room={
+                  surface(opened)
+                    ? { ...room, [opened.kind === "wallpaper" ? "wall" : "floor"]: opened.id }
+                    : room
+                }
+                ghost={!surface(opened) ? previewSlot(room, opened.id) : null}
+                byId={byId}
+                now={now}
+                label={`${opened.label} 놓아 본 내 방`}
+              />
             </div>
-          )}
+            {!surface(opened) && !previewSlot(room, opened.id) && (
+              <p className="mt-1 text-[12px] text-smoke">지금 방에는 빈 칸이 없어요. 놓인 것을 넣거나 방을 넓혀 보세요.</p>
+            )}
+          </div>
           {surface(opened) && hasSurface(room, opened.id, opened.kind as "wallpaper") && (
             <button
               type="button"
