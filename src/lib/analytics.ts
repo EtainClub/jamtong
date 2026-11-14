@@ -71,10 +71,12 @@ export type AnalyticsEvent =
    * 거대 잡초 — 여럿을 모으는지 본다(docs/garden-game.md §3.11 "처치까지 걸린 시간").
    * raid_spawn: 내가 물결을 세웠다. wave.
    * raid_join: 이 물결에 처음 한 방을 넣었다. wave, fighters(그때까지 모인 사람).
-   * raid_end: 내가 때린 물결이 끝난 것을 봤다. 때린 사람마다 물결당 한 번 — 물결 하나를
+   * raid_end: 내가 든(쳤거나 지원한) 물결이 끝난 것을 봤다. 사람마다 물결당 한 번 — 물결 하나를
    *   보려면 raid로 하나만 고른다. raid(물결 id), wave, result(defeated|escaped), fighters,
-   *   hits, hp, minutes(태어나서 끝날 때까지), mine(내가 때린 수).
-   * 한 방마다 세지 않는다. 때린 수는 raid_end의 mine과 hits로 충분하다.
+   *   hits, hp, minutes(태어나서 끝날 때까지), mine(내 센 값), uses(쓴 기력),
+   *   gapShare(쓴 기력 중 빈틈에 쓴 몫 0–1), aids(건 지원 수), stars(빠른 처치 ★, 도망이면 0).
+   * raid_aid: 지원을 걸었다. kind(drum|umbrella|torch), wave.
+   * 한 방마다 세지 않는다(raid_strike{gap}은 너무 잦다). 빈틈은 raid_end의 gapShare로 본다.
    */
   /** 초대 링크로 와서 초대를 받아들였다(새 정원일 때만). */
   | "invite_accept"
@@ -83,10 +85,34 @@ export type AnalyticsEvent =
   | "raid_spawn"
   | "raid_join"
   | "raid_end"
-  /** 익음 알림을 캘린더에 넣으러 갔다. via: ics | google, hours(알림까지 남은 시간, 반올림), quiet(밤이라 8시로 미뤘다). */
+  | "raid_aid"
+  /** 익음·단비·빈틈 알림을 캘린더에 넣으러 갔다. via: ics | google, hours(알림까지 남은 시간, 반올림), quiet(밤이라 8시로 미뤘다), kind(rain|gap, 없으면 익음). */
   | "ripe_alarm"
   /** 칭호 단계가 올랐다. title(dex|storm|plaza), level(1~3). */
   | "title_up"
+  /**
+   * 내 방 (docs/garden-miniroom.md §9).
+   * frame_open: 방의 쪽지 액자를 열었다. kind(쪽지 종류). 액자 → 원본으로 가는지 본다.
+   * room_show: 열매를 전시했거나 쪽지를 액자에 걸었다. kind(pot|tree|frame), tier, mutated.
+   *   액자에 걸린 쪽지의 종류 비율(사실만 걸리는지)은 frame일 때의 tier 자리에 쪽지 종류를 싣는다.
+   * room_edit: 꾸미기를 마쳤다. placed(놓인 수).
+   * shop_buy: 상점에서 샀다. cat(seeds|tools|furniture|walls|trophy).
+   */
+  | "frame_open"
+  | "room_show"
+  | "room_edit"
+  | "shop_buy"
+  /**
+   * 1촌 (docs/garden-miniroom.md §5.5). 누구인지·무슨 글인지는 보내지 않는다 — 수와 종류만.
+   * ilchon_knock: 1촌 신청을 보냈다. ilchon_accept: 받은 신청을 수락했다. ilchon_cut: 1촌을 끊었다.
+   * room_visit: 공개 방을 열었다. mine(내 방인지), ilchon(그 방 주인이 내 1촌인지).
+   * guestbook_post: 방명록·1촌평을 남겼다. preset(정해 둔 문구였는지), where(guestbook|note).
+   */
+  | "ilchon_knock"
+  | "ilchon_accept"
+  | "ilchon_cut"
+  | "room_visit"
+  | "guestbook_post"
   /**
    * 지지자 응원 — 응원 탭이 사람을 남기게 하는지 본다.
    * cheer_open: 응원 탭을 처음 열었다. from: tab(탭을 눌렀다) | home | garden | neighbors | my | link.

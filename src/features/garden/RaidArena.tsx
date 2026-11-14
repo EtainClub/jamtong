@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { RaidWeedArt } from "./RaidWeedArt";
 import { raidFeedback } from "./feedback";
+import { AidButtons, AidChips, AidFeed, GapBand, KitRow } from "./raid/ArenaParts";
+import { ALARM_LEAD, COMBO_GAP_JUICE, kitOn } from "./raid/rules";
 import {
   COMBO_GAP,
   comboTier,
@@ -20,21 +22,28 @@ import {
   formatLeft,
   hash,
   josa,
-  RAID_HITS_PER_PERSON,
+  RAID_USES_PER_PERSON,
+  RAID_AIDS,
   RAID_LIFE,
+  raidFrenzy,
+  raidGapWindow,
+  raidNeed,
+  raidStrikeValue,
   raidTaunt,
+  type RaidAidId,
   type FinisherId,
   type RaidKind,
 } from "./rules";
 import { useGarden } from "./store";
-import type { CurrentRaid, RaidState } from "./useRaid";
+import { aidActive, type CurrentRaid, type RaidState } from "./useRaid";
 
 /**
  * 거대 잡초와 싸우는 칸 — 타격감·콤보·합동 게이지·약점·반격·필살기·함께 치는 사람들.
  *
  * ★ 화면은 손이 닿는 즉시 반응한다(한 방이 서버에 닿기 전에 -1이 뜬다). 서버가 거절하면
  *   useRaid가 남은 방을 버리고 토스트로 알린다. 합계·체력은 언제나 서버 숫자다.
- * ★ 여기서 바뀌는 것은 "몇 번 문질러야 한 방인가"뿐이다. 한 사람 몫(60방)은 그대로다.
+ * ★ 여기서 바뀌는 것은 "몇 번 문질러야 한 방인가"와 반격·약점뿐이다. 기력 60과 빈틈의 두 배는
+ *   규칙이 정한다 — 지원·포자·아이템은 손맛만 바꾼다(docs/garden-miniroom.md §7).
  * ★ 소리는 사람이 켰을 때만, 진동은 움직임 줄이기 설정이 아닐 때만(feedback.ts).
  */
 
@@ -66,6 +75,7 @@ export function RaidArena({
   kind,
   now,
   footer,
+  sporeBoost,
   say,
 }: {
   raid: RaidState;
@@ -74,10 +84,22 @@ export function RaidArena({
   now: number;
   /** 친구 부르기 단추. */
   footer: ReactNode;
+  /** 광장의 포자 여섯을 다 뽑았다 — 다음 빈틈 동안 문지르기 절반(내 손맛만). */
+  sporeBoost: boolean;
   say: (text: string) => void;
 }) {
   const g = RAID_GIMMICKS[kind.id];
-  const spent = raid.mine >= RAID_HITS_PER_PERSON;
+  const spent = raid.me.uses >= RAID_USES_PER_PERSON;
+  const gap = raidGapWindow(now, r.spawnedAt, r.hp);
+  const frenzy = raidFrenzy(r.spawnedAt, now);
+  // 지금 한 번이 세지는 값(빈틈 ×2). rub 안의 value(약점으로 문지르기가 몇으로 세나)와 다르다.
+  const mult = raidStrikeValue(now, r.spawnedAt, r.hp);
+  const drum = aidActive(r.aids, "drum", now);
+  const torch = aidActive(r.aids, "torch", now);
+  const kit = useGarden((s) => s.data?.kit);
+  const juice = kit ? kitOn(kit, "juice", r.id) : false;
+  const clockOn = kit ? kitOn(kit, "clock", r.id) : false;
+  const finFx = useGarden((s) => s.data?.loot.fx ?? null);
   const left = Math.max(0, r.hp - r.hits);
   const stage = raidStage(r.hits, r.hp);
   const surge = raidSurge(r.hits, r.hp);
@@ -97,7 +119,21 @@ export function RaidArena({
   const vinesLeft = g.vines ? vines.left : 0;
 
   const shielded = !!g.shield && left / r.hp <= g.shield.below;
-  const need = raidRubsPerStrike(kind.id, r.hits, r.hp, surging);
+  const sporeNow = sporeBoost && Boolean(gap?.now);
+  const need = raidRubsPerStrike(kind.id, r.hits, r.hp, surging || Boolean(drum) || sporeNow);
+  // 우산: 다음 반격 한 번을 모두가 피한다. 가장 최근 우산 시각을 기억하고, 그 뒤 첫 반격에서 쓴다.
+  const lastUmbrella = (r.aids ?? []).filter((m) => m.aid === "umbrella").reduce((t, m) => Math.max(t, m.at), 0);
+  const umbrellaRef = useRef({ at: lastUmbrella, used: 0 });
+  const [umbrellaUsed, setUmbrellaUsed] = useState(0);
+  useEffect(() => {
+    umbrellaRef.current.at = lastUmbrella;
+  }, [lastUmbrella]);
+  const torchRef = useRef(false);
+  const frenzyRef = useRef(false);
+  useEffect(() => {
+    torchRef.current = Boolean(torch);
+    frenzyRef.current = frenzy;
+  });
 
   // ── 손맛 상태 ──
   const rubs = useRef(0);
@@ -129,14 +165,14 @@ export function RaidArena({
     setFx((old) => [...old.slice(-9), { id, x: pos.x, y: pos.y, text, tone }]);
   };
 
-  const landed = (n: number, pos: Pos, big: boolean) => {
+  const landed = (n: number, pos: Pos, big: boolean, times = 1) => {
     setHitKey((k) => k + 1);
     setQuake((q) => ({ n: q.n + 1, big }));
-    // 필살기 숫자는 컷인이 크게 그린다.
-    if (!big) pop(pos, `-${n}`, "hit");
+    // 필살기 숫자는 컷인이 크게 그린다. 빈틈이면 ×2를 붙인다(서버가 세는 값과 같다).
+    if (!big) pop(pos, times > 1 ? `-${n * times} ×${times}` : `-${n}`, "hit");
     clearTimeout(comboTimer.current);
     setCombo((c) => c + n);
-    comboTimer.current = setTimeout(() => setCombo(0), COMBO_GAP);
+    comboTimer.current = setTimeout(() => setCombo(0), juice ? COMBO_GAP_JUICE : COMBO_GAP);
   };
 
   const rub = (pos: Pos) => {
@@ -177,7 +213,7 @@ export function RaidArena({
     }
     rubs.current = Math.min(rubs.current, need);
     if (strikes > 0) {
-      landed(strikes, pos, false);
+      landed(strikes, pos, false, mult);
       if (value <= 1) raidFeedback("hit");
     }
     setPartial(Math.min(rubs.current, need));
@@ -191,7 +227,8 @@ export function RaidArena({
     const show = () => {
       if (!alive) return;
       if (Date.now() - lastRub.current < 8_000) {
-        const fake = !!g.weak.fake && Math.random() < g.weak.fake.ratio;
+        // 손전등: 가짜 약점이 없다.
+        const fake = !torchRef.current && !!g.weak.fake && Math.random() < g.weak.fake.ratio;
         setWeak({ id: ++weakSeq.current, x: 24 + Math.random() * 52, y: 26 + Math.random() * 44, fake });
       }
       t = setTimeout(hide, 2_600);
@@ -199,7 +236,8 @@ export function RaidArena({
     const hide = () => {
       if (!alive) return;
       setWeak(null);
-      t = setTimeout(show, 1_800 + Math.random() * 1_800);
+      // 손전등이면 약점이 더 자주 뜬다.
+      t = setTimeout(show, (torchRef.current ? 0.4 : 1) * (1_800 + Math.random() * 1_800));
     };
     t = setTimeout(show, 1_500);
     return () => {
@@ -215,11 +253,21 @@ export function RaidArena({
     let t: ReturnType<typeof setTimeout>;
     const c = g.counter;
     const schedule = () => {
-      t = setTimeout(fire, c.everyMs * (0.7 + Math.random() * 0.6));
+      // 폭주: 반격이 잦아진다.
+      t = setTimeout(fire, c.everyMs * (frenzyRef.current ? 0.6 : 1) * (0.7 + Math.random() * 0.6));
     };
     const fire = () => {
       if (!alive) return;
       if (Date.now() - lastRub.current > 6_000 || busy.current) return schedule();
+      // 큰 우산: 누군가 펼친 뒤 첫 반격은 모두가 피한다.
+      const u = umbrellaRef.current;
+      if (u.at > u.used && Date.now() >= u.at - 2_000) {
+        u.used = u.at;
+        setUmbrellaUsed(u.at);
+        pop({ x: 50, y: 30 }, "☂️ 우산이 막았어요!", "weak");
+        raidFeedback("dodge");
+        return schedule();
+      }
       const id = ++counterSeq.current;
       counterRef.current = { id, phase: "warn" };
       setCounter(counterRef.current);
@@ -227,6 +275,14 @@ export function RaidArena({
       t = setTimeout(() => {
         if (!alive) return;
         if (counterRef.current?.id !== id) return schedule();
+        // 가죽 장갑: 한 번은 묶이지 않는다(맞는 순간 하나를 쓴다).
+        if (useGarden.getState().useGlove()) {
+          counterRef.current = null;
+          setCounter(null);
+          pop({ x: 50, y: 30 }, "🧤 장갑으로 막았어요", "weak");
+          raidFeedback("dodge");
+          return schedule();
+        }
         counterRef.current = { id, phase: "stun" };
         setCounter(counterRef.current);
         raidFeedback("hurt");
@@ -252,7 +308,30 @@ export function RaidArena({
     setCounter(null);
     raidFeedback("dodge");
     pop({ x: 50, y: 30 }, "회피! 덤으로 한 방", "weak");
-    if (raid.strike()) landed(1, { x: 50, y: 50 }, false);
+    if (raid.strike()) landed(1, { x: 50, y: 50 }, false, mult);
+  };
+
+  // ── 자명종: 켠 물결 동안 다음 빈틈 1분 전에 울린다(탭이 열려 있을 때) ──
+  const chimeFor = gap && !gap.now && gap.start - now <= ALARM_LEAD && gap.start > now ? gap.start : null;
+  const chimed = useRef(0);
+  useEffect(() => {
+    if (!clockOn || chimeFor === null || chimed.current === chimeFor) return;
+    chimed.current = chimeFor;
+    raidFeedback("warn");
+    say("⏰ 1분 뒤 빈틈이에요! 모여서 쳐요");
+  }, [clockOn, chimeFor, say]);
+
+  // ── 지원 ──
+  const [aiding, setAiding] = useState(false);
+  const castAid = async (kind: RaidAidId) => {
+    if (aiding) return;
+    setAiding(true);
+    raidFeedback("surge");
+    const result = await raid.aid(kind);
+    setAiding(false);
+    if (result === "ok") say(`${RAID_AIDS[kind].icon} ${RAID_AIDS[kind].label} · ${RAID_AIDS[kind].effect}`);
+    else if (result === "busy") say("조금 뒤에 다시 걸 수 있어요");
+    else if (result === "error") say("광장에 닿지 못했어요. 잠시 뒤 다시 해 보세요");
   };
 
   // ── 지켜보는 동안 일어난 일의 소리 ──
@@ -271,7 +350,7 @@ export function RaidArena({
 
   // ── 필살기 ──
   const haveFinishers = useGarden((s) => s.data?.finishers.have);
-  const room = RAID_HITS_PER_PERSON - raid.mine - raid.queued;
+  const room = RAID_USES_PER_PERSON - raid.me.uses - raid.queued;
   const unleash = async (id: FinisherId) => {
     const item = FINISHERS[id];
     if (busy.current || stunned || room < item.hits) return;
@@ -282,10 +361,10 @@ export function RaidArena({
     const cutId = ++cutSeq.current;
     setCut({ id: cutId, finisher: id, landed: null });
     raidFeedback("finisher");
-    const n = await raid.finisher(item.hits);
-    if (n > 0) {
-      setCut((c) => (c?.id === cutId ? { ...c, landed: n } : c));
-      landed(n, { x: 50, y: 45 }, true);
+    const sent = await raid.finisher(item.hits);
+    if (sent.uses > 0) {
+      setCut((c) => (c?.id === cutId ? { ...c, landed: sent.hits } : c));
+      landed(sent.uses, { x: 50, y: 45 }, true);
     } else {
       store.refundFinisher(id);
       say("필살기가 닿지 못했어요 · 아이템은 돌려받았어요");
@@ -338,7 +417,7 @@ export function RaidArena({
         </div>
         <p className="mt-1 flex justify-between text-[11.5px] tabular-nums opacity-90">
           <span>체력 {left.toLocaleString()}/{r.hp.toLocaleString()}</span>
-          <span>함께 {r.fighters.toLocaleString()}명 · {Math.ceil(r.hp / RAID_HITS_PER_PERSON)}명이면 잡아요</span>
+          <span>함께 {r.fighters.toLocaleString()}명 · {raidNeed(r.hp).least === raidNeed(r.hp).most ? `${raidNeed(r.hp).most}명이면 잡아요` : `빈틈에 ${raidNeed(r.hp).least}명 · 아니면 ${raidNeed(r.hp).most}명`}</span>
         </p>
 
         {/* 합동 게이지 — 모두의 타격으로 찬다. */}
@@ -352,6 +431,16 @@ export function RaidArena({
           </span>
         </div>
 
+        <GapBand gap={gap} frenzy={frenzy} now={now} />
+        <AidChips
+          chips={[
+            ...(drum ? [`🥁 응원 북 · 문지르기 절반 ${Math.ceil((drum.at + RAID_AIDS.drum.ms - now) / 1000)}초`] : []),
+            ...(torch ? [`🔦 손전등 · 가짜 약점 없음 ${Math.ceil((torch.at + RAID_AIDS.torch.ms - now) / 1000)}초`] : []),
+            ...(lastUmbrella > umbrellaUsed ? ["☂️ 우산 · 다음 반격을 모두 피해요"] : []),
+            ...(sporeNow ? ["🍄 포자를 다 뽑았어요 · 이번 빈틈 문지르기 절반"] : sporeBoost ? ["🍄 포자 보너스 · 다음 빈틈에 문지르기 절반"] : []),
+          ]}
+        />
+        <AidFeed aids={r.aids ?? []} now={now} />
         {togetherLine && (
           <p className={`raid-together mt-2 rounded-full px-3 py-1 text-center text-[12px] font-bold ${together >= 2 ? "is-team" : ""}`} aria-live="polite">
             {togetherLine}
@@ -366,7 +455,7 @@ export function RaidArena({
       <div className="relative mx-auto mt-2" style={{ width: box, height: box }}>
         <button
           type="button"
-          aria-label={spent ? "이번 거대 잡초에 내 몫을 다 쳤어요" : `${kind.name} 때리기 (체력 ${left} 남음)`}
+          aria-label={spent ? "이번 거대 잡초에 기력을 다 썼어요 — 아래 지원으로 도울 수 있어요" : `${kind.name} 때리기 (체력 ${left} 남음)`}
           aria-disabled={spent}
           className={`raid-target relative grid h-full w-full touch-none select-none place-items-center overflow-visible rounded-2xl ${spent ? "opacity-60" : ""} ${stunned ? "is-stunned" : ""}`}
           {...gesture}
@@ -466,12 +555,12 @@ export function RaidArena({
         {cut && (
           <div key={cut.id} className="raid-cutin" aria-live="assertive">
             <div className="raid-cutin-band">
-              <span className="raid-cutin-icon">{FINISHERS[cut.finisher].icon}</span>
+              <span className="raid-cutin-icon">{finFx === "fx-petal" ? "🌸" : finFx === "fx-star" ? "🌟" : FINISHERS[cut.finisher].icon}</span>
               <span className="raid-cutin-shout">{FINISHERS[cut.finisher].shout}</span>
             </div>
-            <span className="raid-cutin-burst b0" />
-            <span className="raid-cutin-burst b1" />
-            <span className="raid-cutin-burst b2" />
+            <span className={`raid-cutin-burst b0 ${finFx ? `is-${finFx}` : ""}`} />
+            <span className={`raid-cutin-burst b1 ${finFx ? `is-${finFx}` : ""}`} />
+            <span className={`raid-cutin-burst b2 ${finFx ? `is-${finFx}` : ""}`} />
             {cut.landed !== null && <span className="raid-cutin-dmg">-{cut.landed}</span>}
           </div>
         )}
@@ -492,39 +581,41 @@ export function RaidArena({
                   disabled={have <= 0 || short || stunned || !!cut}
                   onClick={() => void unleash(id)}
                   className="raid-finisher rounded-xl px-1.5 py-1.5 text-center disabled:opacity-40"
-                  aria-label={`${item.label} — ${item.hits}방 한꺼번에, 가진 것 ${have}개`}
+                  aria-label={`${item.label} — 기력 ${item.hits}번 한꺼번에, 가진 것 ${have}개`}
                 >
                   <span className="block text-[20px] leading-none">{item.icon}</span>
                   <span className="mt-0.5 block text-[10.5px] font-bold leading-tight">{item.label}</span>
                   <span className="block text-[10px] tabular-nums opacity-85">
-                    {item.hits}방 · {have}개{short && have > 0 ? " · 몫 부족" : ""}
+                    {item.hits * mult}{mult > 1 ? "(×2)" : ""} · {have}개{short && have > 0 ? " · 기력 부족" : ""}
                   </span>
                 </button>
               );
             })}
           </div>
           {!FINISHER_ORDER.some((id) => (haveFinishers?.[id] ?? 0) > 0) && (
-            <p className="mt-1 text-center text-[11px] opacity-80">🛒 필살기는 상점 탭에서 잼으로 살 수 있어요</p>
+            <p className="mt-1 text-center text-[11px] opacity-80">🛒 필살기는 아래 ‘도구 사기’나 상점 탭에서 잼으로 살 수 있어요</p>
           )}
         </div>
       )}
 
-      <div className="mt-2" aria-label={`내 몫 ${raid.mine}/${RAID_HITS_PER_PERSON}방`}>
+      <div className="mt-2" aria-label={`기력 ${RAID_USES_PER_PERSON - raid.me.uses}/${RAID_USES_PER_PERSON} 남음, 넣은 값 ${raid.me.hits}`}>
         <div className="flex justify-between text-[11.5px] font-semibold tabular-nums">
-          <span>내 몫</span>
+          <span>⚡ 기력</span>
           <span>
-            {raid.mine}/{RAID_HITS_PER_PERSON}방
+            {RAID_USES_PER_PERSON - raid.me.uses}/{RAID_USES_PER_PERSON} 남음 · 넣은 값 {raid.me.hits}
           </span>
         </div>
         <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-black/30">
-          <div className="h-full bg-white/85" style={{ width: `${(raid.mine / RAID_HITS_PER_PERSON) * 100}%` }} />
+          <div className="h-full bg-white/85" style={{ width: `${((RAID_USES_PER_PERSON - raid.me.uses) / RAID_USES_PER_PERSON) * 100}%` }} />
         </div>
       </div>
       {spent && (
         <p className="mt-2 rounded-xl bg-black/25 px-3 py-2 text-[12px] font-semibold">
-          💪 내 몫을 다 쳤어요. 혼자서는 쓰러뜨릴 수 없어요 — 친구에게 광장을 알려 주세요!
+          💪 기력을 다 썼어요. 이제 지원으로 도와요 — 혼자서는 쓰러뜨릴 수 없으니 친구에게도 광장을 알려 주세요!
         </p>
       )}
+      <AidButtons raidId={r.id} aidAt={raid.me.aidAt} now={now} disabled={aiding || r.phase !== "active"} onAid={(k) => void castAid(k)} />
+      <KitRow raidId={r.id} gapAt={gap && !gap.now ? gap.start : gap ? gap.start + 30 * 60_000 : null} now={now} say={say} />
       {footer}
     </section>
   );

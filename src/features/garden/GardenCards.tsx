@@ -182,7 +182,7 @@ const CARDS: Card[] = [
   {
     key: "together",
     title: "함께 가꿔요",
-    line: "광장 잡초를 뽑고, 업적 꽃을 함께 피우고, 거대 잡초는 여럿이 힘을 모아 쓰러뜨려요.",
+    line: "광장 잡초를 뽑고, 업적 꽃을 함께 피우고, 거대 잡초는 여럿이 정각·30분의 ‘빈틈’에 모여 쓰러뜨려요. 기력을 다 써도 지원으로 돕고, 뿌리 조각과 박제를 모아요.",
     art: (
       <div className="garden-card-tiles is-three">
         <div className="garden-card-tile"><span aria-hidden="true">⛲</span><b>광장</b><small>잡초 뽑기</small></div>

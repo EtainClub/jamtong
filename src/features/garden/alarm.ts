@@ -11,6 +11,22 @@ import { MINUTE } from "./rules";
 
 export const ALARM_TITLE = "잼통 정원 · 열매가 익었어요";
 export const ALARM_TEXT = "텃밭에 가서 거두세요. 익은 열매는 시들지 않고 기다려요.";
+
+/**
+ * 알림 종류(docs/garden-miniroom.md §8의 6). ripe=익음, rain=단비, gap=거대 잡초의 빈틈.
+ * 글은 정해 둔 것뿐이다. UID에 종류를 붙여 같은 시각의 다른 알림과 겹치지 않게 한다(익음은 예전 UID 그대로).
+ */
+export type AlarmKind = "ripe" | "rain" | "gap";
+export const ALARM_KINDS: AlarmKind[] = ["ripe", "rain", "gap"];
+const COPY: Record<AlarmKind, { title: string; text: string }> = {
+  ripe: { title: ALARM_TITLE, text: ALARM_TEXT },
+  rain: { title: "잼통 정원 · 단비가 와요", text: "단비 동안 자라는 작물이 두 배로 자라요. 10분 동안 와요." },
+  gap: { title: "잼통 정원 · 거대 잡초 빈틈", text: "빈틈에 치면 한 번이 두 배로 들어가요. 광장에서 같이 쳐요." },
+};
+
+export function alarmKindOf(raw: string | null): AlarmKind {
+  return ALARM_KINDS.find((k) => k === raw) ?? "ripe";
+}
 /** 일정의 길이. 알림은 시작할 때 울린다. */
 const LENGTH = 10 * MINUTE;
 /** 받아 주는 시각의 범위. 지난 것과 너무 먼 것은 받지 않는다. */
@@ -51,7 +67,8 @@ function fold(line: string): string {
   return out.join("\r\n ");
 }
 
-export function calendarFile(at: number, url: string, now: number): string {
+export function calendarFile(at: number, url: string, now: number, kind: AlarmKind = "ripe"): string {
+  const copy = COPY[kind];
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -59,16 +76,16 @@ export function calendarFile(at: number, url: string, now: number): string {
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:garden-${Math.floor(at / 1000)}@jamtong.kr`,
+    `UID:garden-${kind === "ripe" ? "" : `${kind}-`}${Math.floor(at / 1000)}@jamtong.kr`,
     `DTSTAMP:${stamp(now)}`,
     `DTSTART:${stamp(at)}`,
     `DTEND:${stamp(at + LENGTH)}`,
-    `SUMMARY:${escape(ALARM_TITLE)}`,
-    `DESCRIPTION:${escape(`${ALARM_TEXT}\n${url}`)}`,
+    `SUMMARY:${escape(copy.title)}`,
+    `DESCRIPTION:${escape(`${copy.text}\n${url}`)}`,
     `URL:${url}`,
     "BEGIN:VALARM",
     "ACTION:DISPLAY",
-    `DESCRIPTION:${escape(ALARM_TITLE)}`,
+    `DESCRIPTION:${escape(copy.title)}`,
     "TRIGGER:PT0M",
     "END:VALARM",
     "END:VEVENT",
@@ -78,12 +95,12 @@ export function calendarFile(at: number, url: string, now: number): string {
 }
 
 /** 구글 캘린더의 일정 만들기 화면. 휴대폰 캘린더가 .ics를 받지 못할 때. */
-export function googleCalendarLink(at: number, url: string): string {
+export function googleCalendarLink(at: number, url: string, kind: AlarmKind = "ripe"): string {
   const q = new URLSearchParams({
     action: "TEMPLATE",
-    text: ALARM_TITLE,
+    text: COPY[kind].title,
     dates: `${stamp(at)}/${stamp(at + LENGTH)}`,
-    details: `${ALARM_TEXT}\n${url}`,
+    details: `${COPY[kind].text}\n${url}`,
   });
   return `https://calendar.google.com/calendar/render?${q.toString()}`;
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { AppTopBar } from "@/features/app/AppTopBar";
-import { BottomNav } from "@/features/app/BottomNav";
 import { buildCatalog, buildLeaves } from "@/features/garden/catalog";
 import { GardenApp } from "@/features/garden/GardenApp";
 
@@ -39,7 +38,11 @@ export default function GardenPage() {
         <GardenApp catalog={catalog} leaves={leaves} />
       </main>
 
-      <BottomNav />
+      {/*
+       * 사이트 하단 탭(BottomNav)은 두지 않는다. 정원은 제 하단 탭(방·텃밭·광장·상점·1촌)을
+       * GardenApp 안에서 그리고, 위쪽 바의 "← 잼통"이 정보 페이지로 돌아가는 길이다
+       * (docs/garden-miniroom.md §3.1). 하단 바를 둘 겹치지 않는다.
+       */}
     </>
   );
 }

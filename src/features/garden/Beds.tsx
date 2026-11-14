@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import { track } from "@/lib/analytics";
 
 import { GroundDetails, PlantArt } from "./GardenArt";
 import { gardenFeedback } from "./feedback";
+import { BASKET_WARN_AT } from "./nav";
 import { MutationChips, NoteCard } from "./parts";
+import { Sheet } from "./Sheet";
 import { googleCalendarLink } from "./alarm";
-import { ALARM_MIN_LEAD, alarmTime, CARE, caresFor, formatClock, fruitIcon, fruitValue, formatLeft, growMinutes, HOUR, kstDay, MINUTE, SHINE_PER_DAY, TIER_LABEL, fertilizerCut, TOOL_ORDER, TOOLS, type ToolId } from "./rules";
-import { useGarden, type GardenData } from "./store";
+import { ALARM_MIN_LEAD, alarmTime, nextRain, CARE, caresFor, formatClock, fruitIcon, fruitValue, formatLeft, growMinutes, HOUR, kstDay, MINUTE, SHINE_PER_DAY, TIER_LABEL, fertilizerCut, TOOL_ORDER, TOOLS, type ToolId } from "./rules";
+import { BASKET_MAX, useGarden, type GardenData } from "./store";
 import type { Plant, PlazaLevel, Species } from "./types";
 import type { CareOutcome } from "./useBlooms";
 
@@ -41,7 +43,7 @@ export function Beds({
   care: (speciesId: string, delta: number) => Promise<CareOutcome>;
   say: (text: string) => void;
 }) {
-  const { plant, harvest, dig, sell, shine, feed } = useGarden.getState();
+  const { plant, harvest, dig, sell, shine, feed, showFruit } = useGarden.getState();
   const [picking, setPicking] = useState<number | null>(null);
   const [harvested, setHarvested] = useState<Record<number, number>>({});
   const [selected, setSelected] = useState<number | null>(null);
@@ -54,7 +56,10 @@ export function Beds({
     const p = data.beds[i];
     const species = p && byId.get(p.speciesId);
     if (!species) return;
+    // 바구니가 가득 찬 채로 거두면 가장 오래된 열매가 빠진다. 조용히 사라지지 않게 알린다.
+    const full = (useGarden.getState().data?.basket.length ?? 0) >= BASKET_MAX;
     const fruit = harvest(i, species, plaza);
+    if (fruit && full) say(`🧺 바구니가 가득 차서 가장 오래된 열매 하나가 빠졌어요`);
     if (fruit) {
       gardenFeedback("harvest");
       setHarvested((old) => ({ ...old, [i]: Date.now() }));
@@ -158,6 +163,7 @@ export function Beds({
       </div>
 
       <RipeAlarm beds={data.beds} now={now} />
+      <RainAlarm now={now} />
 
       {/*
        * 작물 자세히 보기는 아래쪽 시트로 띄운다. 예전에는 텃밭 아래에 펼쳐졌는데, 휴대폰에서는
@@ -227,7 +233,15 @@ export function Beds({
         </div>
         <p className="mt-1 text-[12px] text-smoke">
           열매마다 쪽지가 들어 있어요. 근거를 열면 원본 광택이 붙습니다 (오늘 {SHINE_PER_DAY - shineUsed}번 남음).
+          잼으로 졸이거나, 방에 전시하거나 — 둘 중 하나예요.
         </p>
+        {data.basket.length >= BASKET_WARN_AT && (
+          <p role="status" className="garden-basket-warn mt-2 rounded-xl px-3 py-2 text-[12.5px] font-semibold">
+            🧺 바구니 {data.basket.length}/{BASKET_MAX}
+            {data.basket.length >= BASKET_MAX ? " · 가득 찼어요." : " · 거의 찼어요."} 가득 찬 뒤에 거두면 가장 오래된 열매부터
+            빠져요. 잼으로 졸이거나 방에 전시해 두세요.
+          </p>
+        )}
 
         {data.basket.length === 0 ? (
           <p className="mt-4 rounded-2xl border border-dashed border-stone px-4 py-6 text-center text-[13px] text-smoke">
@@ -251,13 +265,33 @@ export function Beds({
                         <MutationChips mutations={f.mutations} size="xs" />
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => { gardenFeedback("reward"); say(`🍯 잼 +${sell([f.id], byId, bonus)}`); }}
-                      className="shrink-0 rounded-full bg-[var(--g-jam)] px-3 py-1.5 text-[12.5px] font-semibold text-white"
-                    >
-                      잼 {fruitValue(f, species, bonus)}
-                    </button>
+                    <div className="flex shrink-0 flex-col items-stretch gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => { gardenFeedback("reward"); say(`🍯 잼 +${sell([f.id], byId, bonus)}`); }}
+                        className="rounded-full bg-[var(--g-jam)] px-3 py-1.5 text-[12.5px] font-semibold text-white"
+                      >
+                        잼 {fruitValue(f, species, bonus)}
+                      </button>
+                      {/* 졸이는 대신 방에 둔다. 열매는 바구니에서 사라지고, 다시 열매로 되돌릴 수 없다(§4.2). */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const out = showFruit(f.id, byId);
+                          if (!out) {
+                            say("전시품이 너무 많아요. 방에서 몇 개를 치워 주세요");
+                            return;
+                          }
+                          gardenFeedback("plant");
+                          track("room_show", { kind: out.shown.kind, tier: species.tier, mutated: f.mutations.length > 0 });
+                          say(out.at ? `🪴 방에 전시했어요` : "🪴 보관함에 넣었어요 · 방 꾸미기에서 놓아요");
+                        }}
+                        aria-label={`${species.title} 열매를 방에 전시하기`}
+                        className="garden-show-btn rounded-full px-3 py-1.5 text-[12px] font-semibold"
+                      >
+                        🪴 전시하기
+                      </button>
+                    </div>
                   </div>
                   {note && (
                     <div className="mt-2.5">
@@ -315,13 +349,7 @@ function BedDetail({
   onDig: () => void;
   onClose: () => void;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null);
   const [fedNote, setFedNote] = useState<string | null>(null);
-  useEffect(() => {
-    const element = dialog.current;
-    element?.showModal();
-    return () => element?.close();
-  }, []);
 
   if (!species) return null;
   const left = plant.ripeAt - now;
@@ -331,23 +359,7 @@ function BedDetail({
   const fed = plant.fed === plant.harvests;
   const owned = TOOL_ORDER.filter((id) => (have[id] ?? 0) > 0);
   return (
-    <dialog
-      ref={dialog}
-      aria-label={`${species.title} 자세히 보기`}
-      className="garden-seed-dialog fixed inset-0 z-50 m-0 h-dvh max-h-none w-full max-w-none items-end border-0 bg-transparent p-0 text-inherit open:flex"
-      onClick={onClose}
-      onCancel={onClose}
-    >
-    <div
-      className="mx-auto max-h-[70vh] w-full max-w-[560px] overflow-y-auto rounded-t-3xl bg-[var(--g-bg)] p-4 pb-8 text-[13px]"
-      onClick={(e) => e.stopPropagation()}
-    >
-    <div className="flex items-center justify-between">
-      <h3 className="text-[15px] font-bold">내 작물</h3>
-      <button type="button" onClick={onClose} className="text-[13px] text-smoke">
-        닫기
-      </button>
-    </div>
+    <Sheet label={`${species.title} 자세히 보기`} title="내 작물" onClose={onClose}>
     <div className="mt-3 flex items-center gap-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3">
       <span className="garden-seed-packet shrink-0"><PlantArt species={species} progress={progress} /></span>
       <div className="min-w-0 flex-1">
@@ -399,8 +411,7 @@ function BedDetail({
         갈아엎기
       </button>
     </div>
-    </div>
-    </dialog>
+    </Sheet>
   );
 }
 
@@ -415,25 +426,8 @@ function SeedSheet({
   onClose: () => void;
   empty: boolean;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const element = dialog.current;
-    element?.showModal();
-    return () => element?.close();
-  }, []);
-
   return (
-    <dialog ref={dialog} aria-label="심을 씨앗 고르기" className="garden-seed-dialog fixed inset-0 z-50 m-0 h-dvh max-h-none w-full max-w-none items-end border-0 bg-transparent p-0 text-inherit open:flex" onClick={onClose} onCancel={onClose}>
-      <div
-        className="mx-auto max-h-[70vh] w-full max-w-[560px] overflow-y-auto rounded-t-3xl bg-[var(--g-bg)] p-4 pb-8"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
-          <h3 className="text-[15px] font-bold">씨앗 주머니</h3>
-          <button type="button" onClick={onClose} className="text-[13px] text-smoke">
-            닫기
-          </button>
-        </div>
+    <Sheet label="심을 씨앗 고르기" title="씨앗 주머니" onClose={onClose}>
         {seeds.length === 0 || empty ? (
           <p className="mt-4 text-[13px] text-smoke">씨앗이 없어요. 상점에서 사거나 광장 잡초에서 찾아보세요.</p>
         ) : (
@@ -458,8 +452,7 @@ function SeedSheet({
             ))}
           </ul>
         )}
-      </div>
-    </dialog>
+    </Sheet>
   );
 }
 
@@ -523,5 +516,26 @@ function RipeAlarm({ beds, now }: { beds: Array<Plant | null>; now: number }) {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * 단비 알림(docs/garden-miniroom.md §8의 6) — 다음 단비를 내 캘린더에. 익음 알림과 같은 길(/api/garden-alarm?k=rain).
+ * 단비는 12:30·19:30이라 밤 22시~8시에 걸리지 않는다. 곧 오면(15분 안) 띄우지 않는다.
+ */
+function RainAlarm({ now }: { now: number }) {
+  const rain = nextRain(now);
+  if (rain.start - now < ALARM_MIN_LEAD) return null;
+  const at = Math.ceil(rain.start / MINUTE) * MINUTE;
+  const go = (via: "ics" | "google") => track("ripe_alarm", { via, hours: Math.round((at - now) / HOUR), quiet: false, kind: "rain" });
+  return (
+    <p className="mt-2 px-1 text-[12.5px] text-graphite">
+      🌧 다음 단비 {formatClock(at, now)} — 성장 ×2. 캘린더에:{" "}
+      <a href={`/api/garden-alarm?at=${at}&k=rain`} onClick={() => go("ics")} className="inline-block min-h-[32px] py-1 font-semibold underline underline-offset-2">휴대폰</a>
+      {" · "}
+      <a href={googleCalendarLink(at, `${window.location.origin}/garden`, "rain")} target="_blank" rel="noopener noreferrer" onClick={() => go("google")} className="inline-block min-h-[32px] py-1 font-semibold underline underline-offset-2">
+        구글
+      </a>
+    </p>
   );
 }
