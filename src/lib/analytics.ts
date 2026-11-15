@@ -86,6 +86,15 @@ export type AnalyticsEvent =
   | "raid_join"
   | "raid_end"
   | "raid_aid"
+  /**
+   * 거대 잡초 등장 알림(docs/garden-raid-boss.md §8).
+   * push_on: 이 기기에서 켰다. push_off: 껐다. push_denied: 권한 창에서 거절했다.
+   * raid_push_open: 알림을 눌러 들어왔다. raid(물결 id).
+   */
+  | "push_on"
+  | "push_off"
+  | "push_denied"
+  | "raid_push_open"
   /** 익음·단비·빈틈 알림을 캘린더에 넣으러 갔다. via: ics | google, hours(알림까지 남은 시간, 반올림), quiet(밤이라 8시로 미뤘다), kind(rain|gap, 없으면 익음). */
   | "ripe_alarm"
   /** 칭호 단계가 올랐다. title(dex|storm|plaza), level(1~3). */

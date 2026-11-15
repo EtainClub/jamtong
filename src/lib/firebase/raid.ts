@@ -1,21 +1,33 @@
 "use client";
 
-import { collection, doc, documentId, getDocs, onSnapshot, query, runTransaction, serverTimestamp, Timestamp, where } from "firebase/firestore";
+import { collection, doc, documentId, getDoc, getDocs, onSnapshot, query, runTransaction, serverTimestamp, Timestamp, updateDoc, where, type DocumentData } from "firebase/firestore";
 
 import {
   MINUTE,
   RAID_AIDS,
   RAID_FINISHER_MAX,
   RAID_GAP_EVERY,
+  RAID_GAP_MULT,
   RAID_LIFE,
   RAID_NAMES_PER_SHARD,
+  RAID_POOLS,
+  RAID_ROLE_MULT,
+  RAID_ROLES,
   RAID_SHARDS,
   RAID_USES_PER_PERSON,
+  raidAdvanceKind,
   raidAidOf,
+  raidFilled,
   raidId,
+  raidNextNeed,
+  raidRoleOf,
   raidShard,
+  raidSplit,
   raidStrikeValue,
   type RaidAidId,
+  type RaidPool,
+  type RaidRoleId,
+  type RaidV3,
   type RaidWave,
 } from "@/features/garden/rules";
 
@@ -24,18 +36,18 @@ import { firebaseDb } from "./client";
 /**
  * 거대 잡초 — 광장이 무성해지면 나타나는 레이드. 설계는 docs/garden-game.md §3.8.
  *
- * plazaRaids/{날짜번호}-{물결}  hp·spawnedAt·defeatedAt, 그리고 옛 화면이 센 hits·fighters. 누구나 읽는다.
- *   ├ shards/{0..7}             맞은 수와 참여 인원을 나눠 센다(분산 카운터). 누구나 읽는다.
+ * plazaRaids/{날짜번호}-{물결}  형태(form)·세 게이지의 목표(hp·brk·grd)·이 형태의 0점(base)·spawnedAt·defeatedAt. 누구나 읽는다.
+ *   ├ shards/{0..7}             세 게이지(hits·brk·grd)와 참여 인원을 나눠 센다(분산 카운터). 누구나 읽는다.
  *   │                           칸마다 함께한 사람 이름(names)과 마지막 지원(aid·aidAt·aidBy)도 싣는다 —
  *   │                           모두가 이미 칸을 보고 있으므로 지원을 보려고 새로 구독하지 않는다.
- *   └ fighters/{uid}            한 사람이 이 물결에 센 값(hits)·쓴 기력(uses)·지원(aid·aidAt·aids),
+ *   └ fighters/{uid}            한 사람이 이 물결에 센 값(hits)·쓴 기력(uses)·역할(role)·든 형태(form)·지원(aid·aidAt·aids),
  *                               마지막으로 쓴 때(lastAt), 올리는 칸(shard). 본인만 읽는다.
  *
  * ★ 한 방은 내 표식과 내 칸을 한 트랜잭션으로 함께 올린다. 물결 문서는 건드리지 않는다 —
  *   모두가 한 문서를 올리면 문서당 쓰기 한도에 막혀 사람이 몰릴수록 밀린다.
- * ★ 합계 = 물결 문서의 hits(옛 화면 몫) + 칸의 합. 칸을 더한 합계가 체력에 닿으면 누구든
- *   finishRaid로 쓰러진 시각을 찍는다. 규칙이 칸을 모두 읽어 합계를 확인한다.
- *   그 사이 몇 방이 체력을 넘을 수 있다. 화면은 체력에서 멈춰 그린다.
+ * ★ 세 게이지(칸의 합)가 목표에 닿으면 누구든 advanceRaid로 다음으로 넘긴다 — 변신이거나 쓰러뜨리기.
+ *   규칙이 칸을 모두 읽어 합계를 확인한다. 그 사이 몇 방이 목표를 넘을 수 있다. 화면은 목표에서 멈춰 그린다.
+ * ★ 2.0 물결(form 없음)은 체력 하나로 그대로 싸운다. 설계는 docs/garden-raid-boss.md §3·§4.
  *
  * 규칙이 지키는 것은 firestore.rules의 plazaRaids 절에 있다.
  */
@@ -49,7 +61,7 @@ export interface RaidAidMark {
 }
 
 export interface Raid extends RaidWave {
-  /** 칸마다 맞은 수. 누가 지금 치고 있는지 어림하는 데 쓴다(화면 연출). 칸을 아직 못 읽었으면 없다. */
+  /** 칸마다 세 게이지를 더한 값. 누가 지금 치고 있는지 어림하는 데 쓴다(화면 연출). 칸을 아직 못 읽었으면 없다. */
   shardHits?: number[];
   /** 칸마다 마지막 지원(있는 것만). */
   aids?: RaidAidMark[];
@@ -60,10 +72,34 @@ export interface Raid extends RaidWave {
 /** 이 물결에서 내 표식. */
 export interface RaidMine {
   hits: number;
+  /** 쓴 기력 — 3.0 물결에서는 form 형태에서 쓴 것이다(형태가 바뀌면 0부터 다시). */
   uses: number;
   aids: number;
   /** 마지막 지원 시각(ms). */
   aidAt: number | null;
+  /** 내 역할(3.0). 아직 안 골랐거나 2.0 화면으로 들었으면 null. */
+  role: RaidRoleId | null;
+  /** 내가 마지막으로 든 형태(3.0). 없으면 0. */
+  form: number;
+}
+
+/** 물결 문서에서 3.0의 것을 읽는다. form이 없으면(2.0 물결) undefined. 갑옷·울타리 합계는 칸에서 채운다. */
+function v3Of(get: (k: string) => unknown, formAt: unknown): RaidV3 | undefined {
+  const form = get("form");
+  if (form !== 1 && form !== 2 && form !== 3) return undefined;
+  const num = (v: unknown) => (typeof v === "number" ? v : 0);
+  const base = (get("base") ?? {}) as { h?: unknown; b?: unknown; g?: unknown };
+  return {
+    form,
+    formAt: toMillis(formAt),
+    size: num(get("size")),
+    n: num(get("n")),
+    brk: num(get("brk")),
+    grd: num(get("grd")),
+    base: { h: num(base.h), b: num(base.b), g: num(base.g) },
+    brkHits: 0,
+    grdHits: 0,
+  };
 }
 
 function toMillis(value: unknown): number | null {
@@ -77,7 +113,7 @@ export function watchRaidWave(id: string, onRaid: (raid: Raid | null) => void): 
   const db = firebaseDb();
   if (!db) return () => {};
   let base: (Raid & { exists: boolean }) | undefined;
-  let shards: { hits: number; fighters: number; each: number[]; aids: RaidAidMark[]; names: string[] } | undefined;
+  let shards: { hits: number; brk: number; grd: number; fighters: number; each: number[]; aids: RaidAidMark[]; names: string[] } | undefined;
   const emit = () => {
     if (base === undefined || shards === undefined) return;
     onRaid(
@@ -86,6 +122,7 @@ export function watchRaidWave(id: string, onRaid: (raid: Raid | null) => void): 
             ...base,
             hits: base.hits + shards.hits,
             fighters: base.fighters + shards.fighters,
+            v3: base.v3 ? { ...base.v3, brkHits: shards.brk, grdHits: shards.grd } : undefined,
             shardHits: shards.each,
             aids: shards.aids,
             names: shards.names,
@@ -109,6 +146,7 @@ export function watchRaidWave(id: string, onRaid: (raid: Raid | null) => void): 
         fighters: snap.get("fighters") ?? 0,
         spawnedAt: toMillis(snap.get("spawnedAt", { serverTimestamps: "estimate" })),
         defeatedAt: toMillis(snap.get("defeatedAt", { serverTimestamps: "estimate" })),
+        v3: v3Of((k) => snap.get(k), snap.get("formAt", { serverTimestamps: "estimate" })),
       };
       emit();
     },
@@ -118,6 +156,8 @@ export function watchRaidWave(id: string, onRaid: (raid: Raid | null) => void): 
     collection(db, "plazaRaids", id, "shards"),
     (snap) => {
       let hits = 0;
+      let brk = 0;
+      let grd = 0;
       let fighters = 0;
       const each = Array.from({ length: RAID_SHARDS }, () => 0);
       const aids: RaidAidMark[] = [];
@@ -125,9 +165,12 @@ export function watchRaidWave(id: string, onRaid: (raid: Raid | null) => void): 
       snap.forEach((d) => {
         const h = (d.get("hits") as number | undefined) ?? 0;
         hits += h;
+        brk += (d.get("brk") as number | undefined) ?? 0;
+        grd += (d.get("grd") as number | undefined) ?? 0;
         fighters += (d.get("fighters") as number | undefined) ?? 0;
         const n = Number(d.id);
-        if (n >= 0 && n < RAID_SHARDS) each[n] = h;
+        // 칸마다의 값은 세 게이지를 더한 것 — 누가 지금 치고 있는지 보는 데만 쓴다.
+        if (n >= 0 && n < RAID_SHARDS) each[n] = h + ((d.get("brk") as number | undefined) ?? 0) + ((d.get("grd") as number | undefined) ?? 0);
         const aid = raidAidOf(d.get("aid"));
         const at = toMillis(d.get("aidAt", { serverTimestamps: "estimate" }));
         const by = d.get("aidBy");
@@ -135,7 +178,7 @@ export function watchRaidWave(id: string, onRaid: (raid: Raid | null) => void): 
         const list = d.get("names");
         if (Array.isArray(list)) for (const name of list) if (typeof name === "string") names.push(name);
       });
-      shards = { hits, fighters, each, aids, names };
+      shards = { hits, brk, grd, fighters, each, aids, names };
       emit();
     },
     fail,
@@ -146,12 +189,19 @@ export function watchRaidWave(id: string, onRaid: (raid: Raid | null) => void): 
   };
 }
 
-const NO_MINE: RaidMine = { hits: 0, uses: 0, aids: 0, aidAt: null };
+const NO_MINE: RaidMine = { hits: 0, uses: 0, aids: 0, aidAt: null, role: null, form: 0 };
 
 function mineOf(get: (k: string) => unknown, aidAt: unknown): RaidMine {
   const hits = (get("hits") as number | undefined) ?? 0;
   // 기력이 없는 옛 표식은 센 값이 곧 쓴 기력이다(규칙도 같게 본다).
-  return { hits, uses: (get("uses") as number | undefined) ?? hits, aids: (get("aids") as number | undefined) ?? 0, aidAt: toMillis(aidAt) };
+  return {
+    hits,
+    uses: (get("uses") as number | undefined) ?? hits,
+    aids: (get("aids") as number | undefined) ?? 0,
+    aidAt: toMillis(aidAt),
+    role: raidRoleOf(get("role")),
+    form: (get("form") as number | undefined) ?? 0,
+  };
 }
 
 /** 이 물결에서 내 표식(센 값·쓴 기력·지원). 표식이 없으면 모두 0. */
@@ -185,6 +235,7 @@ export async function loadTodayRaids(day: number): Promise<Array<{ wave: number;
       fighters: (d.get("fighters") as number | undefined) ?? 0,
       spawnedAt: toMillis(d.get("spawnedAt")),
       defeatedAt: toMillis(d.get("defeatedAt")),
+      v3: v3Of((k) => d.get(k), d.get("formAt")),
     },
   }));
 }
@@ -193,14 +244,28 @@ export async function loadTodayRaids(day: number): Promise<Array<{ wave: number;
  * 물결을 세운다(빈 칸까지 함께). 이미 있으면 아무것도 하지 않는다. 앞 물결이 덜 끝났으면 규칙이 막는다.
  * 내가 세웠으면 true.
  */
-export async function spawnRaid(id: string, hp: number): Promise<boolean> {
+export async function spawnRaid(id: string, size: number): Promise<boolean> {
   const db = firebaseDb();
   if (!db) return false;
   const ref = doc(db, "plazaRaids", id);
+  const first = raidSplit(size, 1);
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (snap.exists()) return false;
-    tx.set(ref, { hp, hits: 0, fighters: 0, spawnedAt: serverTimestamp(), defeatedAt: null });
+    tx.set(ref, {
+      hp: first.h,
+      brk: first.b,
+      grd: first.g,
+      size,
+      n: size,
+      base: { h: 0, b: 0, g: 0 },
+      form: 1,
+      formAt: serverTimestamp(),
+      hits: 0,
+      fighters: 0,
+      spawnedAt: serverTimestamp(),
+      defeatedAt: null,
+    });
     for (const n of shardIds) tx.set(doc(db, "plazaRaids", id, "shards", n), { hits: 0, fighters: 0 });
     return true;
   });
@@ -227,10 +292,27 @@ function permissionDenied(error: unknown): boolean {
   return (error as { code?: string }).code === "permission-denied";
 }
 
+/** 한 번에 실어 보내는 내 선택 — 역할과 넣을 게이지. 2.0 물결에서는 쓰이지 않는다. */
+export interface RaidAim {
+  role: RaidRoleId | null;
+  pool: RaidPool;
+}
+
+/** 표식에 적을 역할·형태·기력의 시작점. 물결의 형태와 내 표식의 형태가 다르면 새 형태의 첫 커밋이다(기력 0부터, 역할을 바꿀 수 있다). */
+function entering(raid: DocumentData, before: RaidMine, aim: RaidAim): { v3: boolean; fresh: boolean; role: RaidRoleId | null; usesWas: number } {
+  const form = raid.form as number | undefined;
+  if (form === undefined) return { v3: false, fresh: false, role: null, usesWas: before.uses };
+  // 형태 안에서는 역할을 못 바꾼다(규칙). 이미 든 형태면 표식의 역할을 따른다.
+  const sameForm = before.role !== null && before.form === form;
+  const role = sameForm ? before.role : (aim.role ?? before.role);
+  const fresh = role !== null && before.form !== form;
+  return { v3: true, fresh, role, usesWas: fresh ? 0 : before.uses };
+}
+
 /**
  * 기력을 쓴다 — 한 번(count=1) 또는 필살기(count>1, RAID_FINISHER_MAX까지). 기력을 넘는 만큼은 덜어 낸다.
- * 빈틈이면 쓴 기력의 RAID_GAP_MULT배를 센다. 빈틈은 이 기기의 시계로 정하고 규칙이 서버 시각으로 다시 본다 —
- * 가장자리에서 막히면 반대로 한 번 더 보낸다(시계가 몇 초 어긋난 몫).
+ * 3.0 물결에서는 게이지 하나(aim.pool)에 넣는다 — 제 역할의 게이지면 RAID_ROLE_MULT배, 빈틈이면 다시 RAID_GAP_MULT배.
+ * 빈틈은 이 기기의 시계로 정하고 규칙이 서버 시각으로 다시 본다 — 가장자리에서 막히면 반대로 한 번 더 보낸다(시계가 몇 초 어긋난 몫).
  * 처음 드는 사람이면 칸에 이름(nick)을 적는다(쓰러뜨린 뒤 "함께한 사람들").
  * 돌려주는 uses는 실제로 쓴 기력, hits는 센 값이다(ok일 때).
  */
@@ -239,6 +321,7 @@ export async function strikeRaid(
   id: string,
   count = 1,
   nick = "",
+  aim: RaidAim = { role: null, pool: 0 },
 ): Promise<{ result: StrikeResult; uses: number; hits: number }> {
   const want = Math.max(1, Math.min(RAID_FINISHER_MAX, Math.floor(count)));
   const db = firebaseDb();
@@ -252,23 +335,27 @@ export async function strikeRaid(
   const attempt = (flip: boolean) =>
     runTransaction(db, async (tx): Promise<{ result: StrikeResult; uses: number; hits: number }> => {
       // 물결 문서는 읽기만 한다. 트랜잭션이 읽은 문서는 다른 사람의 쓰기와 겨루지 않는다 —
-      // 물결 문서는 세울 때와 쓰러질 때만 바뀐다.
+      // 물결 문서는 세울 때, 변신할 때, 쓰러질 때만 바뀐다.
       const [raid, mine, cell] = await Promise.all([tx.get(raidRef), tx.get(mineRef), tx.get(shardRef)]);
       if (!raid.exists() || raid.get("defeatedAt")) return { result: "over", uses: 0, hits: 0 };
       const spawnedAt = toMillis(raid.get("spawnedAt"));
       const now = Date.now();
       if (spawnedAt !== null && now >= spawnedAt + RAID_LIFE) return { result: "escaped", uses: 0, hits: 0 };
       const before = mine.exists() ? mineOf((k) => mine.get(k), mine.get("aidAt")) : NO_MINE;
-      const n = Math.min(want, RAID_USES_PER_PERSON - before.uses);
+      const enter = entering(raid.data(), before, aim);
+      const n = Math.min(want, RAID_USES_PER_PERSON - enter.usesWas);
       if (n <= 0) return { result: "capped", uses: 0, hits: 0 };
-      let value = raidStrikeValue(now, spawnedAt, raid.get("hp") as number);
-      if (flip) value = value === 1 ? 2 : 1;
-      const add = n * value;
+      // 역할이 없으면(2.0 물결이거나 아직 안 골랐으면) 체력에 역할 배수 없이 넣는다.
+      const pool: RaidPool = enter.role ? aim.pool : 0;
+      let gap = raidStrikeValue(now, spawnedAt, raid.get("hp") as number);
+      if (flip) gap = gap === 1 ? RAID_GAP_MULT : 1;
+      const add = n * gap * (enter.role && RAID_ROLES[enter.role].pool === pool ? RAID_ROLE_MULT : 1);
       // 지원 칸은 그대로 옮긴다. set은 통째로 쓰므로 빠뜨리면 지워진다.
       const kept: Record<string, unknown> = {};
       for (const k of ["aid", "aidAt", "aids"]) if (mine.get(k) !== undefined) kept[k] = mine.get(k);
-      tx.set(mineRef, { ...kept, hits: before.hits + add, uses: before.uses + n, lastAt: serverTimestamp(), shard });
-      tx.set(shardRef, shardAfter(cell.exists() ? cell.data() : {}, add, mine.exists() ? "" : name, !mine.exists()));
+      const part = enter.role ? { role: RAID_ROLES[enter.role].code, form: raid.get("form") as number, pool } : {};
+      tx.set(mineRef, { ...kept, ...part, hits: before.hits + add, uses: enter.usesWas + n, lastAt: serverTimestamp(), shard });
+      tx.set(shardRef, shardAfter(cell.exists() ? cell.data() : {}, RAID_POOLS[pool], add, mine.exists() ? "" : name, !mine.exists()));
       return { result: "ok", uses: n, hits: add };
     });
 
@@ -292,11 +379,13 @@ export async function strikeRaid(
 }
 
 /** 칸의 다음 모습. 새로 든 사람이면 참여 인원을 하나 올리고 이름을 붙인다(칸마다 RAID_NAMES_PER_SHARD까지). */
-function shardAfter(cell: Record<string, unknown>, add: number, name: string, joined: boolean): Record<string, unknown> {
+function shardAfter(cell: Record<string, unknown>, key: (typeof RAID_POOLS)[number], add: number, name: string, joined: boolean): Record<string, unknown> {
   const names = Array.isArray(cell.names) ? (cell.names as unknown[]).filter((x): x is string => typeof x === "string") : [];
   return {
     ...cell,
-    hits: ((cell.hits as number | undefined) ?? 0) + add,
+    // 체력(hits)은 늘 있어야 한다 — 다른 게이지만 올리는 칸에도.
+    hits: (cell.hits as number | undefined) ?? 0,
+    [key]: ((cell[key] as number | undefined) ?? 0) + add,
     fighters: ((cell.fighters as number | undefined) ?? 0) + (joined ? 1 : 0),
     ...(name && names.length < RAID_NAMES_PER_SHARD ? { names: [...names, name] } : {}),
   };
@@ -309,7 +398,7 @@ export type AidResult = "ok" | "over" | "escaped" | "busy" | "error";
  * 센 값은 그대로다. 처음 드는 사람이면 표식이 여기서 생긴다 — 지원만 해도 참여 상자를 받는다.
  * 규칙은 앞선 지원에서 RAID_AID_MIN_GAP이 지났는지만 본다. 60초 기다림은 화면이 지킨다.
  */
-export async function aidRaid(uid: string, id: string, aid: RaidAidId, nick: string): Promise<AidResult> {
+export async function aidRaid(uid: string, id: string, aid: RaidAidId, nick: string, role: RaidRoleId | null = null): Promise<AidResult> {
   const db = firebaseDb();
   if (!db) return "error";
   const shard = raidShard(uid);
@@ -325,16 +414,20 @@ export async function aidRaid(uid: string, id: string, aid: RaidAidId, nick: str
       const spawnedAt = toMillis(raid.get("spawnedAt"));
       if (spawnedAt !== null && Date.now() >= spawnedAt + RAID_LIFE) return "escaped";
       const before = mine.exists() ? mineOf((k) => mine.get(k), mine.get("aidAt")) : NO_MINE;
+      // 새 형태에서 지원으로 먼저 들 수도 있다 — 그때도 형태를 맞추고 기력을 0부터 다시 센다.
+      const enter = entering(raid.data(), before, { role, pool: 0 });
+      const part = enter.role ? { role: RAID_ROLES[enter.role].code, form: raid.get("form") as number, pool: enter.fresh ? 0 : ((mine.get("pool") as number | undefined) ?? 0) } : {};
       tx.set(mineRef, {
+        ...part,
         hits: before.hits,
-        uses: before.uses,
+        uses: enter.usesWas,
         lastAt: serverTimestamp(),
         shard,
         aid: code,
         aidAt: serverTimestamp(),
         aids: before.aids + 1,
       });
-      tx.set(shardRef, { ...shardAfter(cell.exists() ? cell.data() : {}, 0, mine.exists() ? "" : name, !mine.exists()), aid: code, aidAt: serverTimestamp(), aidBy: name });
+      tx.set(shardRef, { ...shardAfter(cell.exists() ? cell.data() : {}, "hits", 0, mine.exists() ? "" : name, !mine.exists()), aid: code, aidAt: serverTimestamp(), aidBy: name });
       return "ok";
     });
   } catch (error) {
@@ -345,29 +438,45 @@ export async function aidRaid(uid: string, id: string, aid: RaidAidId, nick: str
 }
 
 /**
- * 합계가 체력에 닿은 물결에 쓰러진 시각을 찍는다. 누가 불러도 한 번만 찍힌다.
- * 내가 찍었으면 true. 빈 칸이 있으면(칸이 생기기 전에 세운 물결) 함께 만든다 — 규칙이 칸을 다 읽는다.
+ * 세 게이지가 다 찬 물결을 다음으로 넘긴다 — 변신(빨리 채웠고 3형 전)이거나 쓰러뜨리기. 누가 불러도 한 번만 된다.
+ * 무엇을 했는지 돌려준다(못 했으면 null).
+ *
+ * 트랜잭션을 쓰지 않는다. 칸은 싸우는 동안 초마다 바뀌어 트랜잭션이 끝없이 겨룬다. 그래서 한 번 읽고 그대로 쓴다 —
+ * 규칙이 커밋 순간의 합계로 다시 보고, 읽은 뒤 몇 방 더 들어온 것(시작점·인원)은 받아 준다. 형태가 이미 바뀌었으면
+ * 규칙이 막는다(form은 딱 하나만 오른다, 쓰러진 시각은 한 번만 찍힌다).
  */
-export async function finishRaid(id: string): Promise<boolean> {
+export async function advanceRaid(id: string): Promise<"morph" | "finish" | null> {
   const db = firebaseDb();
-  if (!db) return false;
+  if (!db) return null;
   const raidRef = doc(db, "plazaRaids", id);
-  const refs = shardIds.map((n) => doc(db, "plazaRaids", id, "shards", n));
   try {
-    return await runTransaction(db, async (tx) => {
-      const raid = await tx.get(raidRef);
-      if (!raid.exists() || raid.get("defeatedAt")) return false;
-      const cells = await Promise.all(refs.map((r) => tx.get(r)));
-      const total = ((raid.get("hits") as number | undefined) ?? 0) + cells.reduce((n, c) => n + ((c.get("hits") as number | undefined) ?? 0), 0);
-      if (total < (raid.get("hp") as number)) return false;
-      cells.forEach((c, i) => {
-        if (!c.exists()) tx.set(refs[i], { hits: 0, fighters: 0 });
-      });
-      tx.update(raidRef, { defeatedAt: serverTimestamp() });
-      return true;
-    });
+    const [raid, cells] = await Promise.all([getDoc(raidRef), getDocs(collection(db, "plazaRaids", id, "shards"))]);
+    if (!raid.exists() || raid.get("defeatedAt")) return null;
+    const sum = (key: string) => cells.docs.reduce((n, c) => n + ((c.get(key) as number | undefined) ?? 0), 0);
+    const wave: RaidWave = {
+      hp: raid.get("hp") as number,
+      hits: ((raid.get("hits") as number | undefined) ?? 0) + sum("hits"),
+      fighters: sum("fighters"),
+      spawnedAt: toMillis(raid.get("spawnedAt")),
+      defeatedAt: null,
+      v3: v3Of((k) => raid.get(k), raid.get("formAt")),
+    };
+    if (wave.v3) wave.v3 = { ...wave.v3, brkHits: sum("brk"), grdHits: sum("grd") };
+    if (!raidFilled(wave)) return null;
+    if (wave.v3 && raidAdvanceKind(wave, Date.now()) === "morph") {
+      const v = wave.v3;
+      const form = (v.form + 1) as 2 | 3;
+      const n = raidNextNeed(v.size, wave.fighters);
+      const need = raidSplit(n, form);
+      const base = { h: wave.hits, b: v.brkHits, g: v.grdHits };
+      await updateDoc(raidRef, { form, formAt: serverTimestamp(), n, base, hp: base.h + need.h, brk: base.b + need.b, grd: base.g + need.g });
+      return "morph";
+    }
+    await updateDoc(raidRef, { defeatedAt: serverTimestamp() });
+    return "finish";
   } catch (error) {
-    console.error("[raid] 거대 잡초를 쓰러뜨리지 못했다", error);
-    return false;
+    // 다른 사람이 먼저 넘겼거나(규칙이 막는다), 30분 경계에서 내 시계와 서버가 엇갈렸다. 다음 변화에서 다시 본다.
+    if (!permissionDenied(error)) console.error("[raid] 거대 잡초를 다음으로 넘기지 못했다", error);
+    return null;
   }
 }

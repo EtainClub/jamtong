@@ -8,11 +8,13 @@ import { cellId } from "@/lib/firebase/plaza";
 
 import { GroundDetails, WeedArt } from "./GardenArt";
 import { RaidArena } from "./RaidArena";
+import { RaidBell } from "./raid/RaidBell";
+import { formName } from "./raid/forms";
 import { RaidWeedArt } from "./RaidWeedArt";
 import { LeafButton, LeafSheet } from "./LeafCheck";
 import { gardenFeedback, raidFeedback } from "./feedback";
 import { RollCall } from "./raid/ArenaParts";
-import { boxPerennial, raidLoot, raidStars, SPORE_AT, SPORE_COUNT, SPORE_RUBS, sporeCells, SAMPLES_PER_TROPHY, STAR_MINUTES, tookPart } from "./raid/rules";
+import { boxPerennial, raidLoot, raidOutcome, SPORE_AT, SPORE_COUNT, SPORE_RUBS, sporeCells, SAMPLES_PER_TROPHY, tookPart } from "./raid/rules";
 
 import {
   fruitIcon,
@@ -36,7 +38,11 @@ import {
   raidGapWindow,
   raidKey,
   raidKind,
+  raidGauges,
   raidNeed,
+  raidNeedV3,
+  RAID_FORM_FAST,
+  RAID_ROLE_MULT,
   type RaidKind,
   TIER_LABEL,
   WEED,
@@ -97,8 +103,9 @@ export function PlazaView({
   // 포자(§7.2 ③): 체력이 절반이 되면 광장 칸 여섯에 돋는다. 물결 id에서 정한 칸이라 모두 같은 칸을 본다.
   // 뽑은 것은 이 기기에서만 센다 — 서버에 쓰지 않는다. 다 뽑으면 다음 빈틈 동안 내 문지르기가 절반.
   const live = raid.raid && raid.raid.phase === "active" ? raid.raid : null;
-  const sporesUp = live !== null && live.hits >= live.hp * SPORE_AT;
-  const sporeAt = sporesUp ? sporeCells(live.id, PLAZA_CELLS) : [];
+  const liveGauges = live ? raidGauges(live) : null;
+  const sporesUp = liveGauges !== null && liveGauges.reduce((n, g) => n + g.have, 0) >= liveGauges.reduce((n, g) => n + g.need, 0) * SPORE_AT;
+  const sporeAt = live && sporesUp ? sporeCells(live.id, PLAZA_CELLS) : [];
   const [pulled, setPulled] = useState<{ id: string; cells: number[] }>({ id: "", cells: [] });
   const pulledCells = live && pulled.id === live.id ? pulled.cells : [];
   const sporesLeft = sporeAt.filter((c) => !pulledCells.includes(c));
@@ -173,6 +180,7 @@ export function PlazaView({
       </div>
 
       <RaidPanel raid={raid} catalog={catalog} byId={byId} uid={uid} now={now} sporeBoost={sporeBoost} say={say} />
+      <RaidBell say={say} />
 
       <div className="garden-plaza mt-3 rounded-3xl">
         <GroundDetails />
@@ -427,10 +435,13 @@ function RaidPanel({
 
   if (!r) return null;
 
-  const left = Math.max(0, r.hp - r.hits);
-  const stars = raidStars(r.spawnedAt, r.defeatedAt);
+  const gauges = raidGauges(r);
+  const total = gauges.reduce((n, g) => n + g.need, 0);
+  const left = total - gauges.reduce((n, g) => n + g.have, 0);
+  // 3.0: 넘긴 형태 수가 ★이고, 1형만 넘겼으면 도망가도 상자를 받는다(raid/rules.ts의 raidOutcome).
+  const { won, stars } = raidOutcome(r, r.phase);
   const odds = (p: number) => `${TIER_LABEL.flagship} ${Math.round((1 - p) * 100)}% · ${TIER_LABEL.perennial} ${Math.round(p * 100)}%`;
-  const need = raidNeed(r.hp);
+  const need = r.v3 ? raidNeedV3(r.v3.n) : raidNeed(r.hp);
   const kind = raidKind(raid.day, r.wave);
   const order = `오늘 ${["첫", "두", "세", "네", "다섯"][r.wave - 1] ?? r.wave} 번째 거대 잡초`;
   const nextLine = raid.next
@@ -443,12 +454,14 @@ function RaidPanel({
     return <RaidFinale kind={kind} fighters={r.fighters} stars={stars} />;
   }
 
-  if (r.phase === "defeated") {
+  if (won) {
     const loot = raidLoot("defeated", stars, raid.me);
     const sample = Math.min(SAMPLES_PER_TROPHY, (samples?.[kind.id] ?? 0) + (claimed ? 0 : 1));
     return (
       <section aria-labelledby="raid" className="garden-raid-done mt-3 rounded-2xl px-4 py-3.5">
-        <h3 id="raid" className="text-[14px] font-bold">🏆 {josa(kind.name, "을를")} 쓰러뜨렸어요 · {"★".repeat(stars)}</h3>
+        <h3 id="raid" className="text-[14px] font-bold">
+          {r.phase === "defeated" ? `🏆 ${josa(kind.name, "을를")} 쓰러뜨렸어요` : `💨 ${formName(kind.id, r.v3?.form ?? 1)}은 놓쳤지만 ${stars}형까지 넘겼어요`} · {"★".repeat(stars)}
+        </h3>
         <p className="text-[11.5px] opacity-75">
           {order} · {r.spawnedAt !== null && r.defeatedAt !== null ? `${Math.max(1, Math.round((r.defeatedAt - r.spawnedAt) / 60_000))}분 만에` : ""}
         </p>
@@ -495,7 +508,7 @@ function RaidPanel({
         <h3 id="raid" className="text-[14px] font-bold">💨 {kind.escaped}</h3>
         <p className="text-[11.5px] opacity-75">{order}</p>
         <p className="mt-0.5 text-[12px] opacity-85">
-          {r.fighters.toLocaleString()}명이 {Math.min(r.hits, r.hp).toLocaleString()}/{r.hp.toLocaleString()}만큼 쳤지만 {formatLeft(RAID_LIFE)} 안에
+          {r.fighters.toLocaleString()}명이 {(total - left).toLocaleString()}/{total.toLocaleString()}만큼 쳤지만 {formatLeft(RAID_LIFE)} 안에
           쓰러뜨리지 못했어요. 빈틈에 모이면 {need.least}명, 아니면 {need.most}명이 필요해요.
         </p>
         {loot.roots > 0 && !fledClaimed && (
@@ -530,18 +543,23 @@ function RaidPanel({
       say={say}
       footer={
         <>
-          <RaidCall id={r.id} name={kind.name} left={left} hp={r.hp} need={need} escapeIn={escapeIn} gapAt={gap ? gap.start : null} loud={spent} say={say} />
+          <RaidCall id={r.id} name={kind.name} left={left} hp={total} need={need} escapeIn={escapeIn} gapAt={gap ? gap.start : null} loud={spent} say={say} />
           <details className="mt-2 text-[11.5px] leading-relaxed opacity-90">
             <summary className="min-h-[32px] cursor-pointer font-bold">규칙과 보상 보기</summary>
             <p className="mt-1">
-              {RAID_RUBS_PER_STRIKE}번 문지르면 기력 한 번, 1초에 한 번, 한 사람은 기력 {RAID_USES_PER_PERSON}번까지 — 필살기도 이 안에서 써요.
-              매 시 정각과 30분부터 3분은 빈틈이라 한 번이 ×{RAID_GAP_MULT}로 들어가요(도망 30분 전 폭주 때는 6분). 지원(북·우산·손전등)은
-              기력과 따로 1분에 한 번 걸 수 있고, 모두의 손맛만 바꿔요.
+              거대 잡초는 세 번까지 변신해요. 한 형태의 게이지(체력·갑옷·울타리)를 {RAID_FORM_FAST / 60_000}분 안에 다 채우면 쓰러지지 않고 더 센 형태가 되고,
+              넘기면 그 자리에서 쓰러져요. 다음 형태의 크기는 그때까지 온 사람 수에 맞춰져요. 기력은 형태마다 {RAID_USES_PER_PERSON}번 —
+              {RAID_RUBS_PER_STRIKE}번 문지르면 한 번, 1초에 한 번, 필살기도 이 안에서 써요.
             </p>
             <p className="mt-1">
-              {formatLeft(RAID_LIFE)} 안에 쓰러뜨리면 한 번이라도 쳤거나 지원한 모두가 희귀 씨앗 상자(잼 {RAID_BOX.jam}, {odds(boxPerennial(0))}, ★★★이면{" "}
-              {odds(boxPerennial(3))})와 뿌리 조각을 받아요 — ★★★({STAR_MINUTES[0]}분 안) 3 · ★★({STAR_MINUTES[1]}분 안) 2 · ★ 1, 기력을 다 쓰면 +1, 지원 3번 이상이면 +1.
-              종류마다 표본 조각을 셋 모으면 그 악초의 박제가 방에 생겨요. 도망가면 친 사람에게 뿌리 조각 1. 하루 {RAID_PER_DAY}번까지 나타나요.
+              역할은 셋이에요 — 낫잡이(체력)·돋보기꾼(갑옷)·울타리지기(울타리). 제 역할의 게이지에 넣으면 한 번이 ×{RAID_ROLE_MULT}, 남의 게이지는 ×1이에요.
+              역할은 형태가 바뀔 때 다시 고를 수 있어요. 매 시 정각과 30분부터 3분은 빈틈이라 다시 ×{RAID_GAP_MULT}로 들어가요(도망 30분 전 폭주 때는 6분).
+              지원(북·우산·손전등)은 기력과 따로 1분에 한 번 걸 수 있고, 모두의 손맛만 바꿔요.
+            </p>
+            <p className="mt-1">
+              1형을 넘기면 한 번이라도 쳤거나 지원한 모두가 희귀 씨앗 상자(잼 {RAID_BOX.jam}, {odds(boxPerennial(0))}, ★★★이면 {odds(boxPerennial(3))})를 받아요 —
+              그 뒤 형태가 도망가도 상자는 그대로예요. 넘긴 형태 수가 ★이고 뿌리 조각도 그만큼(1·2·3), 기력을 다 쓰면 +1, 지원 3번 이상이면 +1.
+              종류마다 표본 조각을 셋 모으면 그 악초의 박제가 방에 생겨요. 1형도 못 넘기고 {formatLeft(RAID_LIFE)}이 지나면 도망가고, 친 사람에게 뿌리 조각 1. 하루 {RAID_PER_DAY}번까지 나타나요.
             </p>
           </details>
         </>
@@ -560,7 +578,7 @@ function RaidFinale({ kind, fighters, stars }: { kind: RaidKind; fighters: numbe
     >
       <span className="raid-finale-flash" aria-hidden="true" />
       <div className="raid-finale-weed mx-auto" aria-hidden="true">
-        <RaidWeedArt kind={kind.id} />
+        <RaidWeedArt kind={kind.id} form={3} />
       </div>
       <span className="pointer-events-none absolute inset-0" aria-hidden="true">
         {Array.from({ length: 14 }, (_, i) => (

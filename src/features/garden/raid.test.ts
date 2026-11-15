@@ -57,6 +57,26 @@ import {
   fertilizerCut,
   TOOL_ORDER,
   TOOLS,
+  RAID_FORM_FAST,
+  RAID_FORM_SPLIT,
+  RAID_NEED_MAX,
+  RAID_NEED_PER_FIGHTER,
+  RAID_NEED_SLACK,
+  RAID_NEED_STEP,
+  RAID_POOLS,
+  RAID_ROLE_MULT,
+  RAID_ROLE_ORDER,
+  RAID_ROLES,
+  RAID_SIZES,
+  raidAdvanceKind,
+  raidFilled,
+  raidGauges,
+  raidNeedV3,
+  raidNextNeed,
+  raidPoolValue,
+  raidSize,
+  raidSplit,
+  type RaidV3,
   type RaidWave,
 } from "./rules";
 import type { Plant } from "./types";
@@ -69,6 +89,7 @@ import {
   KIT,
   KIT_ORDER,
   raidLoot,
+  raidOutcome,
   raidStars,
   SAMPLES_PER_TROPHY,
   SPORE_COUNT,
@@ -200,19 +221,28 @@ test("상자 장부 열쇠(raidKey)는 옛 날짜 번호와 겹치지 않는다 
 });
 
 test("firestore.rules의 물결 규칙이 rules.ts의 값과 같다", () => {
-  const rules = readFileSync("firestore.rules", "utf8") // pnpm garden:test는 저장소 뿌리에서 돈다;
+  const rules = readFileSync("firestore.rules", "utf8"); // pnpm garden:test는 저장소 뿌리에서 돈다
   const has = (text: string) => assert.ok(rules.includes(text), `firestore.rules에 없음: ${text}`);
   has(`'^[0-9]{5}-[1-${RAID_PER_DAY}]$'`);
-  has(`request.resource.data.hp >= ${RAID_HP_MIN}`);
-  has(`request.resource.data.hp <= ${RAID_HP_MAX}`);
-  // 기력 60은 uses에, 옛 화면(uses 없음)은 hits에 건다.
+  // 세우기: 1형, 종류의 기본 필요량을 체력·갑옷으로.
+  has(`request.resource.data.size in [${RAID_SIZES.join(", ")}]`);
+  has(`request.resource.data.hp == request.resource.data.size * ${RAID_FORM_SPLIT[1][0]} / 100`);
+  has(`request.resource.data.brk == request.resource.data.size * ${RAID_FORM_SPLIT[1][1]} / 100`);
+  assert.equal(RAID_FORM_SPLIT[1][2], 0, "1형에는 울타리가 없다(규칙이 grd == 0으로 세운다)");
+  has(`request.resource.data.grd == 0`);
+  // 기력 60은 uses에 건다.
   has(`d.uses <= ${RAID_USES_PER_PERSON}`);
-  has(`request.resource.data.hits <= ${RAID_USES_PER_PERSON}`);
   // 빈틈: 분 % 30 < 3, 폭주(도망 30분 전 = 태어나고 150분)면 < 6, 두 배, 체력 하한에서만.
   has(`request.time.minutes() % ${RAID_GAP_EVERY}`);
   has(`(m < ${RAID_GAP_MINUTES} || (m < ${RAID_FRENZY_GAP_MINUTES} && request.time >= raid.spawnedAt + duration.value(${(RAID_LIFE - RAID_FRENZY) / MINUTE}, 'm')))`);
-  has(`used * (raidGap(raid) ? ${RAID_GAP_MULT} : 1)`);
   has(`raid.hp >= ${RAID_HP_MIN}`);
+  // 한 번의 값: 제 역할의 게이지면 두 배, 빈틈이면 다시 두 배. 역할 코드 = 게이지 번호 + 1.
+  has(`gain == used * (role != 0 && d.get('pool', 0) + 1 == role ? ${RAID_ROLE_MULT} : 1) * (raidGap(raid) ? ${RAID_GAP_MULT} : 1)`);
+  for (const id of RAID_ROLE_ORDER) assert.equal(RAID_ROLES[id].code, RAID_ROLES[id].pool + 1, id);
+  has(`role in [0, ${RAID_ROLE_ORDER.map((id) => RAID_ROLES[id].code).join(", ")}]`);
+  assert.deepEqual([...RAID_POOLS], ["hits", "brk", "grd"]);
+  has(`cellNow.get('${RAID_POOLS[1]}', 0) == cellWas.get('${RAID_POOLS[1]}', 0) + (pool == 1 ? gain : 0)`);
+  has(`cellNow.get('${RAID_POOLS[2]}', 0) == cellWas.get('${RAID_POOLS[2]}', 0) + (pool == 2 ? gain : 0)`);
   // 지원: 종류 코드와 최소 간격.
   has(`d.aid in [${RAID_AID_ORDER.map((id) => RAID_AIDS[id].code).join(", ")}]`);
   has(`was.aidAt + duration.value(${RAID_AID_MIN_GAP / 1000}, 's')`);
@@ -221,16 +251,115 @@ test("firestore.rules의 물결 규칙이 rules.ts의 값과 같다", () => {
   has(`prev.defeatedAt + duration.value(${RAID_GAP / MINUTE}, 'm')`);
   has(`prev.spawnedAt + duration.value(${(RAID_LIFE + RAID_GAP) / MINUTE}, 'm')`);
   has(`(${RAID_FIRST_HOUR} + ${RAID_EVERY_HOURS} * (raidWave(raidId) - 1)) * 3600000`);
-  // 칸(분산 카운터)의 수. 규칙은 칸 번호를 받고, 쓰러뜨릴 때 칸을 하나하나 더한다.
+  // 칸(분산 카운터)의 수. 규칙은 칸 번호를 받고, 넘길 때 칸을 하나하나 더한다.
   has(`n.matches('^[0-${RAID_SHARDS - 1}]$')`);
   has(`d.shard <= ${RAID_SHARDS - 1}`);
-  has(`getAfter(raidShardPath(raidId, '${RAID_SHARDS - 1}')).data.hits;`);
+  has(`let c${RAID_SHARDS - 1} = getAfter(raidShardPath(raidId, '${RAID_SHARDS - 1}')).data;`);
   assert.ok(!rules.includes(`raidShardPath(raidId, '${RAID_SHARDS}')`), "규칙이 없는 칸까지 더한다");
-  // 필살기: 한 커밋에 기력 RAID_FINISHER_MAX번까지(빈틈이면 센 값은 그 두 배). 표식·칸 생성·칸 올리기.
+  // 필살기: 한 커밋에 기력 RAID_FINISHER_MAX번까지. 칸의 게이지는 그 값(× 역할 × 빈틈)까지 오른다.
   has(`used <= ${RAID_FINISHER_MAX}\n`);
-  has(`request.resource.data.hits <= (resource == null ? 0 : resource.data.hits) + ${RAID_FINISHER_MAX}`);
-  has(`request.resource.data.hits <= ${RAID_FINISHER_MAX * RAID_GAP_MULT}\n`);
-  has(`request.resource.data.hits <= resource.data.hits + ${RAID_FINISHER_MAX * RAID_GAP_MULT}`);
+  const most = RAID_FINISHER_MAX * RAID_ROLE_MULT * RAID_GAP_MULT;
+  for (const key of RAID_POOLS) assert.ok(rules.includes(`<= before.get('${key}', 0) + ${most}`), key);
+  // 변신: 이 형태를 30분 안에 채웠을 때만. 아니면 쓰러진다.
+  has(`request.time >= resource.data.formAt + duration.value(${RAID_FORM_FAST / MINUTE}, 'm')`);
+  has(`request.time < resource.data.formAt + duration.value(${RAID_FORM_FAST / MINUTE}, 'm')`);
+  // 다음 형태의 필요량과 몫.
+  has(`d.n % ${RAID_NEED_STEP} == 0`);
+  has(`d.n <= ${RAID_NEED_MAX}`);
+  has(`d.n >= ${RAID_NEED_PER_FIGHTER} * (crowd - ${RAID_NEED_SLACK})`);
+  has(`d.n < ${RAID_NEED_PER_FIGHTER} * crowd + ${RAID_NEED_STEP}`);
+  has(`let h = d.form == 2 ? ${RAID_FORM_SPLIT[2][0]} : ${RAID_FORM_SPLIT[3][0]};`);
+  has(`let b = d.form == 2 ? ${RAID_FORM_SPLIT[2][1]} : ${RAID_FORM_SPLIT[3][1]};`);
+  // 규칙은 갑옷과 울타리에 같은 몫(b)을 쓴다.
+  assert.equal(RAID_FORM_SPLIT[2][1], RAID_FORM_SPLIT[2][2]);
+  assert.equal(RAID_FORM_SPLIT[3][1], RAID_FORM_SPLIT[3][2]);
+});
+
+const v3wave = (over: Partial<RaidV3> = {}, hits = 0, born = T): RaidWave => {
+  const v: RaidV3 = { form: 1, formAt: born, size: 540, n: 540, brk: 162, grd: 0, base: { h: 0, b: 0, g: 0 }, brkHits: 0, grdHits: 0, ...over };
+  return { hp: v.base.h + raidSplit(v.n, v.form).h, hits, fighters: 3, spawnedAt: born, defeatedAt: null, v3: v };
+};
+
+test("3.0: 기본 필요량은 2.0 체력의 두 배 — 혼자도 둘도 1형을 못 넘기고, 드는 사람 수는 그대로다", () => {
+  assert.deepEqual([...new Set(RAID_KINDS.map((k) => k.hp * RAID_ROLE_MULT))].sort((a, b) => a - b), [...RAID_SIZES]);
+  for (let wave = 1; wave <= RAID_PER_DAY; wave++) assert.ok((RAID_SIZES as readonly number[]).includes(raidSize(20773, wave)));
+  // 한 사람이 한 형태에 넣는 최대: 기력 60 × 제 역할 2 × 빈틈 2.
+  const most = RAID_USES_PER_PERSON * RAID_ROLE_MULT * RAID_GAP_MULT;
+  assert.equal(most, 240);
+  for (const size of RAID_SIZES) {
+    assert.ok(size > 2 * most, `둘이 ${2 * most} ≥ ${size}`);
+    assert.equal(size % RAID_NEED_STEP, 0);
+    // 제 역할로 치면 2.0과 같은 사람 수.
+    assert.deepEqual(raidNeedV3(size), raidNeed(size / RAID_ROLE_MULT));
+  }
+});
+
+test("3.0: 필요량은 형태마다 정수로 나뉘고 합이 그대로다", () => {
+  for (const form of [1, 2, 3] as const) {
+    assert.equal(RAID_FORM_SPLIT[form].reduce((a, b) => a + b, 0), 100);
+    for (const n of [540, 720, 900, 1080, 7200, RAID_NEED_MAX]) {
+      const part = raidSplit(n, form);
+      assert.ok([part.h, part.b, part.g].every(Number.isInteger), `${form} ${n}`);
+      assert.equal(part.h + part.b + part.g, n);
+    }
+  }
+});
+
+test("3.0: 변신한 형태의 필요량은 온 사람 수에 맞춘다 — 기본값보다 작지 않고, 60 단위, 상한까지", () => {
+  assert.equal(raidNextNeed(540, 4), 540, "넷이면 기본값");
+  assert.equal(raidNextNeed(540, 8), 600, "72 × 8 = 576 → 600");
+  assert.equal(raidNextNeed(900, 8), 900);
+  assert.equal(raidNextNeed(540, 100), 7200);
+  assert.equal(raidNextNeed(540, 5000), RAID_NEED_MAX);
+  // 온 사람이 모두 제 역할로 빈틈 없이 치면(120씩) 넉넉히 넘긴다 — 60%만 그렇게 쳐도 된다.
+  for (const f of [10, 37, 250]) assert.ok(raidNextNeed(540, f) <= f * RAID_USES_PER_PERSON * RAID_ROLE_MULT);
+  // 규칙이 받는 범위 안이다(인원을 정확히 읽었을 때).
+  for (const f of [1, 7, 8, 9, 100, 833]) {
+    const n = raidNextNeed(540, f);
+    assert.ok(n >= RAID_NEED_PER_FIGHTER * (f - RAID_NEED_SLACK) && (n === 540 || n < RAID_NEED_PER_FIGHTER * f + RAID_NEED_STEP), `${f}: ${n}`);
+  }
+});
+
+test("3.0: 세 게이지가 다 차야 넘어가고, 30분 안이면 변신·넘기면 처치·3형은 늘 처치", () => {
+  const w = v3wave({ brkHits: 100 }, 378);
+  assert.deepEqual(raidGauges(w).map((g) => [g.have, g.need]), [[378, 378], [100, 162], [0, 0]]);
+  assert.equal(raidFilled(w), false, "갑옷이 덜 찼다");
+  const full = v3wave({ brkHits: 170 }, 400);
+  assert.deepEqual(raidGauges(full).map((g) => g.have), [378, 162, 0], "목표에서 멈춰 그린다");
+  assert.equal(raidFilled(full), true);
+  assert.equal(raidAdvanceKind(full, T + RAID_FORM_FAST - 1), "morph");
+  assert.equal(raidAdvanceKind(full, T + RAID_FORM_FAST), "finish");
+  assert.equal(raidAdvanceKind(v3wave({ form: 3, n: 600, base: { h: 400, b: 170, g: 0 } }), T + 1), "finish");
+  // 2형: 0점은 변신할 때의 합계다.
+  const second = v3wave({ form: 2, n: 600, base: { h: 400, b: 170, g: 0 }, brk: 320, grd: 150, brkHits: 200, grdHits: 150 }, 500);
+  assert.deepEqual(raidGauges(second).map((g) => [g.have, g.need]), [[100, 300], [30, 150], [150, 150]]);
+  // 2.0 물결은 체력 하나.
+  assert.deepEqual(raidGauges(wave({ hp: 270, hits: 300 })).map((g) => [g.have, g.need]), [[270, 270], [0, 0], [0, 0]]);
+  assert.equal(raidAdvanceKind(wave({ hp: 270, hits: 270 }), T + 1), "finish");
+});
+
+test("3.0: 한 번의 값 — 제 역할의 게이지 ×2, 남의 게이지 ×1, 빈틈이면 다시 ×2. 2.0 물결에는 역할 배수가 없다", () => {
+  const born = at(10) - HOUR;
+  const w = v3wave({}, 0, born);
+  assert.equal(raidPoolValue(w, "reaper", 0, at(10)), 2);
+  assert.equal(raidPoolValue(w, "reaper", 1, at(10)), 1);
+  assert.equal(raidPoolValue(w, "seeker", 1, at(10)), 2);
+  assert.equal(raidPoolValue(w, "warden", 2, at(31)), 4, "빈틈");
+  assert.equal(raidPoolValue(w, null, 0, at(31)), 2, "역할을 안 골랐으면 빈틈만");
+  assert.equal(raidPoolValue(wave({ hp: 270, spawnedAt: born }), "reaper", 0, at(10)), 1);
+});
+
+test("3.0: ★은 넘긴 형태 수 — 1형을 넘겼으면 도망가도 상자, 2.0 물결은 쓰러뜨려야 상자", () => {
+  assert.deepEqual(raidOutcome({ ...v3wave(), defeatedAt: T + 1 }, "defeated"), { won: true, stars: 1 });
+  assert.deepEqual(raidOutcome({ ...v3wave({ form: 3 }), defeatedAt: T + 1 }, "defeated"), { won: true, stars: 3 });
+  assert.deepEqual(raidOutcome(v3wave(), "escaped"), { won: false, stars: 0 }, "1형도 못 넘겼다");
+  assert.deepEqual(raidOutcome(v3wave({ form: 2 }), "escaped"), { won: true, stars: 1 });
+  assert.deepEqual(raidOutcome(v3wave({ form: 3 }), "escaped"), { won: true, stars: 2 });
+  assert.equal(raidOutcome(v3wave({ form: 2 }), "active").won, false, "싸우는 중에는 아직");
+  assert.deepEqual(raidOutcome(wave({ defeatedAt: T + 20 * MINUTE }), "defeated"), { won: true, stars: 3 });
+  assert.deepEqual(raidOutcome(wave(), "escaped"), { won: false, stars: 0 });
+  // 지원만 했거나, 앞 형태에서만 쳤어도(기력 0으로 돌아가도) 든 사람이다.
+  assert.equal(raidLoot("defeated", 2, { hits: 40, uses: 0, aids: 0 }).box, true);
 });
 
 test("필살기는 한 커밋 상한 안이고, 기력으로는 여전히 혼자 못 잡는다", () => {
@@ -273,19 +402,19 @@ test("빠른 처치 ★ — 물결 문서의 두 시각에서만", () => {
 });
 
 test("보상: ★ 조각, 끝까지, 응원단, 지원만 해도 상자, 도망에는 친 사람만 조각 하나", () => {
-  const full = raidLoot("defeated", 3, { uses: 60, aids: 3 });
+  const full = raidLoot("defeated", 3, { hits: 60, uses: 60, aids: 3 });
   assert.equal(full.box, true);
   assert.equal(full.roots, 3 + 1 + 1);
   assert.equal(full.perennial, RAID_BOX_FAST_PERENNIAL);
-  assert.equal(raidLoot("defeated", 1, { uses: 10, aids: 0 }).roots, 1);
-  assert.equal(raidLoot("defeated", 2, { uses: 59, aids: 2 }).roots, 2);
-  const cheer = raidLoot("defeated", 2, { uses: 0, aids: 1 });
+  assert.equal(raidLoot("defeated", 1, { hits: 10, uses: 10, aids: 0 }).roots, 1);
+  assert.equal(raidLoot("defeated", 2, { hits: 59, uses: 59, aids: 2 }).roots, 2);
+  const cheer = raidLoot("defeated", 2, { hits: 0, uses: 0, aids: 1 });
   assert.equal(cheer.box, true, "지원만 해도 참여 상자");
   assert.equal(cheer.perennial, RAID_BOX.odds[1].p);
-  assert.equal(raidLoot("defeated", 3, { uses: 0, aids: 0 }).box, false, "들지 않았으면 없다");
-  assert.equal(raidLoot("escaped", 0, { uses: 5, aids: 0 }).roots, 1);
-  assert.equal(raidLoot("escaped", 0, { uses: 0, aids: 4 }).roots, 0, "도망에는 친 사람만");
-  assert.equal(raidLoot("escaped", 0, { uses: 5, aids: 0 }).box, false);
+  assert.equal(raidLoot("defeated", 3, { hits: 0, uses: 0, aids: 0 }).box, false, "들지 않았으면 없다");
+  assert.equal(raidLoot("escaped", 0, { hits: 5, uses: 5, aids: 0 }).roots, 1);
+  assert.equal(raidLoot("escaped", 0, { hits: 0, uses: 0, aids: 4 }).roots, 0, "도망에는 친 사람만");
+  assert.equal(raidLoot("escaped", 0, { hits: 5, uses: 5, aids: 0 }).box, false);
   assert.equal(boxPerennial(2), 0.2);
 });
 
