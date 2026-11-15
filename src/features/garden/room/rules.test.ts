@@ -1,3 +1,6 @@
+import { BOOKS, hasChapters } from "@/content/books";
+import { BOOK_FURNITURE, BOOK_PALETTES } from "./books";
+import { PIANO_DEFAULT, PIANO_DURATION, PIANO_EVENT_MAX, pianoNotes, pianoNoteLabel, pianoSong } from "./piano";
 /**
  * 내 방의 규칙 — `pnpm garden:test`.
  * 칸 모델, 놓기·옮기기·넣기, 방 넓히기, 주간 진열, 전시·액자, 공개 문서 압축을 본다.
@@ -78,7 +81,7 @@ test("가구표: id가 겹치지 않고, 값과 크기가 설계 범위 안이�
     assert.ok(!f.id.includes(":"), `가구 id에 ':'가 있으면 전시품과 헷갈린다: ${f.id}`);
     assert.ok(f.id.length <= PUBLIC_ID_MAX);
     if (f.kind === "window") assert.equal(f.size, 2);
-    assert.ok(f.price >= 0 && f.price <= 2000, f.id);
+    assert.ok(f.price >= 0 && f.price <= (BOOK_FURNITURE.some((book) => book.id === f.id) ? 100_000 : 2000), f.id);
   }
   assert.equal(FURNITURE_BY_ID.get(FRAME_BLANK)?.price, 30);
   assert.equal(MOODS.length, 12);
@@ -426,4 +429,85 @@ test("반응 소품도 구매·보관·공유 후 같은 id로 동작하며 공�
       assert.equal(new URL(voiceOriginal(clip)).searchParams.get("v"), c.video);
     }
   }
+});
+
+
+test("자서전 소품: 내용 있는 책 전부를 100,000잼에 팔고 각각 읽기 페이지에 연결", () => {
+  const readable = BOOKS.filter((book) => !book.sample && hasChapters(book));
+  assert.equal(BOOK_FURNITURE.length, 7);
+  assert.deepEqual(BOOK_FURNITURE.map((f) => f.reading?.href).sort(), readable.map((book) => `/books/${book.slug}`).sort());
+  assert.equal(new Set([...BOOK_PALETTES.values()].map((p) => p.cover)).size, BOOK_FURNITURE.length);
+  for (const f of BOOK_FURNITURE) {
+    assert.equal(f.label, readable.find((book) => `/books/${book.slug}` === f.reading?.href)?.title);
+    assert.equal(FURNITURE_BY_ID.get(f.id), f);
+    assert.equal(f.price, 100_000);
+    assert.equal(f.kind, "floor");
+    assert.equal(f.size, 1);
+    assert.ok(BOOK_PALETTES.has(f.art));
+    assert.equal(buyItem(freshRoom(), 99_999, f.id, MONDAY), "jam");
+    const bought = buyItem(freshRoom(), 100_000, f.id, MONDAY);
+    assert.ok(typeof bought === "object");
+    assert.equal(bought.jam, 0);
+    assert.equal(bought.room.owned[f.id], 1);
+    const placed = place(bought.room, f.id, "f0")!;
+    assert.ok(placed);
+    const shared = publicRoom(placed);
+    assert.deepEqual(shared.placed, [{ a: "f0", i: f.id }]);
+    assert.equal(roomFromPublic(shared, new Map()).placed[0]?.it, f.id);
+    assert.equal(stowedCount(stow(placed, "f0"), f.id), 1);
+  }
+  assert.equal(FURNITURE_BY_ID.get("book-autobiography")?.reading?.href, "/books/autobiography");
+});
+
+
+test("피아노 음: 여덟 건반과 안전한 세 옥타브 범위로 정규화", () => {
+  assert.deepEqual(pianoNotes(undefined), PIANO_DEFAULT);
+  assert.deepEqual(pianoNotes([48, 84, 47, 85, 60.5, "60", null, NaN, 70]), [48, 84, ...PIANO_DEFAULT.slice(2)]);
+  assert.equal(pianoNoteLabel(60), "도4");
+  assert.equal(pianoNoteLabel(61), "도♯4");
+});
+
+test("피아노: 기존 여러 대도 독립 번호를 받고 이동·보관·공유에서 음을 유지", () => {
+  let room = normalizeRoom({ ...freshRoom(), owned: { piano: 2 }, placed: [{ at: "b0", it: "piano" }, { at: "f0", it: "piano" }] });
+  assert.deepEqual(room.placed.map((p) => p.kb), [0, 1]);
+  const first = [48, 50, 52, 53, 55, 57, 59, 60];
+  const second = [72, 74, 76, 77, 79, 81, 83, 84];
+  room = { ...room, pianos: { 0: first, 1: second }, pianoSongs: { 0: [{ t: 0, n: 48 }, { t: 14999, n: 60 }], 1: [{ t: 250, n: 84 }] } };
+  assert.ok(validRoom(room));
+  assert.equal(validRoom({ ...room, placed: room.placed.map((p) => ({ ...p, kb: 0 })) }), false);
+  room = move(room, "b0", "b2")!;
+  assert.equal(room.placed.find((p) => p.at === "b2")?.kb, 0);
+  room = place(stow(room, "b2"), "piano", "b0")!;
+  assert.deepEqual(room.pianos?.[0], first);
+  const restored = roomFromPublic(publicRoom(room), new Map());
+  for (const item of restored.placed) {
+    const original = room.placed.find((p) => p.at === item.at)!;
+    assert.deepEqual(restored.pianos?.[item.kb ?? 0], room.pianos?.[original.kb ?? 0]);
+    assert.deepEqual(restored.pianoSongs?.[item.kb ?? 0], room.pianoSongs?.[original.kb ?? 0]);
+  }
+  assert.deepEqual(normalizeRoom(room).pianos, room.pianos);
+  assert.deepEqual(normalizeRoom(room).pianoSongs, room.pianoSongs);
+  const legacy = roomFromPublic({ ...publicRoom(room), placed: [{ a: "b0", i: "piano" }] }, new Map());
+  assert.deepEqual(pianoNotes(legacy.pianos?.[0]), PIANO_DEFAULT);
+  assert.deepEqual(legacy.pianoSongs?.[0], []);
+  const hostile = roomFromPublic({ ...publicRoom(room), placed: [{ a: "b0", i: "piano", pn: [999, -1] }] }, new Map());
+  assert.deepEqual(hostile.pianos?.[0], PIANO_DEFAULT);
+});
+
+
+test("피아노 15초 곡: 시각·음을 검증하고 동시음을 유지하며 정렬한다", () => {
+  assert.equal(PIANO_DURATION, 15000);
+  assert.deepEqual(pianoSong(null), []);
+  assert.deepEqual(pianoSong([{ t: 1000, n: 64, text: "버릴 값" }, { t: 0, n: 60 }, { t: 1000, n: 67 }, { t: 14999, n: 84 }, { t: 15000, n: 60 }, { t: -1, n: 60 }, { t: 2.5, n: 60 }, { t: 10, n: 47 }, { t: 10, n: 85 }, { t: 10, n: "60" }, {}, null, "음"]), [
+    { t: 0, n: 60 }, { t: 1000, n: 64 }, { t: 1000, n: 67 }, { t: 14999, n: 84 },
+  ]);
+  assert.equal(pianoSong(Array.from({ length: 1000 }, (_, t) => ({ t, n: 60 }))).length, PIANO_EVENT_MAX);
+});
+
+test("피아노 곡: 놓인 피아노의 곡만 공유하고 잘못된 공개 연주는 제거한다", () => {
+  const room = normalizeRoom({ ...freshRoom(), owned: { piano: 2 }, placed: [{ at: "b0", it: "piano", kb: 1 }], pianoSongs: { 0: [{ t: 0, n: 48 }], 1: [{ t: 500, n: 72 }] } });
+  const shared = publicRoom(room);
+  assert.deepEqual(shared.placed, [{ a: "b0", i: "piano", pn: PIANO_DEFAULT, ps: [{ t: 500, n: 72 }] }]);
+  const hostile = roomFromPublic({ ...shared, placed: [{ a: "b0", i: "piano", ps: [{ t: 15000, n: 60 }, { t: 10, n: 999 }] }] }, new Map());
+  assert.deepEqual(hostile.pianoSongs?.[0], []);
 });

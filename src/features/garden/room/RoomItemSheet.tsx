@@ -17,6 +17,8 @@ import { FurnitureStory } from "./FurnitureStory";
 import { activityOf } from "./activities";
 import { RoomVoicePlayer } from "./RoomVoicePlayer";
 import { playActivitySound } from "./activitySound";
+import { PianoPlayer } from "./PianoPlayer";
+import { pianoNotes, pianoSong, type PianoEvent } from "./piano";
 import type { Placed, RoomData } from "./rules";
 
 /**
@@ -31,11 +33,15 @@ export function RoomItemSheet({
   placed,
   byId,
   onClose,
+  onPianoNotes,
+  onPianoSave,
 }: {
   room: RoomData;
   placed: Placed;
   byId: ReadonlyMap<string, Species>;
   onClose: () => void;
+  onPianoNotes?: (notes: number[]) => void;
+  onPianoSave?: (song: PianoEvent[]) => boolean;
 }) {
   const shown = room.shown.find((s) => s.id === placed.it);
   const species = shown?.species ? byId.get(shown.species) : undefined;
@@ -48,12 +54,14 @@ export function RoomItemSheet({
 
   const furniture = FURNITURE_BY_ID.get(placed.it);
   const activity = activityOf(placed.it);
-  if (furniture && (furniture.story || activity)) {
+  if (placed.it === "piano") return <Sheet label="피아노 연주" title="피아노" onClose={onClose}><PianoPlayer key={placed.kb ?? 0} notes={pianoNotes(room.pianos?.[placed.kb ?? 0])} song={pianoSong(room.pianoSongs?.[placed.kb ?? 0])} onChange={onPianoNotes} onSave={onPianoSave} /></Sheet>;
+  if (furniture && (furniture.story || activity || furniture.reading)) {
     return (
       <Sheet label={`${furniture.label} 자세히 보기`} title={furniture.label} onClose={onClose}>
         <div className="mt-3 flex justify-center"><FurnitureIcon id={furniture.id} size={96} /></div>
         <p className="mt-2 text-[13px] text-smoke">{furniture.hint}</p>
         {activity?.clips ? <RoomVoicePlayer clips={activity.clips} /> : activity?.sound ? <button type="button" className="garden-diary-btn mt-3" onClick={() => { if (activity.sound) playActivitySound(activity.sound); }}>♪ 소리 다시 듣기</button> : null}
+        {furniture.reading && <Link href={furniture.reading.href} className="garden-diary-btn mt-3 inline-flex min-h-[44px] items-center">{furniture.reading.label} →</Link>}
         {furniture.story && <FurnitureStory story={furniture.story} />}
       </Sheet>
     );

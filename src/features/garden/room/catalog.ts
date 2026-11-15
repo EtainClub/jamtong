@@ -1,5 +1,6 @@
 import { STORY_FURNITURE, type FurnitureStory, type StoryCollection } from "./stories";
 import { PLAY_FURNITURE } from "./activities";
+import { BOOK_FURNITURE } from "./books";
 
 /**
  * 방에 놓는 산 것(가구)과 오늘의 기분. 설계는 docs/garden-miniroom.md §4.2.
@@ -43,6 +44,8 @@ export interface Furniture {
   /** 이날(한국 날짜, 그날 포함)까지 상점 가구 맨 위 "새로 들어온 가구"에 NEW로 보인다. 목록 한가운데 묻히지 않게. */
   newUntil?: string;
   shortcut?: Shortcut;
+  /** 방에서 눌러 읽는 잼통 내부 페이지. 책 본문을 가구 번들에 넣지 않는다. */
+  reading?: { href: string; label: string };
   story?: FurnitureStory;
   collection?: StoryCollection;
 }
@@ -50,6 +53,7 @@ export interface Furniture {
 export const FURNITURE: Furniture[] = [
   ...STORY_FURNITURE,
   ...PLAY_FURNITURE,
+  ...BOOK_FURNITURE,
   // 벽지
   { id: "wp-cream", label: "크림 벽지", kind: "wallpaper", size: 1, price: 0, art: "wp-cream", hint: "처음 방의 벽지예요." },
   { id: "wp-stripe", label: "연두 줄무늬 벽지", kind: "wallpaper", size: 1, price: 150, art: "wp-stripe", hint: "텃밭 생각이 나는 연두 줄무늬." },
@@ -90,7 +94,7 @@ export const FURNITURE: Furniture[] = [
   { id: "radio", label: "라디오", kind: "floor", size: 1, price: 300, art: "radio", hint: "누르면 정원 음악을 켜고 꺼요.", shortcut: "music" },
   { id: "mailbox", label: "우편함", kind: "floor", size: 1, price: 250, art: "mailbox", hint: "누르면 방명록으로 가요.", shortcut: "guestbook" },
   { id: "keyboard", label: "내 키보드", kind: "floor", size: 2, price: 400, art: "keyboard", hint: "키 네 개에 그림을 그리고 소리를 골라요. 손님도 눌러 볼 수 있어요.", shortcut: "keyboard", newUntil: "2026-12-14" },
-  { id: "piano", label: "피아노", kind: "floor", size: 2, price: 1500, art: "piano", hint: "건반 여든여덟 개." },
+  { id: "piano", label: "피아노", kind: "floor", size: 2, price: 1500, art: "piano", hint: "15초 동안 직접 연주해 곡을 남겨요. 방문자가 누르면 저장한 음악이 흘러나와요." },
   { id: "picnic", label: "피크닉 바구니", kind: "floor", size: 1, price: 450, art: "picnic", hint: "이번 주에만 들어오는 소품.", weekly: true },
   { id: "fishbowl", label: "어항", kind: "floor", size: 1, price: 800, art: "fishbowl", hint: "이번 주에만 들어오는 어항.", weekly: true },
   { id: "rocker", label: "흔들의자", kind: "floor", size: 1, price: 900, art: "rocker", hint: "이번 주에만 들어오는 흔들의자.", weekly: true },

@@ -5,6 +5,7 @@ import { RaidTrophyArt } from "../RaidWeedArt";
 import { isRaidKind } from "../raid/rules";
 import { HOUR, isMeteor, isRaining } from "../rules";
 import type { Mutation, Species } from "../types";
+import { BOOK_PALETTES } from "./books";
 import { FURNITURE_BY_ID } from "./catalog";
 import { StoryFurnitureArt } from "./StoryFurnitureArt";
 import { PlayFurnitureArt } from "./PlayFurnitureArt";
@@ -278,8 +279,29 @@ function Sky({ x, y, w, h, weather }: { x: number; y: number; w: number; h: numb
 export function FurnitureArt({ art, w, h, weather, keys }: { art: string; w: number; h: number; weather: Weather; keys?: readonly RoomKey[] }) {
   const base = h; // 바닥 물건은 아래 변에 선다
   const cx = w / 2;
+  const book = BOOK_PALETTES.get(art);
   let body: ReactNode = null;
   switch (art) {
+    case "book-hope-through-hardship":
+    case "book-revolution":
+    case "book-bent-arm":
+    case "book-lee-does-it":
+    case "book-not-lonely-together":
+    case "book-people-do-it":
+    case "book-autobiography":
+      if (!book) break;
+      body = <>
+        <B x={cx - 15} y={38} w={30} h={5} fill="#bf913e" />
+        <B x={cx - 11} y={32} w={22} h={6} fill="#e3bd68" />
+        <B x={cx - 13} y={3} w={26} h={30} fill={book.cover} />
+        <B x={cx - 9} y={5} w={20} h={26} fill={book.paper} />
+        <B x={cx - 9} y={5} w={3} h={26} fill="#cfaa51" />
+        <B x={cx - 3} y={10} w={11} h={2} fill={book.cover} />
+        <B x={cx - 3} y={14} w={9} h={2} fill={book.cover} />
+        <B x={cx - 3} y={20} w={11} h={1} fill="#bf913e" />
+        <path d={`M${cx + 3} 26h4v10l-2-2-2 2z`} fill={book.ribbon} />
+      </>;
+      break;
     case "frame":
       body = <><B x={5} y={4} w={w - 10} h={38} fill={C.wood} /><B x={10} y={9} w={w - 20} h={28} fill={C.paper} /></>;
       break;

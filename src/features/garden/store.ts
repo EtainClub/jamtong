@@ -1,5 +1,7 @@
 "use client";
 
+import { pianoNotes, pianoSong, type PianoEvent } from "./room/piano";
+
 import { create } from "zustand";
 
 import {
@@ -470,6 +472,10 @@ interface GardenState {
   setMotto: (text: string) => LineProblem | null;
   /** 내 키보드의 키 하나를 바꾼다(그림·소리·녹음 판). 모양이 어긋난 값은 room/keyboard.ts가 바로잡는다. */
   setKey: (slot: number, key: RoomKey, keyboard?: number) => void;
+  /** 놓인 피아노 하나의 건반 음 여덟 개를 저장한다. */
+  setPianoNotes: (id: number, notes: number[]) => void;
+  /** 완성한 15초 연주를 해당 피아노에 저장한다. */
+  savePianoSong: (id: number, song: PianoEvent[]) => boolean;
   /** 키 넷을 통째로 바꾼다(처음으로 되돌리기, 녹음을 지운 뒤). */
   setKeys: (keys: RoomKey[], keyboard?: number) => void;
   /** 가진 벽지·바닥재를 바른다. */
@@ -1100,6 +1106,18 @@ export const useGarden = create<GardenState>((set, get) => {
       commit({ ...d, room: { ...d.room, bgm: id } });
     },
 
+    savePianoSong: (id, song) => {
+      const d = get().data;
+      const take = pianoSong(song);
+      if (!d || !take.length || !d.room.placed.some((p) => p.it === "piano" && (p.kb ?? 0) === id)) return false;
+      commit({ ...d, room: { ...d.room, pianoSongs: { ...d.room.pianoSongs, [id]: take } } });
+      return true;
+    },
+    setPianoNotes: (id, notes) => {
+      const d = get().data;
+      if (!d || !d.room.placed.some((p) => p.it === "piano" && (p.kb ?? 0) === id)) return;
+      commit({ ...d, room: { ...d.room, pianos: { ...d.room.pianos, [id]: pianoNotes(notes) } } });
+    },
     setKey: (slot, key, keyboard = 0) => {
       const d = get().data;
       if (!d || slot < 0 || slot >= room.keyboardKeys(d.room, keyboard).length) return;
