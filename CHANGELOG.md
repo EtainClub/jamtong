@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2.2.0 — 2026-11-15
+
+### 새 기능
+
+- add collectible books and 15-second piano songs (4c39461)
+- factbot-gap 여덟 건의 빈 자리를 채운다 (#285~#292) (247ecd0)
+
 ## 2.1.0 — 2026-11-14
 
 ### 새 기능
