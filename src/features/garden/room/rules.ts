@@ -8,6 +8,7 @@ import { cleanLine, lineProblem, type LineProblem } from "../ilchon/text";
 import { isRaidKind } from "../raid/rules";
 import type { Fruit, Mutation, Species } from "../types";
 import { DEFAULT_FLOOR, DEFAULT_MOOD, DEFAULT_WALL, FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS, ROOM_SIZES, type Furniture } from "./catalog";
+import { avatarFromPublic, avatarSlotOk, freshAvatar, normalizeAvatar, packAvatar, type AvatarData } from "../avatar/rules";
 import { freshKeys, KEYBOARD_ID, KEY_VER_MAX, recSlots, keysFromPublic, normalizeKeys, publicKeys, packKeyboard, unpackKeyboard, type RoomKey } from "./keyboard";
 
 /**
@@ -67,6 +68,8 @@ export interface RoomData {
   pianoSongs?: Record<string, PianoEvent[]>;
   /** 방 한마디. '내 방' 옆에 걸리는 한 줄(MOTTO_MAX자). 사람이 쓴 글이라 걸러서 받고, 그 방 안에서만 보인다. */
   motto: string;
+  /** 내 방의 꼬마(docs/garden-avatar.md). 옛 장부·남의 옛 방에는 없다 — normalizeRoom이 채운다. */
+  avatar?: AvatarData;
 }
 
 export type Row = "w" | "b" | "f";
@@ -102,13 +105,14 @@ export function mottoProblem(input: string): LineProblem | null {
 /** 주마다 바뀌는 진열의 칸 수. */
 export const WEEKLY_SIZE = 4;
 
-export function freshRoom(): RoomData {
-  return { size: 0, wall: DEFAULT_WALL, floor: DEFAULT_FLOOR, mood: DEFAULT_MOOD, bgm: DEFAULT_TRACK, music: [], placed: [], owned: {}, shown: [], keys: freshKeys(), motto: "" };
+/** seed는 기본 꼬마를 정한다(avatar/rules.ts의 freshAvatar). */
+export function freshRoom(seed = ""): RoomData {
+  return { size: 0, wall: DEFAULT_WALL, floor: DEFAULT_FLOOR, mood: DEFAULT_MOOD, bgm: DEFAULT_TRACK, music: [], placed: [], owned: {}, shown: [], keys: freshKeys(), motto: "", avatar: freshAvatar(seed) };
 }
 
 /** 방이 생기기 전에 저장된 정원, 또는 모양이 어긋난 방. */
-export function normalizeRoom(raw: Partial<RoomData> | undefined): RoomData {
-  const base = freshRoom();
+export function normalizeRoom(raw: Partial<RoomData> | undefined, seed = ""): RoomData {
+  const base = freshRoom(seed);
   if (!raw) return base;
   const size = raw.size === 1 || raw.size === 2 ? raw.size : 0;
   const room: RoomData = {
@@ -126,6 +130,7 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined): RoomData {
     pianos: Object.fromEntries(Object.entries(raw.pianos ?? {}).filter(([id]) => /^[0-8]$/.test(id)).map(([id, notes]) => [id, pianoNotes(notes)])),
     keyboards: Object.fromEntries(Object.entries(raw.keyboards ?? {}).filter(([id]) => /^[1-8]$/.test(id)).map(([id, keys]) => [id, normalizeKeys(keys)])),
     motto: typeof raw.motto === "string" ? cleanMotto(raw.motto) : "",
+    avatar: normalizeAvatar(raw.avatar, seed),
   };
   // 옛 방의 여러 키보드는 같은 키를 보였다. 각각 복사해서 독립시킨다.
   const used = new Set<number>();
@@ -530,7 +535,10 @@ export function publicRoom(room: RoomData): PublicRoom {
   const keyboards = Object.fromEntries(room.placed.filter((p) => p.it === KEYBOARD_ID && (p.kb ?? 0) > 0)
     .map((p) => [p.kb!, packKeyboard(keyboardKeys(room, p.kb))]));
   const motto = room.motto ? { motto: room.motto } : {};
-  return { size: room.size, wall: room.wall, floor: room.floor, mood: room.mood, bgm: room.bgm, placed, ...keys, ...(Object.keys(keyboards).length ? { keyboards } : {}), ...motto };
+  // 꼬마는 문자열 하나. 끈 꼬마는 싣지 않고, 가지지 않은 옷은 기본으로 바꿔 싣는다(avatar/rules.ts의 packAvatar).
+  const packed = room.avatar ? packAvatar(room.avatar, roomWidth(room.size)) : null;
+  const avatar = packed ? { avatar: packed } : {};
+  return { size: room.size, wall: room.wall, floor: room.floor, mood: room.mood, bgm: room.bgm, placed, ...keys, ...(Object.keys(keyboards).length ? { keyboards } : {}), ...motto, ...avatar };
 }
 
 /**
@@ -544,7 +552,8 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
   const mood = MOODS.some((m) => m.id === pub.mood) ? pub.mood : DEFAULT_MOOD;
   const bgm = isGardenTrack(pub.bgm) ? pub.bgm : DEFAULT_TRACK;
   // 키는 모양을 다시 본다 — 어긋난 그림은 빈 그림, 모르는 소리는 소리 없음(keyboard.ts의 keysFromPublic).
-  let room: RoomData = { size, wall, floor, mood, bgm, placed: [], owned: {}, shown: [], keys: keysFromPublic(pub.keys), motto: typeof pub.motto === "string" ? cleanMotto(pub.motto) : "" };
+  const avatar = avatarFromPublic(pub.avatar);
+  let room: RoomData = { size, wall, floor, mood, bgm, placed: [], owned: {}, shown: [], keys: keysFromPublic(pub.keys), motto: typeof pub.motto === "string" ? cleanMotto(pub.motto) : "", ...(avatar && avatarSlotOk(avatar.at, roomWidth(size)) ? { avatar } : {}) };
   pub.placed.slice(0, PUBLIC_PLACED_MAX).forEach((p, n) => {
     if ("i" in p) {
       // 남의 방은 가진 수를 모른다. 놓인 만큼 가졌다고 본다.

@@ -69,6 +69,7 @@ import {
 } from "./raid/rules";
 import { initialCoach, normalizeCoach, type CoachData, type CoachMark, type TipTab } from "./coach";
 import * as room from "./room/rules";
+import { avatarSlotOk, buyWear as buyWearRule, grantRewards, normalizeAvatar, unownedWear, type AvatarData, type WearRefusal } from "./avatar/rules";
 import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_ILCHON, type IlchonData, type NewsEntry } from "./ilchon/rules";
 import { MOODS } from "./room/catalog";
 import { normalizeKeys, type RoomKey } from "./room/keyboard";
@@ -239,7 +240,8 @@ function fresh(catalog: Species[]): GardenData {
     loot: freshLoot(),
     invite: NO_INVITE,
     friends: [],
-    room: room.freshRoom(),
+    // 새 정원마다 다른 기본 꼬마(docs/garden-avatar.md §6.1). 장부에 저장되어 기기를 바꿔도 같다.
+    room: room.freshRoom(String(Date.now()) + Math.random()),
     ilchon: freshIlchon(),
     news: [],
     updatedAt: Date.now(),
@@ -268,7 +270,8 @@ function normalize(data: GardenData): GardenData {
     loot: normalizeLoot(data.loot),
     invite: data.invite ?? NO_INVITE,
     friends: data.friends ?? [],
-    room: room.normalizeRoom(data.room),
+    // 꼬마가 없는 옛 장부는 정원 이름으로 기본 꼬마를 정한다 — 저장되기 전에 다시 열어도 같은 꼬마.
+    room: room.normalizeRoom(data.room, data.nick || String(data.updatedAt)),
     ilchon: normalizeIlchon(data.ilchon),
     news: Array.isArray(data.news) ? data.news.slice(0, NEWS_MAX) : [],
   };
@@ -482,6 +485,12 @@ interface GardenState {
   setKeys: (keys: RoomKey[], keyboard?: number) => void;
   /** 가진 벽지·바닥재를 바른다. */
   applySurface: (id: string) => boolean;
+  /** 꼬마를 저장한다(docs/garden-avatar.md). 가지지 않은 옷을 입었거나 칸이 방 밖이면 false. */
+  saveAvatar: (next: AvatarData) => boolean;
+  /** 꼬마 옷을 잼·뿌리 조각으로 산다. */
+  buyWear: (id: string) => true | WearRefusal;
+  /** 조건을 채운 받는 옷(칭호·황금·박제)을 옷장에 넣는다. 새로 넣은 id. */
+  claimWear: (levels: Partial<Record<"dex" | "storm" | "plaza", number>>) => string[];
   /** 꾸미기를 마쳤다. 초안이 맞지 않으면(room/rules.ts의 validRoom) 받지 않고 false. */
   saveRoom: (draft: room.RoomData) => boolean;
   /** 바구니의 열매를 방에 전시한다(열매는 사라진다). 놓인 칸(빈 칸이 없으면 null)과 전시품. */
@@ -1148,6 +1157,36 @@ export const useGarden = create<GardenState>((set, get) => {
       if (!d || !next) return false;
       commit({ ...d, room: next });
       return true;
+    },
+
+    saveAvatar: (next) => {
+      const d = get().data;
+      if (!d || !d.room.avatar) return false;
+      const cur = d.room.avatar;
+      const draft = normalizeAvatar({ ...next, owned: cur.owned });
+      if (!avatarSlotOk(draft.at, room.roomWidth(d.room.size)) || unownedWear(cur, draft.look).length) return false;
+      commit({ ...d, room: { ...d.room, avatar: draft } });
+      return true;
+    },
+
+    buyWear: (id) => {
+      const d = get().data;
+      if (!d || !d.room.avatar) return "unknown";
+      const out = buyWearRule(d.room.avatar, { jam: d.jam, roots: d.roots }, id);
+      if (typeof out === "string") return out;
+      commit({ ...d, room: { ...d.room, avatar: out.avatar }, jam: out.jam, roots: out.roots });
+      return true;
+    },
+
+    claimWear: (levels) => {
+      const d = get().data;
+      if (!d || !d.room.avatar) return [];
+      const golden = Object.values(d.dex).filter((m) => m.includes("golden")).length;
+      const trophies = new Set(d.room.shown.filter((x) => x.kind === "trophy").map((x) => x.species)).size;
+      const next = grantRewards(d.room.avatar, { titles: levels, golden, trophies });
+      if (next === d.room.avatar) return [];
+      commit({ ...d, room: { ...d.room, avatar: next } });
+      return next.owned.filter((id) => !d.room.avatar!.owned.includes(id));
     },
 
     saveRoom: (draft) => {

@@ -137,6 +137,15 @@ const pub = (owner: string, nick: string, over: Record<string, unknown> = {}) =>
   await expect(true, "한마디 30자", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ motto: "가".repeat(30) }) })));
   await expect(false, "한마디 31자", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ motto: "가".repeat(31) }) })));
   await expect(false, "한마디가 글이 아니다", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ motto: 7 }) })));
+  console.log("꼬마(room.avatar)");
+  const kid = "1;f1;0;3;2;bob;round;tee.4;pants.2;sneaker.1;straw;;can;cloud";
+  await expect(true, "꼬마 문자열", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ avatar: kid }) })));
+  await expect(false, "꼬마 문자열에 글(한글·빈칸)", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ avatar: kid + "안녕 하세요" }) })));
+  await expect(false, "꼬마 문자열에 대문자·링크 글자", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ avatar: kid + "HTTP://x" }) })));
+  await expect(false, "꼬마 판이 다르다", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ avatar: "2" + kid.slice(1) }) })));
+  await expect(false, "꼬마가 벽 칸", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ avatar: kid.replace(";f1;", ";w1;") }) })));
+  await expect(false, "꼬마 161자", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ avatar: kid + "a".repeat(161 - kid.length) }) })));
+  await expect(false, "꼬마가 글이 아니다", () => setDoc(doc(a, "gardens", gA), pub(A, "에이", { room: plain({ avatar: { look: 1 } }) })));
   await expect(true, "아무나 한마디 가리기 표시 읽기", () => getDoc(doc(client(null), "gardens", gA, "mod", "motto")));
   await expect(false, "주인이 한마디 가리기 표시 쓰기", () => setDoc(doc(a, "gardens", gA, "mod", "motto"), { hidden: false, at: serverTimestamp() }));
   await expect(true, "운영자가 한마디 가리기", () => setDoc(doc(admin, "gardens", gA, "mod", "motto"), { hidden: true, at: serverTimestamp() }));

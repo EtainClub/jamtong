@@ -19,13 +19,14 @@ export const CURRENCY: Record<Currency, { icon: string; label: string }> = {
   root: { icon: "🌰", label: "뿌리 조각" },
 };
 
-export type ShopCat = "seeds" | "tools" | "furniture" | "walls" | "trophy" | "music";
+export type ShopCat = "seeds" | "tools" | "furniture" | "walls" | "wear" | "trophy" | "music";
 
 export const SHOP_CATS: Array<{ id: ShopCat; icon: string; label: string; currency: Currency }> = [
   { id: "seeds", icon: "🌱", label: "씨앗", currency: "jam" },
   { id: "tools", icon: "🧪", label: "도구", currency: "jam" },
   { id: "furniture", icon: "🛋", label: "가구", currency: "jam" },
   { id: "walls", icon: "🎨", label: "벽·바닥", currency: "jam" },
+  { id: "wear", icon: "👕", label: "옷장", currency: "jam" },
   { id: "music", icon: "💿", label: "음원", currency: "jam" },
   { id: "trophy", icon: "🏆", label: "전리품", currency: "root" },
 ];

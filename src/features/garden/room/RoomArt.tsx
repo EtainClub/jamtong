@@ -1,14 +1,17 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { RAID_KINDS } from "../rules";
 import type { Species } from "../types";
-import { FURNITURE_BY_ID } from "./catalog";
+import { FURNITURE_BY_ID, moodOf } from "./catalog";
+import { AVATAR_NAME } from "../avatar/catalog";
+import { AVATAR_H } from "../avatar/AvatarArt";
+import { avatarSlotOk, furnitureAt, hopsOnTap, roamNext } from "../avatar/rules";
 import { activityOf } from "./activities";
 import { playActivitySound } from "./activitySound";
 import { parseSlot, placement, roomWidth, slotsOf, type Placed, type RoomData, type Shown } from "./rules";
-import { CELL, HEIGHT, ROWS, ROOM_COLORS as C, FurnitureArt, RoomSvg, ShownArt, Surface } from "./RoomSvg";
+import { CELL, HEIGHT, ROWS, ROOM_COLORS as C, FurnitureArt, RoomSvg, ShownArt, Surface, type AvatarLive } from "./RoomSvg";
 export { weatherAt, type Weather } from "./RoomSvg";
 
 /**
@@ -60,10 +63,64 @@ interface SceneProps {
   selected?: string | null;
   /** 미리 보기로 얹은 것(상점의 "방에 놓아 보기"). 흐리게 그린다. */
   ghost?: Placed | null;
+  /** 꼬마를 눌렀을 때 아래에 뜨는 단추(주인: 옷 갈아입기·기분 바꾸기). 없으면 말풍선만. */
+  avatarActions?: ReactNode;
+  /** 꼬마를 눌렀다(계측). */
+  onAvatarTap?: () => void;
 }
 
-export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot, open, selected, ghost }: SceneProps) {
+const ROAM_EVERY = 5000;
+const STEP_MS = 800;
+
+function reducedMotion(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot, open, selected, ghost, avatarActions, onAvatarTap }: SceneProps) {
   const uid = useId().replace(/:/g, "");
+  const av = room.avatar?.on && avatarSlotOk(room.avatar.at, roomWidth(room.size)) ? room.avatar : null;
+  const rest = (at: string | null): AvatarLive | null => (at ? { at, act: null, walking: false, nonce: 0 } : null);
+  const [live, setLive] = useState<AvatarLive | null>(() => rest(av?.at ?? null));
+  // talk = 머리 위 말풍선(4초), menu = 그림 아래 단추 줄(닫을 때까지).
+  const [talk, setTalk] = useState(0);
+  const [menu, setMenu] = useState(false);
+  const timers = useRef<number[]>([]);
+  const later = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)); };
+  useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
+  const home = av?.at ?? null;
+  const roam = Boolean(av?.roam) && !onSlot;
+  // 자리가 바뀌거나 꾸미기를 드나들면 제자리로(렌더 중에 맞춘다 — effect에서 setState하지 않는다).
+  const restKey = `${home}|${Boolean(onSlot)}`;
+  const [seenKey, setSeenKey] = useState(restKey);
+  if (seenKey !== restKey) {
+    setSeenKey(restKey);
+    setLive(rest(home));
+  }
+  useEffect(() => {
+    if (!roam || !home || reducedMotion()) return;
+    const step = () => {
+      if (document.hidden) return;
+      setLive((cur) => {
+        if (!cur || cur.act) return cur;
+        const next = roamNext(cur.at, roomWidth(room.size), `${label}:${Math.floor(Date.now() / ROAM_EVERY)}`);
+        if (next === cur.at) return cur;
+        later(STEP_MS, () => setLive((c) => (c ? { ...c, walking: false } : c)));
+        return { ...cur, at: next, walking: true };
+      });
+    };
+    const id = window.setInterval(step, ROAM_EVERY);
+    return () => window.clearInterval(id);
+  }, [roam, home, room.size, label]);
+  function tapAvatar() {
+    if (!live) return;
+    onAvatarTap?.();
+    setLive({ ...live, walking: false, act: hopsOnTap(room.mood) ? "hop" : "wave", nonce: live.nonce + 1 });
+    const n = Date.now();
+    setTalk(n);
+    setMenu(true);
+    later(4000, () => setTalk((t) => (t === n ? 0 : t)));
+    later(1400, () => setLive((c) => (c ? { ...c, act: null } : c)));
+  }
   const [pulses, setPulses] = useState<Record<string, number>>({});
   const [reacted, setReacted] = useState<{ placed: Placed; message: string } | null>(null);
   function activate(p: Placed) {
@@ -92,7 +149,7 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot
     <div>
     <div className="garden-room-scroll">
       <div className="garden-room" style={{ minWidth: width * MIN_CELL_PX, aspectRatio: `${W} / ${HEIGHT}` }}>
-        <RoomSvg room={room} byId={byId} now={now} label={label} uid={uid} ghost={ghost} selected={selected} pulses={onSlot ? undefined : pulses} />
+        <RoomSvg room={room} byId={byId} now={now} label={label} uid={uid} ghost={ghost} selected={selected} pulses={onSlot ? undefined : pulses} avatar={onSlot ? null : live} />
 
         {onSlot &&
           (["w", "b", "f"] as const).flatMap((row) =>
@@ -128,8 +185,50 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot
                 style={box(slot.row, slot.i, spec.size)}
               />
             ))}
+        {!onSlot && live && (() => {
+          const slot = parseSlot(live.at)!;
+          const top = ROWS[slot.row].y + ROWS[slot.row].h - AVATAR_H;
+          const mood = moodOf(room.mood);
+          return (
+            <>
+              <button
+                type="button"
+                onClick={tapAvatar}
+                aria-label={`${AVATAR_NAME} · 오늘의 기분 ${mood.label} · 눌러서 인사하기`}
+                className="garden-room-item garden-avatar-hit"
+                style={{ ...box(slot.row, slot.i, 1), top: `${(top / HEIGHT) * 100}%`, height: `${(AVATAR_H / HEIGHT) * 100}%` }}
+              />
+              {talk > 0 && (
+                <div
+                  role="status"
+                  className={`garden-avatar-bubble is-${room.avatar?.look.bubble ?? "basic"}`}
+                  style={{ left: `${(((slot.i + 0.5) * CELL) / W) * 100}%`, top: `${(top / HEIGHT) * 100}%` }}
+                >
+                  <span aria-hidden="true">{mood.icon}</span> {mood.label}
+                  {room.motto && <span className="garden-avatar-bubble-line">{room.motto}</span>}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
     </div>
+    {!onSlot && menu && live && (() => {
+      const under = furnitureAt(room.placed, live.at);
+      const underActive = under && onItem && (isItemActive ? isItemActive(under as Placed) : true);
+      if (!avatarActions && !underActive) return null;
+      return (
+        <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-[var(--d-line)] p-2 text-[12px]">
+          {avatarActions}
+          {underActive && (
+            <button type="button" className="garden-diary-btn" onClick={() => activate(under as Placed)}>
+              {itemName(under.it, room, byId)} 보기
+            </button>
+          )}
+          <button type="button" className="garden-diary-btn" onClick={() => { setMenu(false); setTalk(0); }}>닫기</button>
+        </div>
+      );
+    })()}
     {!onSlot && reacted && room.placed.some((p) => p.it === reacted.placed.it && p.at === reacted.placed.at) && (
       <div className="mt-2 rounded-xl border border-[var(--d-line)] p-2 text-[12px]">
         <p role="status">{reacted.message}</p>

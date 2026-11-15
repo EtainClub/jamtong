@@ -271,6 +271,7 @@ export function VisitView({
               byId={byId}
               now={now}
               label={`${garden.nick || "이름 없는"}의 방`}
+              onAvatarTap={() => track("avatar_tap", { mine: false })}
               isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID || p.it === "piano" || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
               onItem={(p) => {
                 gardenFeedback("tap");

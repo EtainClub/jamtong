@@ -675,7 +675,7 @@ service cloud.firestore {
     // 값은 src/features/garden/room/rules.ts의 PUBLIC_PLACED_MAX·PUBLIC_ID_MAX와 같다(room/rules.test.ts가 본다).
     function publicRoom(r) {
       return r is map
-        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'bgm', 'placed', 'keys', 'keyboards', 'motto'])
+        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'bgm', 'placed', 'keys', 'keyboards', 'motto', 'avatar'])
         && r.size is int && r.size >= 0 && r.size <= 2
         && r.wall is string && r.wall.size() <= 40
         && r.floor is string && r.floor.size() <= 40
@@ -684,7 +684,11 @@ service cloud.firestore {
         && r.placed is list && r.placed.size() <= 40
         && (!('keys' in r) || publicKeys(r.keys))
         && (!('keyboards' in r) || publicKeyboards(r.keyboards))
-        && (!('motto' in r) || (r.motto is string && r.motto.size() <= 30));
+        && (!('motto' in r) || (r.motto is string && r.motto.size() <= 30))
+        // 꼬마(docs/garden-avatar.md §6.2) — 판;칸;돌아다니기;피부;머리색;부위 id 문자열 하나. 글자는 소문자·숫자·.;- 뿐.
+        // 값은 src/features/garden/avatar/rules.ts의 AVATAR_PUBLIC_MAX·AVATAR_PUBLIC_RE와 같다(avatar.test.ts가 본다).
+        && (!('avatar' in r) || (r.avatar is string && r.avatar.size() <= 160
+              && r.avatar.matches('^1;[bf][0-9];[01];[0-9];[0-9];[a-z0-9.;-]{0,140}$')));
     }
 
     // 내 키보드(docs/garden-miniroom.md §4.5). 키는 꼭 넷 — 넷이라 하나하나 볼 수 있다.
