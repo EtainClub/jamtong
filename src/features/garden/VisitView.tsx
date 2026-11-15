@@ -10,7 +10,7 @@ import { loadKeysHidden } from "@/lib/firebase/roomKeys";
 import { loadRoomHidden, reportRoomPart, setRoomHidden } from "@/lib/firebase/roomMod";
 
 import { PlantArt } from "./GardenArt";
-import { DEFAULT_TRACK, gardenFeedback, gardenTrack, isGardenTrack, setGardenTrack } from "./feedback";
+import { DEFAULT_TRACK, gardenFeedback, keyAudio, gardenTrack, isGardenTrack, setGardenTrack } from "./feedback";
 import { VisitorCount } from "./home/HomeParts";
 import { useIlchonLive, useRoomLines } from "./ilchon/live";
 import { LineComposer, TagSheet } from "./ilchon/parts";
@@ -271,9 +271,10 @@ export function VisitView({
               byId={byId}
               now={now}
               label={`${garden.nick || "이름 없는"}의 방`}
-              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.story)}
+              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID || p.it === "piano" || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
               onItem={(p) => {
                 gardenFeedback("tap");
+                if (p.it === "piano") keyAudio();
                 if (p.it === KEYBOARD_ID) { setKeyboard(p.kb ?? 0); setSheet("keyboard"); }
                 else setOpened(p);
               }}

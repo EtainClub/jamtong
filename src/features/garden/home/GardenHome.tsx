@@ -176,7 +176,7 @@ export function GardenHome({
                 byId={byId}
                 now={now}
                 label={`${data.nick}의 방`}
-                isItemActive={(p) => isShownId(p.it) || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.shortcut || FURNITURE_BY_ID.get(p.it)?.story)}
+                isItemActive={(p) => isShownId(p.it) || p.it === "piano" || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.shortcut || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
                 onItem={(p) => {
                   const s = FURNITURE_BY_ID.get(p.it)?.shortcut;
                   if (s) shortcut(s, p.kb ?? 0);
@@ -246,7 +246,7 @@ export function GardenHome({
           }}
         />
       )}
-      {opened && <RoomItemSheet room={data.room} placed={opened} byId={byId} onClose={() => setOpened(null)} />}
+      {opened && <RoomItemSheet room={data.room} placed={opened} byId={byId} onPianoSave={(song) => useGarden.getState().savePianoSong(opened.kb ?? 0, song)} onPianoNotes={(notes) => useGarden.getState().setPianoNotes(opened.kb ?? 0, notes)} onClose={() => setOpened(null)} />}
       {keyboardOpen !== null && (
         <KeyboardSheet keyboard={keyboardOpen} keys={keyboardKeys(data.room, keyboardOpen)} owner ownerUid={uid} gid={gid} uid={uid} nick={data.nick} say={say} onClose={() => setKeyboardOpen(null)} />
       )}

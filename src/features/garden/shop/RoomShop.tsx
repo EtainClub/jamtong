@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { track } from "@/lib/analytics";
@@ -15,6 +16,7 @@ import { firstOpenSlot, hasSurface, nextRoomSize, OWN_MAX, ROOM_SIZES, onSale, w
 import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
 import { BuySheet, ExpandBanner, priceText, ShopCard } from "./parts";
+import { PianoPreview } from "../room/PianoPlayer";
 import { ActivityPreview } from "./ActivityPreview";
 
 /**
@@ -80,7 +82,7 @@ export function RoomShop({
         art={<FurnitureIcon id={f.id} size={56} />}
         title={f.label}
         badge={isNew(f) ? "NEW" : undefined}
-        sub={owned ? "가지고 있어요" : have > 0 ? `가진 것 ${have}개` : activityOf(f.id)?.clips ? "▶ 실제 목소리 듣기" : activityOf(f.id) ? "누르면 움직여요" : f.story ? STORY_LABEL[f.story.kind] : f.shortcut ? "누르면 바로가기" : f.kind === "window" ? "벽 2칸 · 창밖은 지금 날씨" : f.size === 2 ? "2칸짜리" : "1칸짜리"}
+        sub={owned ? "가지고 있어요" : have > 0 ? `가진 것 ${have}개` : f.id === "piano" ? "15초 작곡 · 방문자는 감상" : activityOf(f.id)?.clips ? "▶ 실제 목소리 듣기" : activityOf(f.id) ? "누르면 움직여요" : f.story ? STORY_LABEL[f.story.kind] : f.reading ? "누르면 자서전 읽기" : f.shortcut ? "누르면 바로가기" : f.kind === "window" ? "벽 2칸 · 창밖은 지금 날씨" : f.size === 2 ? "2칸짜리" : "1칸짜리"}
         buyLabel={owned ? "가짐" : priceText(f.price)}
         buyDisabled={owned || data.jam < f.price || have >= OWN_MAX}
         onOpen={() => { gardenFeedback("tap"); setOpen(f.id); }}
@@ -114,6 +116,11 @@ export function RoomShop({
 
       {cat === "furniture" && (
         <>
+          <section aria-label="특별한 책" className="mb-4">
+            <h3 className="garden-diary-title">📚 특별한 책 · {items.filter((f) => f.reading).length}권</h3>
+            <p className="mt-1 text-[12px] leading-relaxed text-smoke">한 권에 100,000잼으로 만나는 고가 소장품. 방에 놓고 누르면 자서전의 장별 요약을 읽을 수 있어요.</p>
+            <ul className="garden-shop-grid">{items.filter((f) => f.reading).map(card)}</ul>
+          </section>
           <section aria-label="누르면 반응하는 소품" className="mb-4">
             <h3 className="garden-diary-title">♪ 누르면 반응하는 소품</h3>
             <p className="mt-1 text-[12px] leading-relaxed text-smoke">소품을 눌러 구매 전에 무료로 체험해 보세요. 오르골·종소리부터 실제 목소리 영상까지 만날 수 있어요. 바비·바둑판·어항·축구공 등에도 새 반응이 생겼어요.</p>
@@ -139,7 +146,7 @@ export function RoomShop({
           {GROUPS.map((g) => (
             <div key={g.title} className="mt-4">
               <h3 className="garden-diary-title">{g.title}</h3>
-              <ul className="garden-shop-grid">{items.filter((f) => !f.story && !activityOf(f.id) && g.kinds.includes(f.kind)).map(card)}</ul>
+              <ul className="garden-shop-grid">{items.filter((f) => !f.story && !f.reading && !activityOf(f.id) && g.kinds.includes(f.kind)).map(card)}</ul>
             </div>
           ))}
         </>
@@ -184,6 +191,8 @@ export function RoomShop({
           onClose={() => setOpen(null)}
         >
           <p>{opened.hint}</p>
+          {opened.id === "piano" && <PianoPreview />}
+          {opened.reading && <Link href={opened.reading.href} className="mt-2 inline-flex min-h-[44px] items-center font-semibold underline underline-offset-2">{opened.reading.label} →</Link>}
           {opened.story && <FurnitureStory story={opened.story} />}
           <div className="mt-3">
             <p className="text-[12px] font-semibold text-smoke">방에 놓아 보기</p>

@@ -1,3 +1,4 @@
+import { pianoNotes, pianoSong, type PianoEvent } from "./piano";
 import type { PublicPlaced, PublicRoom } from "@/lib/firebase/gardens";
 
 import { DEFAULT_TRACK, isGardenTrack, type GardenTrackId } from "../musicTracks";
@@ -35,7 +36,7 @@ export interface Placed {
   at: string;
   /** 가구 id 또는 전시품 id. */
   it: string;
-  /** 키보드 개체 번호(0–8). 옮겨도 유지한다. */
+  /** 키보드·피아노 개체 번호(각 종류별 0–8). 옮겨도 유지한다. */
   kb?: number;
 }
 
@@ -57,6 +58,10 @@ export interface RoomData {
   keys: RoomKey[];
   /** 두 번째부터의 키보드. 0번은 기존 keys를 사용한다. */
   keyboards?: Record<string, RoomKey[]>;
+  /** 피아노 개체별 건반 음. kb 번호는 키보드와 별개다. */
+  pianos?: Record<string, number[]>;
+  /** 피아노마다 저장한 15초 연주. */
+  pianoSongs?: Record<string, PianoEvent[]>;
   /** 방 한마디. '내 방' 옆에 걸리는 한 줄(MOTTO_MAX자). 사람이 쓴 글이라 걸러서 받고, 그 방 안에서만 보인다. */
   motto: string;
 }
@@ -113,6 +118,8 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined): RoomData {
     owned: raw.owned && typeof raw.owned === "object" ? raw.owned : {},
     shown: Array.isArray(raw.shown) ? raw.shown.filter((s) => s && typeof s.id === "string") : [],
     keys: normalizeKeys(raw.keys),
+    pianoSongs: Object.fromEntries(Object.entries(raw.pianoSongs ?? {}).filter(([id]) => /^[0-8]$/.test(id)).map(([id, song]) => [id, pianoSong(song)])),
+    pianos: Object.fromEntries(Object.entries(raw.pianos ?? {}).filter(([id]) => /^[0-8]$/.test(id)).map(([id, notes]) => [id, pianoNotes(notes)])),
     keyboards: Object.fromEntries(Object.entries(raw.keyboards ?? {}).filter(([id]) => /^[1-8]$/.test(id)).map(([id, keys]) => [id, normalizeKeys(keys)])),
     motto: typeof raw.motto === "string" ? cleanMotto(raw.motto) : "",
   };
@@ -125,6 +132,14 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined): RoomData {
     if (id === undefined) return p;
     used.add(id);
     if (id > 0 && !room.keyboards![id]) room.keyboards![id] = room.keys.map((k) => ({ ...k }));
+    return { ...p, kb: id };
+  });
+  const pianos = new Set<number>();
+  room.placed = room.placed.map((p) => {
+    if (p.it !== "piano") return p;
+    const id = Number.isInteger(p.kb) && p.kb! >= 0 && p.kb! < OWN_MAX && !pianos.has(p.kb!) ? p.kb! : Array.from({ length: OWN_MAX }, (_, i) => i).find((i) => !pianos.has(i));
+    if (id === undefined) return p;
+    pianos.add(id);
     return { ...p, kb: id };
   });
   return room;
@@ -253,6 +268,12 @@ export function stowedCount(room: RoomData, it: string): number {
 /** 보관함 → 칸. 남은 것이 없거나 칸이 맞지 않으면 null. */
 export function place(room: RoomData, it: string, at: string): RoomData | null {
   if (stowedCount(room, it) <= 0 || !canPlace(room, it, at)) return null;
+  if (it === "piano") {
+    const used = new Set(room.placed.filter((p) => p.it === "piano").map((p) => p.kb ?? 0));
+    const kb = Array.from({ length: OWN_MAX }, (_, i) => i).find((i) => !used.has(i));
+    if (kb === undefined) return null;
+    return { ...room, placed: [...room.placed, { at, it, kb }] };
+  }
   if (it === KEYBOARD_ID) {
     const used = new Set(room.placed.filter((p) => p.it === KEYBOARD_ID).map((p) => p.kb ?? 0));
     const kb = Array.from({ length: OWN_MAX }, (_, i) => i).find((i) => !used.has(i));
@@ -289,11 +310,13 @@ export function validRoom(room: RoomData): boolean {
   const busy = new Set<string>();
   const counts = new Map<string, number>();
   const keyboards = new Set<number>();
+  const pianos = new Set<number>();
   for (const p of room.placed) {
-    if (p.it === KEYBOARD_ID) {
+    if (p.it === KEYBOARD_ID || p.it === "piano") {
+      const bank = p.it === "piano" ? pianos : keyboards;
       const id = p.kb ?? 0;
-      if (!Number.isInteger(id) || id < 0 || id >= OWN_MAX || keyboards.has(id)) return false;
-      keyboards.add(id);
+      if (!Number.isInteger(id) || id < 0 || id >= OWN_MAX || bank.has(id)) return false;
+      bank.add(id);
     }
     const spec = placement(p.it, room.shown);
     const slot = parseSlot(p.at);
@@ -474,7 +497,7 @@ export function publicRoom(room: RoomData): PublicRoom {
   for (const p of room.placed) {
     if (placed.length >= PUBLIC_PLACED_MAX) break;
     if (!isShownId(p.it)) {
-      if (short(p.it)) placed.push({ a: p.at, i: p.it, ...(p.it === KEYBOARD_ID ? { kb: p.kb ?? 0 } : {}) });
+      if (short(p.it)) placed.push({ a: p.at, i: p.it, ...(p.it === KEYBOARD_ID ? { kb: p.kb ?? 0 } : p.it === "piano" ? { pn: pianoNotes(room.pianos?.[p.kb ?? 0]), ps: pianoSong(room.pianoSongs?.[p.kb ?? 0]) } : {}) });
       continue;
     }
     const s = room.shown.find((x) => x.id === p.it);
@@ -515,6 +538,10 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
       const next = place({ ...room, owned }, p.i, p.a);
       if (next) {
         room = next;
+        if (p.i === "piano") {
+          const id = room.placed.at(-1)!.kb ?? 0;
+          room = { ...room, pianos: { ...room.pianos, [id]: pianoNotes(p.pn) }, pianoSongs: { ...room.pianoSongs, [id]: pianoSong(p.ps) } };
+        }
         if (p.i === KEYBOARD_ID) {
           const id = room.placed.at(-1)!.kb ?? 0;
           const source = typeof p.kb === "number" ? p.kb : 0;
