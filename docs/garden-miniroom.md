@@ -752,6 +752,11 @@ keys: Array<{ f: string; s: string; v?: number /* s가 "rec"일 때만 */ }>
 
 `RoomData.pianos`는 개체 번호 `Placed.kb`(0–8)별 건반 음, `pianoSongs`는 개체별 연주를 저장한다. 이동·보관 후 재배치에도 유지한다. 공개 문서는 배치 항목의 `pn`에 건반 음, `ps`에 놓인 피아노의 연주만 싣는다. 공개 데이터는 정수 시각 0–14,999ms·MIDI 48–84·최대 256음으로 검증한다. 예전 피아노는 곡이 없는 상태로 시작한다. 키보드의 그림·소리·녹음 설정과는 별도다.
 
+> **고친 것 (2026-11-15).** 주인에게는 연주가 들리는데 손님에게는 "저장한 연주가 없다"고 나왔다. 공개 문서에는 `pn`·`ps`가 실려 있었지만,
+> 손님 화면이 Firestore에서 읽는 `lib/firebase/gardens.ts`의 `toRoom`이 배치 항목에서 `a`·`i`만 옮기고 나머지를 버렸다.
+> 같은 자리에서 키보드 번호(`kb`·`keyboards`)와 꼬마(`avatar`)도 떨어지고 있었다. 이제 모두 옮기고,
+> `gardens.test.ts`가 `publicRoom → toRoom → roomFromPublic` 한 바퀴를 본다. 공개 문서에 새 키를 실을 때는 `toRoom`도 함께 고친다.
+
 
 ### 빛의 혁명 LED 응원봉 · 바비 효과음 (2026-11-15)
 

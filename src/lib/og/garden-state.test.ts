@@ -31,7 +31,8 @@ test("공유 방: 벽·바닥·가구 배치를 보존하고 알 수 없는 가�
 });
 
 test("공유 방: 방이 없는 옛 문서와 잘못된 배치는 빈 방으로 표시한다", () => {
-  assert.deepEqual(cardRoom(undefined, new Map()), freshRoom());
+  // 빈 방이고, 주인이 꾸민 적 없는 기본 꼬마도 그리지 않는다.
+  assert.deepEqual(cardRoom(undefined, new Map()), { ...freshRoom(), avatar: undefined });
   assert.deepEqual(parseRoom({ placed: [null, 1, "x", {}, { a: "f0", i: 7 }] }).placed, []);
 });
 

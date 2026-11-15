@@ -215,8 +215,13 @@ function toIlchonList(raw: unknown): PublicGarden["ilchonList"] {
     .map((x) => ({ g: x.g, n: x.n.slice(0, 12) }));
 }
 
-/** 모양만 본다. 표에 있는 id인지는 그리는 쪽(features/garden/room/rules.ts의 roomFromPublic)이 본다. */
-function toRoom(raw: unknown): PublicRoom | undefined {
+/**
+ * 모양만 본다. 표에 있는 id인지, 값이 맞는지는 그리는 쪽(features/garden/room/rules.ts의 roomFromPublic)이 본다.
+ * ★ 공개 문서에 새 키를 실으면 여기서도 옮겨야 한다. 빠뜨리면 주인 화면은 멀쩡한데 손님 화면에서만 사라진다
+ *   (2026-11-15: 피아노 연주 pn·ps, 키보드 번호 kb·keyboards, 꼬마 avatar가 여기서 떨어져 손님에게 보이지 않았다).
+ *   gardens.test.ts가 publicRoom → 이 함수 → roomFromPublic을 한 바퀴 돌려 본다.
+ */
+export function toRoom(raw: unknown): PublicRoom | undefined {
   if (!raw || typeof raw !== "object") return undefined;
   const r = raw as Record<string, unknown>;
   const str = (v: unknown) => (typeof v === "string" ? v : "");
@@ -225,7 +230,21 @@ function toRoom(raw: unknown): PublicRoom | undefined {
     if (!item || typeof item !== "object") continue;
     const p = item as Record<string, unknown>;
     if (typeof p.a !== "string") continue;
-    if (typeof p.i === "string") placed.push({ a: p.a, i: p.i });
+    if (typeof p.i === "string") {
+      placed.push({
+        a: p.a,
+        i: p.i,
+        ...(typeof p.kb === "number" ? { kb: p.kb } : {}),
+        ...(Array.isArray(p.pn) ? { pn: p.pn.filter((n): n is number => typeof n === "number") } : {}),
+        ...(Array.isArray(p.ps)
+          ? {
+              ps: p.ps
+                .filter((e): e is { t: number; n: number } => Boolean(e) && typeof e === "object" && typeof (e as { t?: unknown }).t === "number" && typeof (e as { n?: unknown }).n === "number")
+                .map(({ t, n }) => ({ t, n })),
+            }
+          : {}),
+      });
+    }
     else if (typeof p.k === "string" && typeof p.s === "string") {
       placed.push({
         a: p.a,
@@ -242,7 +261,15 @@ function toRoom(raw: unknown): PublicRoom | undefined {
         return { f: str(x.f), s: str(x.s), ...(typeof x.v === "number" ? { v: x.v } : {}) };
       })
     : undefined;
-  return { size: Number(r.size) || 0, wall: str(r.wall), floor: str(r.floor), mood: str(r.mood), bgm: str(r.bgm), motto: str(r.motto), placed, ...(keys ? { keys } : {}) };
+  const keyboards = r.keyboards && typeof r.keyboards === "object" && !Array.isArray(r.keyboards)
+    ? Object.fromEntries(Object.entries(r.keyboards as Record<string, unknown>).filter((e): e is [string, string] => typeof e[1] === "string"))
+    : undefined;
+  return {
+    size: Number(r.size) || 0, wall: str(r.wall), floor: str(r.floor), mood: str(r.mood), bgm: str(r.bgm), motto: str(r.motto), placed,
+    ...(keys ? { keys } : {}),
+    ...(keyboards && Object.keys(keyboards).length ? { keyboards } : {}),
+    ...(typeof r.avatar === "string" ? { avatar: r.avatar } : {}),
+  };
 }
 
 function toTitles(raw: unknown): PublicGarden["titles"] {

@@ -70,7 +70,8 @@ function plain(v: Value): unknown {
 }
 
 export function cardRoom(value: Value | undefined, byId: ReadonlyMap<string, Species>): RoomData {
-  if (!value?.mapValue) return freshRoom();
+  // 방이 없는 옛 문서 — 빈 방. 기본 꼬마도 세우지 않는다(주인이 꾸민 적 없는 꼬마를 카드에 그리지 않게).
+  if (!value?.mapValue) return { ...freshRoom(), avatar: undefined };
   const raw = plain(value) as PublicRoom;
   // Only known fields are rendered, and malformed placements are ignored before normalization.
   raw.placed = Array.isArray(raw.placed)
