@@ -77,6 +77,15 @@ service firebase.storage {
         && (request.auth.uid == uid || isAdmin());
     }
 
+    /*
+     * 운영자 카탈로그 방 음원 (src/features/garden/musicTracks.ts, scripts/upload-bgm.ts).
+     * 읽기는 열어 두고(공개 방 손님도 듣는다), 클라이언트 쓰기·삭제는 막는다(Admin SDK 전용).
+     */
+    match /bgm/catalog/{fileId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // 그 밖의 모든 것은 닫는다.
     match /{allPaths=**} {
       allow read, write: if false;

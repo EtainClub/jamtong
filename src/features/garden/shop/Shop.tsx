@@ -39,6 +39,7 @@ import type { Species } from "../types";
 import { BuySheet, ExpandBanner, priceText, SHOP_CATS, ShopCard, type ShopCat } from "./parts";
 import { RoomShop } from "./RoomShop";
 import { TrophyShop } from "./TrophyShop";
+import { MusicShop } from "./MusicShop";
 import { KIT, KIT_ORDER, type KitId } from "../raid/rules";
 
 /**
@@ -84,6 +85,7 @@ export function Shop({
         {cat === "tools" && <ToolShop data={data} now={now} say={say} />}
         {(cat === "furniture" || cat === "walls") && <RoomShop cat={cat} data={data} byId={byId} now={now} say={say} />}
         {cat === "trophy" && <TrophyShop data={data} say={say} />}
+        {cat === "music" && <MusicShop data={data} say={say} />}
       </div>
 
       <p className="mt-5 text-[11.5px] leading-relaxed text-smoke">

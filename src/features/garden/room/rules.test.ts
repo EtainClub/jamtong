@@ -1,3 +1,5 @@
+import { MUSIC_SHOP, canUseTrack, ownedMusic } from "../musicTracks";
+import { buyMusic } from "./rules";
 import { LIGHTSTICKS, LIGHTSTICK_FURNITURE } from "./lightsticks";
 import { BOOKS, hasChapters } from "@/content/books";
 import { BOOK_FURNITURE, BOOK_PALETTES } from "./books";
@@ -10,6 +12,7 @@ import { PIANO_DEFAULT, PIANO_DURATION, PIANO_EVENT_MAX, pianoNotes, pianoNoteLa
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import { createHash } from "node:crypto";
 
 import type { Fruit, Species } from "../types";
 import { DEFAULT_TRACK, TRACK_ORDER } from "../feedback";
@@ -297,8 +300,8 @@ test("전리품은 뿌리 조각으로만, 보상 벽지는 팔지 않고 처음
 });
 
 test("방 음악: 예전 방은 기본 곡, 공개 방에 실리고, 모르는 곡은 기본 곡으로 튼다", () => {
-  assert.equal(TRACK_ORDER.length, 5);
-  assert.equal(new Set(TRACK_ORDER).size, 5);
+  assert.equal(TRACK_ORDER.length, 5 + MUSIC_SHOP.length);
+  assert.equal(new Set(TRACK_ORDER).size, TRACK_ORDER.length);
   assert.equal(normalizeRoom({}).bgm, DEFAULT_TRACK);
   assert.equal(normalizeRoom({ bgm: "nope" as never }).bgm, DEFAULT_TRACK);
   const room = { ...freshRoom(), bgm: "lullaby" as const };
@@ -535,4 +538,92 @@ test("바비는 실제 강아지 녹음 효과음을 쓰며 실제 바비 음성
   assert.equal(audio.subarray(0, 3).toString(), "ID3");
   assert.ok(audio.length > 5000 && audio.length < 100000);
   assert.match(activityOf("babi-mini")!.message, /바비의 실제 녹음은 아니/);
+});
+
+
+test("상점 음원: 카탈로그 곡은 한 번만 구매하고, 잼이 부족하면 상태를 바꾸지 않는다", () => {
+  assert.equal(MUSIC_SHOP.length, 6);
+  const empty = freshRoom();
+  for (const t of MUSIC_SHOP) {
+    assert.equal(canUseTrack(t.id, empty.music), false);
+    assert.equal(buyMusic(empty, t.price - 1, t.id), "jam");
+    assert.equal(buyMusic(empty, NaN, t.id), "jam");
+    const bought = buyMusic(empty, t.price + 99, t.id);
+    assert.ok(typeof bought !== "string");
+    assert.equal(bought.jam, 99);
+    assert.equal(bought.room.bgm, DEFAULT_TRACK, "구매와 방 음악 설정은 별도");
+    assert.deepEqual(bought.room.music, [t.id]);
+    assert.equal(canUseTrack(t.id, bought.room.music), true);
+    assert.equal(buyMusic(bought.room, 10000, t.id), "owned");
+    assert.deepEqual(empty.music, []);
+    const restored = normalizeRoom({ ...bought.room, bgm: t.id });
+    assert.equal(restored.bgm, t.id);
+    assert.deepEqual(restored.music, [t.id]);
+    const pub = publicRoom(restored);
+    assert.equal(pub.bgm, t.id);
+    assert.equal("music" in pub, false, "손님에게 구매 목록은 보내지 않는다");
+    assert.equal(roomFromPublic(pub, new Map()).bgm, t.id, "방문자는 구매 없이 주인의 곡 감상");
+    assert.equal(normalizeRoom({ ...empty, bgm: t.id }).bgm, DEFAULT_TRACK, "미구매 곡 설정은 복원하지 않는다");
+    assert.ok(t.artist && t.title && t.license);
+    if ("src" in t && t.src) {
+      const file = readFileSync(`public${t.src}`);
+      assert.equal(file.subarray(0, 3).toString(), "ID3");
+      assert.ok(file.length > 100000 && file.length < 2000000);
+      assert.ok("source" in t && t.source?.startsWith("https://opengameart.org/content/"));
+    } else {
+      assert.ok("storagePath" in t && t.storagePath?.startsWith("bgm/catalog/"));
+    }
+  }
+  assert.equal(buyMusic(empty, 10000, "../../evil.mp3"), "unknown");
+  assert.equal(buyMusic(empty, 10000, "orgel"), "unknown");
+  assert.deepEqual(ownedMusic([MUSIC_SHOP[0].id, "evil", MUSIC_SHOP[0].id]), [MUSIC_SHOP[0].id]);
+  assert.deepEqual(ownedMusic("record-piano"), []);
+  assert.equal(canUseTrack("orgel"), true);
+  assert.equal(canUseTrack("https://evil.test/song.mp3"), false);
+});
+
+
+test("음원 저장소: 구매 전 선택 차단, 구매 후 설정, 중복 구매 잼 차감 방지", async () => {
+  const { useGarden } = await import("../store");
+  const before = useGarden.getState().data;
+  try {
+    useGarden.setState({ data: null });
+    useGarden.getState().boot([]);
+    const base = useGarden.getState().data!;
+    useGarden.setState({ data: { ...base, jam: 10000, room: freshRoom() } });
+    let expected = 10000;
+    for (const track of MUSIC_SHOP) {
+      const previous = useGarden.getState().data!.room.bgm;
+      useGarden.getState().setBgm(track.id);
+      assert.equal(useGarden.getState().data!.room.bgm, previous);
+      assert.equal(useGarden.getState().buyMusic(track.id), true);
+      expected -= track.price;
+      assert.equal(useGarden.getState().data!.jam, expected);
+      useGarden.getState().setBgm(track.id);
+      assert.equal(useGarden.getState().data!.room.bgm, track.id);
+      assert.equal(useGarden.getState().buyMusic(track.id), "owned");
+      assert.equal(useGarden.getState().data!.jam, expected);
+      assert.equal(normalizeRoom(useGarden.getState().data!.room).bgm, track.id);
+    }
+    assert.equal(useGarden.getState().data!.room.music?.length, MUSIC_SHOP.length);
+  } finally {
+    useGarden.setState({ data: before });
+  }
+});
+
+test("CC0 음원 5곡: 배포 경로는 Storage이며 업로드 장부와 원본 해시가 일치한다", () => {
+  const tracks = MUSIC_SHOP.filter((t) => t.license === "CC0");
+  const manifest = JSON.parse(readFileSync("assets/music/cc0/storage-manifest.json", "utf8")) as {
+    files: Array<{ storagePath: string; bytes: number; sha256: string }>;
+  };
+  assert.equal(tracks.length, 5);
+  for (const track of tracks) {
+    assert.equal("src" in track, false, "public 파일로 돌아가지 않는다");
+    assert.match(track.storagePath, /^bgm\/catalog\/[a-z0-9-]+\.mp3$/);
+    const uploaded = manifest.files.find((f) => f.storagePath === track.storagePath);
+    assert.ok(uploaded);
+    const bytes = readFileSync(`assets/music/cc0/${track.storagePath.split("/").at(-1)}`);
+    assert.equal(bytes.length, uploaded.bytes);
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), uploaded.sha256);
+  }
 });

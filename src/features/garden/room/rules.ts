@@ -2,6 +2,7 @@ import { pianoNotes, pianoSong, type PianoEvent } from "./piano";
 import type { PublicPlaced, PublicRoom } from "@/lib/firebase/gardens";
 
 import { DEFAULT_TRACK, isGardenTrack, type GardenTrackId } from "../musicTracks";
+import { canUseTrack, ownedMusic, purchasedTrack, type PurchasedTrackId } from "../musicTracks";
 import { hash, kstDayNumber, MUTATION_ORDER, rng } from "../rules";
 import { cleanLine, lineProblem, type LineProblem } from "../ilchon/text";
 import { isRaidKind } from "../raid/rules";
@@ -50,6 +51,8 @@ export interface RoomData {
   mood: string;
   /** 방 음악(feedback.ts의 곡 id). 손님도 이 방에서는 이 곡을 듣는다. */
   bgm: GardenTrackId;
+  /** 상점에서 한 번 구매한 음원. 공개 방에는 선택한 bgm id만 보낸다. */
+  music?: PurchasedTrackId[];
   placed: Placed[];
   /** 산 가구의 수. 처음부터 가진 벽지·바닥재(값 0)는 적지 않는다. */
   owned: Record<string, number>;
@@ -100,7 +103,7 @@ export function mottoProblem(input: string): LineProblem | null {
 export const WEEKLY_SIZE = 4;
 
 export function freshRoom(): RoomData {
-  return { size: 0, wall: DEFAULT_WALL, floor: DEFAULT_FLOOR, mood: DEFAULT_MOOD, bgm: DEFAULT_TRACK, placed: [], owned: {}, shown: [], keys: freshKeys(), motto: "" };
+  return { size: 0, wall: DEFAULT_WALL, floor: DEFAULT_FLOOR, mood: DEFAULT_MOOD, bgm: DEFAULT_TRACK, music: [], placed: [], owned: {}, shown: [], keys: freshKeys(), motto: "" };
 }
 
 /** 방이 생기기 전에 저장된 정원, 또는 모양이 어긋난 방. */
@@ -113,7 +116,8 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined): RoomData {
     wall: typeof raw.wall === "string" ? raw.wall : base.wall,
     floor: typeof raw.floor === "string" ? raw.floor : base.floor,
     mood: typeof raw.mood === "string" ? raw.mood : base.mood,
-    bgm: isGardenTrack(raw.bgm) ? raw.bgm : base.bgm,
+    bgm: canUseTrack(raw.bgm, ownedMusic(raw.music)) ? raw.bgm : base.bgm,
+    music: ownedMusic(raw.music),
     placed: Array.isArray(raw.placed) ? raw.placed.filter((p) => p && typeof p.at === "string" && typeof p.it === "string") : [],
     owned: raw.owned && typeof raw.owned === "object" ? raw.owned : {},
     shown: Array.isArray(raw.shown) ? raw.shown.filter((s) => s && typeof s.id === "string") : [],
@@ -396,6 +400,16 @@ export function grantItem(room: RoomData, id: string): RoomData {
 }
 
 export type BuyRefusal = "unknown" | "off-sale" | "owned" | "full" | "jam";
+
+/** 음원은 한 번만 산다. 현재 방 음악은 구매만으로 바꾸지 않는다. */
+export function buyMusic(room: RoomData, jam: number, id: string): { room: RoomData; jam: number } | "unknown" | "owned" | "jam" {
+  const t = purchasedTrack(id);
+  if (!t) return "unknown";
+  const owned = ownedMusic(room.music);
+  if (owned.includes(t.id)) return "owned";
+  if (!Number.isFinite(jam) || jam < t.price) return "jam";
+  return { room: { ...room, music: [...owned, t.id] }, jam: jam - t.price };
+}
 
 /**
  * 가구를 산다. 벽지·바닥재는 하나면 된다. 다른 것은 OWN_MAX까지.

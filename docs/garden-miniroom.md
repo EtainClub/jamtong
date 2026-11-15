@@ -760,3 +760,12 @@ keys: Array<{ f: string; s: string; v?: number /* s가 "rec"일 때만 */ }>
 모두 바닥 한 칸, 상시 잼 판매, 기존 이야기 소품의 ‘빛의 혁명 응원봉’ 분류에서 찾는다. 누르면 배치 칸별로 한 번 흔들리며 은은한 발광 효과와 서로 다른 짧은 합성 선율이 나온다. 기존 곡·구호·팬덤 제품을 복제하지 않았다. 구매 전 무료 체험과 방문자 재생에도 같은 반응을 사용한다. 동작 줄이기 설정을 따른다.
 
 바비의 거친 합성 효과음을 Brandon Morris의 실제 강아지 녹음으로 교체했다. OpenGameArt ‘Dog Barking Mono’가 제공하는 CC0 라이선스를 선택했다. 고역 통과·약간 높은 음정·페이드·음량 정규화를 거친 1.87초 MP3를 로컬 배포하며 출처와 변형 내역은 `public/audio/room/SOURCES.md`에 기록했다. 자동 재생하지 않고 클릭할 때만 재생하며 연타 시 이전 소리를 다시 시작한다. 페이지가 숨겨지면 정지한다. 바비의 실제 울음소리라고 표시하지 않는다.
+
+
+### 상점 음원 · Firebase Storage 스트리밍 (2026-11-15)
+
+기본 합성곡 5곡은 무료로 유지하고, 상점 ‘음원’ 탭에서 CC0 녹음 5곡과 잼통 자체 AI 가요 〈우리 함께 나아갈 길〉(1,000잼, 2:57, `bgm/catalog/together-road.mp3`)을 판매한다. CC0 원문 출처·라이선스·해시는 `assets/music/cc0/SOURCES.md`에 보존한다. CC0 5곡도 `bgm/catalog/forget-me-not.mp3`·`jazz.mp3`·`revelation.mp3`·`chill.mp3`·`pond.mp3`로 올려 같은 스트리밍 경로를 사용한다. 업로드용 파일은 `assets/music/cc0/`에 두고 public 번들에는 넣지 않는다. 이미 32kHz·96kbps·-20 LUFS로 맞춘 파일은 `pnpm bgm:upload --file assets/music/cc0/<slug>.mp3 --slug <slug> --raw`로 재인코딩 없이 올린다. AI 가요와 향후 확장 음원은 같은 스크립트의 기본 정규화를 사용할 수 있다. 업로드 스크립트는 다운로드 토큰과 SHA-256을 메타데이터에 함께 기록한다.
+
+`storage.rules`에서 `bgm/catalog/{fileId}` 읽기는 열어 두고 클라이언트 쓰기는 막는다(Admin SDK 업로드 전용). 재생기는 `fetch + decodeAudioData`로 파일 전체를 내려받는 대신 `<audio preload="none">` 스트리밍(`feedback.ts`, `MusicShop.tsx`)을 사용해 재생 중인 곡만 필요한 범위로 흘려보내고, 꺼져 있을 때는 주소 조회나 파일 전송을 하지 않는다. Storage 다운로드 URL은 `roomBgm.ts`가 세션 동안 기억하며 늦게 끝난 조회가 새 곡을 덮어쓰지 않도록 세대 번호를 검사한다.
+
+구매 전 미리 듣기는 구매·방 BGM·소리 켜기 설정을 바꾸지 않고 재생 중에만 기존 BGM을 낮춘다. 화면이 숨겨지면 재생·미리 듣기를 멈춘다. 공개 방에는 선택한 `bgm` id만 보내며 임의 URL은 허용하지 않는다. 녹음·스트리밍 곡에는 키보드 박자 맞춤을 적용하지 않는다.

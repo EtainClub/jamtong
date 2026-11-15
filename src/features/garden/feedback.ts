@@ -1,14 +1,16 @@
 "use client";
 
-import { DEFAULT_TRACK, type GardenTrackId } from "./musicTracks";
+import { roomBgm } from "@/lib/firebase/roomBgm";
+
+import { DEFAULT_TRACK, purchasedTrack, type FreeTrackId, type GardenTrackId } from "./musicTracks";
 export { DEFAULT_TRACK, TRACK_ORDER, isGardenTrack, type GardenTrackId } from "./musicTracks";
 
 /**
- * 정원의 소리 — 효과음과 배경음악. 둘 다 Web Audio로 그 자리에서 만든다(내려받는 파일 없음).
+ * 정원의 소리 — 기본 합성곡은 Web Audio로, 상점·Storage 음원은 스트리밍(<audio>)으로 재생한다.
  *
  * ★ 켜는 것은 사람이다. 자동 재생하지 않는다. 켠 설정은 이 기기에 기억하지만,
  *   다시 열었을 때도 첫 터치가 있어야 소리가 난다(브라우저가 그 전의 재생을 막는다).
- * ★ 음악은 잼통 고유의 짧은 곡 다섯이다(docs/garden-game.md §1 "음악은 잼통 고유로"). 방 주인이 고른다.
+ * ★ 기본 다섯 곡은 무료, 추가 음원은 상점에서 산 뒤 방 주인이 고른다.
  *
  * 모바일에서 소리가 나지 않던 이유와 대응:
  * - iOS 무음 스위치는 따른다. 무음이면 음악도 효과음도 나지 않는다 — 이건 고장이 아니다.
@@ -32,11 +34,19 @@ let listening = false;
 /** 키 녹음 중. 그동안은 iOS 오디오 세션을 ambient로 되돌리지 않는다(마이크가 끊긴다). */
 let micHeld = false;
 let musicQuiet = 0;
+let streamEl: HTMLAudioElement | undefined;
+let streamPlaying = false;
+let streamSrc = "";
+let recordEpoch = 0;
+const resolvedUrls = new Map<string, string>();
+
+const streamVolume = () => (musicQuiet ? .035 : .72);
 
 /** 실제 발언 플레이어가 열려 있는 동안 BGM만 줄인다. 저장한 소리 설정은 보존한다. */
 export function quietGardenMusic(): () => void {
   musicQuiet++;
   const apply = () => {
+    if (streamEl) streamEl.volume = streamVolume();
     if (!audio || !music) return;
     music.gain.cancelScheduledValues(audio.currentTime);
     music.gain.setTargetAtTime(musicQuiet ? .035 : .8, audio.currentTime, .08);
@@ -108,9 +118,16 @@ function listen() {
     startMusic();
   };
   document.addEventListener("visibilitychange", () => {
-    if (!audio) return;
-    if (document.hidden) void audio.suspend().catch(() => {});
-    else if (enabled) void audio.resume().catch(() => {});
+    if (document.hidden) {
+      void audio?.suspend().catch(() => {});
+      streamEl?.pause();
+    } else if (enabled) {
+      void audio?.resume().catch(() => {});
+      if (streamPlaying && streamEl?.paused && streamSrc) {
+        streamEl.volume = streamVolume();
+        void streamEl.play().catch(() => {});
+      }
+    }
   });
   // 저장된 설정으로 다시 열었을 때, 그리고 iOS가 끊었을(interrupted) 때 첫 터치로 다시 연다.
   // 터치의 pointerdown은 브라우저가 "사용자 활성화"로 치지 않는다 — 손을 뗄 때(pointerup·touchend)라야 열린다.
@@ -155,7 +172,8 @@ export function keyAudio(): { ctx: AudioContext; out: AudioNode } | undefined {
 /** 방 음악이 흐르고 있으면 그 박자의 격자(다음 8분음표의 때와 길이, AudioContext 시각). 아니면 null. */
 export function musicGrid(): { now: number; nextAt: number; eighth: number } | null {
   if (!timer || !audio || audio.state !== "running") return null;
-  const t: Track = TRACKS[current];
+  if (purchasedTrack(current)) return null;
+  const t: Track = TRACKS[current as FreeTrackId];
   return { now: audio.currentTime, nextAt, eighth: 60 / t.bpm / 2 };
 }
 
@@ -362,11 +380,7 @@ function tone(ctx: AudioContext, out: AudioNode, hz: number, at: number, length:
 /** 소리 조각. 키보드의 정해 둔 소리가 같은 악기로 만든다. */
 export const synth = { tone, noise, sweep, thud };
 
-// ── 배경음악: 내 방 음악 다섯 곡 ──────────────────────────────────────
-//
-// 모두 잼통 고유의 짧은 곡이다(docs/garden-game.md §1 "음악은 잼통 고유로"). 파일을 내려받지 않고
-// 악보를 Web Audio로 그 자리에서 연주한다 — 번들이 몇 KB 느는 것뿐이고, 저작권이 걸린 곡이 끼어들 길이 없다.
-// 곡을 더하려면 TRACKS에 한 줄. id는 공개 방 문서에 실리므로 바꾸지 않는다(GardenTrackId).
+// 기본 다섯 곡은 즉석 합성, 구매 음원은 선택한 파일만 지연 로드한다.
 
 type Line = Array<number | null>;
 
@@ -502,7 +516,7 @@ const TRACKS = {
 } satisfies Record<string, Track>;
 
 export function gardenTrack(id: GardenTrackId): { label: string; icon: string; hint: string } {
-  const t: Track = TRACKS[id];
+  const t = purchasedTrack(id) ?? TRACKS[id as FreeTrackId];
   return { label: t.label, icon: t.icon, hint: t.hint };
 }
 
@@ -515,7 +529,7 @@ let current: GardenTrackId = DEFAULT_TRACK;
 export function setGardenTrack(id: GardenTrackId) {
   if (id === current) return;
   current = id;
-  if (timer) {
+  if (music || streamPlaying) {
     stopMusic();
     startMusic();
   }
@@ -539,7 +553,8 @@ function playStep(ctx: AudioContext, out: AudioNode, t: Track, s: number, at: nu
 
 function schedule() {
   if (!audio || !music || audio.state !== "running") return;
-  const t: Track = TRACKS[current];
+  if (purchasedTrack(current)) return;
+  const t: Track = TRACKS[current as FreeTrackId];
   const eighth = 60 / t.bpm / 2;
   const loop = t.melody.length * t.bar;
   // 멈췄다 돌아왔으면 박자를 지금으로 당긴다. 밀린 음을 한꺼번에 쏟지 않게.
@@ -552,7 +567,73 @@ function schedule() {
 }
 
 function startMusic() {
-  if (!audio || !master || timer) return;
+  if (!enabled) return;
+  const record = purchasedTrack(current);
+  if (record) {
+    if (typeof Audio === "undefined") return;
+    if (streamPlaying) {
+      if (streamEl?.paused && streamSrc) {
+        streamEl.volume = streamVolume();
+        void streamEl.play().catch(() => {});
+      }
+      return;
+    }
+    const epoch = ++recordEpoch;
+    streamPlaying = true;
+    const beginStream = (url: string) => {
+      if (epoch !== recordEpoch || !enabled || !streamPlaying) return;
+      const el = (streamEl ??= new Audio());
+      el.preload = "none";
+      el.loop = true;
+      el.volume = streamVolume();
+      el.onerror = () => {
+        if (epoch !== recordEpoch) return;
+        stopMusic();
+        window.dispatchEvent(new Event("garden-music-error"));
+      };
+      if (streamSrc !== url) {
+        streamSrc = url;
+        el.src = url;
+      } else {
+        el.currentTime = 0;
+      }
+      void el.play().catch((err: unknown) => {
+        if (epoch !== recordEpoch) return;
+        const name = (err as { name?: string } | undefined)?.name;
+        if (name === "NotAllowedError" || name === "AbortError") return;
+        stopMusic();
+        window.dispatchEvent(new Event("garden-music-error"));
+      });
+    };
+
+    const cached = resolvedUrls.get(record.id);
+    if (cached) {
+      beginStream(cached);
+      return;
+    }
+    if (record.src) {
+      resolvedUrls.set(record.id, record.src);
+      beginStream(record.src);
+      return;
+    }
+    if (!record.storagePath) {
+      stopMusic();
+      window.dispatchEvent(new Event("garden-music-error"));
+      return;
+    }
+    void roomBgm.url(record.storagePath).then((url) => {
+      if (epoch !== recordEpoch || !enabled || !streamPlaying) return;
+      if (!url) {
+        stopMusic();
+        window.dispatchEvent(new Event("garden-music-error"));
+        return;
+      }
+      resolvedUrls.set(record.id, url);
+      beginStream(url);
+    });
+    return;
+  }
+  if (!audio || !master || music) return;
   music = audio.createGain();
   music.gain.setValueAtTime(0.0001, audio.currentTime);
   music.gain.exponentialRampToValueAtTime(musicQuiet ? .035 : .8, audio.currentTime + 1.5);
@@ -564,6 +645,15 @@ function startMusic() {
 }
 
 function stopMusic() {
+  recordEpoch++;
+  streamPlaying = false;
+  if (streamEl) {
+    streamEl.onerror = null;
+    streamEl.pause();
+    streamSrc = "";
+    streamEl.removeAttribute?.("src");
+    streamEl.load?.();
+  }
   if (timer) clearInterval(timer);
   timer = undefined;
   if (audio && music) {

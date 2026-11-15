@@ -6,6 +6,7 @@ import type { LineDoc } from "@/lib/firebase/ilchon";
 
 import { Dex } from "../Dex";
 import { gardenFeedback, gardenTrack, setGardenTrack } from "../feedback";
+import { canUseTrack } from "../musicTracks";
 import { SEGMENTS, type NewsItem, type Place, type Segment } from "../nav";
 import { TitleChips } from "../parts";
 import { FURNITURE_BY_ID, moodOf, type Shortcut } from "../room/catalog";
@@ -223,9 +224,12 @@ export function GardenHome({
       {musicOpen && (
         <MusicSheet
           current={data.room.bgm}
+          owned={data.room.music}
+          onShop={() => { setMusicOpen(false); onGo("shop"); }}
           sound={sound}
           onToggle={onSound}
           onPick={(id) => {
+            if (!canUseTrack(id, data.room.music)) return;
             useGarden.getState().setBgm(id);
             setGardenTrack(id);
             // 고르는 손길이 곧 "듣고 싶다"다. 꺼져 있으면 켠다(사용자 터치 안이라 소리가 열린다).

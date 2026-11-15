@@ -149,6 +149,12 @@ export function GardenApp({
     restoreGardenSound();
   }, []);
 
+  useEffect(() => {
+    const failed = () => say("음원을 불러오지 못했어요. 음악을 껐다 켜서 다시 시도해 주세요.");
+    window.addEventListener("garden-music-error", failed);
+    return () => window.removeEventListener("garden-music-error", failed);
+  }, [say]);
+
   // 내 방 음악. 남의 방에 있는 동안은 VisitView가 그 방의 곡을 틀고, 돌아오면 여기서 내 곡으로 되돌린다.
   const myBgm = useGarden((s) => s.data?.room.bgm);
   useEffect(() => {

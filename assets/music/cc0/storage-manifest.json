@@ -1,0 +1,46 @@
+{
+  "bucket": "jamtong.firebasestorage.app",
+  "uploadedAt": "2026-11-15T04:28:45.504Z",
+  "files": [
+    {
+      "storagePath": "bgm/catalog/forget-me-not.mp3",
+      "bytes": 1490444,
+      "sha256": "1cc460abbe295f5b00bbd357b6641fed52a8e233af8e5a2a9739e601a5f46427",
+      "duration": "2:04",
+      "generation": "1794716915414574",
+      "rangeStatus": 206
+    },
+    {
+      "storagePath": "bgm/catalog/jazz.mp3",
+      "bytes": 864908,
+      "sha256": "b950c5a58fb59979c5dcb72b50517213e831f39da361c7f5fdfd973e0932d7a6",
+      "duration": "1:12",
+      "generation": "1794716917926895",
+      "rangeStatus": 206
+    },
+    {
+      "storagePath": "bgm/catalog/revelation.mp3",
+      "bytes": 1018816,
+      "sha256": "e59274fcd6c1512e4bd499c80efb28013da5fefde2b6065b9b6fcc5d2cc08c01",
+      "duration": "1:25",
+      "generation": "1794716920047699",
+      "rangeStatus": 206
+    },
+    {
+      "storagePath": "bgm/catalog/chill.mp3",
+      "bytes": 1277543,
+      "sha256": "1b91e92f58f722773dec8fb506471943956d290e499ca743158331212bab01c1",
+      "duration": "1:46",
+      "generation": "1794716922533264",
+      "rangeStatus": 206
+    },
+    {
+      "storagePath": "bgm/catalog/pond.mp3",
+      "bytes": 1377260,
+      "sha256": "5cbe465415755c48fffcf1096ae51198febda3b7ccf0762c859f89b05b481ca1",
+      "duration": "1:55",
+      "generation": "1794716924932436",
+      "rangeStatus": 206
+    }
+  ]
+}
