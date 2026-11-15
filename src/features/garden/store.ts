@@ -72,7 +72,8 @@ import * as room from "./room/rules";
 import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_ILCHON, type IlchonData, type NewsEntry } from "./ilchon/rules";
 import { MOODS } from "./room/catalog";
 import { normalizeKeys, type RoomKey } from "./room/keyboard";
-import { isGardenTrack, type GardenTrackId } from "./feedback";
+import type { GardenTrackId } from "./musicTracks";
+import { canUseTrack } from "./musicTracks";
 import type { LineProblem } from "./ilchon/text";
 import type { Case, Fruit, Mutation, Plant, PlazaLevel, Species } from "./types";
 
@@ -468,6 +469,7 @@ interface GardenState {
   setMood: (id: string) => void;
   /** 방 음악. 공개 방에 실려 손님도 이 곡을 듣는다. */
   setBgm: (id: GardenTrackId) => void;
+  buyMusic: (id: string) => true | "unknown" | "owned" | "jam";
   /** 방 한마디. 걸러낼 것이 있으면 그 까닭을 돌려주고 바꾸지 않는다. 빈 글은 한마디를 지운다. */
   setMotto: (text: string) => LineProblem | null;
   /** 내 키보드의 키 하나를 바꾼다(그림·소리·녹음 판). 모양이 어긋난 값은 room/keyboard.ts가 바로잡는다. */
@@ -1100,9 +1102,18 @@ export const useGarden = create<GardenState>((set, get) => {
       return null;
     },
 
+    buyMusic: (id) => {
+      const d = get().data;
+      if (!d) return "unknown";
+      const out = room.buyMusic(d.room, d.jam, id);
+      if (typeof out === "string") return out;
+      commit({ ...d, room: out.room, jam: out.jam });
+      return true;
+    },
+
     setBgm: (id) => {
       const d = get().data;
-      if (!d || d.room.bgm === id || !isGardenTrack(id)) return;
+      if (!d || d.room.bgm === id || !canUseTrack(id, d.room.music)) return;
       commit({ ...d, room: { ...d.room, bgm: id } });
     },
 

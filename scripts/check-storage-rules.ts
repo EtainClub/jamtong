@@ -93,6 +93,17 @@ const put = (s: FirebaseStorage, path: string, bytes = 2_000, contentType = "aud
   await expect(true, "운영자가 A의 녹음 지우기", () => deleteObject(ref(admin, `roomKeys/${A}/3-12.wav`)));
   await expect(true, "A가 남은 것 지우기", () => deleteObject(ref(a, `roomKeys/${A}/1-3.wav`)));
 
+  console.log("카탈로그 음원(bgm/catalog)");
+  const catRes = await fetch(
+    `http://${SHOST}:${SPORT}/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${encodeURIComponent("bgm/catalog/together-road.mp3")}`,
+    { method: "POST", headers: { Authorization: "Bearer owner", "Content-Type": "audio/mpeg" }, body: wav(512) },
+  );
+  if (!catRes.ok) throw new Error(`카탈로그 시드: ${catRes.status} ${await catRes.text()}`);
+  await expect(true, "로그인하지 않은 손님이 카탈로그 음원 듣기", () => getBytes(ref(anon, "bgm/catalog/together-road.mp3")));
+  await expect(false, "일반 사용자가 카탈로그 경로에 올리기", () => put(a, "bgm/catalog/hack.mp3", 512, "audio/mpeg"));
+  await expect(false, "운영자 클라이언트도 카탈로그 경로에 올리기 불가(Admin 전용)", () => put(admin, "bgm/catalog/hack.mp3", 512, "audio/mpeg"));
+  await expect(false, "일반 사용자가 카탈로그 음원 지우기", () => deleteObject(ref(a, "bgm/catalog/together-road.mp3")));
+
   console.log("다른 경로는 그대로 닫혀 있다");
   await expect(false, "아무 경로에 WAV", () => put(a, `other/${A}/0-1.wav`));
 
