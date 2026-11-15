@@ -542,7 +542,13 @@ test("바비는 실제 강아지 녹음 효과음을 쓰며 실제 바비 음성
 
 
 test("상점 음원: 카탈로그 곡은 한 번만 구매하고, 잼이 부족하면 상태를 바꾸지 않는다", () => {
-  assert.equal(MUSIC_SHOP.length, 6);
+  assert.equal(MUSIC_SHOP.length, 11);
+  for (const t of MUSIC_SHOP) {
+    // 공개 방의 bgm은 40자까지(firestore.rules), 파일은 운영자가 올린 bgm/catalog/ 아래만(storage.rules).
+    assert.ok(t.id.length <= 40, t.id);
+    assert.match(t.storagePath, /^bgm\/catalog\/[a-z0-9-]+\.mp3$/, t.id);
+  }
+  assert.equal(new Set(MUSIC_SHOP.map((t) => t.storagePath)).size, MUSIC_SHOP.length);
   const empty = freshRoom();
   for (const t of MUSIC_SHOP) {
     assert.equal(canUseTrack(t.id, empty.music), false);
