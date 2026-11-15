@@ -13,6 +13,8 @@ import { activityOf } from "./activities";
 import { KeyFace } from "./KeyArt";
 import { freshKeys, type RoomKey } from "./keyboard";
 import { keyboardKeys, parseSlot, placement, roomWidth, type Placed, type RoomData, type Shown } from "./rules";
+import { AVATAR_H, AvatarFigure } from "../avatar/AvatarArt";
+import { avatarSlotOk, faceFor, poseAt } from "../avatar/rules";
 
 export const CELL = 40;
 export const HEIGHT = 170;
@@ -52,8 +54,46 @@ export function weatherAt(now: number): Weather {
   return hour >= 19 || hour < 6 ? "night" : "day";
 }
 
+/** 방에서 움직이는 꼬마의 지금 모습(RoomScene이 정한다). 없으면 제자리에 선 꼬마. */
+export interface AvatarLive {
+  at: string;
+  /** 누르면 한 번 — 손 흔들기·뛰기. */
+  act: "wave" | "hop" | null;
+  walking: boolean;
+  /** act가 다시 일어날 때마다 오른다(같은 CSS 애니메이션을 다시 튼다). */
+  nonce: number;
+}
+
+/**
+ * 꼬마 — 자기 줄 가구 바로 앞에 그린다. b줄 꼬마는 f줄 가구에 가려질 수 있다(그게 깊이다).
+ * 칸을 차지하지 않는다. 그 칸의 가구가 자세를 정한다(docs/garden-avatar.md §4·§5).
+ */
+function AvatarInRoom({ room, live }: { room: RoomData; live?: AvatarLive | null }) {
+  const av = room.avatar;
+  if (!av?.on) return null;
+  const at = live?.at ?? av.at;
+  const slot = parseSlot(at);
+  if (!slot || !avatarSlotOk(at, roomWidth(room.size))) return null;
+  const seated = poseAt(room.placed, at);
+  const pose = live?.act === "wave" && seated === "stand" ? "wave" : live?.walking ? "walk" : seated;
+  const bottom = ROWS[slot.row].y + ROWS[slot.row].h;
+  const motion = live?.walking ? "garden-avatar-walk" : live?.act ? `garden-avatar-${live.act}` : undefined;
+  return (
+    // 움직이는 방(live)은 CSS transform이라 칸 사이를 미끄러진다. 공유 카드는 속성 transform(CSS가 없다).
+    <g
+      transform={live ? undefined : `translate(${slot.i * CELL} ${bottom - AVATAR_H})`}
+      style={live ? { transform: `translate(${slot.i * CELL}px, ${bottom - AVATAR_H}px)` } : undefined}
+      className="garden-avatar"
+    >
+      <g key={live?.nonce ?? 0} className={motion}>
+        <AvatarFigure look={av.look} pose={pose} face={faceFor(pose, room.mood)} blink />
+      </g>
+    </g>
+  );
+}
+
 /** Shared room drawing for the live room and server-rendered share card. */
-export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected, pulses }: {
+export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected, pulses, avatar }: {
   room: RoomData;
   byId: ReadonlyMap<string, Species>;
   now: number;
@@ -62,6 +102,7 @@ export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected,
   ghost?: Placed | null;
   selected?: string | null;
   pulses?: Readonly<Record<string, number>>;
+  avatar?: AvatarLive | null;
 }) {
   const width = roomWidth(room.size);
   const W = width * CELL;
@@ -70,6 +111,11 @@ export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected,
     .map((p) => ({ p, spec: placement(p.it, room.shown), slot: parseSlot(p.at) }))
     .filter((x): x is { p: Placed; spec: NonNullable<typeof x.spec>; slot: NonNullable<typeof x.slot> } => Boolean(x.spec && x.slot))
     .sort((a, b) => "wbf".indexOf(a.slot.row) - "wbf".indexOf(b.slot.row));
+  // 꼬마를 그릴 자리: 자기 줄(b·f)의 마지막 가구 뒤. 그 줄과 앞줄에 가구가 없으면 맨 앞(prev=null)에서.
+  const avRow = room.avatar?.on ? (avatar?.at ?? room.avatar.at)[0] : null;
+  const order = (r: string | null | undefined) => (r ? "wbf".indexOf(r) : -1);
+  const avatarAfter = (prev: string | null, next: string | undefined) =>
+    avRow !== null && order(prev) <= order(avRow) && (next === undefined || order(next) > order(avRow));
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={W} height={HEIGHT} viewBox={`0 0 ${W} ${HEIGHT}`} role="img" aria-label={label} className="garden-room-art">
       <defs>
@@ -85,11 +131,12 @@ export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected,
         <rect x="0" y="88" width={W} height="6" fill={C.woodD} stroke={C.ink} strokeWidth="2" />
         <rect x="1" y="1" width={W - 2} height={HEIGHT - 2} fill="none" stroke={C.ink} strokeWidth="3" />
       </g>
-      {items.map(({ p, spec, slot }) => {
+      {avatarAfter(null, items[0]?.slot.row) && <AvatarInRoom room={room} live={avatar} />}
+      {items.flatMap(({ p, spec, slot }, n) => {
         const w = spec.size * CELL;
         const h = ROWS[slot.row].h;
         const isGhost = ghost === p;
-        return (
+        const art = (
           <g
             key={`${p.at}-${p.it}${isGhost ? "-ghost" : ""}`}
             transform={`translate(${slot.i * CELL} ${ROWS[slot.row].y})`}
@@ -101,6 +148,8 @@ export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected,
             </g>
           </g>
         );
+        const next = items[n + 1];
+        return avatarAfter(slot.row, next?.slot.row) ? [art, <AvatarInRoom key="avatar" room={room} live={avatar} />] : [art];
       })}
     </svg>
   );

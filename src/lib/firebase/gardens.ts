@@ -83,6 +83,11 @@ export interface PublicRoom {
    * 보는 화면이 features/garden/room/keyboard.ts의 keysFromPublic으로 모양을 다시 본다.
    */
   keys?: Array<{ f: string; s: string; v?: number }>;
+  /**
+   * 꼬마(docs/garden-avatar.md §6.2). 판;칸;돌아다니기;피부;머리색;부위 id… 문자열 하나. 글이 들어갈 자리가 없다.
+   * 보는 화면이 features/garden/avatar/rules.ts의 avatarFromPublic으로 다시 본다. 세우지 않았으면 없다.
+   */
+  avatar?: string;
 }
 
 export async function publishGarden(gid: string, uid: string, garden: PublicGarden): Promise<void> {

@@ -22,6 +22,9 @@ import type { Species } from "../types";
 import { Guestbook, IlchonNotes, MoodSheet, MottoSheet, MusicSheet, NewsPanel, VisitorCount } from "./HomeParts";
 import { GuestbookModePicker, OpenRoomPrompt } from "../ilchon/parts";
 import { RoomLineList } from "../ilchon/RoomLines";
+import { track as trackEvent } from "@/lib/analytics";
+import { AVATAR_NAME } from "../avatar/catalog";
+import { Wardrobe } from "../avatar/Wardrobe";
 
 /**
  * 정원 홈 — 다이어리 속지 한 장 (docs/garden-miniroom.md §3.2·§3.3).
@@ -78,6 +81,7 @@ export function GardenHome({
   const [musicOpen, setMusicOpen] = useState(false);
   const [mottoOpen, setMottoOpen] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState<number | null>(null);
+  const [wardrobeOpen, setWardrobeOpen] = useState(false);
   const track = gardenTrack(data.room.bgm);
   const [opened, setOpened] = useState<Placed | null>(null);
   const mood = moodOf(data.room.mood);
@@ -177,6 +181,13 @@ export function GardenHome({
                 byId={byId}
                 now={now}
                 label={`${data.nick}의 방`}
+                onAvatarTap={() => trackEvent("avatar_tap", { mine: true })}
+                avatarActions={
+                  <>
+                    <button type="button" className="garden-diary-btn" onClick={() => { gardenFeedback("tap"); setWardrobeOpen(true); }}>👕 옷 갈아입기</button>
+                    <button type="button" className="garden-diary-btn is-quiet" onClick={() => { gardenFeedback("tap"); setMoodOpen(true); }}>😊 기분 바꾸기</button>
+                  </>
+                }
                 isItemActive={(p) => isShownId(p.it) || p.it === "piano" || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.shortcut || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
                 onItem={(p) => {
                   const s = FURNITURE_BY_ID.get(p.it)?.shortcut;
@@ -188,15 +199,20 @@ export function GardenHome({
                 }}
               />
             </div>
-            <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
               <button type="button" onClick={() => { gardenFeedback("tap"); setMoodOpen(true); }} className="garden-mood-now" aria-label={`오늘의 기분 ${mood.label} · 바꾸기`}>
                 <span className="text-smoke">오늘의 기분</span>
                 <span aria-hidden="true">{mood.icon}</span>
                 <b>{mood.label}</b>
               </button>
-              <button type="button" onClick={() => { gardenFeedback("tap"); setEditing(true); }} className="garden-diary-btn">
-                ✏️ 꾸미기
-              </button>
+              <span className="flex shrink-0 gap-1.5">
+                <button type="button" onClick={() => { gardenFeedback("tap"); setWardrobeOpen(true); }} className="garden-diary-btn is-quiet" aria-label={`${AVATAR_NAME} 옷 갈아입기`}>
+                  👕 {AVATAR_NAME}
+                </button>
+                <button type="button" onClick={() => { gardenFeedback("tap"); setEditing(true); }} className="garden-diary-btn">
+                  ✏️ 꾸미기
+                </button>
+              </span>
             </div>
             {data.room.placed.length === 0 && (
               <p className="mt-2 text-[12.5px] leading-relaxed text-smoke">
@@ -220,6 +236,7 @@ export function GardenHome({
         </>
       )}
 
+      {wardrobeOpen && data.room.avatar && <Wardrobe data={data} levels={levels} onClose={() => setWardrobeOpen(false)} say={say} />}
       {mottoOpen && <MottoSheet current={data.room.motto} onClose={() => setMottoOpen(false)} say={say} />}
       {musicOpen && (
         <MusicSheet

@@ -44,6 +44,8 @@ export interface Furniture {
   /** 이날(한국 날짜, 그날 포함)까지 상점 가구 맨 위 "새로 들어온 가구"에 NEW로 보인다. 목록 한가운데 묻히지 않게. */
   newUntil?: string;
   shortcut?: Shortcut;
+  /** 이 칸에 선 꼬마의 자세(docs/garden-avatar.md §5.3). 효과가 아니라 그림이다. */
+  pose?: "sit" | "sleep" | "play";
   /** 방에서 눌러 읽는 잼통 내부 페이지. 책 본문을 가구 번들에 넣지 않는다. */
   reading?: { href: string; label: string };
   story?: FurnitureStory;
@@ -80,32 +82,32 @@ export const FURNITURE: Furniture[] = [
   { id: "wall-lamp", label: "벽등", kind: "wall", size: 1, price: 120, art: "wall-lamp", hint: "은은한 벽등." },
   { id: "star-light", label: "별 조명", kind: "wall", size: 2, price: 400, art: "star-light", hint: "이번 주에만 들어오는 조명.", weekly: true },
   // 바닥에 놓는 것
-  { id: "bed", label: "침대", kind: "floor", size: 2, price: 900, art: "bed", hint: "폭신한 이불을 덮은 침대." },
-  { id: "sofa", label: "소파", kind: "floor", size: 2, price: 700, art: "sofa", hint: "둘이 앉는 하늘색 소파." },
+  { id: "bed", label: "침대", kind: "floor", size: 2, price: 900, art: "bed", hint: "폭신한 이불을 덮은 침대.", pose: "sleep" },
+  { id: "sofa", label: "소파", kind: "floor", size: 2, price: 700, art: "sofa", hint: "둘이 앉는 하늘색 소파.", pose: "sit" },
   { id: "desk", label: "책상", kind: "floor", size: 2, price: 500, art: "desk", hint: "숙제도 하고 그림도 그리는 책상." },
   { id: "bookshelf", label: "책장", kind: "floor", size: 1, price: 600, art: "bookshelf", hint: "누르면 도감이 열려요.", shortcut: "dex" },
   { id: "wardrobe", label: "옷장", kind: "floor", size: 1, price: 1200, art: "wardrobe", hint: "두 짝 문 옷장." },
-  { id: "chair", label: "나무 의자", kind: "floor", size: 1, price: 200, art: "chair", hint: "등받이가 있는 나무 의자." },
+  { id: "chair", label: "나무 의자", kind: "floor", size: 1, price: 200, art: "chair", hint: "등받이가 있는 나무 의자.", pose: "sit" },
   { id: "table", label: "동그란 탁자", kind: "floor", size: 1, price: 350, art: "table", hint: "차 한 잔 놓는 탁자." },
   { id: "lamp", label: "스탠드", kind: "floor", size: 1, price: 120, art: "lamp", hint: "노란 갓을 씌운 스탠드." },
   { id: "rug", label: "둥근 러그", kind: "floor", size: 2, price: 150, art: "rug", hint: "바닥에 까는 둥근 러그." },
   { id: "can", label: "물뿌리개", kind: "floor", size: 1, price: 50, art: "can", hint: "정원지기의 물뿌리개." },
-  { id: "cushion", label: "방석", kind: "floor", size: 1, price: 60, art: "cushion", hint: "앉기 좋은 동그란 방석." },
+  { id: "cushion", label: "방석", kind: "floor", size: 1, price: 60, art: "cushion", hint: "앉기 좋은 동그란 방석.", pose: "sit" },
   { id: "radio", label: "라디오", kind: "floor", size: 1, price: 300, art: "radio", hint: "누르면 정원 음악을 켜고 꺼요.", shortcut: "music" },
   { id: "mailbox", label: "우편함", kind: "floor", size: 1, price: 250, art: "mailbox", hint: "누르면 방명록으로 가요.", shortcut: "guestbook" },
-  { id: "keyboard", label: "내 키보드", kind: "floor", size: 2, price: 400, art: "keyboard", hint: "키 네 개에 그림을 그리고 소리를 골라요. 손님도 눌러 볼 수 있어요.", shortcut: "keyboard", newUntil: "2026-12-14" },
-  { id: "piano", label: "피아노", kind: "floor", size: 2, price: 1500, art: "piano", hint: "15초 동안 직접 연주해 곡을 남겨요. 방문자가 누르면 저장한 음악이 흘러나와요." },
+  { id: "keyboard", label: "내 키보드", kind: "floor", size: 2, price: 400, art: "keyboard", hint: "키 네 개에 그림을 그리고 소리를 골라요. 손님도 눌러 볼 수 있어요.", shortcut: "keyboard", newUntil: "2026-12-14", pose: "play" },
+  { id: "piano", label: "피아노", kind: "floor", size: 2, price: 1500, art: "piano", hint: "15초 동안 직접 연주해 곡을 남겨요. 방문자가 누르면 저장한 음악이 흘러나와요.", pose: "play" },
   { id: "picnic", label: "피크닉 바구니", kind: "floor", size: 1, price: 450, art: "picnic", hint: "이번 주에만 들어오는 소품.", weekly: true },
   { id: "fishbowl", label: "어항", kind: "floor", size: 1, price: 800, art: "fishbowl", hint: "이번 주에만 들어오는 어항.", weekly: true },
-  { id: "rocker", label: "흔들의자", kind: "floor", size: 1, price: 900, art: "rocker", hint: "이번 주에만 들어오는 흔들의자.", weekly: true },
-  { id: "tent", label: "방 안 텐트", kind: "floor", size: 2, price: 2000, art: "tent", hint: "이번 주에만 들어오는 작은 텐트.", weekly: true },
+  { id: "rocker", label: "흔들의자", kind: "floor", size: 1, price: 900, art: "rocker", hint: "이번 주에만 들어오는 흔들의자.", weekly: true, pose: "sit" },
+  { id: "tent", label: "방 안 텐트", kind: "floor", size: 2, price: 2000, art: "tent", hint: "이번 주에만 들어오는 작은 텐트.", weekly: true, pose: "sleep" },
   // 🏆 전리품 — 뿌리 조각으로만(잼으로 사지 못하고 남에게 주지 못한다). 꾸밈일 뿐 효과는 없다.
   { id: "wp-vine", label: "덩굴무늬 벽지", kind: "wallpaper", size: 1, price: 10, cur: "root", art: "wp-vine", hint: "거대 잡초를 이긴 덩굴무늬. 뿌리 조각으로만 바꿔요." },
   { id: "fl-plaza", label: "광장 돌바닥", kind: "flooring", size: 1, price: 8, cur: "root", art: "fl-plaza", hint: "광장의 네모 돌. 뿌리 조각으로만 바꿔요." },
   { id: "banner", label: "광장 깃발", kind: "wall", size: 1, price: 5, cur: "root", art: "banner", hint: "함께 지킨 광장의 깃발." },
   { id: "drum", label: "응원 북", kind: "floor", size: 1, price: 6, cur: "root", art: "drum", hint: "싸움터에서 두드리던 그 북." },
   { id: "lantern", label: "광장 등불", kind: "floor", size: 1, price: 8, cur: "root", art: "lantern", hint: "밤 광장을 밝히던 등불." },
-  { id: "bench", label: "광장 벤치", kind: "floor", size: 2, price: 12, cur: "root", art: "bench", hint: "다 같이 쉬던 광장 벤치." },
+  { id: "bench", label: "광장 벤치", kind: "floor", size: 2, price: 12, cur: "root", art: "bench", hint: "다 같이 쉬던 광장 벤치.", pose: "sit" },
   { id: "showcase", label: "전리품 진열장", kind: "floor", size: 1, price: 15, cur: "root", art: "showcase", hint: "유리문 달린 진열장." },
   { id: "fountain", label: "작은 분수", kind: "floor", size: 2, price: 25, cur: "root", art: "fountain", hint: "광장 한가운데의 분수를 방으로." },
   { id: "fx-petal", label: "꽃잎 필살기", kind: "fx", size: 1, price: 20, cur: "root", art: "🌸", hint: "필살기를 쓸 때 꽃잎이 흩날려요. 그림만 바뀌고 세기는 같아요." },

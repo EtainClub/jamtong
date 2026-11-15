@@ -123,6 +123,15 @@ export type AnalyticsEvent =
   | "key_record"
   | "key_edit"
   /**
+   * 내 방의 꼬마(docs/garden-avatar.md §10.4). 고른 id·피부색·머리색은 보내지 않는다 — 사람을 가르는 셈이 된다.
+   * avatar_edit: 저장했다. parts(바뀐 부위 이름을 쉼표로, 예: "hair,top").
+   * avatar_tap: 꼬마를 눌렀다. mine(내 방인지).
+   * avatar_place: 세우기·돌아다니기를 바꿨다. on, roam.
+   */
+  | "avatar_edit"
+  | "avatar_tap"
+  | "avatar_place"
+  /**
    * 지지자 응원 — 응원 탭이 사람을 남기게 하는지 본다.
    * cheer_open: 응원 탭을 처음 열었다. from: tab(탭을 눌렀다) | home | garden | neighbors | my | link.
    * cheer_post: 한 줄을 남겼다. starter: none(직접 씀) | edited(첫 문장을 고쳐 씀) | verbatim(첫 문장 그대로),

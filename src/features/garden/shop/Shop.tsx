@@ -36,6 +36,7 @@ import {
 } from "../rules";
 import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
+import { WearShop } from "./WearShop";
 import { BuySheet, ExpandBanner, priceText, SHOP_CATS, ShopCard, type ShopCat } from "./parts";
 import { RoomShop } from "./RoomShop";
 import { TrophyShop } from "./TrophyShop";
@@ -86,6 +87,7 @@ export function Shop({
         {(cat === "furniture" || cat === "walls") && <RoomShop cat={cat} data={data} byId={byId} now={now} say={say} />}
         {cat === "trophy" && <TrophyShop data={data} say={say} />}
         {cat === "music" && <MusicShop data={data} say={say} />}
+        {cat === "wear" && <WearShop data={data} say={say} />}
       </div>
 
       <p className="mt-5 text-[11.5px] leading-relaxed text-smoke">
