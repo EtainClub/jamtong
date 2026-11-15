@@ -613,15 +613,139 @@ export function raidKey(day: number, wave: number): number {
 }
 
 export interface RaidWave {
+  /** 체력 — 3.0 물결에서는 지금 형태까지의 체력 게이지 목표(쌓인 값)다. */
   hp: number;
   hits: number;
   fighters: number;
   /** 서버가 찍은 시각. 막 세운 직후 잠깐 null일 수 있다. */
   spawnedAt: number | null;
   defeatedAt: number | null;
+  /** 3.0 물결만(아래 "거대 잡초 3.0"). 없으면 2.0 물결이다. */
+  v3?: RaidV3;
+}
+
+/** 3.0 물결이 문서에 싣는 것. 목표와 시작점은 모두 태어난 때부터 쌓인 값이다. */
+export interface RaidV3 {
+  form: 1 | 2 | 3;
+  /** 이 형태가 시작한 때. */
+  formAt: number | null;
+  /** 종류의 기본 필요량(RAID_SIZES). */
+  size: number;
+  /** 이 형태의 필요량 합계. */
+  n: number;
+  /** 갑옷·울타리 게이지의 목표(쌓인 값). 체력의 목표는 hp다. */
+  brk: number;
+  grd: number;
+  /** 이 형태가 시작할 때의 세 게이지(쌓인 값) — 이 형태의 0점. */
+  base: { h: number; b: number; g: number };
+  /** 칸에서 더한 갑옷·울타리 게이지(쌓인 값). 체력은 hits다. */
+  brkHits: number;
+  grdHits: number;
 }
 
 export type RaidPhase = "active" | "defeated" | "escaped";
+
+// ── 거대 잡초 3.0 — 변신·게이지 셋·역할 (docs/garden-raid-boss.md §3·§4) ────────
+/**
+ * ★ 게이지는 셋이다 — 체력(hits)·갑옷(brk)·울타리(grd). 셋이 다 차야 그 형태가 끝난다.
+ * ★ 형태가 시작하고 RAID_FORM_FAST 안에 채우면 쓰러지지 않고 변신한다(3형까지). 넘겼으면 쓰러진다.
+ *   규칙이 둘 중 하나만 받는다. 1형을 넘기면 상자는 확정이다.
+ * ★ 기력은 형태마다 RAID_USES_PER_PERSON번. 제 역할의 게이지에 넣으면 한 번이 RAID_ROLE_MULT, 남의 게이지는 1
+ *   (빈틈이면 다시 RAID_GAP_MULT). 한 사람이 한 형태에 넣는 최대는 60 × 2 × 2 = 240이다.
+ * ★ 종류의 기본 필요량(RAID_SIZES)은 2.0 체력의 두 배 — 둘이 최대 480이라 혼자·둘이 못 잡는 것은 그대로고,
+ *   제 역할로 치면 드는 사람 수도 2.0과 같다.
+ * ★ 변신한 형태의 필요량은 그때까지 온 사람 수에서 정한다: max(기본값, 72 × 인원)을 60 단위로.
+ *
+ * 값을 바꾸면 firestore.rules의 plazaRaids 절도 같이 바꾼다 — raid.test.ts가 짝을 본다.
+ */
+export type RaidPool = 0 | 1 | 2;
+export const RAID_POOLS = ["hits", "brk", "grd"] as const;
+export const RAID_POOL_LABEL = ["체력", "갑옷", "울타리"] as const;
+/** 역할. 코드 = 제 게이지 번호 + 1 (규칙이 pool + 1 == role로 본다). */
+export type RaidRoleId = "reaper" | "seeker" | "warden";
+export const RAID_ROLES: Record<RaidRoleId, { code: 1 | 2 | 3; pool: RaidPool; icon: string; label: string; job: string }> = {
+  reaper: { code: 1, pool: 0, icon: "🌾", label: "낫잡이", job: "몸을 문질러 체력을 깎아요" },
+  seeker: { code: 2, pool: 1, icon: "🔍", label: "돋보기꾼", job: "‘출처’ 표적을 골라 두드려 갑옷을 깨요" },
+  warden: { code: 3, pool: 2, icon: "🛡️", label: "울타리지기", job: "박자에 맞춰 울타리를 세워요" },
+};
+export const RAID_ROLE_ORDER: RaidRoleId[] = ["reaper", "seeker", "warden"];
+export function raidRoleOf(code: unknown): RaidRoleId | null {
+  return RAID_ROLE_ORDER.find((id) => RAID_ROLES[id].code === code) ?? null;
+}
+export const RAID_ROLE_MULT = 2;
+export const RAID_FORM_FAST = 30 * MINUTE;
+/** 종류의 기본 필요량 = 2.0 체력(RAID_KINDS의 hp) × RAID_ROLE_MULT. */
+export const RAID_SIZES = [540, 720, 900] as const;
+/** 형태마다 필요량을 체력·갑옷·울타리로 나누는 비율(%). */
+export const RAID_FORM_SPLIT: Record<1 | 2 | 3, readonly [number, number, number]> = { 1: [70, 30, 0], 2: [50, 25, 25], 3: [40, 30, 30] };
+/** 변신한 형태의 필요량: 온 사람 한 명에 이만큼(한 사람이 제 역할로 빈틈 없이 넣는 120의 60%). */
+export const RAID_NEED_PER_FIGHTER = 72;
+export const RAID_NEED_STEP = 60;
+export const RAID_NEED_MAX = 60_000;
+/** 변신 커밋이 읽은 인원이 이만큼 늦어도 규칙이 받는다(그 사이 든 사람). */
+export const RAID_NEED_SLACK = 10;
+
+export function raidSize(day: number, wave: number): number {
+  return raidKind(day, wave).hp * RAID_ROLE_MULT;
+}
+
+/** 필요량을 세 게이지로 나눈다. 필요량이 RAID_NEED_STEP의 배수라 늘 정수다. */
+export function raidSplit(n: number, form: 1 | 2 | 3): { h: number; b: number; g: number } {
+  const [h, b, g] = RAID_FORM_SPLIT[form];
+  return { h: (n * h) / 100, b: (n * b) / 100, g: (n * g) / 100 };
+}
+
+/** 변신한 형태의 필요량. */
+export function raidNextNeed(size: number, fighters: number): number {
+  const byCrowd = Math.ceil((RAID_NEED_PER_FIGHTER * fighters) / RAID_NEED_STEP) * RAID_NEED_STEP;
+  return Math.min(RAID_NEED_MAX, Math.max(size, byCrowd));
+}
+
+export interface RaidGauge {
+  /** 이 형태에서 찬 만큼(목표에서 멈춘다)과 목표. 목표가 0이면 이 형태에 없는 게이지다. */
+  have: number;
+  need: number;
+}
+
+/** 이 형태의 세 게이지 — [체력, 갑옷, 울타리]. 2.0 물결은 체력 하나다. */
+export function raidGauges(r: RaidWave): [RaidGauge, RaidGauge, RaidGauge] {
+  const v = r.v3;
+  if (!v) return [{ have: Math.min(r.hits, r.hp), need: r.hp }, { have: 0, need: 0 }, { have: 0, need: 0 }];
+  const g = (sum: number, base: number, target: number): RaidGauge => ({ have: Math.max(0, Math.min(sum, target) - base), need: Math.max(0, target - base) });
+  return [g(r.hits, v.base.h, r.hp), g(v.brkHits, v.base.b, v.brk), g(v.grdHits, v.base.g, v.grd)];
+}
+
+/** 세 게이지가 다 찼는가. */
+export function raidFilled(r: RaidWave): boolean {
+  return raidGauges(r).every((g) => g.have >= g.need);
+}
+
+/** 다 찼을 때 일어날 일 — 변신(빠르게 채웠고 3형 전)이냐 처치냐. 규칙도 같게 본다. */
+export function raidAdvanceKind(r: RaidWave, now: number): "morph" | "finish" {
+  const v = r.v3;
+  return v && v.form < 3 && v.formAt !== null && now < v.formAt + RAID_FORM_FAST ? "morph" : "finish";
+}
+
+/** 한 번(기력 1)이 몇으로 세지는가 — 역할(제 게이지면 ×2)과 빈틈(×2). 2.0 물결에는 역할 배수가 없다. */
+export function raidPoolValue(r: RaidWave, role: RaidRoleId | null, pool: RaidPool, t: number): number {
+  const onRole = r.v3 && role !== null && RAID_ROLES[role].pool === pool ? RAID_ROLE_MULT : 1;
+  return onRole * raidStrikeValue(t, r.spawnedAt, r.hp);
+}
+
+/** 잡는 데 드는 사람(3.0) — 모두 제 역할로 빈틈에만 치면 least, 제 역할이되 빈틈을 안 쓰면 most. */
+export function raidNeedV3(n: number): { least: number; most: number } {
+  const perPerson = RAID_USES_PER_PERSON * RAID_ROLE_MULT;
+  return { least: Math.ceil(n / (perPerson * RAID_GAP_MULT)), most: Math.ceil(n / perPerson) };
+}
+
+/**
+ * 넘긴 형태 수(★). 쓰러졌으면 그때의 형태, 도망갔으면 그 앞 형태까지. 2.0 물결은 null(시각으로 센다 — raid/rules.ts).
+ * 1 이상이면 상자가 확정이다.
+ */
+export function raidFormsCleared(r: RaidWave, phase: RaidPhase): number | null {
+  if (!r.v3) return null;
+  return phase === "defeated" ? r.v3.form : r.v3.form - 1;
+}
 
 export function raidPhase(r: RaidWave, now: number): RaidPhase {
   if (r.defeatedAt) return "defeated";

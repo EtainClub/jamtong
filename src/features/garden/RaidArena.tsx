@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { RaidWeedArt } from "./RaidWeedArt";
 import { raidFeedback } from "./feedback";
 import { AidButtons, AidChips, AidFeed, GapBand, KitRow } from "./raid/ArenaParts";
+import { BossRig } from "./raid/boss/BossRig";
+import { Invade, MorphCut } from "./raid/BossStage";
+import { FORM_CUT_MS, FORM_ORDER, FORM_SCALE, formName, nextSkillAt, raidForm, SKILL_WARN_MS, type RaidForm } from "./raid/forms";
 import { ALARM_LEAD, COMBO_GAP_JUICE, kitOn } from "./raid/rules";
 import {
   COMBO_GAP,
@@ -25,20 +27,37 @@ import {
   RAID_USES_PER_PERSON,
   RAID_AIDS,
   RAID_LIFE,
+  RAID_POOL_LABEL,
+  RAID_ROLE_MULT,
+  RAID_ROLE_ORDER,
+  RAID_ROLES,
+  RAID_STRIKE_GAP,
   raidFrenzy,
   raidGapWindow,
+  raidGauges,
   raidNeed,
-  raidStrikeValue,
+  raidNeedV3,
+  raidPoolValue,
   raidTaunt,
   type RaidAidId,
   type FinisherId,
+  type RaidGauge,
   type RaidKind,
+  type RaidPool,
+  type RaidRoleId,
 } from "./rules";
 import { useGarden } from "./store";
 import { aidActive, type CurrentRaid, type RaidState } from "./useRaid";
 
 /**
- * 거대 잡초와 싸우는 칸 — 타격감·콤보·합동 게이지·약점·반격·필살기·함께 치는 사람들.
+ * 거대 잡초와 싸우는 칸 — 타격감·콤보·합동 게이지·약점·대기술·필살기·함께 치는 사람들.
+ *
+ * ★ 보스는 세 형태다(raid/forms.ts). 형태를 30분 안에 넘기면 쓰러지지 않고 변신한다 — 규칙이 정한다.
+ *   2형은 칸을 넘어 커지고, 3형에서는 싸움터가 전체 화면 무대가 된다(나갈 수 있다).
+ * ★ 게이지는 셋(체력·갑옷·울타리), 역할도 셋이다. 제 역할의 게이지에 넣으면 두 배다. 역할마다 손이 하는 일이 다르다 —
+ *   낫잡이는 문지르고, 돋보기꾼은 '출처' 표적을 골라 두드리고, 울타리지기는 박자에 맞춰 막는다.
+ *   어느 쪽이든 끝은 같다: 기력 한 번을 게이지 하나에 넣는다(useRaid의 strike).
+ * ★ 대기술(반격)은 태어난 시각에서 정해진 때에 온다 — 모두가 같은 순간 같은 예고를 본다.
  *
  * ★ 화면은 손이 닿는 즉시 반응한다(한 방이 서버에 닿기 전에 -1이 뜬다). 서버가 거절하면
  *   useRaid가 남은 방을 버리고 토스트로 알린다. 합계·체력은 언제나 서버 숫자다.
@@ -53,8 +72,10 @@ const RUB_PX = 36;
  * (처리기가 훅에 넘겨지는 탓에 린트가 렌더 중 호출로 오해한다.)
  */
 const clock = () => Date.now();
-/** 반격 경고가 떠 있는 시간. 이 안에 눌러야 피한다. */
-const WARN_MS = 1_600;
+/** 울타리지기의 박자: 한 방의 간격(RAID_STRIKE_GAP)마다 한 번, 앞뒤 이만큼은 맞은 것으로 친다. */
+const BEAT_SLACK = 260;
+/** 돋보기꾼의 표적 가운데 가짜('카더라')의 비율. 손전등이 켜지면 없다. */
+const SEEK_FAKE = 0.35;
 
 interface Fx {
   id: number;
@@ -93,19 +114,48 @@ export function RaidArena({
   const gap = raidGapWindow(now, r.spawnedAt, r.hp);
   const frenzy = raidFrenzy(r.spawnedAt, now);
   // 지금 한 번이 세지는 값(빈틈 ×2). rub 안의 value(약점으로 문지르기가 몇으로 세나)와 다르다.
-  const mult = raidStrikeValue(now, r.spawnedAt, r.hp);
   const drum = aidActive(r.aids, "drum", now);
   const torch = aidActive(r.aids, "torch", now);
   const kit = useGarden((s) => s.data?.kit);
   const juice = kit ? kitOn(kit, "juice", r.id) : false;
   const clockOn = kit ? kitOn(kit, "clock", r.id) : false;
   const finFx = useGarden((s) => s.data?.loot.fx ?? null);
-  const left = Math.max(0, r.hp - r.hits);
-  const stage = raidStage(r.hits, r.hp);
-  const surge = raidSurge(r.hits, r.hp);
+  const form = raidForm(r);
+  // 이 형태의 세 게이지와 그 합(형태 전체의 진행). 단계·합동 게이지·대사·방패는 합을 본다.
+  const gauges = raidGauges(r);
+  const prog = { have: gauges.reduce((n, x) => n + x.have, 0), need: Math.max(1, gauges.reduce((n, x) => n + x.need, 0)) };
+  const left = prog.need - prog.have;
+  const stage = raidStage(prog.have, prog.need);
+  const surge = raidSurge(prog.have, prog.need);
+  // 역할과 넣을 게이지. 따로 고르지 않으면 제 역할의 게이지에 넣는다. 그 게이지가 다 찼으면(또는 이 형태에 없으면)
+  // 아직 덜 찬 게이지로 돌린다 — 남의 일은 한 번이 1이다.
+  const role = raid.role;
+  const [poolPick, setPoolPick] = useState<{ form: number; pool: RaidPool } | null>(null);
+  const wanted: RaidPool = !r.v3 || !role ? 0 : poolPick?.form === form ? poolPick.pool : RAID_ROLES[role].pool;
+  const open = ([0, 1, 2] as const).find((i) => gauges[i].have < gauges[i].need);
+  const pool: RaidPool = gauges[wanted].have < gauges[wanted].need || open === undefined ? wanted : open;
+  // 지금 한 번이 세지는 값(제 역할 ×2, 빈틈 ×2). rub 안의 value(문지르기가 몇으로 세나)와 다르다.
+  const mult = raidPoolValue(r, role, pool, now);
+  const seeking = role === "seeker" && pool === 1;
+  const warding = role === "warden" && pool === 2;
+  // 약점의 생김새. 돋보기꾼에게는 늘 '출처'와 '카더라'다.
+  const weakLook = seeking
+    ? { real: { icon: "📎", label: "출처" }, fake: { icon: "❓", label: "카더라" } }
+    : { real: { icon: g.weak.icon, label: g.weak.label }, fake: { icon: g.weak.fake?.icon ?? "❓", label: g.weak.fake?.label ?? "가짜" } };
 
   // ── 지켜보는 동안 바뀐 것 (렌더 중 이전 값과 견준다) ──
   const [mountStage] = useState(stage);
+  // 변신: 보던 중에 형태가 오르면 컷을 띄운다. 늦게 들어온 사람은 컷 없이 그 형태로 시작한다.
+  const [formSeen, setFormSeen] = useState<RaidForm>(form);
+  const [morphUntil, setMorphUntil] = useState(0);
+  if (form !== formSeen) {
+    setFormSeen(form);
+    if (form > formSeen) setMorphUntil(now + FORM_CUT_MS);
+  }
+  const morphing = now < morphUntil;
+  // 3형의 전체 화면 무대. 나가면 이 물결 동안은 다시 저절로 열리지 않는다.
+  const [stageOff, setStageOff] = useState(false);
+  const staged = form === 3 && !stageOff;
   const [surgeSeen, setSurgeSeen] = useState(surge.count);
   const [surgeUntil, setSurgeUntil] = useState(0);
   if (surge.count !== surgeSeen) {
@@ -118,9 +168,9 @@ export function RaidArena({
   if (vines.stage !== stage) setVines({ stage, left: g.vines ?? 0 });
   const vinesLeft = g.vines ? vines.left : 0;
 
-  const shielded = !!g.shield && left / r.hp <= g.shield.below;
+  const shielded = !!g.shield && left / prog.need <= g.shield.below;
   const sporeNow = sporeBoost && Boolean(gap?.now);
-  const need = raidRubsPerStrike(kind.id, r.hits, r.hp, surging || Boolean(drum) || sporeNow);
+  const need = raidRubsPerStrike(kind.id, prog.have, prog.need, surging || Boolean(drum) || sporeNow);
   // 우산: 다음 반격 한 번을 모두가 피한다. 가장 최근 우산 시각을 기억하고, 그 뒤 첫 반격에서 쓴다.
   const lastUmbrella = (r.aids ?? []).filter((m) => m.aid === "umbrella").reduce((t, m) => Math.max(t, m.at), 0);
   const umbrellaRef = useRef({ at: lastUmbrella, used: 0 });
@@ -130,9 +180,13 @@ export function RaidArena({
   }, [lastUmbrella]);
   const torchRef = useRef(false);
   const frenzyRef = useRef(false);
+  const formRef = useRef<RaidForm>(form);
+  const seekRef = useRef(false);
   useEffect(() => {
     torchRef.current = Boolean(torch);
     frenzyRef.current = frenzy;
+    formRef.current = form;
+    seekRef.current = seeking;
   });
 
   // ── 손맛 상태 ──
@@ -175,12 +229,39 @@ export function RaidArena({
     comboTimer.current = setTimeout(() => setCombo(0), juice ? COMBO_GAP_JUICE : COMBO_GAP);
   };
 
-  const rub = (pos: Pos) => {
-    if (r.phase !== "active" || spent) return;
+  /** 문지른 값을 쌓고, 한 방만큼 찼으면 기력을 써서 지금 게이지에 넣는다. */
+  const addRubs = (value: number, pos: Pos, quiet = false) => {
+    rubs.current += value;
+    let strikes = 0;
+    // 줄이 찼으면(손이 1초 규칙보다 빠르면) 문지른 것을 쥐고 있다가 다음 문지르기에 넣는다.
+    while (rubs.current >= need && raid.strike(pool)) {
+      rubs.current -= need;
+      strikes += 1;
+    }
+    rubs.current = Math.min(rubs.current, need);
+    if (strikes > 0) {
+      landed(strikes, pos, false, mult);
+      if (!quiet) raidFeedback("hit");
+    }
+    setPartial(Math.min(rubs.current, need));
+  };
+
+  /** 손이 닿아도 되는가 — 싸우는 중이고, 기력이 있고, 역할을 골랐고, 묶이지 않았다. */
+  const ready = (pos: Pos): boolean => {
+    if (r.phase !== "active" || spent) return false;
+    if (r.v3 && !role) {
+      pop(pos, "역할을 먼저 골라요", "info");
+      return false;
+    }
     if (stunned) {
       pop(pos, "😵", "miss");
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const rub = (pos: Pos) => {
+    if (!ready(pos)) return;
     lastRub.current = clock();
     raidFeedback("rub");
 
@@ -195,28 +276,38 @@ export function RaidArena({
     if (weak && Math.hypot(pos.x - weak.x, pos.y - weak.y) < 16) {
       if (weak.fake) {
         value = 0;
-        pop(pos, `${g.weak.fake?.label ?? "가짜"}였어요!`, "miss");
+        pop(pos, `${weakLook.fake.label}였어요!`, "miss");
       } else {
-        value = g.weak.value;
-        pop({ x: weak.x, y: weak.y - 8 }, `${g.weak.label}! ×${g.weak.value}`, "weak");
+        // 돋보기꾼: 진짜 표적 하나가 곧 한 방이다. 그 밖에는 문지르기 몇 번 값.
+        value = seeking ? need : g.weak.value;
+        pop({ x: weak.x, y: weak.y - 8 }, seeking ? `${weakLook.real.label}! 갑옷에 금` : `${weakLook.real.label}! ×${g.weak.value}`, "weak");
         raidFeedback("weak");
       }
       setWeak(null);
     }
+    addRubs(value, pos, value > 1);
+  };
 
-    rubs.current += value;
-    let strikes = 0;
-    // 줄이 찼으면(손이 1초 규칙보다 빠르면) 문지른 것을 쥐고 있다가 다음 문지르기에 넣는다.
-    while (rubs.current >= need && raid.strike()) {
-      rubs.current -= need;
-      strikes += 1;
+  // 울타리지기: 박자(한 방의 간격)에 맞춰 누르면 그대로 한 방. 어긋나면 문지르기 한 번 값.
+  const beat0 = useRef(0);
+  useEffect(() => {
+    beat0.current = clock();
+  }, [warding]);
+  const beat = () => {
+    const pos = { x: 50, y: 78 };
+    if (!ready(pos)) return;
+    lastRub.current = clock();
+    const into = (clock() - beat0.current) % RAID_STRIKE_GAP;
+    const onBeat = into < BEAT_SLACK || into > RAID_STRIKE_GAP - BEAT_SLACK;
+    if (onBeat) {
+      pop(pos, "막았어요!", "weak");
+      raidFeedback("dodge");
+      addRubs(need, pos, true);
+    } else {
+      pop(pos, "박자를 맞춰요", "miss");
+      raidFeedback("rub");
+      addRubs(1, pos);
     }
-    rubs.current = Math.min(rubs.current, need);
-    if (strikes > 0) {
-      landed(strikes, pos, false, mult);
-      if (value <= 1) raidFeedback("hit");
-    }
-    setPartial(Math.min(rubs.current, need));
   };
 
   // ── 약점: 잠깐 나타났다 사라진다. 문지르던 사람에게만. ──
@@ -227,17 +318,18 @@ export function RaidArena({
     const show = () => {
       if (!alive) return;
       if (Date.now() - lastRub.current < 8_000) {
-        // 손전등: 가짜 약점이 없다.
-        const fake = !torchRef.current && !!g.weak.fake && Math.random() < g.weak.fake.ratio;
+        // 손전등: 가짜 약점이 없다. 돋보기꾼에게는 종류와 상관없이 가짜('카더라')가 섞인다.
+        const ratio = seekRef.current ? SEEK_FAKE : (g.weak.fake?.ratio ?? 0);
+        const fake = !torchRef.current && Math.random() < ratio;
         setWeak({ id: ++weakSeq.current, x: 24 + Math.random() * 52, y: 26 + Math.random() * 44, fake });
       }
-      t = setTimeout(hide, 2_600);
+      t = setTimeout(hide, seekRef.current ? 1_700 : 2_600);
     };
     const hide = () => {
       if (!alive) return;
       setWeak(null);
-      // 손전등이면 약점이 더 자주 뜬다.
-      t = setTimeout(show, (torchRef.current ? 0.4 : 1) * (1_800 + Math.random() * 1_800));
+      // 손전등이면 약점이 더 자주 뜬다. 돋보기꾼은 표적이 일이라 쉴 틈 없이 뜬다.
+      t = setTimeout(show, seekRef.current ? 350 + Math.random() * 450 : (torchRef.current ? 0.4 : 1) * (1_800 + Math.random() * 1_800));
     };
     t = setTimeout(show, 1_500);
     return () => {
@@ -246,15 +338,19 @@ export function RaidArena({
     };
   }, [spent, g]);
 
-  // ── 반격: 문지르던 사람에게 가끔. 경고 안에 누르면 피하고 덤으로 한 방. ──
+  // ── 대기술: 태어난 시각에서 정해진 때에 온다(raid/forms.ts) — 모두가 같은 순간 같은 예고를 본다.
+  //    문지르던 사람만 맞는다. 예고 안에 누르면 피하고 덤으로 한 방. ──
+  const raidKey = r.id;
+  const bornAt = r.spawnedAt;
   useEffect(() => {
-    if (spent) return;
+    if (spent || bornAt === null) return;
     let alive = true;
     let t: ReturnType<typeof setTimeout>;
     const c = g.counter;
     const schedule = () => {
-      // 폭주: 반격이 잦아진다.
-      t = setTimeout(fire, c.everyMs * (frenzyRef.current ? 0.6 : 1) * (0.7 + Math.random() * 0.6));
+      // 형태가 오르거나 폭주면 잦아진다. 지금의 형태로 다음 때를 다시 셈한다.
+      const at = nextSkillAt(raidKey, formRef.current, frenzyRef.current, bornAt, Date.now());
+      t = setTimeout(fire, at - Date.now());
     };
     const fire = () => {
       if (!alive) return;
@@ -292,7 +388,7 @@ export function RaidArena({
           setCounter(null);
           schedule();
         }, c.stunMs);
-      }, WARN_MS);
+      }, SKILL_WARN_MS);
     };
     schedule();
     return () => {
@@ -300,7 +396,7 @@ export function RaidArena({
       clearTimeout(t);
       counterRef.current = null;
     };
-  }, [spent, g]);
+  }, [spent, g, raidKey, bornAt]);
 
   const dodge = () => {
     if (counterRef.current?.phase !== "warn") return;
@@ -308,7 +404,7 @@ export function RaidArena({
     setCounter(null);
     raidFeedback("dodge");
     pop({ x: 50, y: 30 }, "회피! 덤으로 한 방", "weak");
-    if (raid.strike()) landed(1, { x: 50, y: 50 }, false, mult);
+    if (raid.strike(pool)) landed(1, { x: 50, y: 50 }, false, mult);
   };
 
   // ── 자명종: 켠 물결 동안 다음 빈틈 1분 전에 울린다(탭이 열려 있을 때) ──
@@ -341,6 +437,9 @@ export function RaidArena({
     stageRef.current = stage;
   }, [stage]);
   useEffect(() => {
+    if (morphUntil) raidFeedback("morph");
+  }, [morphUntil]);
+  useEffect(() => {
     if (surgeUntil) raidFeedback("surge");
   }, [surgeUntil]);
   const lastPulse = raid.pulses.at(-1);
@@ -361,7 +460,7 @@ export function RaidArena({
     const cutId = ++cutSeq.current;
     setCut({ id: cutId, finisher: id, landed: null });
     raidFeedback("finisher");
-    const sent = await raid.finisher(item.hits);
+    const sent = await raid.finisher(item.hits, pool);
     if (sent.uses > 0) {
       setCut((c) => (c?.id === cutId ? { ...c, landed: sent.hits } : c));
       landed(sent.uses, { x: 50, y: 45 }, true);
@@ -379,7 +478,8 @@ export function RaidArena({
   const gesture = useRubAt(rub);
 
   const escapeIn = r.spawnedAt !== null ? r.spawnedAt + RAID_LIFE - now : RAID_LIFE;
-  const box = Math.round(196 * Math.min(1.2, 0.9 + r.hp / 3000));
+  const box = Math.round(216 * Math.min(1.2, 0.9 + prog.need / 3000));
+  const need3 = r.v3 ? raidNeedV3(r.v3.n) : raidNeed(r.hp);
   const tier = comboTier(combo);
   const together = raid.together;
   const togetherLine =
@@ -396,29 +496,33 @@ export function RaidArena({
   return (
     <section
       aria-labelledby="raid"
-      className={`garden-raid raid-arena mt-3 rounded-2xl px-4 py-3.5 text-white ${quake.n ? (quake.n % 2 ? "raid-quake-a" : "raid-quake-b") : ""} ${quake.big ? "is-big" : ""} ${surging ? "is-surge" : ""}`}
+      className={`garden-raid raid-arena mt-3 rounded-2xl px-4 py-3.5 text-white form-${form} ${staged ? "is-staged" : ""} ${quake.n ? (quake.n % 2 ? "raid-quake-a" : "raid-quake-b") : ""} ${quake.big ? "is-big" : ""} ${surging ? "is-surge" : ""}`}
       style={{ background: `linear-gradient(180deg, ${kind.bg[0]}, ${kind.bg[1]})` }}
     >
+      {staged && <Invade kind={kind} />}
+      {form === 3 && (
+        <button type="button" onClick={() => setStageOff(!stageOff)} className="raid-stage-toggle">
+          {staged ? "↙ 광장으로" : "⛶ 전체 화면 무대"}
+        </button>
+      )}
       <div className="relative z-10">
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-[11.5px] font-semibold opacity-80">오늘 {["첫", "두", "세", "네", "다섯"][r.wave - 1] ?? r.wave} 번째 거대 잡초</p>
           <p className="shrink-0 text-[11.5px] tabular-nums opacity-90">도망까지 {formatLeft(Math.max(0, escapeIn))}</p>
         </div>
-        <h3 id="raid" className="mt-0.5 text-[17px] font-black tracking-tight">😠 {josa(kind.name, "이가")} 나타났어요!</h3>
+        <h3 id="raid" className="mt-0.5 text-[17px] font-black tracking-tight">
+          {form === 1 ? `${josa(kind.name, "이가")} 나타났어요!` : formName(kind.id, form)}
+          {form > 1 && <span className="raid-form-chip">{FORM_ORDER[form]}</span>}
+        </h3>
         <p className="text-[12px] opacity-85">{kind.trait} · {g.rule}</p>
 
-        {/* 체력 — 노란 막대는 바로, 붉은 막대는 늦게 따라온다. 깎인 만큼이 눈에 보인다. */}
-        <div className="raid-hp mt-2" role="progressbar" aria-label="거대 잡초 체력" aria-valuemin={0} aria-valuemax={r.hp} aria-valuenow={left}>
-          <div className="raid-hp-trail" style={{ width: `${(left / r.hp) * 100}%` }} />
-          <div className="raid-hp-fill" style={{ width: `${(left / r.hp) * 100}%` }} />
-          {[0.75, 0.5, 0.25].map((m) => (
-            <span key={m} className="raid-hp-mark" style={{ left: `${m * 100}%` }} />
-          ))}
-        </div>
+        {/* 게이지 — 3.0 물결은 셋(체력·갑옷·울타리)이고 다 차야 넘어간다. 눌러서 넣을 곳을 고른다. */}
+        <Gauges gauges={gauges} v3={Boolean(r.v3)} role={role} pool={pool} onPick={(next) => setPoolPick({ form, pool: next })} />
         <p className="mt-1 flex justify-between text-[11.5px] tabular-nums opacity-90">
-          <span>체력 {left.toLocaleString()}/{r.hp.toLocaleString()}</span>
-          <span>함께 {r.fighters.toLocaleString()}명 · {raidNeed(r.hp).least === raidNeed(r.hp).most ? `${raidNeed(r.hp).most}명이면 잡아요` : `빈틈에 ${raidNeed(r.hp).least}명 · 아니면 ${raidNeed(r.hp).most}명`}</span>
+          <span>{r.v3 ? `${FORM_ORDER[form]} · 남은 ${left.toLocaleString()}` : `체력 ${left.toLocaleString()}/${prog.need.toLocaleString()}`}</span>
+          <span>함께 {r.fighters.toLocaleString()}명 · {need3.least === need3.most ? `${need3.most}명이면 잡아요` : `빈틈에 ${need3.least}명 · 아니면 ${need3.most}명`}</span>
         </p>
+        {r.v3 && <RolePick role={role} canPick={raid.canPickRole} form={form} onPick={raid.pickRole} />}
 
         {/* 합동 게이지 — 모두의 타격으로 찬다. */}
         <div className="mt-2 flex items-center gap-2 text-[11px] font-bold">
@@ -449,10 +553,11 @@ export function RaidArena({
       </div>
 
       <p className="garden-raid-taunt relative mx-auto mt-3 w-fit max-w-full rounded-2xl bg-white px-3 py-1.5 text-center text-[12.5px] font-bold text-[#2a1a1a]" aria-live="polite">
-        &ldquo;{raidTaunt(kind, r.hits, r.hp)}&rdquo;
+        &ldquo;{raidTaunt(kind, prog.have, prog.need)}&rdquo;
       </p>
 
-      <div className="relative mx-auto mt-2" style={{ width: box, height: box }}>
+      {/* 커진 몸이 위로 솟을 자리를 조금 비워 둔다. 나머지는 위의 글 뒤로 겹친다. */}
+      <div className="raid-boss-box relative mx-auto mt-2" style={{ width: box, height: box, marginTop: Math.round(box * (FORM_SCALE[form] - 1) * 0.55) + 8 }}>
         <button
           type="button"
           aria-label={spent ? "이번 거대 잡초에 기력을 다 썼어요 — 아래 지원으로 도울 수 있어요" : `${kind.name} 때리기 (체력 ${left} 남음)`}
@@ -462,9 +567,11 @@ export function RaidArena({
         >
           <span key={`g${lastPulse?.seq ?? 0}`} className={`raid-jolt-wrap ${lastPulse && lastPulse.seq > firstPulse ? "raid-jolt" : ""}`}>
             <span key={hitKey} className={`garden-weed-body garden-raid-weed raid-body relative ${hitKey ? "raid-hit" : ""}`}>
-              <span className={`garden-raid-menace is-${kind.id} raid-stage-${stage}`}>
-                <RaidWeedArt kind={kind.id} />
-                <StageMarks stage={stage} />
+              <span
+                className={`raid-boss is-${kind.id} ${shownCounter?.phase === "warn" ? "is-casting" : ""} ${morphing ? "is-morphing" : ""} ${frenzy ? "is-frenzy" : ""}`}
+                style={{ ["--boss-scale" as string]: FORM_SCALE[form] }}
+              >
+                <BossRig key={form} kind={kind.id} form={form} />
               </span>
             </span>
           </span>
@@ -477,8 +584,8 @@ export function RaidArena({
               style={{ left: `${weak.x}%`, top: `${weak.y}%` }}
               aria-hidden="true"
             >
-              <span>{weak.fake ? g.weak.fake?.icon : g.weak.icon}</span>
-              <small>{weak.fake ? g.weak.fake?.label : g.weak.label}</small>
+              <span>{weak.fake ? weakLook.fake.icon : weakLook.real.icon}</span>
+              <small>{weak.fake ? weakLook.fake.label : weakLook.real.label}</small>
             </span>
           )}
           {(partial > 0 || raid.queued > 0) && !spent && (
@@ -518,7 +625,8 @@ export function RaidArena({
           </span>
         )}
 
-        {stage > mountStage && (
+        {morphing && <MorphCut key={`morph${form}`} kind={kind} form={form} />}
+        {stage > mountStage && !morphing && (
           <span key={`stage${stage}`} className="raid-banner is-stage" aria-hidden="true">
             {josa(kind.name, "이가")} {STAGE_LINE[stage]}
           </span>
@@ -537,11 +645,11 @@ export function RaidArena({
         {shownCounter?.phase === "warn" && (
           <div className="raid-counter is-warn" role="alert">
             <span className="raid-counter-icon">{g.counter.icon}</span>
-            <p>{josa(kind.name, "이가")} {g.counter.warn}</p>
+            <p>{josa(formName(kind.id, form), "이가")} {g.counter.warn}</p>
             <button type="button" onClick={dodge} className="raid-dodge">
               {g.counter.dodge}!
             </button>
-            <span className="raid-counter-timer" style={{ animationDuration: `${WARN_MS}ms` }} />
+            <span className="raid-counter-timer" style={{ animationDuration: `${SKILL_WARN_MS}ms` }} />
           </div>
         )}
         {stunned && (
@@ -566,6 +674,15 @@ export function RaidArena({
         )}
       </div>
 
+      {/* 울타리지기의 박자 판 — 고리가 조여드는 순간 누르면 그대로 한 방이 울타리에 들어간다. */}
+      {warding && !spent && r.phase === "active" && (
+        <button type="button" onClick={beat} disabled={stunned} className="raid-beat mx-auto mt-3 grid place-items-center disabled:opacity-50" aria-label="박자에 맞춰 막기 — 고리가 조여들 때 누르세요">
+          <span key={`ring${warding}`} className="raid-beat-ring" style={{ animationDuration: `${RAID_STRIKE_GAP}ms` }} aria-hidden="true" />
+          <span className="text-[22px] leading-none">🛡️</span>
+          <span className="text-[11px] font-black">막기</span>
+        </button>
+      )}
+
       {/* 필살기 — 내 몫 안에서 여러 방을 한 번에. */}
       {!spent && (
         <div className="mt-2">
@@ -586,7 +703,7 @@ export function RaidArena({
                   <span className="block text-[20px] leading-none">{item.icon}</span>
                   <span className="mt-0.5 block text-[10.5px] font-bold leading-tight">{item.label}</span>
                   <span className="block text-[10px] tabular-nums opacity-85">
-                    {item.hits * mult}{mult > 1 ? "(×2)" : ""} · {have}개{short && have > 0 ? " · 기력 부족" : ""}
+                    {item.hits * mult}{mult > 1 ? `(×${mult})` : ""} · {have}개{short && have > 0 ? " · 기력 부족" : ""}
                   </span>
                 </button>
               );
@@ -621,22 +738,84 @@ export function RaidArena({
   );
 }
 
-/** 단계마다 몸에 금이 가고, 마지막에는 별이 돈다. */
-function StageMarks({ stage }: { stage: number }) {
-  if (stage === 0) return null;
+const GAUGE_ICON = ["❤️", "🧱", "🛡️"] as const;
+
+/**
+ * 세 게이지. 3.0 물결에서는 눌러서 내 기력을 넣을 곳을 고른다 — 제 역할의 게이지는 ×2, 남의 게이지는 ×1.
+ * 이 형태에 없는 게이지(목표 0)는 그리지 않는다. 2.0 물결은 체력 하나뿐이고 고를 것이 없다.
+ */
+function Gauges({ gauges, v3, role, pool, onPick }: { gauges: readonly RaidGauge[]; v3: boolean; role: RaidRoleId | null; pool: RaidPool; onPick: (pool: RaidPool) => void }) {
   return (
-    <svg viewBox="0 0 120 120" className="raid-marks" aria-hidden="true">
-      <path d="M44 52l6 7-4 6 7 5" stroke="#1d1208" strokeWidth="2" fill="none" strokeLinecap="round" />
-      {stage >= 2 && <path d="M78 66l-5 6 6 4-3 8M58 86l4-6 5 3" stroke="#1d1208" strokeWidth="2" fill="none" strokeLinecap="round" />}
-      {stage >= 2 && <path d="M86 40q3 6 0 9q-3-3 0-9Z" fill="#9fd4ff" stroke="#1d1208" strokeWidth=".8" />}
-      {stage >= 3 && (
-        <g className="raid-dizzy">
-          <text x="38" y="26" fontSize="12">✦</text>
-          <text x="70" y="20" fontSize="10">✦</text>
-          <text x="54" y="14" fontSize="9">✦</text>
-        </g>
-      )}
-    </svg>
+    <div className="mt-2 space-y-1">
+      {([0, 1, 2] as const).map((i) => {
+        const x = gauges[i];
+        if (x.need <= 0) return null;
+        const left = x.need - x.have;
+        const mine = role !== null && RAID_ROLES[role].pool === i;
+        const bar = (
+          <div className={`raid-hp ${i === 0 ? "" : "is-thin"} is-pool-${i}`} role="progressbar" aria-label={`거대 잡초 ${RAID_POOL_LABEL[i]}`} aria-valuemin={0} aria-valuemax={x.need} aria-valuenow={left}>
+            <div className="raid-hp-trail" style={{ width: `${(left / x.need) * 100}%` }} />
+            <div className="raid-hp-fill" style={{ width: `${(left / x.need) * 100}%` }} />
+          </div>
+        );
+        if (!v3) return <div key={i}>{bar}</div>;
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onPick(i)}
+            aria-pressed={pool === i}
+            disabled={!role || left <= 0}
+            className={`raid-gauge flex w-full items-center gap-2 rounded-lg px-1.5 py-1 text-left ${pool === i ? "is-on" : ""}`}
+          >
+            <span className="w-[74px] shrink-0 text-[11px] font-bold">
+              {GAUGE_ICON[i]} {RAID_POOL_LABEL[i]}
+              {role && <small className="ml-1 opacity-80">×{mine ? RAID_ROLE_MULT : 1}</small>}
+            </span>
+            <span className="min-w-0 flex-1">{bar}</span>
+            <span className="w-[76px] shrink-0 text-right text-[11px] tabular-nums">{left <= 0 ? "다 찼어요" : `${left.toLocaleString()} 남음`}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * 역할 고르기. 형태가 시작할 때(이 형태에서 처음 치기 전)만 고르거나 바꿀 수 있다 — 규칙이 그렇다.
+ * 한 번 치면 그 형태 동안은 굳는다.
+ */
+function RolePick({ role, canPick, form, onPick }: { role: RaidRoleId | null; canPick: boolean; form: RaidForm; onPick: (role: RaidRoleId) => void }) {
+  if (!canPick) {
+    if (!role) return null;
+    const mine = RAID_ROLES[role];
+    return (
+      <p className="mt-2 rounded-full bg-black/25 px-3 py-1 text-center text-[12px] font-bold">
+        {mine.icon} {mine.label} · {mine.job} <span className="opacity-75">(다음 형태에서 바꿀 수 있어요)</span>
+      </p>
+    );
+  }
+  return (
+    <div className="mt-2" role="radiogroup" aria-label="역할 고르기">
+      <p className="text-[11.5px] font-bold">
+        {role ? `${FORM_ORDER[form]}의 역할 — 치기 전까지 바꿀 수 있어요` : "역할을 골라요 — 제 역할의 게이지에 넣으면 두 배예요"}
+      </p>
+      <div className="mt-1 grid grid-cols-3 gap-1.5">
+        {RAID_ROLE_ORDER.map((id) => {
+          const item = RAID_ROLES[id];
+          return (
+            <button key={id} type="button" role="radio" aria-checked={role === id} onClick={() => onPick(id)} className={`raid-role rounded-xl px-1.5 py-1.5 text-center ${role === id ? "is-on" : ""}`}>
+              <span className="block text-[20px] leading-none">{item.icon}</span>
+              <span className="mt-0.5 block text-[11.5px] font-black leading-tight">{item.label}</span>
+              <span className="block text-[10px] leading-tight opacity-85">
+                {RAID_POOL_LABEL[item.pool]} ×{RAID_ROLE_MULT}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {role && <p className="mt-1 text-center text-[11px] opacity-85">{RAID_ROLES[role].job}</p>}
+    </div>
   );
 }
 

@@ -217,28 +217,33 @@ service cloud.firestore {
     }
 
     /*
-     * 거대 잡초 — 광장이 무성해지면 나타나는 레이드 (docs/garden-game.md §3.8, docs/garden-miniroom.md §7).
+     * 거대 잡초 — 광장이 무성해지면 나타나는 레이드 (docs/garden-game.md §3.8, docs/garden-raid-boss.md §3·§4).
      *
-     * plazaRaids/{한국 날짜 번호}-{물결}   하루 다섯 마리까지. 체력(hp)·태어난 때·쓰러진 때.
-     *   ├ shards/{0–7}                    맞은 수(hits)·참여 인원(fighters)을 나눠 센다. 누구나 읽는다.
+     * plazaRaids/{한국 날짜 번호}-{물결}   하루 다섯 마리까지. 형태(form 1–3)·세 게이지의 목표(hp·brk·grd, 쌓인 값)·
+     *   │                                 이 형태의 0점(base)과 필요량(n)·종류의 기본 필요량(size)·태어난 때·쓰러진 때.
+     *   ├ shards/{0–7}                    세 게이지(hits 체력·brk 갑옷·grd 울타리)와 참여 인원(fighters)을 나눠 센다. 누구나 읽는다.
      *   │                                 함께한 사람 이름(names, 칸마다 30)과 마지막 지원(aid·aidAt·aidBy)도 싣는다.
-     *   └ fighters/{uid}                  한 사람의 센 값(hits)·쓴 기력(uses)·지원(aid·aidAt·aids)·칸. 본인만 읽는다.
+     *   └ fighters/{uid}                  한 사람의 센 값(hits)·쓴 기력(uses)·역할(role)·든 형태(form)·넣은 게이지(pool)·
+     *                                     지원(aid·aidAt·aids)·칸. 본인만 읽는다.
      *
      * 규칙이 지키는 것. 값은 src/features/garden/rules.ts의 RAID_*와 같다(raid.test.ts가 본다).
-     *   1. 오늘 번호로만, 물결 1–5로, 체력 [270, 3000]으로, 맞은 수 0에서 태어난다.
-     *      270 = 3명 × 기력 60 × 1.5. 한 사람이 넣을 수 있는 맞은 수는 120(60 × 빈틈 2)이라 혼자도 둘도 못 잡는다.
+     *   1. 오늘 번호로만, 물결 1–5로, 1형으로, 기본 필요량 540·720·900(체력 70%·갑옷 30%)으로 태어난다.
+     *      한 사람이 한 형태에 넣을 수 있는 최대는 240(기력 60 × 제 역할 2 × 빈틈 2)이라 혼자도 둘도 1형을 못 넘긴다.
      *   2. 다음 물결은 제 시각(8·11·14·17·20시)이 됐고 앞 물결이 끝나고 30분이 지나야 태어난다.
-     *   3. 한 번 칠 때마다 내 칸과 내 표식이 같은 커밋에서 같은 만큼 오른다. 기력 1(필살기는 20까지)을 쓰고,
-     *      빈틈이면 그 두 배를 센다 — 빈틈은 request.time의 분과 물결의 spawnedAt으로만 본다(raidGap).
+     *   3. 한 번 칠 때마다 내 칸의 게이지 하나와 내 표식이 같은 커밋에서 같은 만큼 오른다. 기력 1(필살기는 20까지)을 쓰고,
+     *      제 역할의 게이지면 두 배, 빈틈이면 다시 두 배를 센다 — 빈틈은 request.time의 분과 물결의 spawnedAt으로만 본다(raidGap).
      *      아이템은 규칙이 볼 수 없는 내 정원 문서에 있으므로, 규칙은 한 커밋의 크기와 기력 60만 지킨다.
-     *   4. 한 사람은 1초에 한 번만, 한 물결에 기력 60까지만 쓴다.
+     *   4. 한 사람은 1초에 한 번만, 한 형태에 기력 60까지만 쓴다. 역할은 새 형태의 첫 커밋에서만 바꾼다.
      *   5. 지원은 종류 1–3, 앞선 지원에서 20초 뒤. 센 값은 그대로다(효과는 화면의 손맛뿐).
      *   6. 태어나고 3시간이 지나면 칠 수 없다(도망갔다).
-     *   7. 쓰러진 시각은 합계(물결 문서 hits + 칸 8)가 체력에 닿았을 때 한 번만 찍힌다. 쓰러진 뒤에는 칠 수 없다.
-     *   8. 참여 인원(칸의 fighters)과 이름(names)은 내 표식이 처음 생기는 커밋에서만 하나 는다.
+     *   7. 세 게이지가 다 차면: 그 형태를 30분 안에 채웠고 3형 전이면 변신만(다음 형태의 필요량은 온 사람 수에서),
+     *      아니면 쓰러진 시각만 한 번 찍힌다. 쓰러진 뒤에는 칠 수 없다.
+     *   8. 참여 인원(칸의 fighters)과 이름(names)은 내 표식이 처음 생기는 커밋에서만 하나 는다. 칸의 게이지는 줄지 않는다.
      *
-     * 옛 화면(기력 2.0 이전)과 함께 산다. uses 없이 hits만 올리는 표식은 빈틈 없이 한 번 = 1로 받는다
-     * (기력 = 센 값). 옛 화면은 칸을 set으로 통째로 쓰므로 names·aid가 지워질 수 있다 — 화면의 연출만 잃는다.
+     * 함께 사는 것.
+     *   - 2.0 화면(역할을 모른다, role 없음): 3.0 물결에서도 체력에 1:1로 친다(빈틈 두 배는 그대로). 세우지는 못한다.
+     *   - 2.0 물결(form 없음, 배포하는 날 떠 있는 것): 체력 하나로 끝까지 싸우고 쓰러진다. 역할을 실을 수 없다.
+     *   - 2.0 이전 화면(uses 없는 표식, 물결 문서를 직접 올리던 길)은 받지 않는다 — 칸을 통째로 써서 갑옷·울타리를 지운다.
      * 광장이 정말 무성한지는 규칙이 보지 못한다(칸 24개를 다 읽어야 한다). 그 반칙은 거대 잡초가 일찍 나오는 것뿐이다.
      */
     /*
@@ -737,65 +742,69 @@ service cloud.firestore {
     match /plazaRaids/{raidId} {
       allow read: if true;
 
+      // 세우기(3.0): 1형, 종류의 기본 필요량(540·720·900)을 체력 70%·갑옷 30%로. 목표는 모두 쌓인 값이다.
       allow create: if request.auth != null
         && raidId.matches('^[0-9]{5}-[1-5]$')
         && raidDay(raidId) == kstDayNumber()
         && raidOpened(raidId)
-        && request.resource.data.keys().hasOnly(['hp', 'hits', 'fighters', 'spawnedAt', 'defeatedAt'])
-        && request.resource.data.hp is int
-        && request.resource.data.hp >= 270
-        && request.resource.data.hp <= 3000
+        && request.resource.data.keys().hasOnly(['hp', 'hits', 'fighters', 'spawnedAt', 'defeatedAt', 'form', 'formAt', 'size', 'n', 'brk', 'grd', 'base'])
+        && request.resource.data.size in [540, 720, 900]
+        && request.resource.data.n == request.resource.data.size
+        && request.resource.data.hp == request.resource.data.size * 70 / 100
+        && request.resource.data.brk == request.resource.data.size * 30 / 100
+        && request.resource.data.grd == 0
+        && request.resource.data.base == {'h': 0, 'b': 0, 'g': 0}
+        && request.resource.data.form == 1
+        && request.resource.data.formAt == request.time
         && request.resource.data.hits == 0
         && request.resource.data.fighters == 0
         && request.resource.data.spawnedAt == request.time
         && request.resource.data.defeatedAt == null
         && (raidWave(raidId) == 1 || raidPrevDone(raidId));
 
-      // 쓰러뜨리기: 합계(옛 몫 hits + 칸 8개)가 체력에 닿았을 때 쓰러진 시각만 한 번 찍는다.
+      // 쓰러뜨리기: 세 게이지가 다 찼을 때 쓰러진 시각만 한 번 찍는다.
+      // 3.0 물결은 3형이거나, 이 형태를 30분 안에 채우지 못했을 때만 — 빨리 채웠으면 변신해야 한다(아래).
       allow update: if request.auth != null
         && resource.data.defeatedAt == null
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['defeatedAt'])
         && request.resource.data.defeatedAt == request.time
-        && resource.data.hits + raidShardHits(raidId) >= resource.data.hp;
+        && (!('form' in resource.data)
+          || resource.data.form == 3
+          || request.time >= resource.data.formAt + duration.value(30, 'm'))
+        && raidFilled(raidId);
 
-      // 칸 이전(2026-11-06 전)에 연 탭의 한 방(물결 문서를 직접 1씩 올림). 그 화면은 막히면 끝없이
-      // 다시 보내므로 남겨 둔다. 한 사람 60번·1:1이라 불변식(혼자·둘이 못 잡음)에 닿지 않는다.
-      // garden:stats의 "옛 길로 들어온 물결"이 0으로 이어지면 지운다(docs/garden-miniroom.md 배포 메모).
+      // 변신: 세 게이지를 30분 안에 다 채웠고 3형 전이면, 쓰러지지 않고 다음 형태가 된다.
       allow update: if request.auth != null
         && resource.data.defeatedAt == null
+        && 'form' in resource.data
+        && resource.data.form < 3
         && request.time < resource.data.spawnedAt + duration.value(3, 'h')
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hits', 'fighters', 'defeatedAt'])
-        && request.resource.data.hits == resource.data.hits + 1
-        && request.resource.data.hits <= resource.data.hp
-        && request.resource.data.defeatedAt == (request.resource.data.hits == resource.data.hp ? request.time : null)
-        && !('shard' in getAfter(raidFighter(raidId)).data)
-        && getAfter(raidFighter(raidId)).data.lastAt == request.time
-        && request.resource.data.fighters == resource.data.fighters + (exists(raidFighter(raidId)) ? 0 : 1);
+        && request.time < resource.data.formAt + duration.value(30, 'm')
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['form', 'formAt', 'n', 'hp', 'brk', 'grd', 'base'])
+        && request.resource.data.form == resource.data.form + 1
+        && request.resource.data.formAt == request.time
+        && raidNextForm(raidId);
 
       allow delete: if false;
 
-      // 맞은 수를 나눠 세는 칸. 한 번 치거나 지원할 때 내 표식과 내 칸(표식의 shard)을 같은 커밋에서 쓴다.
-      // 얼마나 오르는지는 표식 규칙이 맞춘다(표식이 오른 만큼 칸도 올라야 한다). 여기서는 상한과 짝만.
+      // 게이지를 나눠 세는 칸. 한 번 치거나 지원할 때 내 표식과 내 칸(표식의 shard)을 같은 커밋에서 쓴다.
+      // 어느 게이지가 얼마나 오르는지는 표식 규칙이 맞춘다. 여기서는 상한과 짝, 그리고 줄지 않는 것만.
       match /shards/{n} {
         allow read: if true;
         allow create: if request.auth != null
           && n.matches('^[0-7]$')
-          && request.resource.data.keys().hasOnly(['hits', 'fighters', 'names', 'aid', 'aidAt', 'aidBy'])
+          && request.resource.data.keys().hasOnly(['hits', 'brk', 'grd', 'fighters', 'names', 'aid', 'aidAt', 'aidBy'])
           && getAfter(raidPath(raidId)).data.defeatedAt == null
           && ((request.resource.data.keys().hasOnly(['hits', 'fighters'])
               && request.resource.data.hits == 0
               && request.resource.data.fighters == 0)
-            || (request.resource.data.hits is int
-              && request.resource.data.hits >= 0
-              && request.resource.data.hits <= 40
+            || (raidShardGrew({})
               && request.resource.data.fighters == (exists(raidFighter(raidId)) ? 0 : 1)
               && raidShardExtras(raidId, {})
               && raidShardPaired(raidId, n)));
         allow update: if request.auth != null
-          && request.resource.data.keys().hasOnly(['hits', 'fighters', 'names', 'aid', 'aidAt', 'aidBy'])
-          && request.resource.data.hits is int
-          && request.resource.data.hits >= resource.data.hits
-          && request.resource.data.hits <= resource.data.hits + 40
+          && request.resource.data.keys().hasOnly(['hits', 'brk', 'grd', 'fighters', 'names', 'aid', 'aidAt', 'aidBy'])
+          && raidShardGrew(resource.data)
           && request.resource.data.fighters == resource.data.fighters + (exists(raidFighter(raidId)) ? 0 : 1)
           && raidShardExtras(raidId, resource.data)
           && raidShardPaired(raidId, n);
@@ -806,12 +815,12 @@ service cloud.firestore {
         allow read: if request.auth != null && request.auth.uid == uid;
         allow create, update: if request.auth != null
           && request.auth.uid == uid
-          && request.resource.data.keys().hasOnly(['hits', 'uses', 'lastAt', 'shard', 'aid', 'aidAt', 'aids'])
+          && request.resource.data.keys().hasOnly(['hits', 'uses', 'lastAt', 'shard', 'aid', 'aidAt', 'aids', 'role', 'form', 'pool'])
           && request.resource.data.lastAt == request.time
           && request.resource.data.hits is int
           && (resource == null || request.time > resource.data.lastAt + duration.value(1, 's'))
           && raidLive(raidId)
-          && ('uses' in request.resource.data ? raidMove(raidId) : raidOldStrike(raidId));
+          && raidMove(raidId);
         allow delete: if false;
       }
     }
@@ -839,60 +848,75 @@ service cloud.firestore {
         && (m < 3 || (m < 6 && request.time >= raid.spawnedAt + duration.value(150, 'm')));
     }
 
-    // 지금 화면의 한 커밋: 치기(기력 1–20, 빈틈이면 두 배를 센다) 또는 지원(센 값 그대로).
-    // 기력(uses)이 없는 옛 표식은 센 값이 곧 쓴 기력이다 — 옛 화면은 한 번을 1로만 셌다.
+    // 한 커밋: 치기(기력 1–20을 게이지 하나에) 또는 지원(센 값 그대로).
+    //   role  내 역할 1–3. 0(없음)은 역할을 모르는 2.0 화면 — 체력에만, 역할 배수 없이, 기력은 물결 내내 60.
+    //   pool  넣는 게이지 0 체력 · 1 갑옷 · 2 울타리. pool + 1 == role이면 제 일이라 두 배(3.0 물결에서만).
+    //   form  내가 마지막으로 든 형태. 물결의 형태와 다르면 이 커밋이 새 형태의 첫 커밋이다 —
+    //         기력을 0부터 다시 세고, 이때만 역할을 바꿀 수 있다.
+    // 빈틈이면 다시 두 배. 2.0 물결(form 없음)에는 역할을 실을 수 없다.
     function raidMove(raidId) {
       let d = request.resource.data;
       let was = resource == null ? {} : resource.data;
-      let hitsWas = was.get('hits', 0);
-      let usesWas = was.get('uses', hitsWas);
-      let used = d.uses - usesWas;
       let raid = get(raidPath(raidId)).data;
-      let cell = raidShardPath(raidId, string(d.shard));
+      let form = raid.get('form', 0);
+      let role = d.get('role', 0);
+      let fresh = role != 0 && was.get('form', 0) != form;
+      let hitsWas = was.get('hits', 0);
+      let used = d.uses - (fresh ? 0 : was.get('uses', hitsWas));
+      let gain = d.hits - hitsWas;
       return d.uses is int
         && d.uses <= 60
         && d.shard is int
         && d.shard >= 0
         && d.shard <= 7
-        && getAfter(cell).data.hits == (exists(cell) ? get(cell).data.hits : 0) + (d.hits - hitsWas)
+        && role in [0, 1, 2, 3]
+        && d.get('pool', 0) in [0, 1, 2]
+        && (role == 0
+          ? !('form' in d) && d.get('pool', 0) == 0 && was.get('role', 0) == 0
+          : form != 0 && d.form == form && (fresh || role == was.get('role', 0)))
+        && raidCellMoved(raidId, d.shard, d.get('pool', 0), gain)
         && getAfter(raidPath(raidId)).data.hits == raid.hits
         && ((used >= 1
             && used <= 20
-            && d.hits == hitsWas + used * (raidGap(raid) ? 2 : 1)
+            && gain == used * (role != 0 && d.get('pool', 0) + 1 == role ? 2 : 1) * (raidGap(raid) ? 2 : 1)
             && d.get('aid', 0) == was.get('aid', 0)
             && d.get('aidAt', null) == was.get('aidAt', null)
             && d.get('aids', 0) == was.get('aids', 0))
           || (used == 0
-            && d.hits == hitsWas
+            && gain == 0
             && d.aid in [1, 2, 3]
             && d.aidAt == request.time
             && (!('aidAt' in was) || request.time > was.aidAt + duration.value(20, 's'))
             && d.aids == was.get('aids', 0) + 1));
     }
 
-    // 2.0 이전 화면의 한 방(uses 없음). 한 번 = 1, 한 커밋에 20까지, 60까지.
-    // 칸이 있으면 내 칸이 같은 만큼 오르고 물결 문서는 그대로, 없으면(칸 이전 화면) 물결 문서가 1 오른다.
-    function raidOldStrike(raidId) {
+    // 내 칸에서 고른 게이지 하나만 센 만큼 오르고, 나머지 둘은 그대로다.
+    // (규칙의 함수 하나에는 변수를 열 개까지만 둘 수 있어 raidMove에서 떼어 냈다.)
+    function raidCellMoved(raidId, shard, pool, gain) {
+      let cell = raidShardPath(raidId, string(shard));
+      let cellWas = exists(cell) ? get(cell).data : {};
+      let cellNow = getAfter(cell).data;
+      return cellNow.get('hits', 0) == cellWas.get('hits', 0) + (pool == 0 ? gain : 0)
+        && cellNow.get('brk', 0) == cellWas.get('brk', 0) + (pool == 1 ? gain : 0)
+        && cellNow.get('grd', 0) == cellWas.get('grd', 0) + (pool == 2 ? gain : 0);
+    }
+
+    // 칸의 세 게이지는 줄지 않고, 한 커밋에 80(필살기 20 × 역할 2 × 빈틈 2)까지만 오른다.
+    function raidShardGrew(before) {
       let d = request.resource.data;
-      let before = resource == null ? 0 : resource.data.hits;
-      return d.keys().hasOnly(['hits', 'lastAt', 'shard'])
-        && request.resource.data.hits > before
-        && request.resource.data.hits <= (resource == null ? 0 : resource.data.hits) + 20
-        && request.resource.data.hits <= 60
-        && ('shard' in d
-          ? d.shard is int
-            && d.shard >= 0
-            && d.shard <= 7
-            && getAfter(raidShardPath(raidId, string(d.shard))).data.hits
-              == (exists(raidShardPath(raidId, string(d.shard))) ? get(raidShardPath(raidId, string(d.shard))).data.hits : 0) + (d.hits - before)
-            && getAfter(raidPath(raidId)).data.hits == get(raidPath(raidId)).data.hits
-          : d.hits == before + 1
-            && getAfter(raidPath(raidId)).data.hits == get(raidPath(raidId)).data.hits + 1);
+      return d.hits is int
+        && d.hits >= before.get('hits', 0)
+        && d.hits <= before.get('hits', 0) + 80
+        && d.get('brk', 0) is int
+        && d.get('brk', 0) >= before.get('brk', 0)
+        && d.get('brk', 0) <= before.get('brk', 0) + 80
+        && d.get('grd', 0) is int
+        && d.get('grd', 0) >= before.get('grd', 0)
+        && d.get('grd', 0) <= before.get('grd', 0) + 80;
     }
 
     // 칸의 이름·지원. 이름은 내 표식이 처음 생기는 커밋에서만 한 줄(12자) 붙고, 칸마다 30까지.
     // 지원은 그대로이거나, 이 커밋에서 내 표식에 건 지원과 같다. 셋은 함께 있거나 함께 없다.
-    // 옛 화면은 칸을 {hits, fighters}로 통째로 쓴다 — 이름·지원이 빠지는 것은 받는다.
     function raidShardExtras(raidId, before) {
       let d = request.resource.data;
       let mine = getAfter(raidFighter(raidId)).data;
@@ -926,16 +950,60 @@ service cloud.firestore {
       return mine.lastAt == request.time && 'shard' in mine && string(mine.shard) == n;
     }
 
-    // 칸 8개의 합. 칸이 하나라도 없으면 읽기가 실패해 거절된다 — 쓰러뜨리는 커밋이 빈 칸을 함께 만든다.
-    function raidShardHits(raidId) {
-      return getAfter(raidShardPath(raidId, '0')).data.hits
-        + getAfter(raidShardPath(raidId, '1')).data.hits
-        + getAfter(raidShardPath(raidId, '2')).data.hits
-        + getAfter(raidShardPath(raidId, '3')).data.hits
-        + getAfter(raidShardPath(raidId, '4')).data.hits
-        + getAfter(raidShardPath(raidId, '5')).data.hits
-        + getAfter(raidShardPath(raidId, '6')).data.hits
-        + getAfter(raidShardPath(raidId, '7')).data.hits;
+    // 칸 8개의 합 — 세 게이지와 참여 인원. 칸이 하나라도 없으면 읽기가 실패해 거절된다(세울 때 빈 칸 여덟을 함께 만든다).
+    // 칸을 한 번씩만 읽어 맵으로 돌려준다. 값마다 따로 더하면 요청 하나의 식 한도(1,000)를 넘는다.
+    function raidTotals(raidId) {
+      let c0 = getAfter(raidShardPath(raidId, '0')).data;
+      let c1 = getAfter(raidShardPath(raidId, '1')).data;
+      let c2 = getAfter(raidShardPath(raidId, '2')).data;
+      let c3 = getAfter(raidShardPath(raidId, '3')).data;
+      let c4 = getAfter(raidShardPath(raidId, '4')).data;
+      let c5 = getAfter(raidShardPath(raidId, '5')).data;
+      let c6 = getAfter(raidShardPath(raidId, '6')).data;
+      let c7 = getAfter(raidShardPath(raidId, '7')).data;
+      return {
+        'hits': c0.get('hits', 0) + c1.get('hits', 0) + c2.get('hits', 0) + c3.get('hits', 0) + c4.get('hits', 0) + c5.get('hits', 0) + c6.get('hits', 0) + c7.get('hits', 0),
+        'brk': c0.get('brk', 0) + c1.get('brk', 0) + c2.get('brk', 0) + c3.get('brk', 0) + c4.get('brk', 0) + c5.get('brk', 0) + c6.get('brk', 0) + c7.get('brk', 0),
+        'grd': c0.get('grd', 0) + c1.get('grd', 0) + c2.get('grd', 0) + c3.get('grd', 0) + c4.get('grd', 0) + c5.get('grd', 0) + c6.get('grd', 0) + c7.get('grd', 0),
+        'fighters': c0.get('fighters', 0) + c1.get('fighters', 0) + c2.get('fighters', 0) + c3.get('fighters', 0) + c4.get('fighters', 0) + c5.get('fighters', 0) + c6.get('fighters', 0) + c7.get('fighters', 0)
+      };
+    }
+
+    // 세 게이지가 목표(쌓인 값)에 닿았다. 2.0 물결은 체력 하나다(갑옷·울타리 목표 0).
+    function raidFilled(raidId) {
+      let t = raidTotals(raidId);
+      return resource.data.hits + t.hits >= resource.data.hp
+        && t.brk >= resource.data.get('brk', 0)
+        && t.grd >= resource.data.get('grd', 0);
+    }
+
+    // 변신의 새 숫자. 세 게이지가 다 찼고,
+    //   base  새 형태의 0점 = 앞 목표와 지금 합계 사이(커밋이 읽은 뒤 몇 방 더 들어와도 받는다).
+    //   n     새 형태의 필요량 = max(종류 기본값, 72 × 인원)을 60 단위로. 인원은 10명까지 늦게 읽어도 받는다.
+    //   목표  base + n의 몫 — 2형은 체력 50·갑옷 25·울타리 25%, 3형은 40·30·30%.
+    function raidNextForm(raidId) {
+      let d = request.resource.data;
+      let was = resource.data;
+      let t = raidTotals(raidId);
+      let crowd = t.fighters;
+      let h = d.form == 2 ? 50 : 40;
+      let b = d.form == 2 ? 25 : 30;
+      return was.hits + t.hits >= was.hp
+        && t.brk >= was.brk
+        && t.grd >= was.grd
+        && d.n is int
+        && d.n % 60 == 0
+        && d.n >= was.size
+        && d.n <= 60000
+        && d.n >= 72 * (crowd - 10)
+        && (d.n == was.size || d.n < 72 * crowd + 60)
+        && d.base.keys().hasOnly(['h', 'b', 'g'])
+        && d.base.h is int && d.base.h >= was.hp && d.base.h <= was.hits + t.hits
+        && d.base.b is int && d.base.b >= was.brk && d.base.b <= t.brk
+        && d.base.g is int && d.base.g >= was.grd && d.base.g <= t.grd
+        && d.hp == d.base.h + d.n * h / 100
+        && d.brk == d.base.b + d.n * b / 100
+        && d.grd == d.base.g + d.n * b / 100;
     }
 
     function raidFighter(raidId) {

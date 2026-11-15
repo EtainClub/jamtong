@@ -214,13 +214,14 @@ export function gardenFeedback(kind: "tap" | "plant" | "harvest" | "pull" | "rew
  * ★ 소리는 사람이 켰을 때만 난다(enabled). 진동은 소리와 따로이고, 움직임 줄이기 설정이면 내지 않는다.
  * ★ 타격음은 짧은 잡음(퍽)과 낮은 사인(쿵)을 겹친다. 파일을 받지 않는다.
  */
-export type RaidSound = "rub" | "hit" | "weak" | "ghost" | "phase" | "surge" | "warn" | "hurt" | "dodge" | "finisher" | "defeat";
+export type RaidSound = "rub" | "hit" | "weak" | "ghost" | "phase" | "morph" | "surge" | "warn" | "hurt" | "dodge" | "finisher" | "defeat";
 
 const RAID_VIBE: Partial<Record<RaidSound, number | number[]>> = {
   rub: 4,
   hit: [18, 20, 28],
   weak: [24, 16, 36],
   phase: [40, 40, 80],
+  morph: [80, 40, 80, 40, 220],
   surge: [30, 30, 30, 30, 60],
   warn: [60, 60, 60],
   hurt: [120, 40, 120],
@@ -269,6 +270,13 @@ export function raidFeedback(kind: RaidSound) {
     case "phase":
       thud(ctx, out, at, 1.3);
       [523, 392, 330].forEach((hz, i) => tone(ctx, out, hz, at + 0.12 + i * 0.09, 0.3, 0.12, "sawtooth"));
+      break;
+    case "morph":
+      // 변신 — 낮게 깔리는 울림과 두 번의 쿵, 뒤따라 치솟는 어두운 화음.
+      sweep(ctx, out, at, 1.1, 180, 50, 0.16);
+      thud(ctx, out, at, 1.6);
+      thud(ctx, out, at + 0.45, 1.9);
+      [110, 131, 165, 220].forEach((hz, i) => tone(ctx, out, hz, at + 0.7 + i * 0.12, 0.7, 0.13, "sawtooth"));
       break;
     case "surge":
       [523, 659, 784, 1047].forEach((hz, i) => tone(ctx, out, hz, at + i * 0.07, 0.4, 0.13, "triangle"));

@@ -132,6 +132,10 @@ interface Wave {
   aids: number[];
   /** 물결 문서에 직접 오른 몫 — 칸 이전(2026-11-06 전) 화면의 옛 길로 들어온 것. */
   legacy: number;
+  /** 3.0: 끝난(또는 지금의) 형태 — 2.0 물결은 0. 그 형태의 필요량, 역할별 인원(낫잡이·돋보기꾼·울타리지기). */
+  form: number;
+  need: number;
+  roles: number[];
 }
 
 async function raids(db: Firestore) {
@@ -155,6 +159,10 @@ async function raids(db: Firestore) {
         uses: fighters.docs.map((f) => (f.get("uses") as number | undefined) ?? ((f.get("hits") as number | undefined) ?? 0)),
         aids: fighters.docs.map((f) => (f.get("aids") as number | undefined) ?? 0),
         legacy: d.get("hits") ?? 0,
+        // 3.0: 끝난 형태와 그 형태의 필요량, 역할별 인원(낫잡이·돋보기꾼·울타리지기, 표식의 role).
+        form: (d.get("form") as number | undefined) ?? 0,
+        need: (d.get("n") as number | undefined) ?? 0,
+        roles: [1, 2, 3].map((code) => fighters.docs.filter((f) => f.get("role") === code).length),
       };
     }),
   );
@@ -172,11 +180,13 @@ async function raids(db: Firestore) {
     const gapUses = w.each.reduce((a, b, i) => a + Math.max(0, b - w.uses[i]), 0);
     const supporters = w.aids.filter((a) => a > 0).length;
     const supportOnly = w.aids.filter((a, i) => a > 0 && w.uses[i] === 0).length;
-    const stars = raidStars(w.spawnedAt, w.defeatedAt);
+    // 3.0 물결의 ★은 넘긴 형태 수다(쓰러졌으면 그 형태, 도망갔으면 그 앞까지).
+    const stars = w.form ? (w.defeatedAt ? w.form : end ? w.form - 1 : 0) : raidStars(w.spawnedAt, w.defeatedAt);
     console.log(
       `${w.id}  ${w.spawnedAt ? kstTime(w.spawnedAt) : "?"}  ${result}  ${minutes === null ? "   -" : String(minutes).padStart(4)}분  ` +
         `${String(w.fighters).padStart(3)}명  ${w.hits}/${w.hp}  ${stars ? "★".repeat(stars).padEnd(3) : "   "}  ` +
         `빈틈 ${pct(gapUses, used).padStart(4)}  지원 ${supporters}명(지원만 ${supportOnly})  기력 다 쓴 사람 ${w.uses.filter((u) => u >= RAID_USES_PER_PERSON).length}` +
+        (w.form ? `  ${w.form}형(필요 ${w.need}) 역할 ${w.roles.join("/")}` : "") +
         (w.legacy ? `  옛 길 ${w.legacy}` : ""),
     );
   }

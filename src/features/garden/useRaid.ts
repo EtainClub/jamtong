@@ -5,8 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 import { firebaseConfigured } from "@/lib/firebase/client";
 import {
+  advanceRaid,
   aidRaid,
-  finishRaid,
   spawnRaid,
   strikeRaid,
   watchMine,
@@ -17,8 +17,10 @@ import {
   type RaidMine,
   type StrikeResult,
 } from "@/lib/firebase/raid";
+import { pingRaidSpawn } from "@/lib/firebase/push";
 
 import { ACTIVE_WINDOW, TEAM_MIN, TEAM_WINDOW } from "./raidPlay";
+import { PUSH_FRESH } from "./raid/push";
 import { raidStars } from "./raid/rules";
 import {
   kstDayNumber,
@@ -32,12 +34,19 @@ import {
   RAID_SHARDS,
   RAID_STRIKE_GAP,
   RAID_USES_PER_PERSON,
-  raidHp,
+  raidAdvanceKind,
+  raidFilled,
+  raidFormsCleared,
   raidId,
+  raidNextNeed,
   raidPhase,
-  raidStrikeValue,
+  raidPoolValue,
+  raidSize,
+  raidSplit,
   type RaidAidId,
   type RaidPhase,
+  type RaidPool,
+  type RaidRoleId,
 } from "./rules";
 import type { PlazaLevel } from "./types";
 
@@ -65,8 +74,13 @@ export interface CurrentRaid extends Raid {
 export interface RaidState {
   /** 오늘의 마지막 물결. undefined=아직 읽는 중, null=오늘은 아직 없다. */
   raid: CurrentRaid | null | undefined;
-  /** 이 물결에서 내 표식 — 센 값·쓴 기력·지원. */
+  /** 이 물결에서 내 표식 — 센 값·쓴 기력·지원. uses는 **지금 형태에서** 쓴 기력이다(형태가 바뀌면 0부터). */
   me: RaidMine;
+  /** 내 역할(3.0 물결). 이 형태에서 이미 쳤으면 표식의 역할, 아니면 고른 것. 아직 안 골랐으면 null. */
+  role: RaidRoleId | null;
+  /** 역할을 고르거나 바꿀 수 있는가 — 3.0 물결이고 이 형태에서 아직 치지 않았다. */
+  canPickRole: boolean;
+  pickRole: (role: RaidRoleId) => void;
   /** 아직 보내지 않은 기력(필살기 포함). */
   queued: number;
   /** 다른 사람이 친 방이 들어온 소식. 최근 것부터 몇 개만. 화면이 주먹을 그린다. */
@@ -78,10 +92,10 @@ export interface RaidState {
   day: number;
   /** 다음 물결이 나올 수 있는 때. 오늘 몫을 다 썼거나 싸우는 중이면 null. */
   next: { wave: number; at: number } | null;
-  /** 기력 한 번을 줄에 넣는다. 줄이 찼거나 기력을 다 썼으면 false(넣지 않았다). */
-  strike: () => boolean;
+  /** 기력 한 번을 게이지 하나에 넣으려고 줄에 넣는다. 줄이 찼거나 기력을 다 썼으면 false(넣지 않았다). */
+  strike: (pool?: RaidPool) => boolean;
   /** 필살기. 기력 uses번을 한 번에 쓴다. 실제로 쓴 기력과 센 값(못 보냈으면 0). */
-  finisher: (uses: number) => Promise<{ uses: number; hits: number }>;
+  finisher: (uses: number, pool?: RaidPool) => Promise<{ uses: number; hits: number }>;
   /** 지원을 건다. */
   aid: (kind: RaidAidId) => Promise<AidResult>;
 }
@@ -96,6 +110,8 @@ export interface OthersPulse {
 
 interface Shot {
   uses: number;
+  /** 넣을 게이지. */
+  pool: RaidPool;
   /** 규칙에 막혀(busy) 다시 보낸 횟수. */
   tries?: number;
   /** 필살기면 결과를 기다리는 사람. */
@@ -104,7 +120,7 @@ interface Shot {
 
 const LOCAL_KEY = "jamtong-raid-local-v3";
 const ENDED_KEY = "jamtong-raid-ended";
-const NO_MINE: RaidMine = { hits: 0, uses: 0, aids: 0, aidAt: null };
+const NO_MINE: RaidMine = { hits: 0, uses: 0, aids: 0, aidAt: null, role: null, form: 0 };
 
 /** 끝남을 센 물결을 적는다. 처음이면 true. 사흘 치 물결만 남긴다. */
 function markEnded(id: string): boolean {
@@ -245,22 +261,49 @@ export function useRaid(
 
   // 내 표식은 지금 물결 것만 본다.
   const currentId = raid?.id ?? null;
+
+  // 갓 태어난 물결을 봤으면 서버에 알린다 — 알림을 켠 기기에 푸시가 간다(docs/garden-raid-boss.md §8).
+  // 세운 화면도, 그 직후에 본 화면도 부른다. 서버가 물결당 한 번만 보낸다.
+  const fresh = raid?.phase === "active" && raid.spawnedAt !== null && now - raid.spawnedAt < PUSH_FRESH;
+  useEffect(() => {
+    if (firebaseConfigured && fresh && currentId) pingRaidSpawn(currentId);
+  }, [fresh, currentId]);
   useEffect(() => {
     if (!firebaseConfigured || !uid || !currentId) return;
     return watchMine(currentId, uid, (me) => setMine({ id: currentId, me }));
   }, [uid, currentId]);
 
-  const me: RaidMine = firebaseConfigured
+  const stored: RaidMine = firebaseConfigured
     ? mine && mine.id === currentId
       ? mine.me
       : NO_MINE
     : raid && local
       ? (local.waves[raid.wave - 1]?.mine ?? NO_MINE)
       : NO_MINE;
+  // 3.0 물결: 기력은 형태마다 다시 찬다. 내 표식의 형태가 지금 형태와 다르면 이 형태에서는 아직 안 쓴 것이다.
+  const formNow = raid?.v3?.form ?? 0;
+  const inForm = formNow === 0 || stored.form === formNow;
+  const me: RaidMine = inForm ? stored : { ...stored, uses: 0 };
+  // 역할: 이 형태에서 이미 쳤으면 표식의 것(바꿀 수 없다), 아니면 고른 것(없으면 앞 형태의 것).
+  const [picked, setPicked] = useState<{ id: string; role: RaidRoleId } | null>(null);
+  const canPickRole = formNow !== 0 && raid?.phase === "active" && !(stored.role !== null && stored.form === formNow);
+  const role: RaidRoleId | null = formNow === 0 ? null : canPickRole ? (picked && picked.id === currentId ? picked.role : stored.role) : stored.role;
+  const roleRef = useRef(role);
+  useEffect(() => {
+    roleRef.current = role;
+  }, [role]);
+  const pickRole = useCallback(
+    (next: RaidRoleId) => {
+      if (currentId) setPicked({ id: currentId, role: next });
+    },
+    [currentId],
+  );
   const usesRef = useRef(me.uses);
+  const hitsRef = useRef(me.hits);
   useEffect(() => {
     usesRef.current = me.uses;
-  }, [me.uses]);
+    hitsRef.current = me.hits;
+  }, [me.uses, me.hits]);
   const raidRef = useRef(raid);
   useEffect(() => {
     raidRef.current = raid;
@@ -271,12 +314,22 @@ export function useRaid(
   const due = level === "overgrown" && next !== null && now >= next.at ? next.wave : null;
   useEffect(() => {
     if (due === null || spawning.current) return;
-    const hp = raidHp(day, due);
+    const size = raidSize(day, due);
     if (!firebaseConfigured) {
       const cur = readLocal(day);
       if (cur.waves[due - 1]) return;
       const waves = [...cur.waves];
-      waves[due - 1] = { hp, hits: 0, fighters: 0, spawnedAt: Date.now(), defeatedAt: null, mine: NO_MINE };
+      const first = raidSplit(size, 1);
+      const born = Date.now();
+      waves[due - 1] = {
+        hp: first.h,
+        hits: 0,
+        fighters: 0,
+        spawnedAt: born,
+        defeatedAt: null,
+        v3: { form: 1, formAt: born, size, n: size, brk: first.b, grd: first.g, base: { h: 0, b: 0, g: 0 }, brkHits: 0, grdHits: 0 },
+        mine: NO_MINE,
+      };
       const nextLocal = { day, waves };
       writeLocal(nextLocal);
       // 외부 저장소(localStorage)와 맞추는 것이다.
@@ -286,7 +339,7 @@ export function useRaid(
     }
     if (!uid) return;
     spawning.current = true;
-    spawnRaid(raidId(day, due), hp)
+    spawnRaid(raidId(day, due), size)
       .then((made) => {
         if (made) track("raid_spawn", { wave: due });
       })
@@ -296,25 +349,31 @@ export function useRaid(
       });
   }, [due, uid, day]);
 
-  // 합계가 체력에 닿았는데 아직 쓰러진 시각이 없으면 찍는다. 맞은 수는 칸에 나눠 세므로
-  // 마지막 한 방이 따로 찍지 못한다(raid.ts). 누가 찍어도 한 번만 찍히고, 보는 사람 누구나 시도한다.
-  const finishing = useRef<string | null>(null);
-  const full = firebaseConfigured && uid !== null && raid?.defeatedAt === null && raid.hits >= raid.hp ? raid.id : null;
+  // 세 게이지가 다 찼는데 아직 넘어가지 않았으면 넘긴다 — 변신이거나 쓰러뜨리기(raid.ts의 advanceRaid).
+  // 게이지는 칸에 나눠 세므로 마지막 한 방이 따로 넘기지 못한다. 누가 해도 한 번만 되고, 보는 사람 누구나 시도한다.
+  // 막히면(다른 사람이 먼저 했거나 30분 경계에서 시계가 엇갈렸으면) 다음 변화에서 다시 본다 — 3초에 한 번까지만.
+  const filled = raid && raid.defeatedAt === null && raid.phase === "active" && raidFilled(raid) ? raid : null;
+  // 곧 쓰러질 물결에는 더 보내지 않는다. 변신할 물결에 넘치게 들어간 것은 다음 형태의 몫이 되므로 그대로 보낸다.
+  const ending = filled !== null && raidAdvanceKind(filled, now) === "finish";
   const fullRef = useRef(false);
+  const advancing = useRef({ busy: false, at: 0 });
+  const advanceKey = firebaseConfigured && uid !== null && filled ? `${filled.id}:${formNow}:${filled.hits + (filled.v3 ? filled.v3.brkHits + filled.v3.grdHits : 0)}` : null;
   useEffect(() => {
-    fullRef.current = full !== null;
-    if (full === null || finishing.current === full) return;
-    finishing.current = full;
-    void finishRaid(full).then((stamped) => {
-      // 내가 찍었고 나도 쳤으면 마지막 한 방의 기쁨을 준다. 아니면 화면이 쓰러진 모습으로 바뀔 뿐이다.
-      if (stamped && usesRef.current > 0) onResult("defeated", 0);
-      // 찍지 못했으면(겨루다 졌거나 막혔으면) 다음 변화에서 다시 시도한다.
-      if (!stamped) finishing.current = null;
+    fullRef.current = ending;
+  }, [ending]);
+  useEffect(() => {
+    if (advanceKey === null || advancing.current.busy || Date.now() - advancing.current.at < 3_000) return;
+    const id = advanceKey.split(":")[0];
+    advancing.current = { busy: true, at: Date.now() };
+    void advanceRaid(id).then((did) => {
+      advancing.current.busy = false;
+      // 내가 쓰러뜨렸고 나도 쳤으면 마지막 한 방의 기쁨을 준다. 아니면 화면이 바뀔 뿐이다.
+      if (did === "finish" && hitsRef.current > 0) onResult("defeated", 0);
     });
-  }, [full, onResult]);
+  }, [advanceKey, onResult]);
 
   // 계측: 내가 든(쳤거나 지원한) 물결이 끝났다. 사람마다 물결당 한 번(이 기기 기준).
-  const endedPhase = raid && raid.phase !== "active" && (me.uses > 0 || me.aids > 0) ? raid.phase : null;
+  const endedPhase = raid && raid.phase !== "active" && (me.hits > 0 || me.aids > 0) ? raid.phase : null;
   useEffect(() => {
     if (!raid || endedPhase === null || !markEnded(raid.id)) return;
     const end = raid.defeatedAt ?? (raid.spawnedAt !== null ? raid.spawnedAt + RAID_LIFE : null);
@@ -331,7 +390,10 @@ export function useRaid(
       // 내가 쓴 기력 중 빈틈에 쓴 몫(빈틈의 한 번은 두 번으로 세므로 센 값 − 기력 = 빈틈에 쓴 기력).
       gapShare: me.uses > 0 ? Math.round(((me.hits - me.uses) / me.uses) * 100) / 100 : 0,
       aids: me.aids,
-      stars: raidStars(raid.spawnedAt, raid.defeatedAt),
+      stars: raidFormsCleared(raid, endedPhase) ?? raidStars(raid.spawnedAt, raid.defeatedAt),
+      // 3.0: 어느 형태에서 끝났는지와 내 역할.
+      form: raid.v3?.form ?? 0,
+      role: me.role ?? "none",
     });
     // 끝난 순간 한 번만 본다. 숫자가 뒤늦게 바뀌어도 다시 보내지 않는다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -368,32 +430,52 @@ export function useRaid(
           const w = cur.waves[wave - 1];
           if (!w || w.defeatedAt) result = "over";
           else if (w.spawnedAt !== null && Date.now() >= w.spawnedAt + RAID_LIFE) result = "escaped";
-          else if (w.mine.uses >= RAID_USES_PER_PERSON) result = "capped";
           else {
-            const n = Math.min(shot.uses, RAID_USES_PER_PERSON - w.mine.uses);
-            landed = { uses: n, hits: n * raidStrikeValue(Date.now(), w.spawnedAt, w.hp) };
-            const hits = w.hits + landed.hits;
-            const waves = [...cur.waves];
-            waves[wave - 1] = {
-              ...w,
-              hits,
-              mine: { ...w.mine, hits: w.mine.hits + landed.hits, uses: w.mine.uses + n },
-              fighters: Math.max(1, w.fighters),
-              defeatedAt: hits >= w.hp ? Date.now() : null,
-            };
-            const nextLocal = { day, waves };
-            writeLocal(nextLocal);
-            setLocal(nextLocal);
-            result = hits >= w.hp ? "defeated" : "ok";
+            // 이 브라우저 안의 거대 잡초 — 서버 규칙과 같은 셈을 여기서 한다(게이지 하나에 넣고, 다 차면 변신하거나 쓰러진다).
+            const form = w.v3?.form ?? 0;
+            const myRole = form === 0 ? null : roleRef.current;
+            const usesWas = form !== 0 && w.mine.form !== form ? 0 : w.mine.uses;
+            const n = Math.min(shot.uses, RAID_USES_PER_PERSON - usesWas);
+            if (n <= 0) result = "capped";
+            else {
+              const pool: RaidPool = myRole ? shot.pool : 0;
+              const at = Date.now();
+              landed = { uses: n, hits: n * raidPoolValue(w, myRole, pool, at) };
+              let next: Raid = {
+                ...w,
+                hits: w.hits + (pool === 0 ? landed.hits : 0),
+                fighters: Math.max(1, w.fighters),
+                v3: w.v3 ? { ...w.v3, brkHits: w.v3.brkHits + (pool === 1 ? landed.hits : 0), grdHits: w.v3.grdHits + (pool === 2 ? landed.hits : 0) } : undefined,
+              };
+              result = "ok";
+              if (raidFilled(next)) {
+                if (next.v3 && raidAdvanceKind(next, at) === "morph") {
+                  const v = next.v3;
+                  const nextForm = (v.form + 1) as 2 | 3;
+                  const need = raidNextNeed(v.size, next.fighters);
+                  const part = raidSplit(need, nextForm);
+                  const base = { h: next.hits, b: v.brkHits, g: v.grdHits };
+                  next = { ...next, hp: base.h + part.h, v3: { ...v, form: nextForm, formAt: at, n: need, base, brk: base.b + part.b, grd: base.g + part.g } };
+                } else {
+                  next = { ...next, defeatedAt: at };
+                  result = "defeated";
+                }
+              }
+              const waves = [...cur.waves];
+              waves[wave - 1] = { ...next, mine: { ...w.mine, hits: w.mine.hits + landed.hits, uses: usesWas + n, role: myRole, form } };
+              const nextLocal = { day, waves };
+              writeLocal(nextLocal);
+              setLocal(nextLocal);
+            }
           }
         } else if (!uid) {
           result = "error";
         } else {
           // 보내는 몫을 먼저 적어 둔다. 칸 소식이 커밋 응답보다 먼저 올 수 있다. 빈틈이면 두 배로 어림한다.
           const r = raidRef.current;
-          const guess = shot.uses * (r ? raidStrikeValue(Date.now(), r.spawnedAt, r.hp) : 1);
+          const guess = shot.uses * (r ? raidPoolValue(r, roleRef.current, roleRef.current ? shot.pool : 0, Date.now()) : 1);
           pending.current = pending.current.id === id ? { id, hits: pending.current.hits + guess } : { id, hits: guess };
-          const sent = await strikeRaid(uid, id, shot.uses, nickRef.current);
+          const sent = await strikeRaid(uid, id, shot.uses, nickRef.current, { role: roleRef.current, pool: shot.pool });
           result = sent.result;
           landed = { uses: sent.uses, hits: sent.hits };
           // 덜 들어간 몫(기력 끝)과 못 들어간 몫은 되돌린다.
@@ -415,7 +497,7 @@ export function useRaid(
         if (result === "ok" || result === "defeated") {
           shot.done?.(landed);
           setMineAt(Date.now());
-          if (usesRef.current === 0 && !joined.current.has(id)) {
+          if (hitsRef.current === 0 && !joined.current.has(id)) {
             joined.current.add(id);
             track("raid_join", { wave, fighters: fightersRef.current + 1 });
           }
@@ -435,25 +517,25 @@ export function useRaid(
     }
   }, [day, wave, uid, onResult]);
 
-  const strike = useCallback(() => {
+  const strike = useCallback((pool: RaidPool = 0) => {
     // 쌓아 둘 수 있는 방에는 끝이 있다. 손을 뗀 뒤에도 한참 나가면 이상하다.
     if (queue.current.filter((q) => !q.done).length >= RAID_QUEUE_MAX) return false;
     // 기력을 넘는 방은 쌓지 않는다. 보내 봐야 규칙이 막는다.
     if (usesRef.current + sum(queue.current) >= RAID_USES_PER_PERSON) return false;
-    queue.current.push({ uses: 1 });
+    queue.current.push({ uses: 1, pool });
     setQueued(sum(queue.current));
     void flush();
     return true;
   }, [flush]);
 
   const finisher = useCallback(
-    (uses: number) => {
+    (uses: number, pool: RaidPool = 0) => {
       const room = RAID_USES_PER_PERSON - usesRef.current - sum(queue.current);
       const n = Math.min(uses, RAID_FINISHER_MAX, room);
       if (n <= 0 || wave === null) return Promise.resolve({ uses: 0, hits: 0 });
       return new Promise<{ uses: number; hits: number }>((resolve) => {
         // 필살기는 줄 맨 앞으로. 쌓인 한 방들보다 먼저 터져야 손맛이 산다.
-        queue.current.unshift({ uses: n, done: resolve });
+        queue.current.unshift({ uses: n, pool, done: resolve });
         setQueued(sum(queue.current));
         void flush();
       });
@@ -490,11 +572,11 @@ export function useRaid(
       } else if (!uid) {
         result = "error";
       } else {
-        result = await aidRaid(uid, id, kind, nickRef.current);
+        result = await aidRaid(uid, id, kind, nickRef.current, roleRef.current);
         // 1초 규칙(방금 친 방)에 걸렸으면 한 번만 잠시 뒤 다시.
         if (result === "busy") {
           await new Promise((r) => setTimeout(r, RAID_STRIKE_GAP));
-          result = await aidRaid(uid, id, kind, nickRef.current);
+          result = await aidRaid(uid, id, kind, nickRef.current, roleRef.current);
         }
       }
       if (result === "ok") track("raid_aid", { kind, wave });
@@ -509,6 +591,9 @@ export function useRaid(
   return {
     raid,
     me,
+    role,
+    canPickRole,
+    pickRole,
     queued,
     day,
     next,

@@ -7,9 +7,12 @@ import {
   RAID_BOX_FAST_PERENNIAL,
   RAID_KINDS,
   RAID_USES_PER_PERSON,
+  raidFormsCleared,
   rng,
   type RaidAidId,
   type RaidKindId,
+  type RaidPhase,
+  type RaidWave,
 } from "../rules";
 
 /**
@@ -118,7 +121,9 @@ export function boxPerennial(stars: number): number {
 }
 
 export interface MyPart {
-  /** 쓴 기력. */
+  /** 넣은 값(물결 내내 쌓인다). 3.0에서는 기력이 형태마다 다시 차므로, 들었는지는 이것으로 본다. */
+  hits: number;
+  /** 쓴 기력 — 3.0 물결에서는 마지막으로 든 형태에서 쓴 것. */
   uses: number;
   /** 건 지원 수. */
   aids: number;
@@ -126,7 +131,7 @@ export interface MyPart {
 
 /** 이 물결에 든 사람인가 — 한 번이라도 쳤거나 지원했다. */
 export function tookPart(me: MyPart): boolean {
-  return me.uses > 0 || me.aids > 0;
+  return me.hits > 0 || me.uses > 0 || me.aids > 0;
 }
 
 export interface RaidLoot {
@@ -140,6 +145,17 @@ export interface RaidLoot {
 }
 
 /**
+ * 이 물결의 ★과 상자 — 3.0 물결은 넘긴 형태 수가 ★이고, 1형만 넘겨도 상자가 확정이다(2·3형이 도망가도 받는다).
+ * 2.0 물결은 쓰러뜨려야 상자이고 ★은 걸린 시간이다.
+ */
+export function raidOutcome(r: RaidWave, phase: RaidPhase): { won: boolean; stars: 0 | 1 | 2 | 3 } {
+  const cleared = raidFormsCleared(r, phase);
+  if (cleared === null) return { won: phase === "defeated", stars: phase === "defeated" ? raidStars(r.spawnedAt, r.defeatedAt) : 0 };
+  const stars = Math.max(0, Math.min(3, cleared)) as 0 | 1 | 2 | 3;
+  return { won: phase !== "active" && stars >= 1, stars };
+}
+
+/**
  * 한 물결의 보상. 쓰러뜨렸으면 상자·★ 조각·끝까지·응원단, 도망갔으면 친 사람에게 조각 하나.
  * 들지 않았으면 아무것도 없다. 장부(raids·loot.fled)가 물결마다 한 번만 받게 한다.
  */
@@ -147,9 +163,9 @@ export function raidLoot(phase: "defeated" | "escaped", stars: number, me: MyPar
   const none: RaidLoot = { box: false, perennial: boxPerennial(0), roots: 0, lines: [] };
   if (!tookPart(me)) return none;
   if (phase === "escaped") {
-    return me.uses > 0 ? { ...none, roots: ROOTS_ESCAPE, lines: [{ label: "도망갔지만 쳤어요", roots: ROOTS_ESCAPE }] } : none;
+    return me.hits > 0 || me.uses > 0 ? { ...none, roots: ROOTS_ESCAPE, lines: [{ label: "도망갔지만 쳤어요", roots: ROOTS_ESCAPE }] } : none;
   }
-  const lines: RaidLoot["lines"] = [{ label: `빠른 처치 ${"★".repeat(stars)}`, roots: STAR_ROOTS[stars] ?? 1 }];
+  const lines: RaidLoot["lines"] = [{ label: `처치 ${"★".repeat(stars)}`, roots: STAR_ROOTS[stars] ?? 1 }];
   if (me.uses >= RAID_USES_PER_PERSON) lines.push({ label: `끝까지(기력 ${RAID_USES_PER_PERSON})`, roots: ROOTS_FULL });
   if (me.aids >= CHEER_MIN) lines.push({ label: `응원단(지원 ${CHEER_MIN}번 이상)`, roots: ROOTS_CHEER });
   return { box: true, perennial: boxPerennial(stars), roots: lines.reduce((n, l) => n + l.roots, 0), lines };
