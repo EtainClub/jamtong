@@ -15,6 +15,7 @@ export interface FurnitureStory {
 
 /** 2026-11-14 원문 대조. 사진·상품 이미지를 가져오지 않고 링크와 자체 그림만 쓴다. */
 export const STORY_SOURCES = {
+  lights: { title: "청와대 · 제80주년 광복절 경축사", date: "2025-08-15", url: "https://www.president.go.kr/speeches/D98WJ2gY" },
   babi: { title: "머니투데이 · SNS에서 반려견 바비 소개", date: "2025-07-14", url: "https://v.daum.net/v/20250714175405730" },
   hobbies: { title: "동아일보 · 공개 취미와 한일 정상 선물 교환", date: "2026-01-14", url: "https://www.donga.com/news/Politics/article/all/20260114/133155806/1" },
   dinner: { title: "청와대 · 대통령쀼 문화가 있는 날 (영상·자막)", date: "2026-03", url: "https://www.president.go.kr/videos/gQGYrSI9" },
@@ -25,7 +26,7 @@ export const STORY_SOURCES = {
 export const STORY_COLLECTIONS = [
   { id: "babi", label: "바비의 작은 공간" }, { id: "hobby", label: "주말 취미와 서재" },
   { id: "dining", label: "따뜻한 한 상" }, { id: "gift", label: "이야기가 있는 선물" },
-  { id: "blog", label: "2006 무지개송어" },
+  { id: "blog", label: "2006 무지개송어" }, { id: "lights", label: "빛의 혁명 응원봉" },
 ] as const;
 export type StoryCollection = (typeof STORY_COLLECTIONS)[number]["id"];
 

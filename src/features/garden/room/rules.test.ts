@@ -1,3 +1,4 @@
+import { LIGHTSTICKS, LIGHTSTICK_FURNITURE } from "./lightsticks";
 import { BOOKS, hasChapters } from "@/content/books";
 import { BOOK_FURNITURE, BOOK_PALETTES } from "./books";
 import { PIANO_DEFAULT, PIANO_DURATION, PIANO_EVENT_MAX, pianoNotes, pianoNoteLabel, pianoSong } from "./piano";
@@ -510,4 +511,28 @@ test("피아노 곡: 놓인 피아노의 곡만 공유하고 잘못된 공개 �
   assert.deepEqual(shared.placed, [{ a: "b0", i: "piano", pn: PIANO_DEFAULT, ps: [{ t: 500, n: 72 }] }]);
   const hostile = roomFromPublic({ ...shared, placed: [{ a: "b0", i: "piano", ps: [{ t: 15000, n: 60 }, { t: 10, n: 999 }] }] }, new Map());
   assert.deepEqual(hostile.pianoSongs?.[0], []);
+});
+
+
+test("LED 응원봉 6종은 서로 다른 창작 그림·소리를 가진 상시 체험 소품", () => {
+  assert.equal(LIGHTSTICK_FURNITURE.length, 6);
+  assert.equal(new Set(LIGHTSTICKS.map((l) => l.shape)).size, 6);
+  assert.equal(new Set(LIGHTSTICKS.map((l) => JSON.stringify(l.notes))).size, 6);
+  for (const f of LIGHTSTICK_FURNITURE) {
+    assert.equal(FURNITURE_BY_ID.get(f.id), f);
+    assert.equal(f.weekly, undefined);
+    assert.equal(f.story?.kind, "inspired");
+    assert.equal(f.story?.source, "lights");
+    assert.equal(f.collection, "lights");
+    assert.ok(f.price > 0 && f.price <= 2000);
+    assert.equal(activityOf(f.id)?.sound, f.id);
+    assert.equal(activityOf(f.id)?.motion, "wave");
+  }
+});
+
+test("바비는 실제 강아지 녹음 효과음을 쓰며 실제 바비 음성으로 표시하지 않는다", () => {
+  const audio = readFileSync("public/audio/room/dog-bark.mp3");
+  assert.equal(audio.subarray(0, 3).toString(), "ID3");
+  assert.ok(audio.length > 5000 && audio.length < 100000);
+  assert.match(activityOf("babi-mini")!.message, /바비의 실제 녹음은 아니/);
 });

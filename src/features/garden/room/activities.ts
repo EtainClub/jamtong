@@ -1,7 +1,8 @@
 import type { Furniture } from "./catalog";
+import { LIGHTSTICKS, LIGHTSTICK_FURNITURE, type LightstickSound } from "./lightsticks";
 
-export type RoomMotion = "hop" | "sway" | "spin" | "glow";
-export type RoomSound = "bark" | "stone" | "bubble" | "bounce" | "chime" | "musicbox";
+export type RoomMotion = "hop" | "sway" | "spin" | "glow" | "wave";
+export type RoomSound = "bark" | "stone" | "bubble" | "bounce" | "chime" | "musicbox" | LightstickSound;
 export interface RoomActivity {
   motion: RoomMotion;
   message: string;
@@ -28,7 +29,8 @@ export function voiceOriginal(id: VoiceClipId): string {
 }
 
 const ACTIVITIES: Readonly<Record<string, RoomActivity>> = {
-  "babi-mini": { motion: "hop", sound: "bark", message: "바비가 반갑게 폴짝! 멍멍 소리는 잼통이 만든 효과음이에요." },
+  ...Object.fromEntries(LIGHTSTICKS.map((l) => [l.id, { motion: "wave", sound: l.sound, message: `${l.label}이 반짝! ${l.voice} 소리가 울려요.` } satisfies RoomActivity])),
+  "babi-mini": { motion: "hop", sound: "bark", message: "바비가 반갑게 폴짝! 실제 강아지의 짧은 멍멍 효과음이에요. 바비의 실제 녹음은 아니에요." },
   "go-board": { motion: "glow", sound: "stone", message: "딱! 바둑 한 수의 소리." },
   "trout-aquarium": { motion: "sway", sound: "bubble", message: "찰랑찰랑, 무지개송어의 작은 물결." },
   "soccer-ball": { motion: "hop", sound: "bounce", message: "통통! 축구공을 튕겼어요." },
@@ -43,6 +45,7 @@ const ACTIVITIES: Readonly<Record<string, RoomActivity>> = {
 export const activityOf = (id: string): RoomActivity | undefined => ACTIVITIES[id];
 
 export const PLAY_FURNITURE: Furniture[] = [
+  ...LIGHTSTICK_FURNITURE,
   { id: "play-musicbox", label: "빙글빙글 오르골", kind: "floor", size: 1, price: 260, art: "play-musicbox", hint: "누르면 빙글 돌며 짧은 오르골 멜로디를 들려줘요.", newUntil: "2026-12-14" },
   { id: "play-chime", label: "딩동 바람종", kind: "wall", size: 1, price: 150, art: "play-chime", hint: "누르면 살랑 흔들리며 맑은 종소리가 나요.", newUntil: "2026-12-14" },
   { id: "voice-tv", label: "감성 음성 TV", kind: "floor", size: 2, price: 380, art: "voice-tv", hint: "누르면 2022년 당시의 실제 목소리로 사랑·눈물 감성 글을 듣는 영상이 열려요.", newUntil: "2026-12-14" },

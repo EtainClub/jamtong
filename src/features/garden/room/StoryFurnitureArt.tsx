@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { lightstickOf } from "./lightsticks";
+import { LightstickArt } from "./LightstickArt";
 
 const C = { ink: "#3a2f2a", paper: "#fffdf6", wood: "#d39a5e", dark: "#9a6439", green: "#86c46d", leaf: "#3f8a4a", blue: "#2f9bd8", sky: "#9fd8f2", red: "#d9574a", yellow: "#ffd85c", pink: "#f5a3c0", cream: "#fff3d6" };
 const shelf = <><rect x="3" y="37" width="34" height="4" fill={C.wood} /><path d="M8 41v4m24-4v4" stroke={C.dark} strokeWidth="3" /></>;
@@ -7,6 +9,7 @@ const paw = <><ellipse cx="20" cy="25" rx="7" ry="5" /><circle cx="12" cy="17" r
 
 /** 직접 그린 40×46 정면 소품. 외부 이미지 없이 공유 미리보기에서도 같은 그림을 쓴다. */
 export function StoryFurnitureArt({ art, w, h }: { art: string; w: number; h: number }) {
+  if (lightstickOf(art)) return <LightstickArt art={art} w={w} h={h} />;
   let body: ReactNode;
   switch (art) {
     case "babi-mini":
