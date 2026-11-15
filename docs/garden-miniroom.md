@@ -769,3 +769,18 @@ keys: Array<{ f: string; s: string; v?: number /* s가 "rec"일 때만 */ }>
 `storage.rules`에서 `bgm/catalog/{fileId}` 읽기는 열어 두고 클라이언트 쓰기는 막는다(Admin SDK 업로드 전용). 재생기는 `fetch + decodeAudioData`로 파일 전체를 내려받는 대신 `<audio preload="none">` 스트리밍(`feedback.ts`, `MusicShop.tsx`)을 사용해 재생 중인 곡만 필요한 범위로 흘려보내고, 꺼져 있을 때는 주소 조회나 파일 전송을 하지 않는다. Storage 다운로드 URL은 `roomBgm.ts`가 세션 동안 기억하며 늦게 끝난 조회가 새 곡을 덮어쓰지 않도록 세대 번호를 검사한다.
 
 구매 전 미리 듣기는 구매·방 BGM·소리 켜기 설정을 바꾸지 않고 재생 중에만 기존 BGM을 낮춘다. 화면이 숨겨지면 재생·미리 듣기를 멈춘다. 공개 방에는 선택한 `bgm` id만 보내며 임의 URL은 허용하지 않는다. 녹음·스트리밍 곡에는 키보드 박자 맞춤을 적용하지 않는다.
+
+#### 잼통 AI 가요 다섯 곡 추가 (2026-11-15)
+
+`assets/노래/`의 새 원본 다섯 곡을 〈우리 함께 나아갈 길〉과 같은 길로 올렸다 — `pnpm bgm:upload`의 기본 정규화(32kHz · 96kbps · -20 LUFS) 뒤 `bgm/catalog/<slug>.mp3`. 모두 잼통 AI 스튜디오의 AI 창작곡, 1,000잼. 범위 요청이 206으로 오는 것을 확인했다. 상점 음원은 11곡이 된다(무료 합성곡 5곡은 그대로).
+
+| 곡 | id · Storage | 길이 | 바이트 | SHA-256 |
+|---|---|---|---|---|
+| 창가에 내린 햇살 | `song-window-sunlight` · `window-sunlight.mp3` | 2:58 | 2,134,124 | `d585cd30cce3bce58334c9c41bb8edf98320c1546ea3e3d76a90e4d77cb138ef` |
+| 단비처럼 찾아온 쉼표 | `song-rain-rest` · `rain-rest.mp3` | 2:48 | 2,022,668 | `425574f7a91d9b11a676e08621db5badc0f1f94320bc983c7148174db5f9522c` |
+| 오늘이라는 선물 | `song-gift-of-today` · `gift-of-today.mp3` | 2:59 | 2,152,268 | `839e06cd78b70eb5397e525a2ec44282280725bbfa09a733fbebb754fd921c23` |
+| 작은 별의 방 | `song-little-star-room` · `little-star-room.mp3` | 2:34 | 1,849,004 | `8142b6f57eeb02621b906fd7e1be6de61525c3c7a3d05e7a4dc7e3cb71a6f932` |
+| 눈부신 이 순간 | `song-dazzling-moment` · `dazzling-moment.mp3` | 2:58 | 2,131,532 | `c239a99dfeb13fa4affb5a5a8082a1c56b46307b7952e433a7a4281545c57b07` |
+
+곡 소개(`hint`)는 곡을 듣고 쓴 것이 아니라 제목에서 지은 한 줄이다. 듣고 고칠 것.
+규칙·색인은 바꿀 것이 없다(공개 방의 `bgm`은 id만, 40자 안). 화면만 배포하면 된다 — Storage에는 이미 올라가 있다.
