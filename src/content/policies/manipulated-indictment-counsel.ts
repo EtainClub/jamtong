@@ -20,6 +20,8 @@ import type { PolicyInput } from "./schema";
  *   만든다')를 더했다. 판결은 법원이 하고 특검은 검사의 수사·기소 과정을 수사한다는 구조를 적되,
  *   이해충돌 비판과 특검 결과가 공소기각 주장으로 이어질 수 있다는 해석, 검사들의 반발을 같이 싣는다.
  *   '조작'은 아직 의혹이다 — 수사 대상이 됐다는 것과 조작이 입증됐다는 것을 섞지 않는다.
+ *   2026-11-15 factbot-gap #285('대통령과 민주당이 검사들을 사기꾼으로 만들고 있다')를 더했다. 정부·여당이
+ *   특검의 근거로 드는 것(4월 국정조사 결과)과 그 한계(조작 사실은 확정하지 못함), 여당 대변인 설명, 공포 기한을 적는다.
  */
 export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
   slug: "manipulated-indictment-counsel",
@@ -28,7 +30,7 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
     "2026년 2월 23일 출범한 민주당 '공소취소 모임(공취모)'의 규모와 요구, 2026년 4월 30일 발의된 조작기소 특검법의 수사 대상 12건 구성, 공소취소 권한 조항이 9월 대통령 요청 뒤 11월 4일 법사위 소위 수정안에서 삭제된 경위, 11월 6일 본회의 가결과 공포 일정, 특검이 수사하는 것(검사의 수사·기소 과정)과 재판·판결의 관계, 임명 구조의 이해충돌 논란과 검사들의 반발까지",
   ministries: ["국회 법제사법위원회"],
   categories: ["institution"],
-  asOf: "2026-11-12",
+  asOf: "2026-11-15",
   rumors: [
     {
       id: "rumor-105",
@@ -71,6 +73,21 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
         "claim-prosecutor-backlash",
         "claim-court-concerns",
         "claim-conflict-rebuttal",
+      ],
+    },
+    {
+      id: "rumor-gov-stance",
+      text: "이재명 대통령과 민주당이 검사들을 사기꾼으로 만들고 있다",
+      claimIds: [
+        "claim-probe-report",
+        "claim-probe-limit",
+        "claim-jung-statement",
+        "claim-dem-briefing",
+        "claim-president-request",
+        "claim-allegation-only",
+        "claim-park-discipline",
+        "claim-prosecutor-backlash",
+        "claim-deadline",
       ],
     },
   ],
@@ -392,6 +409,57 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       sourceIds: ["src-newscj-20261107", "src-dt-20261108"],
       verified: true,
     },
+    {
+      id: "claim-probe-report",
+      text:
+        "특검법에 앞서 국회 '조작기소' 국정조사 특별위원회가 2026년 3월 20일부터 42일 동안 활동했다. 특위는 4월 30일 마지막 회의에서 " +
+        "국민의힘 의원들이 집단 퇴장한 가운데 민주당 주도로 결과보고서를 채택하고, 증인선서를 거부한 박상용 검사와 김성태 전 쌍방울 " +
+        "회장 등 증인 31명을 위증 또는 선서·증언 거부 혐의로 고발하기로 의결했다. 국민의힘은 특검 추진을 '이재명 대통령의 셀프 " +
+        "사면용'이라고 비판했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-ytn-20260430"],
+      verified: true,
+    },
+    {
+      id: "claim-probe-limit",
+      text:
+        "경향신문은 국정조사가 확실한 '조작' 사실은 밝히지 못했지만 강압 수사와 형량 거래 같은 검찰의 부적절한 수사 관행은 " +
+        "드러냈다고 평가했다. 민주당은 특위에서 조작기소의 실체가 확인됐다고 보고 곧바로 특검법을 발의했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-khan-20260430", "src-ytn-20260430"],
+      verified: true,
+    },
+    {
+      id: "claim-jung-statement",
+      text:
+        "정청래 민주당 대표는 4월 29일 \"녹취록 조작, 엑셀 파일 조작, 진술 조작 등 국조특위에서 다룬 7대 사건 모두 정권 차원의 지시와 " +
+        "개입이 있었다는 점이 명백히 확인되고 있다\"며 특검으로 \"책임자들을 법의 심판대에 세우겠다\"고 했다.",
+      assertionType: "CLAIM",
+      assertedBy: "정청래 더불어민주당 대표",
+      sourceIds: ["src-fn-20260429"],
+      verified: true,
+    },
+    {
+      id: "claim-dem-briefing",
+      text:
+        "손명수 민주당 대변인은 11월 14일 \"조작기소 특검법은 윤석열 정권 당시 검찰 등 국가기관이 수사·기소 과정에서 권한을 남용하고 " +
+        "사건을 조작했다는 의혹의 진상을 규명하기 위한 법\"이라며 \"조작기소 특검법에는 공소취소 권한이 없다\"고 했다.",
+      assertionType: "CLAIM",
+      assertedBy: "더불어민주당",
+      sourceIds: ["src-fn-20261114"],
+      verified: true,
+    },
+    {
+      id: "claim-deadline",
+      text:
+        "헌법 제53조에 따라 대통령은 법률안이 정부로 넘어온 뒤 15일 안에 공포하거나 국회에 재의를 요구해야 한다. 특검법은 11월 6일 " +
+        "정부로 넘어왔다. 청와대는 9일 \"이송 시점, 긴급성의 정도 등을 고려해 국무회의 상정 시기를 결정한다\"며 다음 주 국무회의에 " +
+        "올릴 예정이라고 했다. 이 대통령이 16~19일 아세안·APEC 정상회의로 자리를 비워 17일 국무회의는 한성숙 국무총리가 주재할 " +
+        "가능성이 거론된다. 오세훈 서울시장은 13일 \"이제라도 조작기소 특검법에 거부권을 행사하라\"고 촉구했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-constitution", "src-newdaily-20261112", "src-hankook-20261113"],
+      verified: true,
+    },
   ],
   critiqueIds: [
     "claim-opposition",
@@ -616,7 +684,7 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
     },
     {
       id: "src-constitution",
-      title: "대한민국헌법 제101조",
+      title: "대한민국헌법(제53조·제101조)",
       publisher: "국가법령정보센터",
       url: "https://www.law.go.kr/법령/대한민국헌법",
       type: "official",
@@ -682,6 +750,60 @@ export const MANIPULATED_INDICTMENT_COUNSEL: PolicyInput = {
       publisher: "연합뉴스(한민족센터 게재)",
       url: "https://www.koreancenter.or.kr/news/articleView.html?idxno=1432775",
       publishedAt: "2026-11-01",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-ytn-20260430",
+      title: "조작기소 특위, 박상용·김성태 등 31명 고발 의결...특검 추진",
+      publisher: "YTN",
+      url: "https://www.ytn.co.kr/_ln/0101_202604301907123010",
+      publishedAt: "2026-04-30",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-khan-20260430",
+      title: "검 '강압 수사·형량 거래' 관행 드러나…여 '특검론' 명분 됐다",
+      publisher: "경향신문",
+      url: "https://www.khan.co.kr/article/202604302054025",
+      publishedAt: "2026-04-30",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-fn-20260429",
+      title: "정청래 \"조작기소 국조특위 종료 후 특검 신속 추진\"",
+      publisher: "파이낸셜뉴스",
+      url: "https://www.fnnews.com/news/202604290958452217",
+      publishedAt: "2026-04-29",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-fn-20261114",
+      title: "與, 국힘 '조작기소 특검법' 규탄 장외집회에 \"오로지 정쟁으로 몰아\"",
+      publisher: "파이낸셜뉴스(뉴시스)",
+      url: "https://www.fnnews.com/news/202611141217589704",
+      publishedAt: "2026-11-14",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-hankook-20261113",
+      title: "오세훈 \"李, 조작기소 특검법에 거부권 행사하라… 마지막 기회\"",
+      publisher: "한국일보",
+      url: "https://www.hankookilbo.com/news/article/A2026111313130005652",
+      publishedAt: "2026-11-13",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newdaily-20261112",
+      title: "李 순방과 겹친 17일 국무회의 … 한성숙, 조작기소특검법 책임 떠맡나",
+      publisher: "뉴데일리",
+      url: "https://www.newdaily.co.kr/site/data/html/2026/11/12/2026111200250.html",
+      publishedAt: "2026-11-12",
       type: "press",
       license: "link-only",
     },

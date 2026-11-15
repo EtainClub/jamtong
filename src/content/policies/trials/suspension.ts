@@ -19,6 +19,10 @@ const s = (key: Parameters<typeof sid>[1]) => sid(P, key);
  * ★ 2026-11-11 "재판이 5건이 아니라 6건 아니냐"는 질문. 재판은 다섯이다. 여섯은 조작기소
  *   특검법 수사 대상 가운데 이 대통령 사건을 셀 때 나온 숫자다(같은 재판에서 다루는
  *   대장동 묶음과 성남FC를 따로 센다). 그 셈법을 claim-count·claim-six로 적는다.
+ * ★ 2026-11-15 factbot-gap #287·#290·#291: "재판을 피하던 판사들이 다시 맡겠다고 나섰다", "내년 초부터
+ *   순차적으로 다시 열릴 가능성이 커지고 있다". 두 주장을 뒷받침하는 보도는 찾지 못했다. 재판부는
+ *   배당으로 정해졌고(선거법 파기환송심은 2025년 5월 형사7부), 11월 15일에도 야당은 재개를 '요구'하는
+ *   단계다. 찾지 못했다는 사실과 찾아본 범위를 claim-no-volunteer에 적는다.
  */
 export const TRIAL_SUSPENSION: PolicyInput = {
   slug: "trial-suspension",
@@ -26,7 +30,7 @@ export const TRIAL_SUSPENSION: PolicyInput = {
   scope: "재임 중 대통령 형사재판이 진행되는지 — 헌법 제84조에 따른 다섯 재판의 중단, 2026년 검찰 수사 과정 재조사와 조작기소 특검법 논의",
   ministries: ["법무부"],
   categories: ["institution"],
-  asOf: "2026-11-11",
+  asOf: "2026-11-15",
   rumors: [
     {
       id: "rumor-in-office",
@@ -42,6 +46,16 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       id: "rumor-when-trial",
       text: "권한과 책임을 말하면서 대통령 본인의 재판은 언제 받는가, 멈춘 재판부터 받아라",
       claimIds: ["claim-art84", "claim-all-stopped", "claim-not-acquittal", "claim-bill-withdrawn", "claim-resume-debate"],
+    },
+    {
+      id: "rumor-judges-volunteer",
+      text: "정치적 부담 때문에 이재명 재판을 피하던 판사들이 재판을 다시 맡겠다고 나섰다",
+      claimIds: ["claim-remand-assigned", "claim-still-stopped", "claim-no-volunteer"],
+    },
+    {
+      id: "rumor-resume-early",
+      text: "이재명 대통령의 재판이 내년 초부터 순차적으로 다시 열릴 가능성이 커지고 있다",
+      claimIds: ["claim-still-stopped", "claim-nov-status", "claim-no-volunteer", "claim-art84"],
     },
   ],
   claims: [
@@ -111,6 +125,38 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       assertionType: "FACT",
       sourceIds: [s("khan-1016")],
       verified: true,
+    },
+    {
+      id: "claim-remand-assigned",
+      text:
+        "대법원이 2025년 5월 1일 선거법 사건을 파기환송하자 서울고등법원은 5월 2일 이 사건을 선거 사건 전담 재판부인 형사7부" +
+        "(재판장 이재권 부장판사, 주심 송미경 고법판사)에 배당했다. 원심 재판부였던 형사6부는 배당에서 빠졌다. 판사가 스스로 " +
+        "나서서 맡은 것이 아니라 배당으로 정해진 재판부다.",
+      assertionType: "FACT",
+      sourceIds: [s("scourt-0501"), s("newsis-20250502")],
+      verified: true,
+    },
+    {
+      id: "claim-nov-status",
+      text:
+        "2026년 11월 15일 국민의힘 정점식 원내대표는 선거법 1심 선고 2년을 맞아 \"더는 지연 용납 안 돼\"라며 이 대통령 재판의 " +
+        "재개를 촉구했다. 재개는 이 날까지도 야당이 법원에 요구하는 단계다.",
+      assertionType: "FACT",
+      sourceIds: [s("news1-1115")],
+      verified: true,
+    },
+    {
+      id: "claim-no-volunteer",
+      text:
+        "2026년 11월 15일까지 이 대통령 재판 가운데 기일이 다시 잡힌 재판, 판사가 재판을 다시 맡겠다고 나섰다는 보도, 법원이 " +
+        "'내년 초 순차 재개'를 밝혔다는 보도는 찾지 못했다. 서울고법원장은 10월 국정감사에서 재개 일정은 재판부가 정할 일이라 " +
+        "알 수 없다고 답했다.",
+      assertionType: "FACT",
+      sourceIds: [s("khan-1016"), s("news1-1115")],
+      verified: false,
+      limit:
+        "'찾지 못했다'는 2026년 11월 15일 언론 검색 결과다. 법원은 기일 지정을 따로 발표하지 않을 수 있다. 근거 게시물이 " +
+        "어떤 보도를 바탕으로 했는지는 확인하지 못했다.",
     },
     {
       id: "claim-lawyer",
@@ -218,7 +264,7 @@ export const TRIAL_SUSPENSION: PolicyInput = {
       verified: true,
     },
   ],
-  critiqueIds: ["claim-committee-critique", "claim-opposition"],
+  critiqueIds: ["claim-committee-critique", "claim-opposition", "claim-nov-status"],
   timeline: [
     {
       id: "t-all-stopped",
@@ -294,11 +340,11 @@ export const TRIAL_SUSPENSION: PolicyInput = {
     },
   ],
   gaps: [
-    "2026년 11월 11일까지 다섯 재판 가운데 기일이 다시 잡힌 재판이 있다는 보도는 찾지 못했다.",
+    "2026년 11월 15일까지 다섯 재판 가운데 기일이 다시 잡힌 재판이 있다는 보도는 찾지 못했다.",
     "'8개 사건·5개 재판'의 묶음은 2025년 3월 보도 기준이다. 각 재판부의 병합 결정문은 확인하지 못했다.",
     "헌법 조문과 법무부 보도자료는 원문과 대조했다. 법원의 기일 변경 결정문과 대통령 기자회견 질의응답 녹취는 확인하지 못했다(대통령실이 공개한 모두발언에는 특검 관련 문장이 없다).",
     "검찰미래위 조사 결과는 아직 나오지 않았다.",
     "특검법의 그 뒤 경과(11월 4일 법사위 수정안에서 공소유지 여부 결정·이첩 요구 조항 삭제, 11월 6일 본회의 통과, 공포 여부)는 policy:manipulated-indictment-counsel에 따로 적었다. 조문은 의안정보시스템에서 대조하지 못했다.",
   ],
-  sources: sourcesFor(P, ["constitution", "moj-0610", "moj-0814", "newsis-0722", "heraldk-1102", "inews-0814", "nocut-0610", "seoul-0918", "ilyo-1009", "kyeonggi-0326", "sidae-1106", "khan-1016"]),
+  sources: sourcesFor(P, ["constitution", "moj-0610", "moj-0814", "newsis-0722", "heraldk-1102", "inews-0814", "nocut-0610", "seoul-0918", "ilyo-1009", "kyeonggi-0326", "sidae-1106", "khan-1016", "newsis-20250502", "news1-1115", "scourt-0501"]),
 };

@@ -154,6 +154,8 @@ import { SPECIAL_FORCES_WALKING } from "./special-forces-walking";
 import { SPECIAL_PARDON_CRITERIA } from "./special-pardon-criteria";
 import { TAEKWONDO_UNESCO } from "./taekwondo-unesco";
 import { BRUNSON_REMARKS } from "./brunson-remarks";
+import { PARK_RESPECT_REMARK } from "./park-respect-remark";
+import { WAGE_INCOME_TAX } from "./wage-income-tax";
 import { RELIGION_POLITICS } from "./religion-politics";
 import { EV_SUBSIDY_PROCESS } from "./ev-subsidy-process";
 import { TESLA_FSD } from "./tesla-fsd";
@@ -349,6 +351,8 @@ export const POLICIES: Policy[] = [
   SPECIAL_PARDON_CRITERIA,
   TAEKWONDO_UNESCO,
   BRUNSON_REMARKS,
+  PARK_RESPECT_REMARK,
+  WAGE_INCOME_TAX,
   RELIGION_POLITICS,
   EV_SUBSIDY_PROCESS,
   TESLA_FSD,
