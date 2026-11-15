@@ -273,6 +273,18 @@ const ENTRIES = {
     url: "https://khan.co.kr/article/202610161325001",
     publishedAt: "2026-10-16",
   },
+  "newsis-20250502": {
+    title: "'이재명 공선법' 파기환송심, 서울고법 형사7부 배당",
+    publisher: "뉴시스",
+    url: "https://www.newsis.com/view/NISX20250502_0003163401",
+    publishedAt: "2025-05-02",
+  },
+  "news1-1115": {
+    title: "정점식 \"李 재판 지연 용납 안 돼…대통령 부부 재판 재개해야\"",
+    publisher: "뉴스1",
+    url: "https://www.news1.kr/politics/assembly/6354227",
+    publishedAt: "2026-11-15",
+  },
   /* ── 확정된 과거 형사처벌(past-convictions.ts) ── */
   "hankook-20210805": {
     title: "이재명 \"음주운전 전과 1건뿐\"... '재범 은폐' 의혹에 전과 공개",
