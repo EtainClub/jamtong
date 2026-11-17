@@ -60,13 +60,27 @@ import {
   LEDGER_KEEP,
   normalizeKit,
   normalizeLoot,
+  RAID_JAM,
   TROPHY_WALLPAPER,
+  trimLedger,
   trophyId,
   type KitId,
   type KitLedger,
   type LootLedger,
   type RaidLoot,
 } from "./raid/rules";
+import {
+  BOOK_ASK_JAM,
+  bookIdOf,
+  bookSeed,
+  cleanMarks,
+  freshLibrary,
+  lendClaim,
+  normalizeLibrary,
+  roomBookOf,
+  seedReady,
+  type LibraryLedger,
+} from "./room/library";
 import { initialCoach, normalizeCoach, type CoachData, type CoachMark, type TipTab } from "./coach";
 import * as room from "./room/rules";
 import { avatarSlotOk, buyWear as buyWearRule, grantRewards, normalizeAvatar, unownedWear, type AvatarData, type WearRefusal } from "./avatar/rules";
@@ -147,6 +161,8 @@ export interface GardenData {
   roots: number;
   /** 거대 잡초 보상 장부 — 도망간 물결의 조각, 표본, 고른 필살기 연출(raid/rules.ts). */
   loot: LootLedger;
+  /** 특별한 책 장부 — 완독 도장, 책 씨앗, 오늘 물은 수, 빌려 읽기로 받은 잼(room/library.ts). */
+  library: LibraryLedger;
   /** 첫 한 바퀴 코치와 탭 첫 방문 팁(coach.ts). 기기를 옮겨도 다시 뜨지 않게 정원과 함께 간다. */
   coach: CoachData;
   /**
@@ -238,6 +254,7 @@ function fresh(catalog: Species[]): GardenData {
     kit: freshKit(),
     roots: 0,
     loot: freshLoot(),
+    library: freshLibrary(),
     invite: NO_INVITE,
     friends: [],
     // 새 정원마다 다른 기본 꼬마(docs/garden-avatar.md §6.1). 장부에 저장되어 기기를 바꿔도 같다.
@@ -268,10 +285,12 @@ function normalize(data: GardenData): GardenData {
     kit: normalizeKit(data.kit),
     roots: Number.isFinite(data.roots) ? Math.max(0, data.roots) : 0,
     loot: normalizeLoot(data.loot),
+    library: normalizeLibrary(data.library),
     invite: data.invite ?? NO_INVITE,
     friends: data.friends ?? [],
     // 꼬마가 없는 옛 장부는 정원 이름으로 기본 꼬마를 정한다 — 저장되기 전에 다시 열어도 같은 꼬마.
-    room: room.normalizeRoom(data.room, data.nick || String(data.updatedAt)),
+    // 서재 세트는 가진 책 수에서 정해진다 — 이 기능이 생기기 전에 산 책에도 준다.
+    room: room.grantLibrarySets(room.normalizeRoom(data.room, data.nick || String(data.updatedAt))),
     ilchon: normalizeIlchon(data.ilchon),
     news: Array.isArray(data.news) ? data.news.slice(0, NEWS_MAX) : [],
   };
@@ -411,6 +430,20 @@ interface GardenState {
   ) => { species?: Species; jam: number; roots: number; trophy: RaidKindId | null; wallpaper: boolean } | null;
   /** 도망간 거대 잡초에서 친 사람의 뿌리 조각. 물결마다 한 번. 이미 받았으면 null. */
   claimEscape: (key: number, roots: number) => number | null;
+  /** 특별한 책 — 이 장에 완독 도장을 찍는다. 새로 찍었으면 true. */
+  markChapterRead: (slug: string, chapter: string) => boolean;
+  /** 특별한 책 — 독서대에 펼쳐 둘 문장(쉽게 보기 토막 id, 셋까지). */
+  setBookMarks: (slug: string, ids: string[]) => void;
+  /** 특별한 책 — 놓아 둔 책의 오늘 씨앗을 받는다. 받을 수 없으면 null. */
+  claimBookSeed: (slug: string, catalog: Species[], who: string) => Species | null;
+  /** 특별한 책 — 책에게 물은 값(잼 BOOK_ASK_JAM)을 치르고 오늘 수를 적는다. 서버가 답한 뒤에 부른다. */
+  payBookAsk: (slug: string) => boolean;
+  /** 특별한 책 — 오늘 빌려 읽은 손님(uid)에게서 잼을 받는다. 받은 잼(없으면 0). */
+  claimLends: (readers: string[]) => number;
+  /** 이 물결의 이 형태에 들었다고 적는다(형태 보상의 조건). 이미 적혀 있으면 아무것도 하지 않는다. */
+  markRaidPart: (key: number, form: number) => void;
+  /** 거대 잡초 잼 보상을 받는다(raid/rules.ts의 RAID_JAM). 받은 잼 합(받을 게 없으면 0). */
+  claimRaidJam: (key: number, ids: number[]) => number;
   /** 싸움 도구를 산다. 잼이 모자라거나 오늘 상한에 닿았으면 false. */
   buyKit: (id: KitId) => boolean;
   /** 싸움 도구 하나를 이 물결에 켠다. 없거나 이미 켰으면 false. */
@@ -844,6 +877,72 @@ export const useGarden = create<GardenState>((set, get) => {
       return { species, jam: RAID_BOX.jam, roots: loot.roots, trophy: sample.trophy, wallpaper };
     },
 
+    markChapterRead: (slug, chapter) => {
+      const d = get().data;
+      const had = d?.library.read[slug] ?? [];
+      if (!d || had.includes(chapter) || !roomBookOf(bookIdOf(slug))) return false;
+      commit({ ...d, library: { ...d.library, read: { ...d.library.read, [slug]: [...had, chapter] } } });
+      return true;
+    },
+
+    setBookMarks: (slug, ids) => {
+      const d = get().data;
+      if (!d || !roomBookOf(bookIdOf(slug))) return;
+      const prev = d.room.books?.[slug] ?? { marks: [] };
+      commit({ ...d, room: { ...d.room, books: { ...d.room.books, [slug]: { ...prev, marks: cleanMarks(ids) } } } });
+    },
+
+    claimBookSeed: (slug, catalog, who) => {
+      const d = get().data;
+      const book = roomBookOf(bookIdOf(slug));
+      const day = kstDayNumber(Date.now());
+      if (!d || !book || !d.room.placed.some((p) => p.it === bookIdOf(slug)) || !seedReady(d.library, slug, day)) return null;
+      const species = bookSeed(book, day, who, catalog);
+      if (!species) return null;
+      commit({ ...d, seeds: give(d.seeds, species.id), library: { ...d.library, seedDay: { ...d.library.seedDay, [slug]: day } } });
+      return species;
+    },
+
+    payBookAsk: (slug) => {
+      const d = get().data;
+      const day = kstDayNumber(Date.now());
+      if (!d || d.jam < BOOK_ASK_JAM) return false;
+      const n = d.library.asks.day === day ? d.library.asks.n : {};
+      commit({ ...d, jam: d.jam - BOOK_ASK_JAM, library: { ...d.library, asks: { day, n: { ...n, [slug]: (n[slug] ?? 0) + 1 } } } });
+      return true;
+    },
+
+    claimLends: (readers) => {
+      const d = get().data;
+      const day = kstDayNumber(Date.now());
+      if (!d) return 0;
+      const got = lendClaim(d.library, readers, day);
+      if (got.jam <= 0) return 0;
+      const paid = d.library.lent.day === day ? d.library.lent.uids : [];
+      commit({ ...d, jam: d.jam + got.jam, library: { ...d.library, lent: { day, uids: [...paid, ...got.uids] } } });
+      return got.jam;
+    },
+
+    markRaidPart: (key, form) => {
+      const d = get().data;
+      const k = String(key);
+      if (!d || form < 1 || form > 3 || (d.loot.parts[k] ?? []).includes(form)) return;
+      commit({ ...d, loot: { ...d.loot, parts: trimLedger({ ...d.loot.parts, [k]: [...(d.loot.parts[k] ?? []), form] }) } });
+    },
+
+    claimRaidJam: (key, ids) => {
+      const d = get().data;
+      const k = String(key);
+      if (!d) return 0;
+      const paid = d.loot.paid[k] ?? [];
+      // 값은 장부의 표에서 셈한다. 화면이 넘긴 것은 무엇을 받을지(id)뿐이다.
+      const fresh = [...new Set(ids)].filter((id) => id >= 0 && id <= 3 && !paid.includes(id));
+      if (fresh.length === 0) return 0;
+      const jam = fresh.reduce((n, id) => n + (id === 0 ? RAID_JAM.base : RAID_JAM.forms[id - 1]), 0);
+      commit({ ...d, jam: d.jam + jam, loot: { ...d.loot, paid: trimLedger({ ...d.loot.paid, [k]: [...paid, ...fresh] }) } });
+      return jam;
+    },
+
     claimEscape: (key, roots) => {
       const d = get().data;
       if (!d || roots <= 0 || d.loot.fled.includes(key)) return null;
@@ -1083,7 +1182,9 @@ export const useGarden = create<GardenState>((set, get) => {
       if (!d) return "unknown";
       const out = room.buyItem(d.room, d.jam, id, Date.now());
       if (typeof out === "string") return out;
-      commit({ ...d, room: out.room, jam: out.jam });
+      // 특별한 책이면 들인 날(장서표)을 적고 서재 세트를 본다.
+      const next = room.grantLibrarySets(room.stampBookSince(out.room, id, kstDayNumber(Date.now())));
+      commit({ ...d, room: next, jam: out.jam });
       return true;
     },
 

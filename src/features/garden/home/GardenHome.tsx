@@ -267,7 +267,7 @@ export function GardenHome({
           }}
         />
       )}
-      {opened && <RoomItemSheet room={data.room} placed={opened} byId={byId} onPianoSave={(song) => useGarden.getState().savePianoSong(opened.kb ?? 0, song)} onPianoNotes={(notes) => useGarden.getState().setPianoNotes(opened.kb ?? 0, notes)} onClose={() => setOpened(null)} />}
+      {opened && <RoomItemSheet room={data.room} placed={opened} byId={byId} reader={{ mode: "owner", ownerNick: data.nick, gid, uid }} onPianoSave={(song) => useGarden.getState().savePianoSong(opened.kb ?? 0, song)} onPianoNotes={(notes) => useGarden.getState().setPianoNotes(opened.kb ?? 0, notes)} onClose={() => setOpened(null)} />}
       {keyboardOpen !== null && (
         <KeyboardSheet keyboard={keyboardOpen} keys={keyboardKeys(data.room, keyboardOpen)} owner ownerUid={uid} gid={gid} uid={uid} nick={data.nick} say={say} onClose={() => setKeyboardOpen(null)} />
       )}

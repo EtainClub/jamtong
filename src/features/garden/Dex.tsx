@@ -11,6 +11,7 @@ import { PlantArt } from "./GardenArt";
 import { MutationChips, NoteCard } from "./parts";
 import { MUTATION, MUTATION_ORDER, TIER_LABEL, TITLE_MAX, TITLE_ORDER, TITLES, titleCounts, titleLevel, titleNext } from "./rules";
 import { FURNITURE_BY_ID, FRAME_BLANK } from "./room/catalog";
+import { bookTitleInput } from "./room/library";
 import { framed } from "./room/rules";
 import { useGarden, type GardenData } from "./store";
 import type { Species, Tier } from "./types";
@@ -200,7 +201,7 @@ function FrameButton({ data, noteId, kind, species, say }: { data: GardenData; n
 
 /** 칭호와 다음 단계까지. 남과 견주는 순위표는 없다(§1) — 내 기록만 보인다. */
 function Titles({ data }: { data: GardenData }) {
-  const counts = titleCounts(data);
+  const counts = titleCounts({ ...data, ...bookTitleInput(data.library, data.room.owned) });
   return (
     <section aria-labelledby="garden-titles" className="mt-3 rounded-2xl bg-[var(--g-panel)] px-3.5 py-3 text-[12px] leading-relaxed">
       <p id="garden-titles" className="font-semibold text-ink">칭호</p>

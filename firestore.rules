@@ -227,17 +227,17 @@ service cloud.firestore {
      *                                     지원(aid·aidAt·aids)·칸. 본인만 읽는다.
      *
      * 규칙이 지키는 것. 값은 src/features/garden/rules.ts의 RAID_*와 같다(raid.test.ts가 본다).
-     *   1. 오늘 번호로만, 물결 1–5로, 1형으로, 기본 필요량 540·720·900(체력 70%·갑옷 30%)으로 태어난다.
-     *      한 사람이 한 형태에 넣을 수 있는 최대는 240(기력 60 × 제 역할 2 × 빈틈 2)이라 혼자도 둘도 1형을 못 넘긴다.
+     *   1. 오늘 번호로만, 물결 1–5로, 1형으로, 크기 300·360·420(모두 체력)으로 태어난다.
+     *      한 사람이 한 형태에 넣을 수 있는 최대는 240(기력 60 × 2 × 빈틈 2)이라 혼자서는 1형도 못 넘긴다.
      *   2. 다음 물결은 제 시각(8·11·14·17·20시)이 됐고 앞 물결이 끝나고 30분이 지나야 태어난다.
      *   3. 한 번 칠 때마다 내 칸의 게이지 하나와 내 표식이 같은 커밋에서 같은 만큼 오른다. 기력 1(필살기는 20까지)을 쓰고,
-     *      제 역할의 게이지면 두 배, 빈틈이면 다시 두 배를 센다 — 빈틈은 request.time의 분과 물결의 spawnedAt으로만 본다(raidGap).
+     *      제 역할의 게이지면(1형은 누구나) 두 배, 빈틈이면 다시 두 배를 센다 — 빈틈은 request.time의 분과 물결의 spawnedAt으로만 본다(raidGap).
      *      아이템은 규칙이 볼 수 없는 내 정원 문서에 있으므로, 규칙은 한 커밋의 크기와 기력 60만 지킨다.
      *   4. 한 사람은 1초에 한 번만, 한 형태에 기력 60까지만 쓴다. 역할은 새 형태의 첫 커밋에서만 바꾼다.
      *   5. 지원은 종류 1–3, 앞선 지원에서 20초 뒤. 센 값은 그대로다(효과는 화면의 손맛뿐).
      *   6. 태어나고 3시간이 지나면 칠 수 없다(도망갔다).
-     *   7. 세 게이지가 다 차면: 그 형태를 30분 안에 채웠고 3형 전이면 변신만(다음 형태의 필요량은 온 사람 수에서),
-     *      아니면 쓰러진 시각만 한 번 찍힌다. 쓰러진 뒤에는 칠 수 없다.
+     *   7. 세 게이지가 다 차면: 3형 전이면 변신만(다음 형태의 크기는 1형의 2·2.5배, 사람이 많으면 온 사람 수에서),
+     *      3형이면 쓰러진 시각만 한 번 찍힌다. 쓰러진 뒤에는 칠 수 없다.
      *   8. 참여 인원(칸의 fighters)과 이름(names)은 내 표식이 처음 생기는 커밋에서만 하나 는다. 칸의 게이지는 줄지 않는다.
      *
      * 함께 사는 것.
@@ -350,6 +350,25 @@ service cloud.firestore {
           && roomOpenToMe(gid)
           && (!('il' in request.resource.data)
             || (request.resource.data.il == true && exists(ilchonPath(gid, request.auth.uid))));
+        allow delete: if false;
+      }
+
+      // 빌려 읽기(특별한 책, src/features/garden/room/library.ts). 손님이 이 방의 책을 한 장 읽으면 하루 한 번 표식을 남기고,
+      // 주인이 오늘 표식을 읽어 잼을 받는다(하루 10명까지 — 장부는 주인 정원에 있다). 책 slug는 모양만 본다.
+      match /reads/{uid} {
+        allow read: if request.auth != null
+          && (request.auth.uid == uid || isGardenOwner(gid));
+        allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['day', 'at', 'nick', 'b'])
+          && request.resource.data.day == kstDayNumber()
+          && request.resource.data.at == request.time
+          && nickOk(request.resource.data.nick)
+          && request.resource.data.b is string
+          && request.resource.data.b.matches('^[a-z0-9-]{1,40}$')
+          && (resource == null || resource.data.day < kstDayNumber())
+          && !isGardenOwner(gid)
+          && roomOpenToMe(gid);
         allow delete: if false;
       }
 
@@ -733,25 +752,27 @@ service cloud.firestore {
     // 칭호 단계(0~3)만. 이름은 화면이 정해 둔 표에서 읽는다 — 사람이 지은 글이 아니다.
     function publicTitles(t) {
       return t is map
-        && t.keys().hasOnly(['dex', 'storm', 'plaza'])
+        && t.keys().hasOnly(['dex', 'storm', 'plaza', 'read', 'lib'])
         && t.get('dex', 0) is int && t.get('dex', 0) >= 0 && t.get('dex', 0) <= 3
         && t.get('storm', 0) is int && t.get('storm', 0) >= 0 && t.get('storm', 0) <= 3
-        && t.get('plaza', 0) is int && t.get('plaza', 0) >= 0 && t.get('plaza', 0) <= 3;
+        && t.get('plaza', 0) is int && t.get('plaza', 0) >= 0 && t.get('plaza', 0) <= 3
+        && t.get('read', 0) is int && t.get('read', 0) >= 0 && t.get('read', 0) <= 3
+        && t.get('lib', 0) is int && t.get('lib', 0) >= 0 && t.get('lib', 0) <= 3;
     }
 
     match /plazaRaids/{raidId} {
       allow read: if true;
 
-      // 세우기(3.0): 1형, 종류의 기본 필요량(540·720·900)을 체력 70%·갑옷 30%로. 목표는 모두 쌓인 값이다.
+      // 세우기(3.1): 1형, 종류의 크기(300·360·420)를 모두 체력으로. 목표는 모두 쌓인 값이다.
       allow create: if request.auth != null
         && raidId.matches('^[0-9]{5}-[1-5]$')
         && raidDay(raidId) == kstDayNumber()
         && raidOpened(raidId)
         && request.resource.data.keys().hasOnly(['hp', 'hits', 'fighters', 'spawnedAt', 'defeatedAt', 'form', 'formAt', 'size', 'n', 'brk', 'grd', 'base'])
-        && request.resource.data.size in [540, 720, 900]
+        && request.resource.data.size in [300, 360, 420]
         && request.resource.data.n == request.resource.data.size
-        && request.resource.data.hp == request.resource.data.size * 70 / 100
-        && request.resource.data.brk == request.resource.data.size * 30 / 100
+        && request.resource.data.hp == request.resource.data.size
+        && request.resource.data.brk == 0
         && request.resource.data.grd == 0
         && request.resource.data.base == {'h': 0, 'b': 0, 'g': 0}
         && request.resource.data.form == 1
@@ -762,24 +783,20 @@ service cloud.firestore {
         && request.resource.data.defeatedAt == null
         && (raidWave(raidId) == 1 || raidPrevDone(raidId));
 
-      // 쓰러뜨리기: 세 게이지가 다 찼을 때 쓰러진 시각만 한 번 찍는다.
-      // 3.0 물결은 3형이거나, 이 형태를 30분 안에 채우지 못했을 때만 — 빨리 채웠으면 변신해야 한다(아래).
+      // 쓰러뜨리기: 세 게이지가 다 찼을 때 쓰러진 시각만 한 번 찍는다. 3.x 물결은 3형에서만 — 그 앞은 변신이다(아래).
       allow update: if request.auth != null
         && resource.data.defeatedAt == null
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['defeatedAt'])
         && request.resource.data.defeatedAt == request.time
-        && (!('form' in resource.data)
-          || resource.data.form == 3
-          || request.time >= resource.data.formAt + duration.value(30, 'm'))
+        && (!('form' in resource.data) || resource.data.form == 3)
         && raidFilled(raidId);
 
-      // 변신: 세 게이지를 30분 안에 다 채웠고 3형 전이면, 쓰러지지 않고 다음 형태가 된다.
+      // 변신: 3형 전에 세 게이지를 다 채웠으면, 쓰러지지 않고 다음 형태가 된다.
       allow update: if request.auth != null
         && resource.data.defeatedAt == null
         && 'form' in resource.data
         && resource.data.form < 3
         && request.time < resource.data.spawnedAt + duration.value(3, 'h')
-        && request.time < resource.data.formAt + duration.value(30, 'm')
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['form', 'formAt', 'n', 'hp', 'brk', 'grd', 'base'])
         && request.resource.data.form == resource.data.form + 1
         && request.resource.data.formAt == request.time
@@ -873,12 +890,12 @@ service cloud.firestore {
         && d.get('pool', 0) in [0, 1, 2]
         && (role == 0
           ? !('form' in d) && d.get('pool', 0) == 0 && was.get('role', 0) == 0
-          : form != 0 && d.form == form && (fresh || role == was.get('role', 0)))
+          : form != 0 && d.form == form && (fresh || role == was.get('role', 0)) && (form != 1 || d.get('pool', 0) == 0))
         && raidCellMoved(raidId, d.shard, d.get('pool', 0), gain)
         && getAfter(raidPath(raidId)).data.hits == raid.hits
         && ((used >= 1
             && used <= 20
-            && gain == used * (role != 0 && d.get('pool', 0) + 1 == role ? 2 : 1) * (raidGap(raid) ? 2 : 1)
+            && gain == used * (role != 0 && (d.get('pool', 0) + 1 == role || form == 1) ? 2 : 1) * (raidGap(raid) ? 2 : 1)
             && d.get('aid', 0) == was.get('aid', 0)
             && d.get('aidAt', null) == was.get('aidAt', null)
             && d.get('aids', 0) == was.get('aids', 0))
@@ -979,24 +996,25 @@ service cloud.firestore {
 
     // 변신의 새 숫자. 세 게이지가 다 찼고,
     //   base  새 형태의 0점 = 앞 목표와 지금 합계 사이(커밋이 읽은 뒤 몇 방 더 들어와도 받는다).
-    //   n     새 형태의 필요량 = max(종류 기본값, 72 × 인원)을 60 단위로. 인원은 10명까지 늦게 읽어도 받는다.
+    //   n     새 형태의 필요량 = 기본(1형 크기 × 2형 2 · 3형 2.5)이거나, 사람이 많으면 60 × 인원(60 단위).
+    //         인원은 5명까지 늦게 읽어도 받는다(읽고 쓰는 사이에 든 사람).
     //   목표  base + n의 몫 — 2형은 체력 50·갑옷 25·울타리 25%, 3형은 40·30·30%.
     function raidNextForm(raidId) {
       let d = request.resource.data;
       let was = resource.data;
       let t = raidTotals(raidId);
       let crowd = t.fighters;
+      let floor = d.form == 2 ? was.size * 2 : was.size * 5 / 2;
       let h = d.form == 2 ? 50 : 40;
       let b = d.form == 2 ? 25 : 30;
       return was.hits + t.hits >= was.hp
         && t.brk >= was.brk
         && t.grd >= was.grd
         && d.n is int
-        && d.n % 60 == 0
-        && d.n >= was.size
         && d.n <= 60000
-        && d.n >= 72 * (crowd - 10)
-        && (d.n == was.size || d.n < 72 * crowd + 60)
+        && d.n >= floor
+        && d.n >= 60 * (crowd - 5)
+        && (d.n == floor || (d.n % 60 == 0 && d.n < 60 * crowd + 60))
         && d.base.keys().hasOnly(['h', 'b', 'g'])
         && d.base.h is int && d.base.h >= was.hp && d.base.h <= was.hits + t.hits
         && d.base.b is int && d.base.b >= was.brk && d.base.b <= t.brk

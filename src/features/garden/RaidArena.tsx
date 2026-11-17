@@ -6,6 +6,8 @@ import { raidFeedback } from "./feedback";
 import { AidButtons, AidChips, AidFeed, GapBand, KitRow } from "./raid/ArenaParts";
 import { BossRig } from "./raid/boss/BossRig";
 import { Invade, MorphCut } from "./raid/BossStage";
+import { RaidJam } from "./raid/Rewards";
+import { RAID_JAM } from "./raid/rules";
 import { FORM_CUT_MS, FORM_ORDER, FORM_SCALE, formName, nextSkillAt, raidForm, SKILL_WARN_MS, type RaidForm } from "./raid/forms";
 import { ALARM_LEAD, COMBO_GAP_JUICE, kitOn } from "./raid/rules";
 import {
@@ -24,6 +26,7 @@ import {
   formatLeft,
   hash,
   josa,
+  raidKey as raidLedgerKey,
   RAID_USES_PER_PERSON,
   RAID_AIDS,
   RAID_LIFE,
@@ -72,6 +75,9 @@ const RUB_PX = 36;
  * (처리기가 훅에 넘겨지는 탓에 린트가 렌더 중 호출로 오해한다.)
  */
 const clock = () => Date.now();
+/** 두드림이 이만큼 이어질 때마다 피버. */
+const FEVER_AT = 25;
+const FEVER_MS = 6_000;
 /** 울타리지기의 박자: 한 방의 간격(RAID_STRIKE_GAP)마다 한 번, 앞뒤 이만큼은 맞은 것으로 친다. */
 const BEAT_SLACK = 260;
 /** 돋보기꾼의 표적 가운데 가짜('카더라')의 비율. 손전등이 켜지면 없다. */
@@ -82,7 +88,7 @@ interface Fx {
   x: number;
   y: number;
   text: string;
-  tone: "hit" | "weak" | "fin" | "miss" | "cut" | "info";
+  tone: "hit" | "crit" | "weak" | "fin" | "miss" | "cut" | "info";
 }
 
 interface Pos {
@@ -163,6 +169,8 @@ export function RaidArena({
     if (surge.count > surgeSeen) setSurgeUntil(now + SURGE_MS);
   }
   const surging = now < surgeUntil;
+  const [feverUntil, setFeverUntil] = useState(0);
+  const fever = now < feverUntil;
 
   const [vines, setVines] = useState<{ stage: number; left: number }>({ stage, left: g.vines ?? 0 });
   if (vines.stage !== stage) setVines({ stage, left: g.vines ?? 0 });
@@ -170,7 +178,8 @@ export function RaidArena({
 
   const shielded = !!g.shield && left / prog.need <= g.shield.below;
   const sporeNow = sporeBoost && Boolean(gap?.now);
-  const need = raidRubsPerStrike(kind.id, prog.have, prog.need, surging || Boolean(drum) || sporeNow);
+  // 피버면 두드림 하나가 한 방이다(그래도 서버가 1초에 한 방만 받는다 — 남는 두드림은 다음 방으로 쌓인다).
+  const need = fever ? 1 : raidRubsPerStrike(kind.id, prog.have, prog.need, surging || Boolean(drum) || sporeNow);
   // 우산: 다음 반격 한 번을 모두가 피한다. 가장 최근 우산 시각을 기억하고, 그 뒤 첫 반격에서 쓴다.
   const lastUmbrella = (r.aids ?? []).filter((m) => m.aid === "umbrella").reduce((t, m) => Math.max(t, m.at), 0);
   const umbrellaRef = useRef({ at: lastUmbrella, used: 0 });
@@ -208,6 +217,10 @@ export function RaidArena({
   const busy = useRef(false);
   const cutSeq = useRef(0);
   const [firstPulse] = useState(() => raid.pulses.at(-1)?.seq ?? 0);
+  // 두드릴 때마다: 불꽃(그 자리)·움찔(번갈아)·콤보. 콤보가 FEVER_AT마다 피버 — 잠깐 한 번 두드림이 한 방.
+  const [sparks, setSparks] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const sparkSeq = useRef(0);
+  const [flinch, setFlinch] = useState(0);
 
   const shownCounter = spent ? null : counter;
   const stunned = shownCounter?.phase === "stun";
@@ -222,10 +235,25 @@ export function RaidArena({
   const landed = (n: number, pos: Pos, big: boolean, times = 1) => {
     setHitKey((k) => k + 1);
     setQuake((q) => ({ n: q.n + 1, big }));
-    // 필살기 숫자는 컷인이 크게 그린다. 빈틈이면 ×2를 붙인다(서버가 세는 값과 같다).
-    if (!big) pop(pos, times > 1 ? `-${n * times} ×${times}` : `-${n}`, "hit");
+    // 필살기 숫자는 컷인이 크게 그린다. 배수(역할·빈틈)를 붙인다 — 서버가 세는 값과 같다. ×4는 크리티컬.
+    if (!big) pop({ x: pos.x, y: pos.y - 6 }, times >= 4 ? `크리티컬! -${n * times}` : times > 1 ? `-${n * times} ×${times}` : `-${n}`, times >= 4 ? "crit" : "hit");
+  };
+
+  /** 두드림 하나의 손맛 — 결과(한 방이 됐든 아니든)와 상관없이 매번. */
+  const tapFeel = (pos: Pos) => {
+    const id = ++sparkSeq.current;
+    setSparks((old) => [...old.slice(-5), { id, x: pos.x, y: pos.y }]);
+    setFlinch((f) => f + 1);
+    raidFeedback("rub");
     clearTimeout(comboTimer.current);
-    setCombo((c) => c + n);
+    setCombo((c) => {
+      const next = c + 1;
+      if (next % FEVER_AT === 0) {
+        setFeverUntil(clock() + FEVER_MS);
+        raidFeedback("surge");
+      }
+      return next;
+    });
     comboTimer.current = setTimeout(() => setCombo(0), juice ? COMBO_GAP_JUICE : COMBO_GAP);
   };
 
@@ -263,7 +291,7 @@ export function RaidArena({
   const rub = (pos: Pos) => {
     if (!ready(pos)) return;
     lastRub.current = clock();
-    raidFeedback("rub");
+    tapFeel(pos);
 
     if (vinesLeft > 0) {
       const rest = vinesLeft - 1;
@@ -496,7 +524,7 @@ export function RaidArena({
   return (
     <section
       aria-labelledby="raid"
-      className={`garden-raid raid-arena mt-3 rounded-2xl px-4 py-3.5 text-white form-${form} ${staged ? "is-staged" : ""} ${quake.n ? (quake.n % 2 ? "raid-quake-a" : "raid-quake-b") : ""} ${quake.big ? "is-big" : ""} ${surging ? "is-surge" : ""}`}
+      className={`garden-raid raid-arena mt-3 rounded-2xl px-4 py-3.5 text-white form-${form} ${staged ? "is-staged" : ""} ${fever ? "is-fever" : ""} ${quake.n ? (quake.n % 2 ? "raid-quake-a" : "raid-quake-b") : ""} ${quake.big ? "is-big" : ""} ${surging ? "is-surge" : ""}`}
       style={{ background: `linear-gradient(180deg, ${kind.bg[0]}, ${kind.bg[1]})` }}
     >
       {staged && <Invade kind={kind} />}
@@ -522,7 +550,15 @@ export function RaidArena({
           <span>{r.v3 ? `${FORM_ORDER[form]} · 남은 ${left.toLocaleString()}` : `체력 ${left.toLocaleString()}/${prog.need.toLocaleString()}`}</span>
           <span>함께 {r.fighters.toLocaleString()}명 · {need3.least === need3.most ? `${need3.most}명이면 잡아요` : `빈틈에 ${need3.least}명 · 아니면 ${need3.most}명`}</span>
         </p>
-        {r.v3 && <RolePick role={role} canPick={raid.canPickRole} form={form} onPick={raid.pickRole} />}
+        {r.v3 && (
+          <RaidJam raidKey={raidLedgerKey(raid.day, r.wave)} cleared={form - 1} ended={false} lastForm={raid.me.form} say={say} />
+        )}
+        {r.v3 && form > 1 && <RolePick role={role} canPick={raid.canPickRole} form={form} onPick={raid.pickRole} />}
+        {r.v3 && form === 1 && (
+          <p className="mt-2 rounded-full bg-black/25 px-3 py-1 text-center text-[12px] font-bold">
+            👊 1형은 모두가 몸통을 두드려요 · 한 번 ×{RAID_ROLE_MULT} · 2형부터 역할을 골라요
+          </p>
+        )}
 
         {/* 합동 게이지 — 모두의 타격으로 찬다. */}
         <div className="mt-2 flex items-center gap-2 text-[11px] font-bold">
@@ -565,7 +601,7 @@ export function RaidArena({
           className={`raid-target relative grid h-full w-full touch-none select-none place-items-center overflow-visible rounded-2xl ${spent ? "opacity-60" : ""} ${stunned ? "is-stunned" : ""}`}
           {...gesture}
         >
-          <span key={`g${lastPulse?.seq ?? 0}`} className={`raid-jolt-wrap ${lastPulse && lastPulse.seq > firstPulse ? "raid-jolt" : ""}`}>
+          <span key={`g${lastPulse?.seq ?? 0}`} className={`raid-jolt-wrap ${lastPulse && lastPulse.seq > firstPulse ? "raid-jolt" : ""} ${flinch ? (flinch % 2 ? "raid-flinch-a" : "raid-flinch-b") : ""}`}>
             <span key={hitKey} className={`garden-weed-body garden-raid-weed raid-body relative ${hitKey ? "raid-hit" : ""}`}>
               <span
                 className={`raid-boss is-${kind.id} ${shownCounter?.phase === "warn" ? "is-casting" : ""} ${morphing ? "is-morphing" : ""} ${frenzy ? "is-frenzy" : ""}`}
@@ -588,11 +624,23 @@ export function RaidArena({
               <small>{weak.fake ? weakLook.fake.label : weakLook.real.label}</small>
             </span>
           )}
-          {(partial > 0 || raid.queued > 0) && !spent && (
-            <span className="pointer-events-none absolute bottom-1 h-1.5 w-2/3 overflow-hidden rounded-full bg-black/30">
-              <span className="block h-full bg-white" style={{ width: `${(partial / need) * 100}%` }} />
+          {/* 한 방까지 남은 두드림 — 칸 하나가 두드림 하나다. */}
+          {!spent && need > 1 && need <= 8 && (
+            <span className="raid-tap-meter" aria-hidden="true">
+              {Array.from({ length: need }, (_, i) => (
+                <span key={i} className={i < partial ? "is-on" : ""} />
+              ))}
             </span>
           )}
+          {sparks.map((p) => (
+            <span key={p.id} className="raid-spark" style={{ left: `${p.x}%`, top: `${p.y}%` }} aria-hidden="true">
+              <b />
+              {[0, 60, 120, 180, 240, 300].map((a) => (
+                <i key={a} style={{ ["--a" as string]: `${a + (p.id % 6) * 10}deg` }} />
+              ))}
+            </span>
+          ))}
+          {fever && <span className="raid-fever" aria-hidden="true">🔥 FEVER · 한 번에 한 방</span>}
         </button>
 
         {/* 다른 사람의 주먹 — 칸 합계가 오를 때마다. */}
@@ -621,11 +669,11 @@ export function RaidArena({
 
         {combo >= 2 && (
           <span key={combo} className={`raid-combo tier-${tier}`} aria-hidden="true">
-            {combo}<small>COMBO</small>
+            {combo}<small>HIT</small>
           </span>
         )}
 
-        {morphing && <MorphCut key={`morph${form}`} kind={kind} form={form} />}
+        {morphing && <MorphCut key={`morph${form}`} kind={kind} form={form} prize={r.v3 ? RAID_JAM.forms[form - 2] : 0} />}
         {stage > mountStage && !morphing && (
           <span key={`stage${stage}`} className="raid-banner is-stage" aria-hidden="true">
             {josa(kind.name, "이가")} {STAGE_LINE[stage]}
@@ -833,11 +881,13 @@ function Vines({ left, total }: { left: number; total: number }) {
 }
 
 /**
- * 문지르기·두드리기에 손이 닿은 자리(칸 안 %)를 함께 준다. 키보드는 가운데.
- * 드래그로 이미 센 것은 뒤따르는 click에서 다시 세지 않는다(PlazaView의 useRub와 같다).
+ * 두드리기·문지르기에 손이 닿은 자리(칸 안 %)를 함께 준다. 키보드는 가운데.
+ * 손가락이 닿는 순간(pointerdown) 센다 — 모바일의 click은 늦게 오고, 손이 조금만 움직여도 오지 않는다.
+ * 뒤따르는 click은 세지 않는다. 문지르면 RUB_PX마다 한 번 더 센다.
  */
 function useRubAt(rub: (pos: Pos) => void) {
   const last = useRef<{ x: number; y: number; dist: number } | null>(null);
+  const downAt = useRef(0);
   const at = (e: React.MouseEvent | React.PointerEvent): Pos => {
     const box = (e.currentTarget as HTMLElement).getBoundingClientRect();
     if (!box.width || !box.height) return { x: 50, y: 50 };
@@ -848,11 +898,14 @@ function useRubAt(rub: (pos: Pos) => void) {
   };
   return {
     onClick: (e: React.MouseEvent) => {
-      if (e.detail === 0) rub({ x: 50, y: 50 });
-      else if (!last.current || last.current.dist < RUB_PX) rub(at(e));
+      // 키보드(Enter·Space)로 누른 것만 여기서 센다. 손가락·마우스는 pointerdown에서 이미 셌다.
+      if (e.detail === 0 && clock() - downAt.current > 400) rub({ x: 50, y: 50 });
     },
     onPointerDown: (e: React.PointerEvent) => {
+      if (e.button > 0) return;
+      downAt.current = clock();
       last.current = { x: e.clientX, y: e.clientY, dist: 0 };
+      rub(at(e));
     },
     onPointerMove: (e: React.PointerEvent) => {
       const l = last.current;
@@ -862,6 +915,9 @@ function useRubAt(rub: (pos: Pos) => void) {
       l.y = e.clientY;
       l.dist += d;
       if (Math.floor(l.dist / RUB_PX) > Math.floor((l.dist - d) / RUB_PX)) rub(at(e));
+    },
+    onPointerUp: () => {
+      last.current = null;
     },
   };
 }

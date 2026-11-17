@@ -47,6 +47,8 @@ export interface Species {
    * 언행의 관련 업적, 같은 분야의 업적·정책. 정원이 연결을 지어내지 않는다.
    */
   links: string[];
+  /** 업적의 연표가 시작한 해(콘텐츠의 timeline에서). 특별한 책의 '그 시절 씨앗'이 쓴다. 업적이 아니면 없다. */
+  since?: number;
 }
 
 export type Mutation = "golden" | "moist" | "sparkle" | "shine" | "blessed" | "rainbow";

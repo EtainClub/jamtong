@@ -87,6 +87,15 @@ export type AnalyticsEvent =
   | "raid_end"
   | "raid_aid"
   /**
+   * 특별한 책(room/library.ts). book_open: 독서대를 열었다(book, mode owner|guest). book_read: 완독 도장(book, chapter).
+   * book_lend: 손님이 빌려 읽기를 남겼다. book_ask: 책에게 물었다(grounded). book_seed: 오늘의 책 씨앗을 받았다.
+   */
+  | "book_open"
+  | "book_read"
+  | "book_lend"
+  | "book_ask"
+  | "book_seed"
+  /**
    * 거대 잡초 등장 알림(docs/garden-raid-boss.md §8).
    * push_on: 이 기기에서 켰다. push_off: 껐다. push_denied: 권한 창에서 거절했다.
    * raid_push_open: 알림을 눌러 들어왔다. raid(물결 id).

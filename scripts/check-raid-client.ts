@@ -1,5 +1,5 @@
 /**
- * 거대 잡초 3.0 — **화면이 쓰는 함수 그대로**(src/lib/firebase/raid.ts) 규칙을 통과하는지 본다. 로컬 에뮬레이터에만 붙는다.
+ * 거대 잡초 3.1 — **화면이 쓰는 함수 그대로**(src/lib/firebase/raid.ts) 규칙을 통과하는지 본다. 로컬 에뮬레이터에만 붙는다.
  *
  *   firebase emulators:exec --only firestore --project demo-jamtong "pnpm check:raid-client"
  *
@@ -69,19 +69,19 @@ async function seedCell(id: string, s: number, c: { hits: number; brk: number; g
   const others = [0, 1, 2].filter((n) => n !== raidShard(UID)).slice(0, 2);
 
   console.log("세우기");
-  check("spawnRaid(540)", (await spawnRaid(id, 540)) === true);
-  check("한 번 더 세우면 아무 일도 없다", (await spawnRaid(id, 540)) === false);
+  check("spawnRaid(300)", (await spawnRaid(id, 300)) === true);
+  check("한 번 더 세우면 아무 일도 없다", (await spawnRaid(id, 300)) === false);
   const born = await raid();
-  check("1형 · 체력 378 · 갑옷 162 · 울타리 0", born.form === 1 && born.hp === 378 && born.brk === 162 && born.grd === 0, born);
+  check("1형 · 체력 300 · 갑옷 0 · 울타리 0", born.form === 1 && born.hp === 300 && born.brk === 0 && born.grd === 0, born);
 
-  console.log("치기 — 역할과 게이지");
+  console.log("1형 — 누구나 몸통을 ×2로");
   let g = gap();
   let hit = await strikeRaid(UID, id, 1, "화면", { role: "reaper", pool: 0 });
   check(`낫잡이가 체력에 한 번 → 값 ${2 * g}`, hit.result === "ok" && hit.hits === 2 * g, hit);
   await sleep(1_200);
   g = gap();
   hit = await strikeRaid(UID, id, 1, "화면", { role: "seeker", pool: 1 });
-  check(`같은 형태에서 역할을 바꿔 보내도 표식의 역할(낫잡이)로 → 갑옷에 값 ${g}`, hit.result === "ok" && hit.hits === g, hit);
+  check(`1형에서 갑옷을 골라도 몸통으로, 표식의 역할(낫잡이)로 → 값 ${2 * g}`, hit.result === "ok" && hit.hits === 2 * g, hit);
   check("표식: 역할 1 · 형태 1 · 기력 2", await mine().then((m) => m.role === 1 && m.form === 1 && m.uses === 2), await mine());
   await sleep(1_200);
   g = gap();
@@ -91,14 +91,14 @@ async function seedCell(id: string, s: number, c: { hits: number; brk: number; g
   check("지원(북)", (await aidRaid(UID, id, "drum", "화면", "reaper")) === "ok");
   check("지원 뒤에도 기력·역할은 그대로", await mine().then((m) => m.uses === 22 && m.role === 1 && m.aids === 1), await mine());
 
-  console.log("변신 — 30분 안에 채웠다");
+  console.log("변신 — 1형 체력을 다 깎으면 언제든 2형");
   check("덜 찼으면 넘기지 않는다", (await advanceRaid(id)) === null);
-  await seedCell(id, others[0], { hits: 400, brk: 100, grd: 0, fighters: 3 });
-  await seedCell(id, others[1], { hits: 0, brk: 80, grd: 0, fighters: 2 });
+  await seedCell(id, others[0], { hits: 300, brk: 0, grd: 0, fighters: 3 });
+  await seedCell(id, others[1], { hits: 0, brk: 0, grd: 0, fighters: 2 });
   check("advanceRaid → 변신", (await advanceRaid(id)) === "morph");
   const second = await raid();
-  check("2형 · 필요량 540(여섯 명) · 체력 +270 · 갑옷 +135 · 울타리 +135",
-    second.form === 2 && second.n === 540 && second.hp === second.base.h + 270 && second.brk === second.base.b + 135 && second.grd === second.base.g + 135, second);
+  check("2형 · 필요량 600(여섯 명이라 기본) · 체력 +300 · 갑옷 +150 · 울타리 +150",
+    second.form === 2 && second.n === 600 && second.hp === second.base.h + 300 && second.brk === second.base.b + 150 && second.grd === second.base.g + 150, second);
   check("넘긴 직후 또 넘기지 않는다", (await advanceRaid(id)) === null);
 
   console.log("새 형태 — 기력이 다시 차고 역할을 바꾼다");
@@ -108,19 +108,22 @@ async function seedCell(id: string, s: number, c: { hits: number; brk: number; g
   check(`울타리지기로 바꿔 울타리에 → 값 ${2 * g}`, hit.result === "ok" && hit.hits === 2 * g, hit);
   check("표식: 역할 3 · 형태 2 · 기력 1(다시 셌다)", await mine().then((m) => m.role === 3 && m.form === 2 && m.uses === 1), await mine());
   await sleep(1_200);
+  g = gap();
+  hit = await strikeRaid(UID, id, 1, "화면", { role: "warden", pool: 0 });
+  check(`울타리지기가 체력을 돕기 → 값 ${g}`, hit.result === "ok" && hit.hits === g, hit);
+  await sleep(1_200);
   check("2형에서 지원(우산은 20초 뒤라 막힌다 → busy)", (await aidRaid(UID, id, "umbrella", "화면", "warden")) === "busy");
 
   console.log("3형까지, 그리고 처치");
-  await seedCell(id, others[0], { hits: 400 + 300, brk: 100 + 100, grd: 100, fighters: 3 });
-  await seedCell(id, others[1], { hits: 0, brk: 80 + 60, grd: 60, fighters: 2 });
+  await seedCell(id, others[0], { hits: 300 + 300, brk: 150, grd: 150, fighters: 3 });
   check("advanceRaid → 변신(3형)", (await advanceRaid(id)) === "morph");
   const third = await raid();
-  check("3형 · 체력 +216 · 갑옷 +162 · 울타리 +162", third.form === 3 && third.hp === third.base.h + 216 && third.brk === third.base.b + 162 && third.grd === third.base.g + 162, third);
+  check("3형 · 기본 750 · 체력 +300 · 갑옷 +225 · 울타리 +225", third.form === 3 && third.n === 750 && third.hp === third.base.h + 300 && third.brk === third.base.b + 225 && third.grd === third.base.g + 225, third);
   await sleep(1_200);
   hit = await strikeRaid(UID, id, 1, "화면", { role: "seeker", pool: 1 });
   check("3형에서 돋보기꾼으로", hit.result === "ok" && (await mine()).role === 2 && (await mine()).uses === 1, hit);
-  await seedCell(id, others[0], { hits: 700 + 300, brk: 200 + 200, grd: 100 + 200, fighters: 3 });
-  check("advanceRaid → 처치(3형은 빨리 채워도 쓰러진다)", (await advanceRaid(id)) === "finish");
+  await seedCell(id, others[0], { hits: 600 + 400, brk: 150 + 300, grd: 150 + 300, fighters: 3 });
+  check("advanceRaid → 처치(3형은 쓰러진다)", (await advanceRaid(id)) === "finish");
   check("쓰러진 시각이 찍혔다", (await raid()).defeatedAt != null);
   await sleep(1_200);
   hit = await strikeRaid(UID, id, 1, "화면", { role: "seeker", pool: 1 });

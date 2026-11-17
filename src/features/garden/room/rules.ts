@@ -1,6 +1,8 @@
 import { pianoNotes, pianoSong, type PianoEvent } from "./piano";
 import type { PublicPlaced, PublicRoom } from "@/lib/firebase/gardens";
 
+import { bookIdOf, booksOwned, cleanMarks, LIBRARY_SETS, roomBookOf } from "./library";
+
 import { DEFAULT_TRACK, isGardenTrack, type GardenTrackId } from "../musicTracks";
 import { canUseTrack, ownedMusic, purchasedTrack, type PurchasedTrackId } from "../musicTracks";
 import { hash, kstDayNumber, MUTATION_ORDER, rng } from "../rules";
@@ -70,6 +72,16 @@ export interface RoomData {
   motto: string;
   /** 내 방의 꼬마(docs/garden-avatar.md). 옛 장부·남의 옛 방에는 없다 — normalizeRoom이 채운다. */
   avatar?: AvatarData;
+  /**
+   * 특별한 책(room/library.ts)마다 — 독서대에 펼쳐 둔 문장(쉽게 보기 토막 id, 셋까지)과 들인 날(한국 날짜 번호, 장서표).
+   * 손님에게도 보인다(공개 문서의 bm·bd). 글이 아니라 id라서 걸러 받을 것이 없다.
+   */
+  books?: Record<string, RoomBookData>;
+}
+
+export interface RoomBookData {
+  marks: string[];
+  since?: number;
 }
 
 export type Row = "w" | "b" | "f";
@@ -105,6 +117,17 @@ export function mottoProblem(input: string): LineProblem | null {
 /** 주마다 바뀌는 진열의 칸 수. */
 export const WEEKLY_SIZE = 4;
 
+function normalizeRoomBooks(raw: unknown): Record<string, RoomBookData> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, RoomBookData> = {};
+  for (const [slug, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (!roomBookOf(bookIdOf(slug)) || !v || typeof v !== "object") continue;
+    const x = v as { marks?: unknown; since?: unknown };
+    out[slug] = { marks: cleanMarks(x.marks), ...(typeof x.since === "number" && Number.isInteger(x.since) ? { since: x.since } : {}) };
+  }
+  return out;
+}
+
 /** seed는 기본 꼬마를 정한다(avatar/rules.ts의 freshAvatar). */
 export function freshRoom(seed = ""): RoomData {
   return { size: 0, wall: DEFAULT_WALL, floor: DEFAULT_FLOOR, mood: DEFAULT_MOOD, bgm: DEFAULT_TRACK, music: [], placed: [], owned: {}, shown: [], keys: freshKeys(), motto: "", avatar: freshAvatar(seed) };
@@ -131,6 +154,7 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined, seed = ""): Ro
     keyboards: Object.fromEntries(Object.entries(raw.keyboards ?? {}).filter(([id]) => /^[1-8]$/.test(id)).map(([id, keys]) => [id, normalizeKeys(keys)])),
     motto: typeof raw.motto === "string" ? cleanMotto(raw.motto) : "",
     avatar: normalizeAvatar(raw.avatar, seed),
+    books: normalizeRoomBooks(raw.books),
   };
   // 옛 방의 여러 키보드는 같은 키를 보였다. 각각 복사해서 독립시킨다.
   const used = new Set<number>();
@@ -404,6 +428,20 @@ export function grantItem(room: RoomData, id: string): RoomData {
   return (room.owned[id] ?? 0) > 0 ? room : { ...room, owned: { ...room.owned, [id]: 1 } };
 }
 
+/** 서재 세트 — 특별한 책을 3·5·7권 가지면 받는 것(room/library.ts의 LIBRARY_SETS). 이미 받았으면 그대로. */
+export function grantLibrarySets(room: RoomData): RoomData {
+  const n = booksOwned(room.owned);
+  return LIBRARY_SETS.reduce((r, set) => (n >= set.books ? grantItem(r, set.item) : r), room);
+}
+
+/** 특별한 책을 처음 들인 날(장서표). 이미 있으면 그대로. */
+export function stampBookSince(room: RoomData, id: string, day: number): RoomData {
+  const book = roomBookOf(id);
+  if (!book || room.books?.[book.slug]?.since !== undefined) return room;
+  const prev = room.books?.[book.slug] ?? { marks: [] };
+  return { ...room, books: { ...room.books, [book.slug]: { ...prev, since: day } } };
+}
+
 export type BuyRefusal = "unknown" | "off-sale" | "owned" | "full" | "jam";
 
 /** 음원은 한 번만 산다. 현재 방 음악은 구매만으로 바꾸지 않는다. */
@@ -516,7 +554,16 @@ export function publicRoom(room: RoomData): PublicRoom {
   for (const p of room.placed) {
     if (placed.length >= PUBLIC_PLACED_MAX) break;
     if (!isShownId(p.it)) {
-      if (short(p.it)) placed.push({ a: p.at, i: p.it, ...(p.it === KEYBOARD_ID ? { kb: p.kb ?? 0 } : p.it === "piano" ? { pn: pianoNotes(room.pianos?.[p.kb ?? 0]), ps: pianoSong(room.pianoSongs?.[p.kb ?? 0]) } : {}) });
+      const book = roomBookOf(p.it);
+      const bookData = book ? room.books?.[book.slug] : undefined;
+      if (short(p.it)) placed.push({
+        a: p.at,
+        i: p.it,
+        ...(p.it === KEYBOARD_ID ? { kb: p.kb ?? 0 } : p.it === "piano" ? { pn: pianoNotes(room.pianos?.[p.kb ?? 0]), ps: pianoSong(room.pianoSongs?.[p.kb ?? 0]) } : {}),
+        // 특별한 책 — 펼쳐 둔 문장(id)과 들인 날. 손님이 독서대에서 본다.
+        ...(bookData?.marks.length ? { bm: cleanMarks(bookData.marks) } : {}),
+        ...(bookData?.since !== undefined ? { bd: bookData.since } : {}),
+      });
       continue;
     }
     const s = room.shown.find((x) => x.id === p.it);
@@ -561,6 +608,10 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
       const next = place({ ...room, owned }, p.i, p.a);
       if (next) {
         room = next;
+        const book = roomBookOf(p.i);
+        if (book && (p.bm || p.bd !== undefined)) {
+          room = { ...room, books: { ...room.books, [book.slug]: { marks: cleanMarks(p.bm), ...(typeof p.bd === "number" ? { since: p.bd } : {}) } } };
+        }
         if (p.i === "piano") {
           const id = room.placed.at(-1)!.kb ?? 0;
           room = { ...room, pianos: { ...room.pianos, [id]: pianoNotes(p.pn) }, pianoSongs: { ...room.pianoSongs, [id]: pianoSong(p.ps) } };

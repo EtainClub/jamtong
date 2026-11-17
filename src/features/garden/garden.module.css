@@ -297,48 +297,61 @@
 @keyframes raid-seed { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--a)) translateY(0); } 100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--a)) translateY(-120px); } }
 @keyframes raid-pop-in { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
 
-/* ── 보스 리그 (raid/boss/BossRig.tsx, docs/garden-raid-boss.md §2.2) ─────────
- * 그림의 겹마다 따로 움직인다. 움직이는 것은 transform과 opacity뿐이다(필터 없음).
- * 좌표는 그림판(240×240) 기준 — 발밑(50% 89%)을 축으로 흔들린다.
+/* ── 보스 리그 (raid/boss/BossRig.tsx) ─────────────────────────────────────
+ * 보스는 그림 한 장(투명 바탕 webp)이다. 숨쉬기는 그림 전체를, 빛은 뒤의 원(--boss-glow)이 맡는다.
+ * 움직이는 것은 transform·opacity뿐이다 — 저가 폰에서 버티려고 필터 애니메이션은 맞는 순간에만 쓴다.
  */
-.game :global(.boss-rig) { display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.game :global(.boss-rig.garden-weed-art) { position: static; }
-.game :global(.boss-l) { transform-box: view-box; transform-origin: 50% 89%; }
-.game :global(.boss-aura) { transform-origin: 50% 50%; animation: boss-aura 2.8s ease-in-out infinite; }
-.game :global(.boss-rays), .game :global(.boss-rune) { transform-box: fill-box; transform-origin: 50% 50%; }
-.game :global(.boss-rays) { animation: boss-spin 26s linear infinite; }
-.game :global(.boss-rune) { animation: boss-spin 44s linear infinite reverse; }
-.game :global(.boss-back) { animation: boss-sway 3.4s ease-in-out infinite; }
-.game :global(.boss-body), .game :global(.boss-armor) { animation: boss-breathe 2.6s ease-in-out infinite; }
-.game :global(.boss-head) { animation: boss-bob 2.6s ease-in-out -.5s infinite; }
-.game :global(.boss-front) { animation: boss-bob 3.6s ease-in-out -1.2s infinite; }
-.game :global(.boss-eyes) { animation: boss-eyes 3.8s ease-in-out infinite; }
-.game :global(.boss-mote) { animation: boss-mote 2.2s ease-out infinite; }
-.game :global(.boss-rig.form-2 .boss-back) { animation-duration: 2.6s; }
-.game :global(.boss-rig.form-3 .boss-back) { animation-duration: 2s; }
-.game :global(.boss-rig.form-3 .boss-body), .game :global(.boss-rig.form-3 .boss-armor), .game :global(.boss-rig.form-3 .boss-head) { animation-duration: 1.9s; }
-@keyframes boss-aura { 50% { transform: scale(1.07); opacity: .78; } }
-@keyframes boss-spin { to { transform: rotate(360deg); } }
-@keyframes boss-sway { 0%, 100% { transform: rotate(-2.2deg); } 50% { transform: rotate(2.2deg) scale(1.02); } }
-@keyframes boss-breathe { 50% { transform: scale(1.025, .982); } }
-@keyframes boss-bob { 50% { transform: translateY(-1.4%); } }
-@keyframes boss-eyes { 0%, 44%, 52%, 100% { opacity: 1; } 48% { opacity: .35; } }
-@keyframes boss-mote { 0% { opacity: 0; transform: translateY(6px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-16px); } }
+.game :global(.boss-rig) { position: relative; display: block; width: 100%; height: 100%; pointer-events: none; }
+.game :global(.boss-rig.garden-weed-art) { position: relative; }
+.game :global(.boss-aura) { position: absolute; inset: 6% 4% 10%; border-radius: 50%; background: radial-gradient(closest-side, var(--boss-glow, #ff5a4a) 0%, color-mix(in srgb, var(--boss-glow, #ff5a4a) 35%, transparent) 45%, transparent 100%); opacity: .55; animation: boss-aura 2.8s ease-in-out infinite; }
+.game :global(.boss-rig.form-2 .boss-aura) { opacity: .7; inset: 0 -4% 6%; }
+.game :global(.boss-rig.form-3 .boss-aura) { opacity: .85; inset: -8% -10% 2%; animation-duration: 1.9s; }
+.game :global(.boss-img) { position: relative; display: block; width: 100%; height: 100%; object-fit: contain; transform-origin: 50% 92%; animation: boss-breathe 2.6s ease-in-out infinite; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 8px 10px #0008); }
+.game :global(.boss-rig.form-3 .boss-img) { animation-duration: 1.9s; }
+@keyframes boss-aura { 50% { transform: scale(1.08); opacity: .4; } }
+@keyframes boss-breathe { 0%, 100% { transform: none; } 50% { transform: scale(1.025, .975) translateY(1%); } }
 
 /* ── 보스 무대 (RaidArena.tsx, raid/BossStage.tsx, docs/garden-raid-boss.md §2.4·§2.5) ──
  * 형태마다 몸이 커진다(--boss-scale). 2형은 칸을 넘어 위의 글 뒤로 겹치고, 3형에서는 싸움터가 전체 화면이 된다.
- * 몸은 손을 받지 않는다 — 커진 몸이 아래 단추를 가로채지 않게, 문지르기는 칸(.raid-target)만 받는다.
+ * 몸은 손을 받지 않는다 — 커진 몸이 아래 단추를 가로채지 않게, 두드리기는 칸(.raid-target)만 받는다.
  */
 .game :global(.raid-boss-box) { z-index: 1; transition: margin-top .6s ease-out; }
 .game :global(.raid-boss) { position: relative; display: block; width: 100%; height: 100%; transform: scale(var(--boss-scale, 1)); transform-origin: 50% 90%; transition: transform .7s cubic-bezier(.2, 1.4, .4, 1); pointer-events: none; }
 .game :global(.raid-boss.is-frenzy .boss-aura) { animation-duration: 1s; }
-/* 대기술 예고 — 팔을 치켜들고 눈이 탄다. */
-.game :global(.raid-boss.is-casting .boss-back) { animation: boss-cast-back .5s ease-in-out infinite alternate; }
-.game :global(.raid-boss.is-casting .boss-eyes) { animation: boss-cast-eyes .25s steps(2) infinite; }
-.game :global(.raid-boss.is-casting .boss-aura) { animation: boss-cast-aura .5s ease-in-out infinite alternate; }
-@keyframes boss-cast-back { from { transform: rotate(-5deg) scale(1.05); } to { transform: rotate(5deg) scale(1.12); } }
-@keyframes boss-cast-eyes { 50% { opacity: .4; } }
-@keyframes boss-cast-aura { from { transform: scale(1); opacity: .7; } to { transform: scale(1.22); opacity: 1; } }
+/* 대기술 예고 — 몸을 부풀리고 빛이 붉게 끓는다. */
+.game :global(.raid-boss.is-casting .boss-img) { animation: boss-cast .45s ease-in-out infinite alternate; }
+.game :global(.raid-boss.is-casting .boss-aura) { animation: boss-cast-aura .45s ease-in-out infinite alternate; }
+@keyframes boss-cast { from { transform: scale(1.02); } to { transform: scale(1.1, 1.06) translateY(-2%); } }
+@keyframes boss-cast-aura { from { transform: scale(1); opacity: .7; } to { transform: scale(1.25); opacity: 1; } }
+/* 두드릴 때마다 — 움찔(번갈아 두 이름으로 매번 처음부터). */
+.game :global(.raid-flinch-a .boss-img) { animation: boss-flinch-a .16s ease-out; }
+.game :global(.raid-flinch-b .boss-img) { animation: boss-flinch-b .16s ease-out; }
+@keyframes boss-flinch-a { 0% { transform: scale(.95, 1.03) rotate(-2.5deg); filter: brightness(1.6) drop-shadow(0 8px 10px #0008); } 100% { transform: none; } }
+@keyframes boss-flinch-b { 0% { transform: scale(.95, 1.03) rotate(2.5deg); filter: brightness(1.6) drop-shadow(0 8px 10px #0008); } 100% { transform: none; } }
+
+/* 두드린 자리의 불꽃 — 여섯 갈래 선이 튄다. */
+.game :global(.raid-spark) { position: absolute; z-index: 4; width: 0; height: 0; pointer-events: none; }
+.game :global(.raid-spark i) { position: absolute; left: -2px; top: -14px; width: 4px; height: 14px; border-radius: 2px; background: linear-gradient(#fff, #ffe877 40%, #ff8a3a00); transform-origin: 2px 14px; animation: raid-spark .32s ease-out forwards; }
+.game :global(.raid-spark b) { position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(#fff, #ffe877 45%, #ffe87700 70%); animation: raid-spark-core .22s ease-out forwards; }
+@keyframes raid-spark { 0% { opacity: 1; transform: rotate(var(--a)) translateY(-4px) scaleY(.6); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-26px) scaleY(1.2); } }
+@keyframes raid-spark-core { 0% { opacity: 1; transform: scale(.3); } 100% { opacity: 0; transform: scale(1.5); } }
+.game :global(.raid-fx.is-crit) { font-size: 30px; color: #ff6a3a; text-shadow: 0 2px 0 #000, 0 0 14px #ffb13b; animation-duration: 1s; }
+/* 피버 — 두드림이 이어지면 잠깐 문지르기 한 번이 한 방. */
+.game :global(.raid-arena.is-fever) { box-shadow: 0 0 0 3px #ff6a3a, 0 0 30px #ff6a3aaa; }
+.game :global(.raid-fever) { position: absolute; left: 0; right: 0; width: fit-content; margin: 0 auto; top: 4px; z-index: 6; padding: 3px 12px; border-radius: 999px; background: linear-gradient(90deg, #ff3d6e, #ffb13b); color: #fff; font-size: 13px; font-weight: 900; font-style: italic; letter-spacing: .08em; animation: raid-pulse .5s ease-in-out infinite; pointer-events: none; }
+.game :global(.raid-tap-meter) { position: absolute; left: 50%; bottom: 2px; z-index: 3; display: flex; gap: 4px; transform: translateX(-50%); pointer-events: none; }
+.game :global(.raid-tap-meter span) { width: 14px; height: 6px; border-radius: 3px; background: #0006; box-shadow: inset 0 0 0 1px #fff6; }
+.game :global(.raid-tap-meter span.is-on) { background: #ffe877; box-shadow: 0 0 8px #ffe877; }
+
+/* 잼 보상 사다리 (raid/Rewards.tsx) */
+.game :global(.raid-jam) { background: #0000003d; }
+.game :global(.raid-jam li) { background: #ffffff14; }
+.game :global(.raid-jam li.is-done) { background: #ffd84a33; box-shadow: inset 0 0 0 1px #ffd84a99; }
+.game :global(.raid-jam li.is-paid) { opacity: .65; }
+.game :global(.raid-jam-claim) { background: linear-gradient(#ffe877, #ffb13b); color: #3a1a06; box-shadow: 0 3px 0 #8a5a00; animation: raid-pulse 1s ease-in-out infinite; }
+.game :global(.garden-raid-done .raid-jam) { background: #ffffffa0; }
+.game :global(.garden-raid-done .raid-jam li) { background: #00000010; }
+
 /* 변신 — 하얗게 타올랐다가 새 몸이 부풀며 선다. */
 .game :global(.raid-boss.is-morphing) { animation: boss-morph 2.2s ease-out; }
 @keyframes boss-morph {
@@ -355,6 +368,7 @@
 .game :global(.raid-morph-ring.is-late) { border-color: #ffde59; animation-delay: .6s; }
 .game :global(.raid-morph-band) { position: absolute; left: -20%; right: -20%; top: 44%; display: flex; flex-direction: column; align-items: center; padding: 8px 0 10px; background: linear-gradient(90deg, #0000, #000d 18%, #000d 82%, #0000); color: #fff; text-align: center; animation: raid-morph-band 2.2s ease-out both; }
 .game :global(.raid-morph-band small) { font-size: 11px; font-weight: 800; letter-spacing: .3em; color: #ffde59; }
+.game :global(.raid-morph-band em) { margin-top: 2px; font-style: normal; font-size: 13px; font-weight: 900; color: #ffe877; }
 .game :global(.raid-morph-band b) { font-size: 23px; font-weight: 900; letter-spacing: -.01em; text-shadow: 0 2px 0 #000, 0 0 18px #ff5a4a; }
 @keyframes raid-morph-flash { 0% { opacity: 0; transform: scale(.3); } 20% { opacity: 1; } 100% { opacity: 0; transform: scale(1.5); } }
 @keyframes raid-morph-ring { 0% { opacity: .95; transform: scale(.2); } 100% { opacity: 0; transform: scale(4.5); } }

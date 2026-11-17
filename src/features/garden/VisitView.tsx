@@ -288,7 +288,15 @@ export function VisitView({
           <p className="mt-1 text-[12px] text-smoke">
             화분과 액자를 누르면 그 품종과 쪽지의 원본으로 갈 수 있어요.{hasKeyboard(theirRoom) ? " ⌨️ 키보드를 누르면 키를 눌러 볼 수 있어요." : ""}
           </p>
-          {opened && <RoomItemSheet room={theirRoom} placed={opened} byId={byId} onClose={() => setOpened(null)} />}
+          {opened && (
+            <RoomItemSheet
+              room={theirRoom}
+              placed={opened}
+              byId={byId}
+              reader={{ mode: "guest", ownerNick: garden.nick || "이름 없는", gid: mine ? null : gid, uid }}
+              onClose={() => setOpened(null)}
+            />
+          )}
         </section>
       )}
 

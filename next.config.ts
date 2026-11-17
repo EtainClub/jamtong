@@ -42,6 +42,14 @@ function buildInfo() {
 const nextConfig: NextConfig = {
   env: buildInfo(),
 
+  /**
+   * 책에게 묻기(api/book-ask)는 요청 때 책 요약(src/content/books/<책>/text/*.md)을 디스크에서 읽는다.
+   * 경로를 실행 중에 만드는 탓에 추적이 놓칠 수 있어 배포본에 함께 싣도록 적어 둔다.
+   */
+  outputFileTracingIncludes: {
+    "/api/book-ask": ["./src/content/books/**/text/*.md"],
+  },
+
   /** 업적 인포그래픽은 Firebase Storage에 있다. 다운로드 주소가 이 호스트로 나온다. */
   images: {
     remotePatterns: [{ protocol: "https", hostname: "firebasestorage.googleapis.com" }],
