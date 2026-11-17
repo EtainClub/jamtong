@@ -103,36 +103,59 @@ export const HEAD: Sprite = {
 /** 자는 꼬마의 z. */
 export const ZZZ: Sprite = { x: 15, y: 0, rows: ["oooo", "..o.", ".o..", "oooo"] };
 
-// ── 눈·입 — 점 몇 개라 그림 대신 좌표로 둔다 ─────────────────────────
+// ── 눈·입·볼 — 두 배 판(40×48, 1칸 = 1px)에 바로 그린다 ─────────────────
+// 얼굴은 밑그림의 머리 판보다 섬세해야 한다. 좌표는 두 배 판, 머리 기준(앉으면 dy×2만큼 내린다).
+// 얼굴 살결은 x8–31, 가운데는 x19.5. 왼눈 x12–15, 오른눈 x24–27, 입 y18–21.
 
-export type Px = readonly [x: number, y: number, ch: string];
+/** 두 배 판에 찍는 작은 그림. 글자는 FACE_INK. '.'은 비운다. */
+export interface HiMark {
+  x: number;
+  y: number;
+  rows: readonly string[];
+}
 
-/** 눈 모양 넷(기본 눈). 왼눈 x6–7, 오른눈 x12–13, y7–8. */
-export const EYE_STYLES: Record<string, readonly Px[]> = {
-  dot: [[7, 7, "k"], [7, 8, "k"], [12, 7, "k"], [12, 8, "k"]],
-  round: [[6, 7, "k"], [7, 7, "w"], [6, 8, "k"], [7, 8, "k"], [12, 7, "k"], [13, 7, "w"], [12, 8, "k"], [13, 8, "k"]],
-  lash: [[5, 7, "k"], [6, 7, "k"], [7, 7, "w"], [6, 8, "k"], [7, 8, "k"], [12, 7, "k"], [13, 7, "w"], [14, 7, "k"], [12, 8, "k"], [13, 8, "k"]],
-  tall: [[7, 6, "k"], [7, 7, "k"], [7, 8, "k"], [12, 6, "k"], [12, 7, "k"], [12, 8, "k"]],
+export const FACE_INK: Readonly<Record<string, string>> = {
+  k: "#2a211d", // 눈동자
+  i: "#6b4636", // 눈동자 아래 밤색
+  w: "#ffffff", // 눈의 빛
+  m: "#9c3f33", // 입
+  t: "#f08a80", // 혀·입 안
+  p: "#ffa9bb", // 볼
+  q: "#ffc8d3", // 볼 가장자리
 };
+
+/** 같은 그림을 두 눈에(오른눈은 12칸 오른쪽). 빛은 두 눈 모두 왼쪽 위. */
+const pair = (x: number, y: number, rows: readonly string[]): HiMark[] => [{ x, y, rows }, { x: x + 12, y, rows }];
 
 export type EyeMood = "open" | "closed" | "smile" | "sparkle";
 export type MouthMood = "smile" | "grin" | "flat" | "o" | "open" | "frown";
 
+/** 눈 모양 넷(기본 눈). */
+export const HI_EYES: Record<string, readonly HiMark[]> = {
+  dot: pair(13, 14, ["kk", "kk", "kk"]),
+  round: pair(12, 13, [".kk.", "kwkk", "kiik", ".kk."]),
+  lash: [
+    { x: 11, y: 13, rows: ["k.kk.", ".kwkk", "..iik", "..kk."] },
+    { x: 24, y: 13, rows: [".kk.k", "kwkk.", "kiik.", ".kk.."] },
+  ],
+  tall: pair(13, 12, ["kk", "wk", "kk", "kk", "ik"]),
+};
+
 /** 기분이 바꾸는 눈. open은 고른 눈 모양을 그대로 쓴다. */
-export const EYE_MOODS: Record<Exclude<EyeMood, "open">, readonly Px[]> = {
-  closed: [[6, 8, "k"], [7, 8, "k"], [12, 8, "k"], [13, 8, "k"]],
-  smile: [[6, 8, "k"], [7, 7, "k"], [8, 8, "k"], [11, 8, "k"], [12, 7, "k"], [13, 8, "k"]],
-  sparkle: [[6, 6, "k"], [7, 6, "k"], [6, 7, "k"], [7, 7, "w"], [6, 8, "k"], [7, 8, "k"], [12, 6, "k"], [13, 6, "k"], [12, 7, "w"], [13, 7, "k"], [12, 8, "k"], [13, 8, "k"]],
+export const HI_EYE_MOODS: Record<Exclude<EyeMood, "open">, readonly HiMark[]> = {
+  closed: pair(12, 15, ["k..k", ".kk."]),
+  smile: pair(12, 14, [".kk.", "k..k"]),
+  sparkle: pair(12, 12, [".kk.", "kwkk", "kkwk", "kiik", ".kk."]),
 };
 
-export const MOUTHS: Record<MouthMood, readonly Px[]> = {
-  smile: [[8, 9, "k"], [9, 10, "k"], [10, 10, "k"], [11, 9, "k"]],
-  grin: [[8, 9, "k"], [9, 9, "k"], [10, 9, "k"], [11, 9, "k"], [9, 10, "r"], [10, 10, "r"]],
-  flat: [[9, 10, "k"], [10, 10, "k"]],
-  o: [[9, 9, "k"], [10, 9, "k"], [9, 10, "k"], [10, 10, "k"]],
-  open: [[8, 9, "k"], [9, 9, "r"], [10, 9, "r"], [11, 9, "k"], [9, 10, "r"], [10, 10, "r"]],
-  frown: [[8, 10, "k"], [9, 9, "k"], [10, 9, "k"], [11, 10, "k"]],
+export const HI_MOUTHS: Record<MouthMood, readonly HiMark[]> = {
+  smile: [{ x: 18, y: 19, rows: ["m..m", ".mm."] }],
+  grin: [{ x: 18, y: 18, rows: ["mmmm", "mttm", ".mm."] }],
+  flat: [{ x: 19, y: 20, rows: ["mm"] }],
+  o: [{ x: 18, y: 18, rows: [".mm.", "mttm", ".mm."] }],
+  open: [{ x: 18, y: 18, rows: ["mmmm", "mttm", "mttm", ".mm."] }],
+  frown: [{ x: 18, y: 19, rows: [".mm.", "m..m"] }],
 };
 
-export const CHEEKS: readonly Px[] = [[5, 9, "p"], [14, 9, "p"]];
-export const BLUSH: readonly Px[] = [[4, 9, "p"], [5, 9, "p"], [14, 9, "p"], [15, 9, "p"]];
+export const HI_CHEEKS: readonly HiMark[] = [{ x: 9, y: 18, rows: ["qpq"] }, { x: 28, y: 18, rows: ["qpq"] }];
+export const HI_BLUSH: readonly HiMark[] = [{ x: 8, y: 17, rows: ["qppq", "qppq"] }, { x: 28, y: 17, rows: ["qppq", "qppq"] }];

@@ -10,7 +10,7 @@ import { FURNITURE_BY_ID } from "../room/catalog";
 import { freshRoom, normalizeRoom, publicRoom, roomFromPublic } from "../room/rules";
 import { FIXED } from "./palette";
 import { FREE, PARTS, WEAR, WEAR_BY_ID, type Wear } from "./catalog";
-import { avatarDiffRects, avatarGrid, avatarRects, type Look } from "./compose";
+import { avatarDiffRects, avatarGrid, avatarRects, colorPaths, HI_H, type Look } from "./compose";
 import {
   AVATAR_PUBLIC_MAX, AVATAR_PUBLIC_RE, avatarFromPublic, buyWear, faceFor, freshAvatar, grantRewards, moodFace,
   normalizeAvatar, ownedLook, packAvatar, poseAt, roamNext, unownedWear, type AvatarData,
@@ -51,31 +51,31 @@ test("옷 id는 겹치지 않고 공개 문자열이 받는 글자다", () => {
   for (const p of PARTS.filter((x) => !x.optional)) assert.ok(FREE[p.id].length > 0, `${p.id}의 무료 옷`);
 });
 
-test("모든 자세 × 모든 옷이 그려지고, 사각형은 꼬마 하나에 170개 아래다", () => {
+test("모든 자세 × 모든 옷이 그려지고, 꼬마 하나는 색 path 70개 아래다", () => {
   const base = freshAvatar("t").look;
   let most = 0;
   for (const pose of POSE_LIST) {
     for (const w of WEAR) {
       const look: Look = w.part === "bubble" ? base : { ...base, [w.part]: w.id };
-      const n = avatarRects(look, pose, faceFor(pose, "sleepy")).length;
-      most = Math.max(most, n);
-      assert.ok(n > 30, `${pose}·${w.id}가 거의 비었다`);
+      const rects = avatarRects(look, pose, faceFor(pose, "sleepy"));
+      most = Math.max(most, colorPaths(rects).length);
+      assert.ok(rects.length > 30, `${pose}·${w.id}가 거의 비었다`);
     }
   }
-  assert.ok(most < 170, `가장 많은 사각형 ${most}`);
+  assert.ok(most < 70, `가장 많은 색 path ${most}`);
 });
 
-test("눈 깜빡임 장은 눈 둘레만 — 사각형 열 개 아래", () => {
+test("눈 깜빡임 장은 눈 둘레만 — 사각형 스무 개 아래", () => {
   const look = freshAvatar("blink").look;
   const n = avatarDiffRects(look, "stand", moodFace("focus"), { ...moodFace("focus"), eyes: "closed" }).length;
-  assert.ok(n > 0 && n < 10, String(n));
+  assert.ok(n > 0 && n < 20, String(n));
 });
 
 test("발은 판 맨 아래 줄에 닿는다 — 방 줄의 바닥선에 선다", () => {
   const look = freshAvatar("feet").look;
   for (const pose of POSE_LIST) {
     const grid = avatarGrid(look, pose, moodFace("easy"));
-    assert.ok(grid[GRID_H - 1].some(Boolean), `${pose}의 발`);
+    assert.ok(grid[HI_H - 1].some(Boolean), `${pose}의 발`);
   }
 });
 

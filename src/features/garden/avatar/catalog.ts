@@ -156,7 +156,7 @@ const HAIR: Wear[] = [
   },
 ];
 
-// ── 눈(그림은 sprites.ts의 EYE_STYLES) ────────────────────────────────
+// ── 눈(그림은 sprites.ts의 HI_EYES) ────────────────────────────────
 
 const EYES: Wear[] = [
   { id: "dot", part: "eyes", label: "콩 눈", price: 0, hint: "작고 까만 콩 같은 눈." },

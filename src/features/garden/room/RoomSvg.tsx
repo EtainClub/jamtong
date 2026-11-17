@@ -7,8 +7,7 @@ import { HOUR, isMeteor, isRaining } from "../rules";
 import type { Mutation, Species } from "../types";
 import { BOOK_PALETTES } from "./books";
 import { FURNITURE_BY_ID } from "./catalog";
-import { StoryFurnitureArt } from "./StoryFurnitureArt";
-import { PlayFurnitureArt } from "./PlayFurnitureArt";
+import { FURNITURE_SPRITES, spriteHref } from "./furnitureSprites";
 import { activityOf } from "./activities";
 import { KeyFace } from "./KeyArt";
 import { freshKeys, type RoomKey } from "./keyboard";
@@ -329,6 +328,30 @@ function Sky({ x, y, w, h, weather }: { x: number; y: number; w: number; h: numb
 }
 
 export function FurnitureArt({ art, w, h, weather, keys }: { art: string; w: number; h: number; weather: Weather; keys?: readonly RoomKey[] }) {
+  const sprite = FURNITURE_SPRITES[art];
+  if (sprite) {
+    const sh = Math.min(sprite.h, h);
+    const y = sprite.y ?? (sprite.wall ? (h - sh) / 2 : h - sh);
+    const align = sprite.wall && sprite.y === undefined ? "xMidYMid" : sprite.y !== undefined ? "xMidYMin" : "xMidYMax";
+    const image = <image href={spriteHref(art)} x={1} y={y} width={w - 2} height={sh} preserveAspectRatio={`${align} meet`} />;
+    const g = sprite.glass;
+    if (!g || !sprite.ar) return image;
+    // 창문: 그림(가운데 정렬)이 실제로 놓인 자리를 셈해 유리 자리에 창밖 날씨를 먼저 그린다.
+    const iw = Math.min(w - 2, sh * sprite.ar);
+    const ih = iw / sprite.ar;
+    const gx = 1 + (w - 2 - iw) / 2 + g.x * iw;
+    const gy = y + (sh - ih) / 2 + g.y * ih;
+    const clip = `glass-${art}`;
+    return (
+      <>
+        {g.round && <clipPath id={clip}><ellipse cx={gx + (g.w * iw) / 2} cy={gy + (g.h * ih) / 2} rx={(g.w * iw) / 2} ry={(g.h * ih) / 2} /></clipPath>}
+        <g clipPath={g.round ? `url(#${clip})` : undefined}>
+          <Sky x={gx} y={gy} w={g.w * iw} h={g.h * ih} weather={weather} />
+        </g>
+        {image}
+      </>
+    );
+  }
   const base = h; // 바닥 물건은 아래 변에 선다
   const cx = w / 2;
   const book = BOOK_PALETTES.get(art);
@@ -357,113 +380,12 @@ export function FurnitureArt({ art, w, h, weather, keys }: { art: string; w: num
     case "frame":
       body = <><B x={5} y={4} w={w - 10} h={38} fill={C.wood} /><B x={10} y={9} w={w - 20} h={28} fill={C.paper} /></>;
       break;
-    case "clock":
-      body = <><circle cx={cx} cy="22" r="14" fill={C.paper} stroke={C.ink} strokeWidth="3" /><rect x={cx - 1} y="12" width="2" height="11" fill={C.ink} /><rect x={cx} y="21" width="8" height="2" fill={C.orange} /></>;
-      break;
-    case "shelf":
-      body = <><B x={3} y={30} w={w - 6} h={5} fill={C.wood} /><B x={8} y={20} w={8} h={10} fill="#cf7a4f" /><rect x="9" y="12" width="6" height="8" fill={C.green} /><B x={22} y={18} w={4} h={12} fill={C.skyD} /><B x={27} y={21} w={4} h={9} fill={C.orange} /></>;
-      break;
-    case "garland":
-      body = <><path d={`M2 10Q${cx} 34 ${w - 2} 10`} fill="none" stroke={C.greenD} strokeWidth="2" />{[0.15, 0.32, 0.5, 0.68, 0.85].map((t, i) => <B key={t} x={w * t - 4} y={10 + Math.sin(t * Math.PI) * 13} w={8} h={8} fill={[C.pink, C.yellow, C.sky, C.orangeL, C.pink][i]} />)}</>;
-      break;
-    case "painting":
-      body = <><B x={4} y={6} w={w - 8} h={32} fill={C.woodD} /><rect x="8" y="10" width={w - 16} height="24" fill={C.sky} /><rect x="8" y="24" width={w - 16} height="10" fill={C.green} /><rect x="22" y="13" width="5" height="5" fill={C.yellow} /></>;
-      break;
-    case "wall-lamp":
-      body = <><B x={cx - 2} y={8} w={4} h={14} fill={C.greyD} /><path d={`M${cx - 10} 32H${cx + 10}L${cx + 6} 20H${cx - 6}Z`} fill={C.yellow} stroke={C.ink} strokeWidth="2" /><rect x={cx - 12} y="32" width="24" height="6" fill={C.yellow} opacity=".35" /></>;
-      break;
-    case "star-light":
-      body = <><path d={`M2 8Q${cx} 22 ${w - 2} 8`} fill="none" stroke={C.ink} strokeWidth="1.5" />{[0.1, 0.25, 0.4, 0.55, 0.7, 0.85].map((t) => <path key={t} d={`M${w * t} ${10 + Math.sin(t * Math.PI) * 8}l3 6h6l-5 4 2 6-6-4-6 4 2-6-5-4h6z`} fill={C.yellow} stroke={C.ink} strokeWidth="1" />)}</>;
-      break;
-    case "win-round":
-      body = <><circle cx={cx} cy="23" r="21" fill={C.wood} stroke={C.ink} strokeWidth="3" /><clipPath id="win-round-clip"><circle cx={cx} cy="23" r="16" /></clipPath><g clipPath="url(#win-round-clip)"><Sky x={cx - 16} y={7} w={32} h={32} weather={weather} /></g><circle cx={cx} cy="23" r="16" fill="none" stroke={C.ink} strokeWidth="2" /><rect x={cx - 1} y="7" width="2" height="32" fill={C.wood} /><rect x={cx - 16} y="22" width="32" height="2" fill={C.wood} /></>;
-      break;
-    case "win-wide":
-      body = <><B x={6} y={2} w={w - 12} h={40} fill={C.wood} /><Sky x={10} y={6} w={w - 20} h={32} weather={weather} /><rect x={cx - 1} y="6" width="2" height="32" fill={C.wood} /><B x={2} y={0} w={14} h={44} fill={C.pink} /><B x={w - 16} y={0} w={14} h={44} fill={C.pink} /><rect x="0" y="-2" width={w} height="4" fill={C.woodD} /></>;
-      break;
-    case "bed":
-      body = <><B x={2} y={base - 34} w={10} h={34} fill={C.woodD} /><B x={8} y={base - 18} w={w - 10} h={12} fill={C.paper} /><B x={30} y={base - 22} w={w - 32} h={12} fill={C.skyD} /><B x={12} y={base - 24} w={16} h={8} fill={C.white} /><B x={8} y={base - 6} w={w - 10} h={6} fill={C.wood} /></>;
-      break;
-    case "sofa":
-      body = <><B x={4} y={base - 30} w={w - 8} h={16} fill={C.sky} /><B x={2} y={base - 18} w={w - 4} h={12} fill={C.skyD} /><B x={0} y={base - 22} w={8} h={16} fill={C.sky} /><B x={w - 8} y={base - 22} w={8} h={16} fill={C.sky} /><B x={6} y={base - 6} w={4} h={6} fill={C.woodD} /><B x={w - 10} y={base - 6} w={4} h={6} fill={C.woodD} /></>;
-      break;
-    case "desk":
-      body = <><B x={2} y={base - 26} w={w - 4} h={5} fill={C.wood} /><B x={4} y={base - 21} w={4} h={21} fill={C.woodD} /><B x={w - 26} y={base - 21} w={22} h={21} fill={C.wood} /><rect x={w - 22} y={base - 13} width="14" height="2" fill={C.woodD} /><B x={12} y={base - 38} w={14} h={12} fill={C.grey} /><B x={30} y={base - 33} w={10} h={7} fill={C.orange} /></>;
-      break;
-    case "bookshelf":
-      body = <><B x={4} y={base - 44} w={w - 8} h={44} fill={C.woodD} />{[base - 40, base - 26, base - 12].map((y, r) => <g key={y}>{[0, 1, 2, 3].map((k) => <rect key={k} x={8 + k * 6} y={y + (k % 2)} width="5" height={10 - (k % 2)} fill={[C.red, C.skyD, C.yellow, C.green][(k + r) % 4]} stroke={C.ink} strokeWidth="1" />)}<rect x="6" y={y + 10} width={w - 12} height="2" fill={C.ink} /></g>)}</>;
-      break;
-    case "wardrobe":
-      body = <><B x={4} y={base - 44} w={w - 8} h={42} fill={C.wood} /><rect x={cx - 1} y={base - 42} width="2" height="38" fill={C.woodD} /><rect x={cx - 6} y={base - 24} width="3" height="5" fill={C.ink} /><rect x={cx + 3} y={base - 24} width="3" height="5" fill={C.ink} /><B x={6} y={base - 2} w={4} h={2} fill={C.woodD} /><B x={w - 10} y={base - 2} w={4} h={2} fill={C.woodD} /></>;
-      break;
-    case "chair":
-      body = <><B x={10} y={base - 34} w={5} h={34} fill={C.wood} /><B x={10} y={base - 16} w={22} h={5} fill={C.wood} /><B x={27} y={base - 11} w={5} h={11} fill={C.woodD} /><B x={10} y={base - 34} w={14} h={5} fill={C.wood} /></>;
-      break;
-    case "table":
-      body = <><B x={4} y={base - 22} w={w - 8} h={6} fill={C.wood} /><B x={cx - 3} y={base - 16} w={6} h={14} fill={C.woodD} /><B x={cx - 10} y={base - 3} w={20} h={3} fill={C.woodD} /><B x={cx + 4} y={base - 30} w={8} h={8} fill={C.paper} /></>;
-      break;
-    case "lamp":
-      body = <><path d={`M${cx - 11} ${base - 28}H${cx + 11}L${cx + 7} ${base - 42}H${cx - 7}Z`} fill={C.yellow} stroke={C.ink} strokeWidth="2" /><B x={cx - 2} y={base - 28} w={4} h={24} fill={C.greyD} /><B x={cx - 9} y={base - 4} w={18} h={4} fill={C.greyD} /></>;
-      break;
-    case "rug":
-      body = <><ellipse cx={cx} cy={base - 6} rx={cx - 4} ry="6" fill={C.orangeL} stroke={C.ink} strokeWidth="2" /><ellipse cx={cx} cy={base - 6} rx={cx - 14} ry="3" fill={C.orange} /></>;
-      break;
-    case "can":
-      body = <><B x={10} y={base - 18} w={18} h={18} fill={C.skyD} /><path d={`M28 ${base - 14}L37 ${base - 22}`} stroke={C.ink} strokeWidth="3" /><B x={14} y={base - 24} w={10} h={4} fill={C.skyD} /></>;
-      break;
-    case "cushion":
-      body = <><B x={6} y={base - 10} w={w - 12} h={10} fill={C.pink} /><rect x={cx - 2} y={base - 7} width="4" height="4" fill={C.white} /></>;
-      break;
-    case "radio":
-      body = <><B x={6} y={base - 22} w={w - 12} h={22} fill={C.orange} /><B x={10} y={base - 18} w={12} h={12} fill={C.paper} /><rect x="12" y={base - 14} width="8" height="2" fill={C.ink} /><rect x="12" y={base - 10} width="8" height="2" fill={C.ink} /><circle cx={w - 13} cy={base - 12} r="4" fill={C.yellow} stroke={C.ink} strokeWidth="2" /><path d={`M${w - 10} ${base - 22}L${w - 4} ${base - 34}`} stroke={C.ink} strokeWidth="2" /></>;
-      break;
-    case "mailbox":
-      body = <><B x={cx - 2} y={base - 20} w={4} h={20} fill={C.woodD} /><B x={cx - 12} y={base - 36} w={24} h={16} fill={C.red} /><rect x={cx - 8} y={base - 30} width="16" height="2" fill={C.ink} /><B x={cx + 10} y={base - 40} w={3} h={10} fill={C.yellow} /></>;
-      break;
     case "keyboard":
       body = <KeyboardArt w={w} base={base} keys={keys ?? STARTER_KEYS} />;
       break;
-    case "piano":
-      body = <><B x={2} y={base - 40} w={w - 4} h={26} fill={C.ink} /><B x={2} y={base - 18} w={w - 4} h={6} fill={C.white} />{Array.from({ length: 8 }, (_, i) => <rect key={i} x={8 + i * 9} y={base - 18} width="4" height="3" fill={C.ink} />)}<B x={6} y={base - 12} w={5} h={12} fill={C.ink} /><B x={w - 11} y={base - 12} w={5} h={12} fill={C.ink} /></>;
-      break;
-    case "picnic":
-      body = <><B x={6} y={base - 18} w={w - 12} h={18} fill={C.wood} /><path d={`M10 ${base - 18}Q${cx} ${base - 38} ${w - 10} ${base - 18}`} fill="none" stroke={C.ink} strokeWidth="3" /><rect x="8" y={base - 12} width={w - 16} height="3" fill={C.red} /></>;
-      break;
-    case "fishbowl":
-      body = <><B x={10} y={base - 6} w={20} h={6} fill={C.woodD} /><circle cx={cx} cy={base - 20} r="14" fill="#cfeefc" stroke={C.ink} strokeWidth="2" /><rect x={cx - 10} y={base - 18} width="20" height="10" fill={C.sky} /><B x={cx - 4} y={base - 24} w={7} h={5} fill={C.orange} /></>;
-      break;
-    case "rocker":
-      body = <><path d={`M4 ${base - 3}Q${cx} ${base + 2} ${w - 4} ${base - 3}`} fill="none" stroke={C.woodD} strokeWidth="4" /><B x={8} y={base - 38} w={5} h={34} fill={C.wood} /><B x={8} y={base - 18} w={24} h={5} fill={C.wood} /><B x={28} y={base - 14} w={4} h={10} fill={C.woodD} /><B x={13} y={base - 32} w={10} h={14} fill={C.pink} /></>;
-      break;
-    case "tent":
-      body = <><path d={`M4 ${base}L${cx} ${base - 42}L${w - 4} ${base}Z`} fill={C.orangeL} stroke={C.ink} strokeWidth="2" /><path d={`M${cx - 10} ${base}L${cx} ${base - 24}L${cx + 10} ${base}Z`} fill={C.navy} /><rect x={cx - 1} y={base - 46} width="2" height="6" fill={C.ink} /><rect x={cx + 1} y={base - 46} width="8" height="4" fill={C.red} /></>;
-      break;
-    case "banner":
-      body = <><B x={cx - 1} y={2} w={3} h={40} fill={C.woodD} /><path d={`M${cx + 2} 4H${cx + 16}L${cx + 11} 13L${cx + 16} 22H${cx + 2}Z`} fill={C.greenD} stroke={C.ink} strokeWidth="2" /><rect x={cx + 5} y="10" width="4" height="4" fill={C.yellow} /></>;
-      break;
-    case "drum":
-      body = <><B x={8} y={base - 22} w={w - 16} h={20} fill={C.red} /><rect x="8" y={base - 22} width={w - 16} height="4" fill={C.paper} /><rect x="8" y={base - 6} width={w - 16} height="4" fill={C.paper} /><path d={`M10 ${base - 18}L${w - 10} ${base - 6}M${w - 10} ${base - 18}L10 ${base - 6}`} stroke={C.yellow} strokeWidth="1.5" /><B x={w - 12} y={base - 34} w={3} h={12} fill={C.wood} /></>;
-      break;
-    case "lamp-reading":
-      body = <><B x={cx - 8} y={base - 4} w={16} h={4} fill="#bf913e" /><B x={cx - 2} y={base - 34} w={4} h={30} fill="#bf913e" /><path d={`M${cx - 12} ${base - 34}L${cx - 6} ${base - 46}H${cx + 6}L${cx + 12} ${base - 34}Z`} fill="#e3bd68" stroke={C.ink} strokeWidth="2" /><path d={`M${cx - 12} ${base - 33}L${cx - 20} ${base - 6}H${cx + 20}L${cx + 12} ${base - 33}Z`} fill="#ffe877" opacity=".35" /></>;
-      break;
-    case "shelf-complete":
-      body = <><B x={4} y={base - 46} w={w - 8} h={46} fill="#5a3b26" /><rect x="6" y={base - 48} width={w - 12} height="3" fill="#e3bd68" stroke={C.ink} strokeWidth="1" />{[base - 42, base - 22].map((y, r) => <g key={y}>{[...BOOK_PALETTES.values()].map((b, k) => <rect key={b.cover} x={9 + k * ((w - 18) / 7)} y={y + ((k + r) % 2)} width={(w - 18) / 7 - 1} height={17 - ((k + r) % 2)} fill={r ? b.ribbon : b.cover} stroke={C.ink} strokeWidth="1" />)}<rect x="6" y={y + 17} width={w - 12} height="2" fill={C.ink} /></g>)}</>;
-      break;
-    case "lantern":
-      body = <><B x={cx - 2} y={base - 14} w={4} h={14} fill={C.ink} /><B x={cx - 8} y={base - 36} w={16} h={22} fill={C.yellow} /><rect x={cx - 8} y={base - 38} width="16" height="3" fill={C.ink} /><rect x={cx - 4} y={base - 30} width="8" height="10" fill={C.orangeL} /></>;
-      break;
-    case "bench":
-      body = <><B x={4} y={base - 24} w={w - 8} h={5} fill={C.wood} /><B x={4} y={base - 16} w={w - 8} h={5} fill={C.wood} /><B x={8} y={base - 11} w={4} h={11} fill={C.ink} /><B x={w - 12} y={base - 11} w={4} h={11} fill={C.ink} /></>;
-      break;
-    case "showcase":
-      body = <><B x={5} y={base - 44} w={w - 10} h={44} fill={C.woodD} /><rect x="9" y={base - 40} width={w - 18} height="36" fill="#cfeefc" stroke={C.ink} strokeWidth="1" /><rect x="9" y={base - 22} width={w - 18} height="2" fill={C.woodD} /><B x={14} y={base - 34} w={6} h={10} fill={C.yellow} /><B x={22} y={base - 16} w={8} h={10} fill={C.green} /></>;
-      break;
-    case "fountain":
-      body = <><ellipse cx={cx} cy={base - 6} rx={cx - 4} ry="6" fill={C.grey} stroke={C.ink} strokeWidth="2" /><ellipse cx={cx} cy={base - 7} rx={cx - 10} ry="3" fill={C.sky} /><B x={cx - 4} y={base - 28} w={8} h={20} fill={C.grey} /><path d={`M${cx} ${base - 30}Q${cx - 12} ${base - 40} ${cx - 16} ${base - 12}M${cx} ${base - 30}Q${cx + 12} ${base - 40} ${cx + 16} ${base - 12}`} stroke={C.skyD} strokeWidth="2" fill="none" /></>;
-      break;
     default:
-      body = FURNITURE_BY_ID.get(art)?.story ? <StoryFurnitureArt art={art} w={w} h={h} /> : activityOf(art) ? <PlayFurnitureArt art={art} w={w} h={h} /> : <B x={8} y={base - 20} w={w - 16} h={20} fill={C.grey} />;
+      // 표에 있지만 그림 파일도 도형도 없는 가구(rules.test.ts가 막는다). 빈 자리 대신 회색 상자.
+      body = <B x={8} y={base - 20} w={w - 16} h={20} fill={C.grey} />;
   }
   return <g shapeRendering="crispEdges">{body}</g>;
 }
