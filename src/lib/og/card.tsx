@@ -41,8 +41,13 @@ export const C = {
   pendingTint: "#f6f0df",
 };
 
-/** 로컬 이미지를 data URI로. satori는 상대 경로를 못 읽는다. */
+/**
+ * 로컬 이미지를 data URI로. satori는 상대 경로를 못 읽는다.
+ * ★ public/ 아래만 읽는다. 경로를 통째로 받아 join하면 Turbopack이 저장소 전체를 서버 출력에 싣는다
+ *   ("Dynamic filesystem access causes tracing of the whole project"). 부르는 쪽은 "public/..."을 그대로 넘긴다.
+ */
 export async function dataUri(relPath: string, mime = "image/png") {
-  const buf = await readFile(join(process.cwd(), relPath));
+  if (!relPath.startsWith("public/")) throw new Error(`dataUri: public/ 아래만 읽는다 — ${relPath}`);
+  const buf = await readFile(join(process.cwd(), "public", relPath.slice("public/".length)));
   return `data:${mime};base64,${buf.toString("base64")}`;
 }
