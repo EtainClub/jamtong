@@ -44,7 +44,7 @@ export interface PublicGarden {
   golden: number;
   rainbow: number;
   /** 칭호 단계(0~3). 이름은 보는 쪽이 features/garden/rules.ts의 TITLES에서 읽는다. 옛 문서에는 없다. */
-  titles?: Partial<Record<"dex" | "storm" | "plaza", number>>;
+  titles?: Partial<Record<"dex" | "storm" | "plaza" | "read" | "lib", number>>;
   /** 내 방(docs/garden-miniroom.md §4.4). 옛 문서에는 없다. 안의 id는 보는 쪽이 표로 거른다. */
   room?: PublicRoom;
   /**
@@ -64,7 +64,7 @@ export interface PublicGarden {
  * 글은 싣지 않는다 — 액자의 글은 보는 화면이 품종표에서 읽는다.
  * 피아노는 pn=건반 음 여덟 개, ps=15초 연주(누른 시각과 음 번호만).
  */
-export type PublicPlaced = { a: string; i: string; kb?: number; pn?: number[]; ps?: Array<{ t: number; n: number }> } | { a: string; k: string; s: string; m?: string[]; n?: string };
+export type PublicPlaced = { a: string; i: string; kb?: number; pn?: number[]; ps?: Array<{ t: number; n: number }>; bm?: string[]; bd?: number } | { a: string; k: string; s: string; m?: string[]; n?: string };
 
 export interface PublicRoom {
   /** 추가 키보드의 키 넷을 압축한 그림·소리·판 문자열. */
@@ -243,6 +243,9 @@ export function toRoom(raw: unknown): PublicRoom | undefined {
                 .map(({ t, n }) => ({ t, n })),
             }
           : {}),
+        // 특별한 책(room/library.ts) — 펼쳐 둔 문장 id와 들인 날.
+        ...(Array.isArray(p.bm) ? { bm: p.bm.filter((x): x is string => typeof x === "string").slice(0, 3) } : {}),
+        ...(typeof p.bd === "number" ? { bd: p.bd } : {}),
       });
     }
     else if (typeof p.k === "string" && typeof p.s === "string") {
@@ -276,7 +279,7 @@ function toTitles(raw: unknown): PublicGarden["titles"] {
   if (!raw || typeof raw !== "object") return {};
   const t = raw as Record<string, unknown>;
   const out: NonNullable<PublicGarden["titles"]> = {};
-  for (const k of ["dex", "storm", "plaza"] as const) {
+  for (const k of ["dex", "storm", "plaza", "read", "lib"] as const) {
     const v = t[k];
     if (typeof v === "number" && Number.isInteger(v) && v >= 1 && v <= 3) out[k] = v;
   }

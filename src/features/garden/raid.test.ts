@@ -57,7 +57,7 @@ import {
   fertilizerCut,
   TOOL_ORDER,
   TOOLS,
-  RAID_FORM_FAST,
+  RAID_FORM_GROW,
   RAID_FORM_SPLIT,
   RAID_NEED_MAX,
   RAID_NEED_PER_FIGHTER,
@@ -74,6 +74,7 @@ import {
   raidNeedV3,
   raidNextNeed,
   raidPoolValue,
+  raidFormBase,
   raidSize,
   raidSplit,
   type RaidV3,
@@ -88,6 +89,8 @@ import {
   freshKit,
   KIT,
   KIT_ORDER,
+  RAID_JAM_MAX,
+  raidJamLines,
   raidLoot,
   raidOutcome,
   raidStars,
@@ -224,11 +227,11 @@ test("firestore.rules의 물결 규칙이 rules.ts의 값과 같다", () => {
   const rules = readFileSync("firestore.rules", "utf8"); // pnpm garden:test는 저장소 뿌리에서 돈다
   const has = (text: string) => assert.ok(rules.includes(text), `firestore.rules에 없음: ${text}`);
   has(`'^[0-9]{5}-[1-${RAID_PER_DAY}]$'`);
-  // 세우기: 1형, 종류의 기본 필요량을 체력·갑옷으로.
+  // 세우기: 1형, 종류의 크기를 모두 체력으로.
   has(`request.resource.data.size in [${RAID_SIZES.join(", ")}]`);
-  has(`request.resource.data.hp == request.resource.data.size * ${RAID_FORM_SPLIT[1][0]} / 100`);
-  has(`request.resource.data.brk == request.resource.data.size * ${RAID_FORM_SPLIT[1][1]} / 100`);
-  assert.equal(RAID_FORM_SPLIT[1][2], 0, "1형에는 울타리가 없다(규칙이 grd == 0으로 세운다)");
+  assert.deepEqual([...RAID_FORM_SPLIT[1]], [100, 0, 0], "1형은 체력뿐이다(규칙이 hp == size, brk == 0, grd == 0으로 세운다)");
+  has(`request.resource.data.hp == request.resource.data.size\n`);
+  has(`request.resource.data.brk == 0`);
   has(`request.resource.data.grd == 0`);
   // 기력 60은 uses에 건다.
   has(`d.uses <= ${RAID_USES_PER_PERSON}`);
@@ -237,7 +240,7 @@ test("firestore.rules의 물결 규칙이 rules.ts의 값과 같다", () => {
   has(`(m < ${RAID_GAP_MINUTES} || (m < ${RAID_FRENZY_GAP_MINUTES} && request.time >= raid.spawnedAt + duration.value(${(RAID_LIFE - RAID_FRENZY) / MINUTE}, 'm')))`);
   has(`raid.hp >= ${RAID_HP_MIN}`);
   // 한 번의 값: 제 역할의 게이지면 두 배, 빈틈이면 다시 두 배. 역할 코드 = 게이지 번호 + 1.
-  has(`gain == used * (role != 0 && d.get('pool', 0) + 1 == role ? ${RAID_ROLE_MULT} : 1) * (raidGap(raid) ? ${RAID_GAP_MULT} : 1)`);
+  has(`gain == used * (role != 0 && (d.get('pool', 0) + 1 == role || form == 1) ? ${RAID_ROLE_MULT} : 1) * (raidGap(raid) ? ${RAID_GAP_MULT} : 1)`);
   for (const id of RAID_ROLE_ORDER) assert.equal(RAID_ROLES[id].code, RAID_ROLES[id].pool + 1, id);
   has(`role in [0, ${RAID_ROLE_ORDER.map((id) => RAID_ROLES[id].code).join(", ")}]`);
   assert.deepEqual([...RAID_POOLS], ["hits", "brk", "grd"]);
@@ -260,12 +263,19 @@ test("firestore.rules의 물결 규칙이 rules.ts의 값과 같다", () => {
   has(`used <= ${RAID_FINISHER_MAX}\n`);
   const most = RAID_FINISHER_MAX * RAID_ROLE_MULT * RAID_GAP_MULT;
   for (const key of RAID_POOLS) assert.ok(rules.includes(`<= before.get('${key}', 0) + ${most}`), key);
-  // 변신: 이 형태를 30분 안에 채웠을 때만. 아니면 쓰러진다.
-  has(`request.time >= resource.data.formAt + duration.value(${RAID_FORM_FAST / MINUTE}, 'm')`);
-  has(`request.time < resource.data.formAt + duration.value(${RAID_FORM_FAST / MINUTE}, 'm')`);
-  // 다음 형태의 필요량과 몫.
+  // 변신·처치: 3형 전에는 다 차면 늘 변신, 3형만 쓰러진다. 시간 조건은 없다(3.1).
+  has(`&& (!('form' in resource.data) || resource.data.form == 3)`);
+  assert.ok(!rules.includes("resource.data.formAt + duration"), "형태의 시간 조건이 남아 있다");
+  // 1형은 누구나 두 배(역할 배수), 몸통(체력)에만.
+  has(`(d.get('pool', 0) + 1 == role || form == 1) ? ${RAID_ROLE_MULT} : 1`);
+  has(`(form != 1 || d.get('pool', 0) == 0)`);
+  // 다음 형태의 필요량과 몫. 기본 크기는 1형의 2·2.5배.
+  assert.equal(RAID_FORM_GROW[2], 2);
+  assert.equal(RAID_FORM_GROW[3], 2.5);
+  has(`let floor = d.form == 2 ? was.size * 2 : was.size * 5 / 2;`);
   has(`d.n % ${RAID_NEED_STEP} == 0`);
   has(`d.n <= ${RAID_NEED_MAX}`);
+  has(`d.n >= floor\n`);
   has(`d.n >= ${RAID_NEED_PER_FIGHTER} * (crowd - ${RAID_NEED_SLACK})`);
   has(`d.n < ${RAID_NEED_PER_FIGHTER} * crowd + ${RAID_NEED_STEP}`);
   has(`let h = d.form == 2 ? ${RAID_FORM_SPLIT[2][0]} : ${RAID_FORM_SPLIT[3][0]};`);
@@ -276,28 +286,30 @@ test("firestore.rules의 물결 규칙이 rules.ts의 값과 같다", () => {
 });
 
 const v3wave = (over: Partial<RaidV3> = {}, hits = 0, born = T): RaidWave => {
-  const v: RaidV3 = { form: 1, formAt: born, size: 540, n: 540, brk: 162, grd: 0, base: { h: 0, b: 0, g: 0 }, brkHits: 0, grdHits: 0, ...over };
+  const v: RaidV3 = { form: 1, formAt: born, size: 300, n: 300, brk: 0, grd: 0, base: { h: 0, b: 0, g: 0 }, brkHits: 0, grdHits: 0, ...over };
   return { hp: v.base.h + raidSplit(v.n, v.form).h, hits, fighters: 3, spawnedAt: born, defeatedAt: null, v3: v };
 };
 
-test("3.0: 기본 필요량은 2.0 체력의 두 배 — 혼자도 둘도 1형을 못 넘기고, 드는 사람 수는 그대로다", () => {
-  assert.deepEqual([...new Set(RAID_KINDS.map((k) => k.hp * RAID_ROLE_MULT))].sort((a, b) => a - b), [...RAID_SIZES]);
+test("3.1: 1형은 작다 — 혼자서는 못 잡고, 셋이면 빈틈 없이도 잡힌다", () => {
+  assert.deepEqual([...new Set(RAID_KINDS.map((k) => k.size))].sort((a, b) => a - b), [...RAID_SIZES]);
   for (let wave = 1; wave <= RAID_PER_DAY; wave++) assert.ok((RAID_SIZES as readonly number[]).includes(raidSize(20773, wave)));
-  // 한 사람이 한 형태에 넣는 최대: 기력 60 × 제 역할 2 × 빈틈 2.
+  // 한 사람이 한 형태에 넣는 최대: 기력 60 × 2 × 빈틈 2.
   const most = RAID_USES_PER_PERSON * RAID_ROLE_MULT * RAID_GAP_MULT;
   assert.equal(most, 240);
   for (const size of RAID_SIZES) {
-    assert.ok(size > 2 * most, `둘이 ${2 * most} ≥ ${size}`);
-    assert.equal(size % RAID_NEED_STEP, 0);
-    // 제 역할로 치면 2.0과 같은 사람 수.
-    assert.deepEqual(raidNeedV3(size), raidNeed(size / RAID_ROLE_MULT));
+    assert.ok(size > most, `혼자 ${most} ≥ ${size}`);
+    // 1형은 모두 ×2라 한 사람이 빈틈 없이 120 — 셋–넷이면 잡힌다.
+    const need = raidNeedV3(size);
+    assert.ok(need.most >= 3 && need.most <= 4, `${size}: ${need.most}`);
+    assert.equal(need.least, 2);
   }
 });
 
-test("3.0: 필요량은 형태마다 정수로 나뉘고 합이 그대로다", () => {
+test("3.1: 필요량은 형태마다 정수로 나뉘고 합이 그대로다", () => {
   for (const form of [1, 2, 3] as const) {
     assert.equal(RAID_FORM_SPLIT[form].reduce((a, b) => a + b, 0), 100);
-    for (const n of [540, 720, 900, 1080, 7200, RAID_NEED_MAX]) {
+    const ns = form === 1 ? [...RAID_SIZES] : [...RAID_SIZES.map((s) => raidFormBase(s, form)), 1080, 7200, RAID_NEED_MAX];
+    for (const n of ns) {
       const part = raidSplit(n, form);
       assert.ok([part.h, part.b, part.g].every(Number.isInteger), `${form} ${n}`);
       assert.equal(part.h + part.b + part.g, n);
@@ -305,47 +317,59 @@ test("3.0: 필요량은 형태마다 정수로 나뉘고 합이 그대로다", (
   }
 });
 
-test("3.0: 변신한 형태의 필요량은 온 사람 수에 맞춘다 — 기본값보다 작지 않고, 60 단위, 상한까지", () => {
-  assert.equal(raidNextNeed(540, 4), 540, "넷이면 기본값");
-  assert.equal(raidNextNeed(540, 8), 600, "72 × 8 = 576 → 600");
-  assert.equal(raidNextNeed(900, 8), 900);
-  assert.equal(raidNextNeed(540, 100), 7200);
-  assert.equal(raidNextNeed(540, 5000), RAID_NEED_MAX);
-  // 온 사람이 모두 제 역할로 빈틈 없이 치면(120씩) 넉넉히 넘긴다 — 60%만 그렇게 쳐도 된다.
-  for (const f of [10, 37, 250]) assert.ok(raidNextNeed(540, f) <= f * RAID_USES_PER_PERSON * RAID_ROLE_MULT);
+test("3.1: 2·3형은 1형의 2·2.5배, 사람이 많으면 60 × 인원(60 단위)까지 커진다", () => {
+  assert.equal(raidNextNeed(300, 2, 4), 600, "넷이면 기본");
+  assert.equal(raidNextNeed(300, 3, 4), 750);
+  assert.equal(raidNextNeed(420, 3, 6), 1050);
+  assert.equal(raidNextNeed(300, 2, 11), 660, "60 × 11");
+  assert.equal(raidNextNeed(300, 3, 11), 750, "기본이 더 크다");
+  assert.equal(raidNextNeed(300, 2, 100), 6000);
+  assert.equal(raidNextNeed(300, 2, 5000), RAID_NEED_MAX);
+  // 온 사람이 모두 제 역할로 빈틈 없이 치면(120씩) 사람 몫(60)의 두 배 — 절반만 남아 쳐도 넘긴다.
+  for (const f of [11, 37, 250]) assert.ok(raidNextNeed(300, 2, f) <= f * RAID_USES_PER_PERSON * RAID_ROLE_MULT);
   // 규칙이 받는 범위 안이다(인원을 정확히 읽었을 때).
-  for (const f of [1, 7, 8, 9, 100, 833]) {
-    const n = raidNextNeed(540, f);
-    assert.ok(n >= RAID_NEED_PER_FIGHTER * (f - RAID_NEED_SLACK) && (n === 540 || n < RAID_NEED_PER_FIGHTER * f + RAID_NEED_STEP), `${f}: ${n}`);
+  for (const size of RAID_SIZES) {
+    for (const form of [2, 3] as const) {
+      for (const f of [1, 7, 12, 18, 100, 999]) {
+        const n = raidNextNeed(size, form, f);
+        const floor = raidFormBase(size, form);
+        assert.ok(n >= floor && n >= RAID_NEED_PER_FIGHTER * (f - RAID_NEED_SLACK), `${size} ${form} ${f}: ${n}`);
+        assert.ok(n === floor || (n % RAID_NEED_STEP === 0 && n < RAID_NEED_PER_FIGHTER * f + RAID_NEED_STEP), `${size} ${form} ${f}: ${n}`);
+      }
+    }
   }
 });
 
-test("3.0: 세 게이지가 다 차야 넘어가고, 30분 안이면 변신·넘기면 처치·3형은 늘 처치", () => {
-  const w = v3wave({ brkHits: 100 }, 378);
-  assert.deepEqual(raidGauges(w).map((g) => [g.have, g.need]), [[378, 378], [100, 162], [0, 0]]);
-  assert.equal(raidFilled(w), false, "갑옷이 덜 찼다");
-  const full = v3wave({ brkHits: 170 }, 400);
-  assert.deepEqual(raidGauges(full).map((g) => g.have), [378, 162, 0], "목표에서 멈춰 그린다");
+test("3.1: 다 차면 3형 전에는 늘 변신, 3형만 쓰러진다", () => {
+  const w = v3wave({}, 299);
+  assert.deepEqual(raidGauges(w).map((g) => [g.have, g.need]), [[299, 300], [0, 0], [0, 0]]);
+  assert.equal(raidFilled(w), false);
+  const full = v3wave({}, 320);
+  assert.deepEqual(raidGauges(full).map((g) => g.have), [300, 0, 0], "목표에서 멈춰 그린다");
   assert.equal(raidFilled(full), true);
-  assert.equal(raidAdvanceKind(full, T + RAID_FORM_FAST - 1), "morph");
-  assert.equal(raidAdvanceKind(full, T + RAID_FORM_FAST), "finish");
-  assert.equal(raidAdvanceKind(v3wave({ form: 3, n: 600, base: { h: 400, b: 170, g: 0 } }), T + 1), "finish");
+  assert.equal(raidAdvanceKind(full), "morph", "1형은 몇 시간이 걸려도 변신한다");
   // 2형: 0점은 변신할 때의 합계다.
-  const second = v3wave({ form: 2, n: 600, base: { h: 400, b: 170, g: 0 }, brk: 320, grd: 150, brkHits: 200, grdHits: 150 }, 500);
+  const second = v3wave({ form: 2, n: 600, base: { h: 320, b: 0, g: 0 }, brk: 150, grd: 150, brkHits: 30, grdHits: 150 }, 420);
   assert.deepEqual(raidGauges(second).map((g) => [g.have, g.need]), [[100, 300], [30, 150], [150, 150]]);
+  assert.equal(raidAdvanceKind(second), "morph");
+  assert.equal(raidAdvanceKind(v3wave({ form: 3, n: 750, base: { h: 620, b: 150, g: 150 } })), "finish");
   // 2.0 물결은 체력 하나.
   assert.deepEqual(raidGauges(wave({ hp: 270, hits: 300 })).map((g) => [g.have, g.need]), [[270, 270], [0, 0], [0, 0]]);
-  assert.equal(raidAdvanceKind(wave({ hp: 270, hits: 270 }), T + 1), "finish");
+  assert.equal(raidAdvanceKind(wave({ hp: 270, hits: 270 })), "finish");
 });
 
-test("3.0: 한 번의 값 — 제 역할의 게이지 ×2, 남의 게이지 ×1, 빈틈이면 다시 ×2. 2.0 물결에는 역할 배수가 없다", () => {
+test("3.1: 한 번의 값 — 제 역할의 게이지 ×2, 남의 게이지 ×1(1형은 누구나 ×2), 빈틈이면 다시 ×2. 2.0 물결에는 역할 배수가 없다", () => {
   const born = at(10) - HOUR;
-  const w = v3wave({}, 0, born);
+  const w = v3wave({ form: 2, n: 600, base: { h: 300, b: 0, g: 0 }, brk: 150, grd: 150 }, 300, born);
   assert.equal(raidPoolValue(w, "reaper", 0, at(10)), 2);
   assert.equal(raidPoolValue(w, "reaper", 1, at(10)), 1);
   assert.equal(raidPoolValue(w, "seeker", 1, at(10)), 2);
   assert.equal(raidPoolValue(w, "warden", 2, at(31)), 4, "빈틈");
   assert.equal(raidPoolValue(w, null, 0, at(31)), 2, "역할을 안 골랐으면 빈틈만");
+  // 1형은 누구나 몸통에 ×2.
+  const first = v3wave({}, 0, born);
+  assert.equal(raidPoolValue(first, "warden", 0, at(10)), 2);
+  assert.equal(raidPoolValue(first, "seeker", 0, at(31)), 4);
   assert.equal(raidPoolValue(wave({ hp: 270, spawnedAt: born }), "reaper", 0, at(10)), 1);
 });
 
@@ -360,6 +384,18 @@ test("3.0: ★은 넘긴 형태 수 — 1형을 넘겼으면 도망가도 상자
   assert.deepEqual(raidOutcome(wave(), "escaped"), { won: false, stars: 0 });
   // 지원만 했거나, 앞 형태에서만 쳤어도(기력 0으로 돌아가도) 든 사람이다.
   assert.equal(raidLoot("defeated", 2, { hits: 40, uses: 0, aids: 0 }).box, true);
+});
+
+test("3.1 잼: 참여 300 · 1형 700 · 2형 1,500 · 3형 2,500 — 끝까지 함께하면 5,000", () => {
+  assert.equal(RAID_JAM_MAX, 5_000);
+  assert.deepEqual(raidJamLines(0, false, [], []), [], "안 든 사람은 없다");
+  assert.deepEqual(raidJamLines(0, false, [1], []), [], "아직 아무것도 넘어가지 않았다");
+  assert.deepEqual(raidJamLines(0, true, [1], []).map((l) => [l.id, l.jam]), [[0, 300]], "1형에서 놓쳐도 참여 보상");
+  assert.deepEqual(raidJamLines(1, false, [1], []).map((l) => [l.id, l.jam]), [[0, 300], [1, 700]], "1형을 넘기면 바로");
+  assert.deepEqual(raidJamLines(2, false, [1, 2], [0, 1]).map((l) => l.id), [2], "받은 것은 다시 없다");
+  assert.deepEqual(raidJamLines(3, true, [1, 2, 3], []).reduce((n, l) => n + l.jam, 0), 5_000);
+  assert.deepEqual(raidJamLines(3, true, [3], []).map((l) => l.id), [0, 3], "3형에만 든 사람은 참여 + 3형");
+  assert.deepEqual(raidJamLines(2, true, [1, 2, 3], []).map((l) => l.id), [0, 1, 2], "3형이 도망가면 3형 보상은 없다");
 });
 
 test("필살기는 한 커밋 상한 안이고, 기력으로는 여전히 혼자 못 잡는다", () => {

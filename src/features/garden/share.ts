@@ -9,6 +9,7 @@ import { gardenOwnedByOther, publishGarden, unpublishGarden, watchWaters, type P
 import { ILCHON_MAX } from "./ilchon/rules";
 
 import { publicRoom } from "./room/rules";
+import { bookTitleInput } from "./room/library";
 import { kstDayNumber, titleLevels } from "./rules";
 import { useGarden, type GardenData } from "./store";
 
@@ -30,7 +31,7 @@ export function publicSnapshot(data: GardenData): PublicGarden {
     dex: Object.keys(data.dex).length,
     golden: seen.filter((m) => m.includes("golden")).length,
     rainbow: seen.filter((m) => m.includes("rainbow")).length,
-    titles: titleLevels(data),
+    titles: titleLevels({ ...data, ...bookTitleInput(data.library, data.room.owned) }),
     room: publicRoom(data.room),
     // 1촌(docs/garden-miniroom.md §5.5). 소식은 종류 번호와 품종 id뿐이다. 1촌 목록은 주인이 보이기를 켰을 때만.
     news: data.news,
@@ -54,8 +55,8 @@ export async function sendGardenLink(
   url: string,
   title: string,
   text: string,
-  /** 어디서 보냈는지. raid=거대 잡초 "같이 잡자". 보낸 횟수에는 아무 보상도 없다(§1). */
-  from: "garden" | "raid" = "garden",
+  /** 어디서 보냈는지. raid=거대 잡초 "같이 잡자", book=특별한 책의 장 카드. 보낸 횟수에는 아무 보상도 없다(§1). */
+  from: "garden" | "raid" | "book" = "garden",
 ): Promise<"shared" | "copied" | "failed"> {
   track("share_create", { surface: "garden", from });
   if (navigator.share) {

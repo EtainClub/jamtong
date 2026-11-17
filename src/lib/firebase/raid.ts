@@ -345,11 +345,13 @@ export async function strikeRaid(
       const enter = entering(raid.data(), before, aim);
       const n = Math.min(want, RAID_USES_PER_PERSON - enter.usesWas);
       if (n <= 0) return { result: "capped", uses: 0, hits: 0 };
-      // 역할이 없으면(2.0 물결이거나 아직 안 골랐으면) 체력에 역할 배수 없이 넣는다.
-      const pool: RaidPool = enter.role ? aim.pool : 0;
+      // 역할이 없으면(2.0 물결이거나 아직 안 골랐으면) 체력에 역할 배수 없이 넣는다. 1형은 체력뿐이다.
+      const pool: RaidPool = enter.role && raid.get("form") !== 1 ? aim.pool : 0;
       let gap = raidStrikeValue(now, spawnedAt, raid.get("hp") as number);
       if (flip) gap = gap === 1 ? RAID_GAP_MULT : 1;
-      const add = n * gap * (enter.role && RAID_ROLES[enter.role].pool === pool ? RAID_ROLE_MULT : 1);
+      // 제 게이지면 두 배 — 1형은 누구나 몸통을 치므로 늘 두 배다(규칙도 같다).
+      const onRole = enter.role !== null && (RAID_ROLES[enter.role].pool === pool || raid.get("form") === 1);
+      const add = n * gap * (onRole ? RAID_ROLE_MULT : 1);
       // 지원 칸은 그대로 옮긴다. set은 통째로 쓰므로 빠뜨리면 지워진다.
       const kept: Record<string, unknown> = {};
       for (const k of ["aid", "aidAt", "aids"]) if (mine.get(k) !== undefined) kept[k] = mine.get(k);
@@ -438,7 +440,7 @@ export async function aidRaid(uid: string, id: string, aid: RaidAidId, nick: str
 }
 
 /**
- * 세 게이지가 다 찬 물결을 다음으로 넘긴다 — 변신(빨리 채웠고 3형 전)이거나 쓰러뜨리기. 누가 불러도 한 번만 된다.
+ * 세 게이지가 다 찬 물결을 다음으로 넘긴다 — 변신(3형 전)이거나 쓰러뜨리기. 누가 불러도 한 번만 된다.
  * 무엇을 했는지 돌려준다(못 했으면 null).
  *
  * 트랜잭션을 쓰지 않는다. 칸은 싸우는 동안 초마다 바뀌어 트랜잭션이 끝없이 겨룬다. 그래서 한 번 읽고 그대로 쓴다 —
@@ -463,10 +465,10 @@ export async function advanceRaid(id: string): Promise<"morph" | "finish" | null
     };
     if (wave.v3) wave.v3 = { ...wave.v3, brkHits: sum("brk"), grdHits: sum("grd") };
     if (!raidFilled(wave)) return null;
-    if (wave.v3 && raidAdvanceKind(wave, Date.now()) === "morph") {
+    if (wave.v3 && raidAdvanceKind(wave) === "morph") {
       const v = wave.v3;
       const form = (v.form + 1) as 2 | 3;
-      const n = raidNextNeed(v.size, wave.fighters);
+      const n = raidNextNeed(v.size, form, wave.fighters);
       const need = raidSplit(n, form);
       const base = { h: wave.hits, b: v.brkHits, g: v.grdHits };
       await updateDoc(raidRef, { form, formAt: serverTimestamp(), n, base, hp: base.h + need.h, brk: base.b + need.b, grd: base.g + need.g });
@@ -475,7 +477,7 @@ export async function advanceRaid(id: string): Promise<"morph" | "finish" | null
     await updateDoc(raidRef, { defeatedAt: serverTimestamp() });
     return "finish";
   } catch (error) {
-    // 다른 사람이 먼저 넘겼거나(규칙이 막는다), 30분 경계에서 내 시계와 서버가 엇갈렸다. 다음 변화에서 다시 본다.
+    // 다른 사람이 먼저 넘겼다(규칙이 막는다). 다음 변화에서 다시 본다.
     if (!permissionDenied(error)) console.error("[raid] 거대 잡초를 다음으로 넘기지 못했다", error);
     return null;
   }

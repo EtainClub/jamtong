@@ -114,6 +114,10 @@ export const FURNITURE: Furniture[] = [
   { id: "fx-star", label: "별빛 필살기", kind: "fx", size: 1, price: 30, cur: "root", art: "🌟", hint: "필살기를 쓸 때 별빛이 터져요. 그림만 바뀌고 세기는 같아요." },
   // 팔지 않는 것 — 여섯 악초의 박제를 다 모으면(raid/rules.ts의 TROPHY_WALLPAPER).
   { id: "wp-guard", label: "광장을 지킨 방", kind: "wallpaper", size: 1, price: 0, cur: "reward", art: "wp-guard", hint: "여섯 악초의 박제를 다 모은 사람의 벽지." },
+  // 팔지 않는 것 — 특별한 책을 3·5·7권 가지면(room/library.ts의 LIBRARY_SETS).
+  { id: "wp-library", label: "서재 벽지", kind: "wallpaper", size: 1, price: 0, cur: "reward", art: "wp-library", hint: "특별한 책을 세 권 모은 사람의 서재 벽지." },
+  { id: "lamp-reading", label: "서재 독서등", kind: "floor", size: 1, price: 0, cur: "reward", art: "lamp-reading", hint: "특별한 책을 다섯 권 모은 사람의 금빛 독서등." },
+  { id: "shelf-complete", label: "완전한 서재 책장", kind: "floor", size: 2, price: 0, cur: "reward", art: "shelf-complete", hint: "특별한 책 일곱 권을 모두 모은 사람의 책장. 일곱 권의 색이 꽂혀 있어요." },
 ];
 
 export const FURNITURE_BY_ID = new Map(FURNITURE.map((f) => [f.id, f]));

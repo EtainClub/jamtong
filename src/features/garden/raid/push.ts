@@ -1,4 +1,6 @@
 import { HOUR, josa, MINUTE, raidKind } from "../rules";
+import { formName } from "./forms";
+import { RAID_JAM } from "./rules";
 
 /**
  * 거대 잡초 등장 알림의 규칙 — 화면과 서버 라우트가 함께 쓴다. 순수 함수만 둔다(push.test.ts).
@@ -44,13 +46,22 @@ export interface PushCopy {
   tag: string;
 }
 
-export function pushCopy(id: string): PushCopy {
+/** 형태(1–3)마다의 알림. 2·3형은 변신 알림이다 — 잡으면 받는 잼을 함께 적는다. */
+export function pushCopy(id: string, form: 1 | 2 | 3 = 1): PushCopy {
   const [day, wave] = id.split("-").map(Number);
   const kind = raidKind(day, wave);
+  if (form === 1) {
+    return {
+      title: `잼통 광장 · ${josa(kind.name, "이가")} 나타났어요`,
+      body: `혼자서는 못 잡아요. 같이 잡으면 최대 ${(RAID_JAM.base + RAID_JAM.forms.reduce((a, b) => a + b, 0)).toLocaleString()}잼!`,
+      url: `/garden?tab=plaza&push=${id}`,
+      tag: `raid-${id}`,
+    };
+  }
   return {
-    title: `잼통 광장 · ${josa(kind.name, "이가")} 나타났어요`,
-    body: "혼자서는 못 잡아요. 3시간 안에 같이 잡아요.",
+    title: `잼통 광장 · ${josa(formName(kind.id, form), "으로")} 변신했어요`,
+    body: `${form}형을 잡으면 +${RAID_JAM.forms[form - 1].toLocaleString()}잼. 지금 들어오면 기력이 가득 차 있어요.`,
     url: `/garden?tab=plaza&push=${id}`,
-    tag: `raid-${id}`,
+    tag: `raid-${id}-${form}`,
   };
 }

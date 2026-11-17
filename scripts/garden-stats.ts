@@ -185,7 +185,7 @@ async function raids(db: Firestore) {
     console.log(
       `${w.id}  ${w.spawnedAt ? kstTime(w.spawnedAt) : "?"}  ${result}  ${minutes === null ? "   -" : String(minutes).padStart(4)}분  ` +
         `${String(w.fighters).padStart(3)}명  ${w.hits}/${w.hp}  ${stars ? "★".repeat(stars).padEnd(3) : "   "}  ` +
-        `빈틈 ${pct(gapUses, used).padStart(4)}  지원 ${supporters}명(지원만 ${supportOnly})  기력 다 쓴 사람 ${w.uses.filter((u) => u >= RAID_USES_PER_PERSON).length}` +
+        `빈틈 ${(w.form ? "-" : pct(gapUses, used)).padStart(4)}  지원 ${supporters}명(지원만 ${supportOnly})  기력 다 쓴 사람 ${w.uses.filter((u) => u >= RAID_USES_PER_PERSON).length}` +
         (w.form ? `  ${w.form}형(필요 ${w.need}) 역할 ${w.roles.join("/")}` : "") +
         (w.legacy ? `  옛 길 ${w.legacy}` : ""),
     );

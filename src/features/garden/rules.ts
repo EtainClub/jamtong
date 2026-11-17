@@ -486,7 +486,10 @@ export type RaidKindId = "troll" | "hate" | "rumor" | "bribe" | "bossy" | "grab"
 export interface RaidKind {
   id: RaidKindId;
   name: string;
+  /** 2.0 물결의 체력. */
   hp: number;
+  /** 3.x 물결의 1형 크기(RAID_SIZES). */
+  size: number;
   /** 한 줄 성질. */
   trait: string;
   /** 맞을수록 바뀌는 대사(체력 많을 때부터). */
@@ -505,6 +508,7 @@ export const RAID_KINDS: RaidKind[] = [
     id: "troll",
     name: "악플 가시풀",
     hp: 270,
+    size: 300,
     trait: "익명 뒤에 숨어 가시를 날려요",
     taunts: ["ㅋㅋ 그게 최선이야?", "얼굴 안 보이니까 아무 말이나 해도 되지~", "가시 하나에 하루가 망가지지? 그게 재밌거든", "잠깐, 신고는 하지 마…"],
     escaped: "악플 가시풀이 가시를 뿌리고 숨어 버렸어요",
@@ -514,6 +518,7 @@ export const RAID_KINDS: RaidKind[] = [
     id: "hate",
     name: "혐오 쐐기풀",
     hp: 270,
+    size: 300,
     trait: "닿기만 해도 따끔, 편을 갈라 번져요",
     taunts: ["너희끼리 싸우면 내가 자라지", "다르면 틀린 거야, 몰랐어?", "한 포기 뽑아도 미움은 씨를 남겨", "어… 다 같이 덤비는 건 반칙이야!"],
     escaped: "혐오 쐐기풀이 씨를 날리고 사라졌어요",
@@ -523,6 +528,7 @@ export const RAID_KINDS: RaidKind[] = [
     id: "rumor",
     name: "가짜뉴스 덩굴",
     hp: 360,
+    size: 360,
     trait: "근거 없는 말을 먹고 퍼져요",
     taunts: ["근거? 그런 거 없어도 잘만 퍼지는데!", "퍼 나르는 손이 많을수록 난 커진다고", "제목만 읽고 가, 본문은 내가 지어 줄게", "원문을 확인하다니… 그건 반칙이야!"],
     escaped: "가짜뉴스 덩굴이 광장 밖으로 퍼져 나갔어요",
@@ -532,6 +538,7 @@ export const RAID_KINDS: RaidKind[] = [
     id: "bribe",
     name: "검은돈 독초",
     hp: 360,
+    size: 360,
     trait: "탁자 밑으로 오가는 돈에 뿌리를 내려요",
     taunts: ["이거 받고 못 본 척해", "영수증? 그런 건 없어", "뿌리는 땅 밑으로, 돈은 탁자 밑으로", "장부를 펼치지 마!"],
     escaped: "검은돈 독초가 돈다발을 챙겨 달아났어요",
@@ -541,6 +548,7 @@ export const RAID_KINDS: RaidKind[] = [
     id: "bossy",
     name: "갑질 엉겅퀴",
     hp: 450,
+    size: 420,
     trait: "높은 자리에서 남을 짓눌러요",
     taunts: ["내가 누군 줄 알아?", "꼬우면 네가 올라오든가", "물? 내 화분부터 줘", "여, 여럿이 오면 얘기가 다르지…"],
     escaped: "갑질 엉겅퀴가 큰소리만 남기고 떠났어요",
@@ -550,6 +558,7 @@ export const RAID_KINDS: RaidKind[] = [
     id: "grab",
     name: "땅투기 칡",
     hp: 450,
+    size: 420,
     trait: "남의 땅까지 휘감아 차지해요",
     taunts: ["여기도 내 땅, 저기도 내 땅", "빈칸 보이면 바로 감는다", "광장도 곧 내 거야", "놔, 놔! 내 덩굴 놓으라고!"],
     escaped: "땅투기 칡이 광장 구석까지 휘감고 사라졌어요",
@@ -580,9 +589,11 @@ export function raidTaunt(kind: RaidKind, hits: number, hp: number): string {
 }
 
 /** 받침에 맞는 조사. 이/가, 을/를. */
-export function josa(word: string, pair: "이가" | "을를"): string {
+export function josa(word: string, pair: "이가" | "을를" | "으로"): string {
   const code = word.charCodeAt(word.length - 1) - 0xac00;
   const batchim = code >= 0 && code <= 11171 && code % 28 !== 0;
+  // '으로'는 받침이 ㄹ(종성 8)이면 '로'다.
+  if (pair === "으로") return word + (batchim && code % 28 !== 8 ? "으로" : "로");
   return word + (batchim ? pair[0] : pair[1]);
 }
 
@@ -645,16 +656,15 @@ export interface RaidV3 {
 
 export type RaidPhase = "active" | "defeated" | "escaped";
 
-// ── 거대 잡초 3.0 — 변신·게이지 셋·역할 (docs/garden-raid-boss.md §3·§4) ────────
+// ── 거대 잡초 3.0 — 변신·게이지 셋·역할 (docs/garden-raid-boss.md §3·§4, 3.1 조정 §9) ────────
 /**
- * ★ 게이지는 셋이다 — 체력(hits)·갑옷(brk)·울타리(grd). 셋이 다 차야 그 형태가 끝난다.
- * ★ 형태가 시작하고 RAID_FORM_FAST 안에 채우면 쓰러지지 않고 변신한다(3형까지). 넘겼으면 쓰러진다.
- *   규칙이 둘 중 하나만 받는다. 1형을 넘기면 상자는 확정이다.
+ * ★ 게이지는 셋이다 — 체력(hits)·갑옷(brk)·울타리(grd). 그 형태의 게이지가 다 차야 넘어간다.
+ *   1형은 체력 하나뿐이고 누구나 두 배로 친다 — 들어오자마자 바로 싸우게.
+ * ★ 다 차면 1형 → 2형 → 3형으로 **반드시** 변신하고, 3형을 채우면 쓰러진다(3.1에서 30분 조건을 뺐다).
  * ★ 기력은 형태마다 RAID_USES_PER_PERSON번. 제 역할의 게이지에 넣으면 한 번이 RAID_ROLE_MULT, 남의 게이지는 1
  *   (빈틈이면 다시 RAID_GAP_MULT). 한 사람이 한 형태에 넣는 최대는 60 × 2 × 2 = 240이다.
- * ★ 종류의 기본 필요량(RAID_SIZES)은 2.0 체력의 두 배 — 둘이 최대 480이라 혼자·둘이 못 잡는 것은 그대로고,
- *   제 역할로 치면 드는 사람 수도 2.0과 같다.
- * ★ 변신한 형태의 필요량은 그때까지 온 사람 수에서 정한다: max(기본값, 72 × 인원)을 60 단위로.
+ * ★ 1형의 크기(RAID_SIZES)는 240보다 커서 혼자서는 못 잡는다. 셋이 빈틈 없이 치면 잡힌다.
+ * ★ 2·3형의 크기는 1형의 2배·2.5배이고, 사람이 많으면 그보다 커진다: max(기본, 60 × 인원)을 60 단위로.
  *
  * 값을 바꾸면 firestore.rules의 plazaRaids 절도 같이 바꾼다 — raid.test.ts가 짝을 본다.
  */
@@ -664,7 +674,7 @@ export const RAID_POOL_LABEL = ["체력", "갑옷", "울타리"] as const;
 /** 역할. 코드 = 제 게이지 번호 + 1 (규칙이 pool + 1 == role로 본다). */
 export type RaidRoleId = "reaper" | "seeker" | "warden";
 export const RAID_ROLES: Record<RaidRoleId, { code: 1 | 2 | 3; pool: RaidPool; icon: string; label: string; job: string }> = {
-  reaper: { code: 1, pool: 0, icon: "🌾", label: "낫잡이", job: "몸을 문질러 체력을 깎아요" },
+  reaper: { code: 1, pool: 0, icon: "🌾", label: "낫잡이", job: "몸을 두드려 체력을 깎아요" },
   seeker: { code: 2, pool: 1, icon: "🔍", label: "돋보기꾼", job: "‘출처’ 표적을 골라 두드려 갑옷을 깨요" },
   warden: { code: 3, pool: 2, icon: "🛡️", label: "울타리지기", job: "박자에 맞춰 울타리를 세워요" },
 };
@@ -673,20 +683,21 @@ export function raidRoleOf(code: unknown): RaidRoleId | null {
   return RAID_ROLE_ORDER.find((id) => RAID_ROLES[id].code === code) ?? null;
 }
 export const RAID_ROLE_MULT = 2;
-export const RAID_FORM_FAST = 30 * MINUTE;
-/** 종류의 기본 필요량 = 2.0 체력(RAID_KINDS의 hp) × RAID_ROLE_MULT. */
-export const RAID_SIZES = [540, 720, 900] as const;
-/** 형태마다 필요량을 체력·갑옷·울타리로 나누는 비율(%). */
-export const RAID_FORM_SPLIT: Record<1 | 2 | 3, readonly [number, number, number]> = { 1: [70, 30, 0], 2: [50, 25, 25], 3: [40, 30, 30] };
-/** 변신한 형태의 필요량: 온 사람 한 명에 이만큼(한 사람이 제 역할로 빈틈 없이 넣는 120의 60%). */
-export const RAID_NEED_PER_FIGHTER = 72;
+/** 1형의 크기 — 종류마다(RAID_KINDS의 size). 규칙이 이 셋만 받는다. */
+export const RAID_SIZES = [300, 360, 420] as const;
+/** 형태마다 필요량을 체력·갑옷·울타리로 나누는 비율(%). 1형은 체력뿐이다. */
+export const RAID_FORM_SPLIT: Record<1 | 2 | 3, readonly [number, number, number]> = { 1: [100, 0, 0], 2: [50, 25, 25], 3: [40, 30, 30] };
+/** 2·3형의 기본 크기 = 1형 크기 × 이 배수(규칙은 size * 2, size * 5 / 2로 쓴다). */
+export const RAID_FORM_GROW: Record<2 | 3, number> = { 2: 2, 3: 2.5 };
+/** 사람이 많을 때: 온 사람 한 명에 이만큼(한 사람이 제 역할로 빈틈 없이 넣는 120의 절반). */
+export const RAID_NEED_PER_FIGHTER = 60;
 export const RAID_NEED_STEP = 60;
 export const RAID_NEED_MAX = 60_000;
 /** 변신 커밋이 읽은 인원이 이만큼 늦어도 규칙이 받는다(그 사이 든 사람). */
-export const RAID_NEED_SLACK = 10;
+export const RAID_NEED_SLACK = 5;
 
 export function raidSize(day: number, wave: number): number {
-  return raidKind(day, wave).hp * RAID_ROLE_MULT;
+  return raidKind(day, wave).size;
 }
 
 /** 필요량을 세 게이지로 나눈다. 필요량이 RAID_NEED_STEP의 배수라 늘 정수다. */
@@ -695,10 +706,15 @@ export function raidSplit(n: number, form: 1 | 2 | 3): { h: number; b: number; g
   return { h: (n * h) / 100, b: (n * b) / 100, g: (n * g) / 100 };
 }
 
-/** 변신한 형태의 필요량. */
-export function raidNextNeed(size: number, fighters: number): number {
+/** 2·3형의 기본 크기. */
+export function raidFormBase(size: number, form: 2 | 3): number {
+  return size * RAID_FORM_GROW[form];
+}
+
+/** 변신한 형태의 필요량 — 기본 크기와 온 사람 수 가운데 큰 쪽. */
+export function raidNextNeed(size: number, form: 2 | 3, fighters: number): number {
   const byCrowd = Math.ceil((RAID_NEED_PER_FIGHTER * fighters) / RAID_NEED_STEP) * RAID_NEED_STEP;
-  return Math.min(RAID_NEED_MAX, Math.max(size, byCrowd));
+  return Math.min(RAID_NEED_MAX, Math.max(raidFormBase(size, form), byCrowd));
 }
 
 export interface RaidGauge {
@@ -720,15 +736,19 @@ export function raidFilled(r: RaidWave): boolean {
   return raidGauges(r).every((g) => g.have >= g.need);
 }
 
-/** 다 찼을 때 일어날 일 — 변신(빠르게 채웠고 3형 전)이냐 처치냐. 규칙도 같게 본다. */
-export function raidAdvanceKind(r: RaidWave, now: number): "morph" | "finish" {
-  const v = r.v3;
-  return v && v.form < 3 && v.formAt !== null && now < v.formAt + RAID_FORM_FAST ? "morph" : "finish";
+/** 다 찼을 때 일어날 일 — 3형 전이면 변신, 3형(또는 2.0 물결)이면 처치. 규칙도 같게 본다. */
+export function raidAdvanceKind(r: RaidWave): "morph" | "finish" {
+  return r.v3 && r.v3.form < 3 ? "morph" : "finish";
 }
 
-/** 한 번(기력 1)이 몇으로 세지는가 — 역할(제 게이지면 ×2)과 빈틈(×2). 2.0 물결에는 역할 배수가 없다. */
+/** 이 한 번이 역할 배수를 받는가 — 제 게이지거나, 1형(모두가 몸통을 친다). 규칙도 같게 본다. */
+export function raidOnRole(r: RaidWave, role: RaidRoleId | null, pool: RaidPool): boolean {
+  return Boolean(r.v3 && role !== null && (RAID_ROLES[role].pool === pool || r.v3.form === 1));
+}
+
+/** 한 번(기력 1)이 몇으로 세지는가 — 역할(제 게이지면 ×2, 1형은 모두 ×2)과 빈틈(×2). 2.0 물결에는 역할 배수가 없다. */
 export function raidPoolValue(r: RaidWave, role: RaidRoleId | null, pool: RaidPool, t: number): number {
-  const onRole = r.v3 && role !== null && RAID_ROLES[role].pool === pool ? RAID_ROLE_MULT : 1;
+  const onRole = raidOnRole(r, role, pool) ? RAID_ROLE_MULT : 1;
   return onRole * raidStrikeValue(t, r.spawnedAt, r.hp);
 }
 
@@ -774,7 +794,7 @@ export function nextRaidWave(waves: Array<RaidWave | null>, now: number): { wave
 }
 
 /** 문지르기 이만큼이 한 방이다. */
-export const RAID_RUBS_PER_STRIKE = 4;
+export const RAID_RUBS_PER_STRIKE = 3;
 /** 한 사람이 한 방을 보내는 간격. 규칙은 1초를 지키고, 화면은 여유를 둔다. */
 export const RAID_STRIKE_GAP = 1_200;
 
@@ -1261,25 +1281,33 @@ export function canAcceptInvite(
  * ★ 공개 정원에는 단계 숫자만 싣는다. 이름은 보는 쪽이 이 표에서 읽는다 — 사람이 지은 글이 아니다.
  * ★ 꽃밭의 "정원지기"(업적마다 가장 많이 가꾼 사람)와 겹치지 않게, 광장 칭호는 잡초 사냥꾼이다.
  */
-export type TitleId = "dex" | "storm" | "plaza";
+export type TitleId = "dex" | "storm" | "plaza" | "read" | "lib";
 
-export const TITLE_ORDER: TitleId[] = ["dex", "storm", "plaza"];
+export const TITLE_ORDER: TitleId[] = ["dex", "storm", "plaza", "read", "lib"];
 
 export const TITLES: Record<TitleId, { icon: string; name: string; what: string; unit: string; steps: [number, number, number] }> = {
   dex: { icon: "📖", name: "품종학자", what: "도감에 모은 품종", unit: "종", steps: [10, 40, 100] },
   storm: { icon: "⛈", name: "폭풍추적자", what: "도감에 모은 촉촉·반짝 변이", unit: "칸", steps: [3, 15, 40] },
   plaza: { icon: "🪓", name: "잡초 사냥꾼", what: "함께 쓰러뜨린 거대 잡초", unit: "마리", steps: [1, 5, 20] },
+  // 특별한 책(room/library.ts). 애독가 = 모든 장에 완독 도장을 찍은 책, 서재지기 = 가진 책.
+  read: { icon: "🔖", name: "애독가", what: "완독 도장을 다 찍은 특별한 책", unit: "권", steps: [1, 3, 7] },
+  lib: { icon: "📚", name: "서재지기", what: "모은 특별한 책", unit: "권", steps: [3, 5, 7] },
 };
 
 export const TITLE_MAX = 3;
 
-/** 칭호마다 센 값. 도감(품종 → 본 변이)과 받은 거대 잡초 상자에서 나온다. */
-export function titleCounts(d: { dex: Record<string, readonly string[]>; raids: readonly number[] }): Record<TitleId, number> {
+/**
+ * 칭호마다 센 값. 도감(품종 → 본 변이), 받은 거대 잡초 상자, 특별한 책(다 읽은 책·가진 책)에서 나온다.
+ * 책의 두 수는 부르는 쪽이 room/library.ts로 셈해 넘긴다(이 파일이 방 모듈을 끌어오지 않게).
+ */
+export function titleCounts(d: { dex: Record<string, readonly string[]>; raids: readonly number[]; booksRead?: number; booksOwned?: number }): Record<TitleId, number> {
   const seen = Object.values(d.dex);
   return {
     dex: seen.length,
     storm: seen.reduce((n, m) => n + (m.includes("moist") ? 1 : 0) + (m.includes("sparkle") ? 1 : 0), 0),
     plaza: d.raids.length,
+    read: d.booksRead ?? 0,
+    lib: d.booksOwned ?? 0,
   };
 }
 
@@ -1290,7 +1318,7 @@ export function titleLevel(id: TitleId, count: number): number {
 
 export function titleLevels(d: Parameters<typeof titleCounts>[0]): Record<TitleId, number> {
   const c = titleCounts(d);
-  return { dex: titleLevel("dex", c.dex), storm: titleLevel("storm", c.storm), plaza: titleLevel("plaza", c.plaza) };
+  return { dex: titleLevel("dex", c.dex), storm: titleLevel("storm", c.storm), plaza: titleLevel("plaza", c.plaza), read: titleLevel("read", c.read), lib: titleLevel("lib", c.lib) };
 }
 
 /** 다음 단계까지 남은 수. 다 올랐으면 null. */

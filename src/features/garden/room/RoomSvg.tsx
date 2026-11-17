@@ -297,6 +297,9 @@ export function Surface({ id, art }: { id: string; art: string }) {
       return pattern(20, <><rect width="20" height="20" fill="#eef5df" /><path d="M0 14Q5 6 10 10T20 6" fill="none" stroke="#7fa64a" strokeWidth="2" /><rect x="9" y="8" width="3" height="3" fill="#a3b236" /></>);
     case "wp-guard":
       return pattern(24, <><rect width="24" height="24" fill="#2b4a2a" /><rect x="3" y="4" width="4" height="4" fill="#ffd85c" /><rect x="15" y="15" width="3" height="3" fill="#ffd85c" /><rect x="10" y="10" width="4" height="2" fill="#86c46d" /><rect x="11" y="9" width="2" height="4" fill="#86c46d" /></>);
+    case "wp-library":
+      // 책등이 줄지어 선 서재 — 일곱 권의 책 색을 돌려 쓴다.
+      return pattern(28, <><rect width="28" height="28" fill="#4a3424" /><rect y="13" width="28" height="2" fill="#2e1f14" /><rect y="27" width="28" height="1" fill="#2e1f14" />{[...BOOK_PALETTES.values()].slice(0, 6).map((b, i) => <rect key={b.cover} x={1 + i * 4.5} y={i % 2 ? 4 : 3} width="3.5" height={i % 2 ? 9 : 10} fill={b.cover} />)}{[...BOOK_PALETTES.values()].slice(1, 7).map((b, i) => <rect key={`l${b.cover}`} x={2 + i * 4.3} y={i % 3 ? 17 : 16} width="3.2" height={i % 3 ? 10 : 11} fill={b.ribbon} />)}</>);
     case "fl-plaza":
       return pattern(16, <><rect width="16" height="16" fill="#cfc6b4" /><rect width="16" height="1" fill="#a39a88" /><rect x="8" width="1" height="8" fill="#a39a88" /><rect y="8" width="16" height="1" fill="#a39a88" /><rect x="0" y="8" width="1" height="8" fill="#a39a88" /></>);
     case "wp-cream":
@@ -440,6 +443,12 @@ export function FurnitureArt({ art, w, h, weather, keys }: { art: string; w: num
       break;
     case "drum":
       body = <><B x={8} y={base - 22} w={w - 16} h={20} fill={C.red} /><rect x="8" y={base - 22} width={w - 16} height="4" fill={C.paper} /><rect x="8" y={base - 6} width={w - 16} height="4" fill={C.paper} /><path d={`M10 ${base - 18}L${w - 10} ${base - 6}M${w - 10} ${base - 18}L10 ${base - 6}`} stroke={C.yellow} strokeWidth="1.5" /><B x={w - 12} y={base - 34} w={3} h={12} fill={C.wood} /></>;
+      break;
+    case "lamp-reading":
+      body = <><B x={cx - 8} y={base - 4} w={16} h={4} fill="#bf913e" /><B x={cx - 2} y={base - 34} w={4} h={30} fill="#bf913e" /><path d={`M${cx - 12} ${base - 34}L${cx - 6} ${base - 46}H${cx + 6}L${cx + 12} ${base - 34}Z`} fill="#e3bd68" stroke={C.ink} strokeWidth="2" /><path d={`M${cx - 12} ${base - 33}L${cx - 20} ${base - 6}H${cx + 20}L${cx + 12} ${base - 33}Z`} fill="#ffe877" opacity=".35" /></>;
+      break;
+    case "shelf-complete":
+      body = <><B x={4} y={base - 46} w={w - 8} h={46} fill="#5a3b26" /><rect x="6" y={base - 48} width={w - 12} height="3" fill="#e3bd68" stroke={C.ink} strokeWidth="1" />{[base - 42, base - 22].map((y, r) => <g key={y}>{[...BOOK_PALETTES.values()].map((b, k) => <rect key={b.cover} x={9 + k * ((w - 18) / 7)} y={y + ((k + r) % 2)} width={(w - 18) / 7 - 1} height={17 - ((k + r) % 2)} fill={r ? b.ribbon : b.cover} stroke={C.ink} strokeWidth="1" />)}<rect x="6" y={y + 17} width={w - 12} height="2" fill={C.ink} /></g>)}</>;
       break;
     case "lantern":
       body = <><B x={cx - 2} y={base - 14} w={4} h={14} fill={C.ink} /><B x={cx - 8} y={base - 36} w={16} h={22} fill={C.yellow} /><rect x={cx - 8} y={base - 38} width="16" height="3" fill={C.ink} /><rect x={cx - 4} y={base - 30} width="8" height="10" fill={C.orangeL} /></>;

@@ -40,6 +40,7 @@ import { VisitView } from "./VisitView";
 import { BASKET_MAX, useGarden, type GardenData } from "./store";
 import type { Leaf, Species } from "./types";
 import { Neighbors } from "./Neighbors";
+import { bookTitleInput } from "./room/library";
 import { useBlooms } from "./useBlooms";
 import { usePlaza } from "./usePlaza";
 
@@ -270,7 +271,12 @@ export function GardenApp({
   // 칭호. 정원 기록에서 셈하므로 따로 저장하지 않는다. 계정과 맞춘 뒤의 단계를 기준으로, 오르면 알린다.
   const dex = data?.dex;
   const raids = data?.raids;
-  const levels = useMemo(() => (dex && raids ? titleLevels({ dex, raids }) : null), [dex, raids]);
+  const library = data?.library;
+  const owned = data?.room.owned;
+  const levels = useMemo(
+    () => (dex && raids && library && owned ? titleLevels({ dex, raids, ...bookTitleInput(library, owned) }) : null),
+    [dex, raids, library, owned],
+  );
   const seenLevels = useRef<Record<TitleId, number> | null>(null);
   useEffect(() => {
     if (!levels || syncing) return;

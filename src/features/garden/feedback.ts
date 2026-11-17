@@ -205,6 +205,41 @@ export function gardenFeedback(kind: "tap" | "plant" | "harvest" | "pull" | "rew
   notes.forEach((hz, i) => tone(ctx, master!, hz, ctx.currentTime + 0.01 + i * 0.07, kind === "tap" ? 0.12 : 0.28, 0.16, "triangle"));
 }
 
+// ── 진동 ────────────────────────────────────────────────────────────
+
+let iosSwitch: HTMLLabelElement | null = null;
+
+/**
+ * 손끝 진동. 안드로이드는 navigator.vibrate로, 그게 없는 iPhone(Safari 18+)은 숨은 스위치(<input switch>)를
+ * 눌러 시스템 햅틱을 한 번 낸다 — 사파리가 스위치를 켜고 끌 때 주는 '톡'이다. 패턴은 내지 못하고 한 번만 울린다.
+ * 반드시 사람이 누른 처리기 안에서 부른다(그 밖에서는 둘 다 무시된다). 안 되는 기기에서는 아무 일도 없다.
+ */
+export function haptic(pattern: number | number[]) {
+  if (typeof window === "undefined") return;
+  try {
+    if (typeof navigator.vibrate === "function") {
+      navigator.vibrate(pattern);
+      return;
+    }
+    if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) return;
+    if (!iosSwitch) {
+      const label = document.createElement("label");
+      label.setAttribute("aria-hidden", "true");
+      label.style.cssText = "position:fixed;left:-100px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.setAttribute("switch", "");
+      input.tabIndex = -1;
+      label.appendChild(input);
+      document.body.appendChild(label);
+      iosSwitch = label;
+    }
+    iosSwitch.click();
+  } catch {
+    // 진동은 덤이다.
+  }
+}
+
 // ── 거대 잡초 타격음 ────────────────────────────────────────────────
 
 /**
@@ -217,8 +252,8 @@ export function gardenFeedback(kind: "tap" | "plant" | "harvest" | "pull" | "rew
 export type RaidSound = "rub" | "hit" | "weak" | "ghost" | "phase" | "morph" | "surge" | "warn" | "hurt" | "dodge" | "finisher" | "defeat";
 
 const RAID_VIBE: Partial<Record<RaidSound, number | number[]>> = {
-  rub: 4,
-  hit: [18, 20, 28],
+  rub: 14,
+  hit: [30, 20, 40],
   weak: [24, 16, 36],
   phase: [40, 40, 80],
   morph: [80, 40, 80, 40, 220],
@@ -235,13 +270,7 @@ let lastGhost = 0;
 export function raidFeedback(kind: RaidSound) {
   if (typeof window === "undefined") return;
   const vibe = RAID_VIBE[kind];
-  if (vibe !== undefined && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    try {
-      navigator.vibrate?.(vibe);
-    } catch {
-      // 진동은 덤이다.
-    }
-  }
+  if (vibe !== undefined && kind !== "ghost" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) haptic(vibe);
   if (!enabled) return;
   // 남이 친 소리는 겹치면 시끄럽다. 0.12초에 한 번만.
   if (kind === "ghost") {
@@ -255,7 +284,9 @@ export function raidFeedback(kind: RaidSound) {
   const out = master;
   switch (kind) {
     case "rub":
-      noise(ctx, out, at, 0.05, 0.08, 2_400);
+      // 두드림 — 짧고 단단한 '탁'. 휴대폰 스피커에서도 들리게 낮은 몸을 조금 얹는다.
+      noise(ctx, out, at, 0.04, 0.16, 3_200);
+      tone(ctx, out, 180, at, 0.06, 0.12, "sine");
       break;
     case "hit":
       thud(ctx, out, at, 1);

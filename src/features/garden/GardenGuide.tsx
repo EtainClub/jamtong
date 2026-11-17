@@ -4,7 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 import { FRAME_BLANK, FURNITURE_BY_ID } from "./room/catalog";
 import { ROOM_SIZES } from "./room/rules";
-import { CHEER_MIN, KIT, KIT_ORDER, ROOTS_CHEER, ROOTS_ESCAPE, ROOTS_FULL, SAMPLES_PER_TROPHY, SPORE_COUNT, STAR_MINUTES } from "./raid/rules";
+import { CHEER_MIN, KIT, KIT_ORDER, RAID_JAM, RAID_JAM_MAX, ROOTS_CHEER, ROOTS_ESCAPE, ROOTS_FULL, SAMPLES_PER_TROPHY, SPORE_COUNT, STAR_MINUTES } from "./raid/rules";
 
 import {
   BLOOM_BONUS,
@@ -49,15 +49,12 @@ import {
   RAID_FRENZY_GAP_MINUTES,
   RAID_GAP_MINUTES,
   RAID_GAP_MULT,
-  RAID_FORM_FAST,
   RAID_ROLE_MULT,
   RAID_ROLE_ORDER,
   RAID_ROLES,
   RAID_SIZES,
   RAID_KINDS,
   RAID_LIFE,
-  RAID_MAX_FIGHTERS,
-  RAID_MIN_FIGHTERS,
   RAID_PER_DAY,
   FINISHER_ORDER,
   FINISHERS,
@@ -307,22 +304,23 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
               열려요. 앞 거대 잡초가 끝나고 {duration(RAID_GAP / MINUTE)}이 지나야 다음이 나와요.
             </li>
             <li>
-              거대 잡초는 세 번까지 변신해요. 한 형태의 게이지(체력·갑옷·울타리)를 {RAID_FORM_FAST / MINUTE}분 안에 다 채우면 쓰러지지 않고 더 센 형태가 되고,
-              넘기면 그 자리에서 쓰러져요. 다음 형태의 크기는 그때까지 온 사람 수에 맞춰져요. 1형만 넘기면 상자는 확정이에요.
+              거대 잡초는 세 번 변신해요. 1형의 체력을 다 깎으면 2형, 2형의 게이지(체력·갑옷·울타리)를 다 채우면 3형이 나오고, 3형을 채우면 쓰러져요.
+              2·3형은 1형의 2·2.5배이고 사람이 많으면 더 커져요. 잼은 참여 {RAID_JAM.base} · 1형 {RAID_JAM.forms[0]} · 2형 {RAID_JAM.forms[1]} · 3형{" "}
+              {RAID_JAM.forms[2]} — 끝까지 함께하면 {RAID_JAM_MAX.toLocaleString()}잼이고, 형태 보상은 그 형태에 든 사람이 받아요.
             </li>
             <li>
-              역할은 셋이에요: {RAID_ROLE_ORDER.map((id) => `${RAID_ROLES[id].icon} ${RAID_ROLES[id].label} — ${RAID_ROLES[id].job}`).join(" · ")}.
+              1형은 모두가 몸통을 쳐서 한 방이 ×{RAID_ROLE_MULT}예요. 2형부터 역할을 골라요:{" "}
+              {RAID_ROLE_ORDER.map((id) => `${RAID_ROLES[id].icon} ${RAID_ROLES[id].label} — ${RAID_ROLES[id].job}`).join(" · ")}.
               제 역할의 게이지에 넣으면 한 번이 ×{RAID_ROLE_MULT}, 남의 게이지는 ×1이고, 역할은 형태가 바뀔 때 다시 고를 수 있어요.
             </li>
             <li>
               기력은 형태마다 {RAID_USES_PER_PERSON}번이에요. 매 시 정각과 30분부터 {RAID_GAP_MINUTES}분은
               ‘빈틈’이라 그때 친 한 번은 다시 ×{RAID_GAP_MULT}로 들어가요(도망 30분 전 폭주 때는 빈틈이 {RAID_FRENZY_GAP_MINUTES}분). 한 사람이 한 형태에 넣는 최대가{" "}
-              {RAID_USES_PER_PERSON * RAID_ROLE_MULT * RAID_GAP_MULT}이고 1형의 크기는 적어도 {RAID_SIZES[0]}이라 혼자서도 둘이서도 못 잡아요 — 모두 제 역할로 빈틈에 모이면{" "}
-              {RAID_MIN_FIGHTERS}–4명, 아무 때나 치면 5–{RAID_MAX_FIGHTERS}명이 들어요.
+              {RAID_USES_PER_PERSON * RAID_ROLE_MULT * RAID_GAP_MULT}이고 1형의 크기는 적어도 {RAID_SIZES[0]}이라 혼자서는 못 잡아요 — 1형은 빈틈에 모이면 둘, 아무 때나 쳐도 셋–넷이면 잡혀요.
             </li>
             <li>
               거대 잡초는 사회를 갉아먹는 악초예요. 하루 {RAID_PER_DAY}번 서로 다른 놈이 나오고, 종류마다 1형의 크기가 달라요:{" "}
-              {RAID_KINDS.map((k) => `${k.name} ${k.hp * RAID_ROLE_MULT}(${raidNeedV3(k.hp * RAID_ROLE_MULT).least}–${raidNeedV3(k.hp * RAID_ROLE_MULT).most}명)`).join(" · ")}.
+              {RAID_KINDS.map((k) => `${k.name} ${k.size}(${raidNeedV3(k.size).least}–${raidNeedV3(k.size).most}명)`).join(" · ")}.
             </li>
             <li>
               지원은 기력과 따로, 1분에 한 번 걸어요(지원 도구가 있으면 20초):{" "}

@@ -21,6 +21,7 @@ import { pingRaidSpawn } from "@/lib/firebase/push";
 
 import { ACTIVE_WINDOW, TEAM_MIN, TEAM_WINDOW } from "./raidPlay";
 import { PUSH_FRESH } from "./raid/push";
+import { useGarden } from "./store";
 import { raidStars } from "./raid/rules";
 import {
   kstDayNumber,
@@ -38,6 +39,7 @@ import {
   raidFilled,
   raidFormsCleared,
   raidId,
+  raidKey,
   raidNextNeed,
   raidPhase,
   raidPoolValue,
@@ -262,12 +264,14 @@ export function useRaid(
   // 내 표식은 지금 물결 것만 본다.
   const currentId = raid?.id ?? null;
 
-  // 갓 태어난 물결을 봤으면 서버에 알린다 — 알림을 켠 기기에 푸시가 간다(docs/garden-raid-boss.md §8).
-  // 세운 화면도, 그 직후에 본 화면도 부른다. 서버가 물결당 한 번만 보낸다.
-  const fresh = raid?.phase === "active" && raid.spawnedAt !== null && now - raid.spawnedAt < PUSH_FRESH;
+  // 갓 태어났거나 갓 변신한 물결을 봤으면 서버에 알린다 — 알림을 켠 기기에 푸시가 간다(docs/garden-raid-boss.md §8).
+  // 세운 화면도, 그 직후에 본 화면도 부른다. 서버가 물결·형태마다 한 번만 보낸다.
+  const shownForm = raid?.v3?.form ?? 1;
+  const bornAt = raid?.v3 && raid.v3.form > 1 ? raid.v3.formAt : (raid?.spawnedAt ?? null);
+  const fresh = raid?.phase === "active" && bornAt !== null && now - bornAt < PUSH_FRESH;
   useEffect(() => {
-    if (firebaseConfigured && fresh && currentId) pingRaidSpawn(currentId);
-  }, [fresh, currentId]);
+    if (firebaseConfigured && fresh && currentId) pingRaidSpawn(currentId, shownForm);
+  }, [fresh, currentId, shownForm]);
   useEffect(() => {
     if (!firebaseConfigured || !uid || !currentId) return;
     return watchMine(currentId, uid, (me) => setMine({ id: currentId, me }));
@@ -287,7 +291,13 @@ export function useRaid(
   // 역할: 이 형태에서 이미 쳤으면 표식의 것(바꿀 수 없다), 아니면 고른 것(없으면 앞 형태의 것).
   const [picked, setPicked] = useState<{ id: string; role: RaidRoleId } | null>(null);
   const canPickRole = formNow !== 0 && raid?.phase === "active" && !(stored.role !== null && stored.form === formNow);
-  const role: RaidRoleId | null = formNow === 0 ? null : canPickRole ? (picked && picked.id === currentId ? picked.role : stored.role) : stored.role;
+  // 1형은 누구나 몸통을 친다 — 역할을 고르지 않아도 바로 낫잡이로 든다(1형에서는 역할에 상관없이 두 배다).
+  const role: RaidRoleId | null =
+    formNow === 0
+      ? null
+      : canPickRole
+        ? ((picked && picked.id === currentId ? picked.role : stored.role) ?? (formNow === 1 ? "reaper" : null))
+        : stored.role;
   const roleRef = useRef(role);
   useEffect(() => {
     roleRef.current = role;
@@ -351,10 +361,10 @@ export function useRaid(
 
   // 세 게이지가 다 찼는데 아직 넘어가지 않았으면 넘긴다 — 변신이거나 쓰러뜨리기(raid.ts의 advanceRaid).
   // 게이지는 칸에 나눠 세므로 마지막 한 방이 따로 넘기지 못한다. 누가 해도 한 번만 되고, 보는 사람 누구나 시도한다.
-  // 막히면(다른 사람이 먼저 했거나 30분 경계에서 시계가 엇갈렸으면) 다음 변화에서 다시 본다 — 3초에 한 번까지만.
+  // 막히면(다른 사람이 먼저 했으면) 다음 변화에서 다시 본다 — 3초에 한 번까지만.
   const filled = raid && raid.defeatedAt === null && raid.phase === "active" && raidFilled(raid) ? raid : null;
   // 곧 쓰러질 물결에는 더 보내지 않는다. 변신할 물결에 넘치게 들어간 것은 다음 형태의 몫이 되므로 그대로 보낸다.
-  const ending = filled !== null && raidAdvanceKind(filled, now) === "finish";
+  const ending = filled !== null && raidAdvanceKind(filled) === "finish";
   const fullRef = useRef(false);
   const advancing = useRef({ busy: false, at: 0 });
   const advanceKey = firebaseConfigured && uid !== null && filled ? `${filled.id}:${formNow}:${filled.hits + (filled.v3 ? filled.v3.brkHits + filled.v3.grdHits : 0)}` : null;
@@ -449,10 +459,10 @@ export function useRaid(
               };
               result = "ok";
               if (raidFilled(next)) {
-                if (next.v3 && raidAdvanceKind(next, at) === "morph") {
+                if (next.v3 && raidAdvanceKind(next) === "morph") {
                   const v = next.v3;
                   const nextForm = (v.form + 1) as 2 | 3;
-                  const need = raidNextNeed(v.size, next.fighters);
+                  const need = raidNextNeed(v.size, nextForm, next.fighters);
                   const part = raidSplit(need, nextForm);
                   const base = { h: next.hits, b: v.brkHits, g: v.grdHits };
                   next = { ...next, hp: base.h + part.h, v3: { ...v, form: nextForm, formAt: at, n: need, base, brk: base.b + part.b, grd: base.g + part.g } };
@@ -497,6 +507,8 @@ export function useRaid(
         if (result === "ok" || result === "defeated") {
           shot.done?.(landed);
           setMineAt(Date.now());
+          // 형태 보상은 그 형태에 든 사람만 받는다 — 든 형태를 내 장부에 적는다.
+          useGarden.getState().markRaidPart(raidKey(day, wave), raidRef.current?.v3?.form ?? 1);
           if (hitsRef.current === 0 && !joined.current.has(id)) {
             joined.current.add(id);
             track("raid_join", { wave, fighters: fightersRef.current + 1 });
@@ -579,7 +591,10 @@ export function useRaid(
           result = await aidRaid(uid, id, kind, nickRef.current, roleRef.current);
         }
       }
-      if (result === "ok") track("raid_aid", { kind, wave });
+      if (result === "ok") {
+        track("raid_aid", { kind, wave });
+        useGarden.getState().markRaidPart(raidKey(day, wave), raidRef.current?.v3?.form ?? 1);
+      }
       return result;
     },
     [day, wave, uid],

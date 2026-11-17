@@ -67,6 +67,12 @@ function spansYears(dates: string[]): boolean {
   return Math.max(...years) - Math.min(...years) >= 2;
 }
 
+/** 연표의 첫 해. 특별한 책의 '그 시절 씨앗'이 고른다(room/library.ts의 bookSeed). 연표가 없으면 싣지 않는다. */
+function sinceOf(dates: string[]): { since?: number } {
+  const years = dates.map((d) => Number(d.slice(0, 4))).filter((y) => Number.isInteger(y) && y > 1900);
+  return years.length ? { since: Math.min(...years) } : {};
+}
+
 export function buildCatalog(): Species[] {
   const species: Array<Omit<Species, "region" | "links">> = [];
 
@@ -89,6 +95,7 @@ export function buildCatalog(): Species[] {
       notes: [...facts, ...counters],
       seed: hash(a.slug),
       arrivedOn: arrivedOn(`a:${a.slug}`),
+      ...sinceOf(a.timeline.map((e) => e.date)),
     });
   }
 

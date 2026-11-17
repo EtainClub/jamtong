@@ -9,7 +9,7 @@ import { FORM_ORDER, formName, type RaidForm } from "./forms";
  */
 
 /** 형태가 바뀌는 순간의 컷. 번쩍임 → 충격파 → 이름 띠. 지켜보던 사람에게만 뜬다. */
-export function MorphCut({ kind, form }: { kind: RaidKind; form: RaidForm }) {
+export function MorphCut({ kind, form, prize = 0 }: { kind: RaidKind; form: RaidForm; prize?: number }) {
   return (
     <div className="raid-morph" role="status" aria-live="assertive">
       <span className="raid-morph-flash" aria-hidden="true" />
@@ -18,6 +18,7 @@ export function MorphCut({ kind, form }: { kind: RaidKind; form: RaidForm }) {
       <p className="raid-morph-band">
         <small>{FORM_ORDER[form]}</small>
         <b>{formName(kind.id, form)}</b>
+        {prize > 0 && <em>{form - 1}형 격파! 잼 +{prize.toLocaleString()}</em>}
       </p>
     </div>
   );

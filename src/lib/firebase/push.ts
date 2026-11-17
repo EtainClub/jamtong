@@ -140,14 +140,15 @@ export async function refreshPush(now: number): Promise<void> {
 const PINGED_KEY = "jamtong-raid-pinged";
 
 /**
- * 갓 태어난 물결을 봤다고 서버에 알린다(api/raid-notify) — 기기마다 물결당 한 번.
- * 알릴지는 서버가 정한다. 여기서는 같은 물결로 두 번 부르지 않게만 한다.
+ * 갓 태어났거나 갓 변신한 물결을 봤다고 서버에 알린다(api/raid-notify) — 기기마다 물결·형태당 한 번.
+ * 알릴지는 서버가 정한다(서버는 물결 문서의 지금 형태를 읽는다). 여기서는 같은 것으로 두 번 부르지 않게만 한다.
  */
-export function pingRaidSpawn(id: string): void {
+export function pingRaidSpawn(id: string, form = 1): void {
+  const key = form > 1 ? `${id}:${form}` : id;
   try {
     const seen = JSON.parse(localStorage.getItem(PINGED_KEY) ?? "[]") as string[];
-    if (seen.includes(id)) return;
-    localStorage.setItem(PINGED_KEY, JSON.stringify([...seen, id].slice(-10)));
+    if (seen.includes(key)) return;
+    localStorage.setItem(PINGED_KEY, JSON.stringify([...seen, key].slice(-20)));
   } catch {
     // 적지 못하면 부르지 않는다. 화면이 다시 그려질 때마다 부르는 것보다 낫다.
     return;

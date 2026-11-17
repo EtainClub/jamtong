@@ -17,6 +17,8 @@ import { FurnitureStory } from "./FurnitureStory";
 import { activityOf } from "./activities";
 import { RoomVoicePlayer } from "./RoomVoicePlayer";
 import { playActivitySound } from "./activitySound";
+import { BookSheet } from "./BookSheet";
+import { roomBookOf } from "./library";
 import { PianoPlayer } from "./PianoPlayer";
 import { pianoNotes, pianoSong, type PianoEvent } from "./piano";
 import type { Placed, RoomData } from "./rules";
@@ -35,6 +37,7 @@ export function RoomItemSheet({
   onClose,
   onPianoNotes,
   onPianoSave,
+  reader,
 }: {
   room: RoomData;
   placed: Placed;
@@ -42,6 +45,8 @@ export function RoomItemSheet({
   onClose: () => void;
   onPianoNotes?: (notes: number[]) => void;
   onPianoSave?: (song: PianoEvent[]) => boolean;
+  /** 특별한 책의 독서대(BookSheet)에 넘길 것. 없으면 예전처럼 요약 링크만. */
+  reader?: { mode: "owner" | "guest"; ownerNick: string; gid: string | null; uid: string | null };
 }) {
   const shown = room.shown.find((s) => s.id === placed.it);
   const species = shown?.species ? byId.get(shown.species) : undefined;
@@ -54,6 +59,10 @@ export function RoomItemSheet({
 
   const furniture = FURNITURE_BY_ID.get(placed.it);
   const activity = activityOf(placed.it);
+  const book = roomBookOf(placed.it);
+  if (book && reader) {
+    return <BookSheet book={book} room={room} mode={reader.mode} ownerNick={reader.ownerNick} gid={reader.gid} uid={reader.uid} catalog={[...byId.values()]} onClose={onClose} />;
+  }
   if (placed.it === "piano") return <Sheet label="피아노 연주" title="피아노" onClose={onClose}><PianoPlayer key={placed.kb ?? 0} notes={pianoNotes(room.pianos?.[placed.kb ?? 0])} song={pianoSong(room.pianoSongs?.[placed.kb ?? 0])} onChange={onPianoNotes} onSave={onPianoSave} /></Sheet>;
   if (furniture && (furniture.story || activity || furniture.reading)) {
     return (

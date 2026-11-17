@@ -660,19 +660,19 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
   const shardRef = (n: number) => doc(db, "plazaRaids", id(), "shards", String(n));
   const SHARDS = 8;
   const S = 3; // 이 점검이 올리는 칸
-  // 3.0 물결: 1형, 종류의 기본 필요량(size)을 체력 70%·갑옷 30%로(lib/firebase/raid.ts의 spawnRaid).
+  // 3.1 물결: 1형, 종류의 크기(size)를 모두 체력으로(lib/firebase/raid.ts의 spawnRaid).
   const fresh = (size: number) => ({
-    hp: (size * 70) / 100, brk: (size * 30) / 100, grd: 0, size, n: size, base: { h: 0, b: 0, g: 0 },
+    hp: size, brk: 0, grd: 0, size, n: size, base: { h: 0, b: 0, g: 0 },
     form: 1, formAt: serverTimestamp(), hits: 0, fighters: 0, spawnedAt: serverTimestamp(), defeatedAt: null,
   });
   // 세울 때 빈 칸 여덟을 함께 만든다.
-  const spawn = (wave = 1, size = 540) => {
+  const spawn = (wave = 1, size = 300) => {
     const batch = writeBatch(db);
     batch.set(raidRef(wave), fresh(size));
     for (let n = 0; n < SHARDS; n++) batch.set(doc(db, "plazaRaids", id(wave), "shards", String(n)), { hits: 0, fighters: 0 });
     return batch.commit();
   };
-  // 한 커밋 = 내 표식(mine) + 내 칸(shard=S). 낫잡이(role 1)가 체력(pool 0)에 넣는다 — 한 번이 2, 빈틈이면 4.
+  // 한 커밋 = 내 표식(mine) + 내 칸(shard=S). 1형은 누구나 체력(pool 0)에 두 배 — 한 번이 2, 빈틈이면 4.
   // 빈틈은 서버 시각의 분으로 정해진다(매 시 0–2분·30–32분). 갈래마다의 점검은 check:raid-rules(에뮬레이터)가 한다.
   const worth = () => (new Date().getUTCMinutes() % 30 < 3 ? 4 : 2);
   const steady = async () => {
@@ -688,13 +688,14 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
   };
   const wait = () => new Promise((r) => setTimeout(r, 1_200));
 
-  await expectDenied("옛 id(날짜 번호만)로 세우기", () => setDoc(doc(db, "plazaRaids", String(today)), fresh(540)));
-  await expectDenied("어제 번호로 세우기", () => setDoc(raidRef(1, today - 1), fresh(540)));
-  await expectDenied("여섯째 물결 세우기", () => setDoc(raidRef(6), fresh(540)));
+  await expectDenied("옛 id(날짜 번호만)로 세우기", () => setDoc(doc(db, "plazaRaids", String(today)), fresh(300)));
+  await expectDenied("어제 번호로 세우기", () => setDoc(raidRef(1, today - 1), fresh(300)));
+  await expectDenied("여섯째 물결 세우기", () => setDoc(raidRef(6), fresh(300)));
   await expectDenied("2.0 모양(체력 270, 형태 없음)으로 세우기", () => setDoc(raidRef(), { hp: 270, hits: 0, fighters: 0, spawnedAt: serverTimestamp(), defeatedAt: null }));
-  await expectDenied("없는 크기 480(둘이 잡을 수 있다)으로 세우기", () => setDoc(raidRef(), fresh(480)));
+  await expectDenied("없는 크기 240(혼자 잡을 수 있다)으로 세우기", () => setDoc(raidRef(), fresh(240)));
+  await expectDenied("3.0 크기 540으로 세우기", () => setDoc(raidRef(), fresh(540)));
   await expectDenied("크기 6000으로 세우기", () => setDoc(raidRef(), fresh(6000)));
-  await expectDenied("맞은 수 5로 세우기", () => setDoc(raidRef(), { ...fresh(540), hits: 5 }));
+  await expectDenied("맞은 수 5로 세우기", () => setDoc(raidRef(), { ...fresh(300), hits: 5 }));
 
   if (!adminDb) {
     console.log("  거대 잡초 통과 검사는 건너뛴다 (sa.json 없음)");
@@ -718,7 +719,7 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
 
   try {
     await expectDenied("첫 물결 없이 둘째 물결 세우기", () => spawn(2));
-    await expectAllowed("오늘 첫 물결을 크기 540(체력 378·갑옷 162)으로, 빈 칸 여덟과 함께 세우기", () => spawn());
+    await expectAllowed("오늘 첫 물결을 크기 300(모두 체력)으로, 빈 칸 여덟과 함께 세우기", () => spawn());
     await expectDenied("첫 물결이 싸우는 중에 둘째 물결 세우기", () => spawn(2));
     await expectDenied("칸에 1을 넣어 두기(내 표식 없이)", () => updateDoc(shardRef(S), { hits: 1 }));
     await expectDenied("물결 문서 합계를 바로 +1(표식 없이)", () => updateDoc(raidRef(), { hits: 1 }));
@@ -763,34 +764,40 @@ async function raidChecks(uid: string, adminDb: Awaited<ReturnType<typeof openAd
     v = worth();
     await expectDenied("필살기로 기력 60을 넘기(50 + 20)", () => strike(70, mine + 20 * v, mine + 20 * v, 1));
 
-    // 태어난 지 30분을 넘긴 것으로 돌려 둔다 — 그러면 다 찼을 때 변신이 아니라 처치다.
-    await live.update({ formAt: Timestamp.fromMillis(Date.now() - 40 * 60_000), spawnedAt: Timestamp.fromMillis(Date.now() - 40 * 60_000) });
-    await expectDenied("게이지가 덜 찼는데 쓰러뜨리기", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp() }));
-    // 체력은 채우고 갑옷은 비워 둔다.
-    await adminShard(S).update({ hits: 378 });
-    await expectDenied("갑옷이 비었는데 쓰러뜨리기(체력만 찼다)", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp() }));
-    await adminShard(S).update({ brk: 162 });
-    await expectDenied("쓰러뜨리며 체력도 바꾸기", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp(), hp: 1 }));
-    await expectDenied("쓰러진 시각을 옛날로 찍기", () => updateDoc(raidRef(), { defeatedAt: Timestamp.fromMillis(Date.now() - 3_600_000) }));
-    await expectDenied("30분을 넘겼는데 변신하기", () =>
-      updateDoc(raidRef(), { form: 2, formAt: serverTimestamp(), n: 540, base: { h: 378, b: 162, g: 0 }, hp: 378 + 270, brk: 162 + 135, grd: 135 }));
+    await expectDenied("게이지가 덜 찼는데 변신하기", () =>
+      updateDoc(raidRef(), { form: 2, formAt: serverTimestamp(), n: 600, base: { h: 300, b: 0, g: 0 }, hp: 600, brk: 150, grd: 150 }));
+    await adminShard(S).update({ hits: 300 });
+    await expectDenied("1형을 쓰러뜨리기(다 차면 변신이다)", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp() }));
     // 칸 하나가 없으면 합을 못 낸다.
     await adminShard(7).delete();
-    await expectDenied("칸 하나가 없는데 쓰러뜨리기", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp() }));
+    await expectDenied("칸 하나가 없는데 변신하기", () =>
+      updateDoc(raidRef(), { form: 2, formAt: serverTimestamp(), n: 600, base: { h: 300, b: 0, g: 0 }, hp: 600, brk: 150, grd: 150 }));
     await adminShard(7).set({ hits: 0, fighters: 0 });
-    await expectAllowed("세 게이지가 다 찬 1형을 쓰러뜨리기(30분 넘김)", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp() }));
+    await expectDenied("변신하며 필요량을 줄이기(300)", () =>
+      updateDoc(raidRef(), { form: 2, formAt: serverTimestamp(), n: 300, base: { h: 300, b: 0, g: 0 }, hp: 450, brk: 75, grd: 75 }));
+    await expectAllowed("1형 체력을 다 깎으면 2형으로(기본 600: 체력 300·갑옷 150·울타리 150)", () =>
+      updateDoc(raidRef(), { form: 2, formAt: serverTimestamp(), n: 600, base: { h: 300, b: 0, g: 0 }, hp: 600, brk: 150, grd: 150 }));
+    // 2형을 채워 3형으로, 3형을 채워 쓰러뜨린다.
+    await adminShard(S).update({ hits: 600, brk: 150, grd: 150 });
+    await expectAllowed("2형을 채우면 3형으로(기본 750)", () =>
+      updateDoc(raidRef(), { form: 3, formAt: serverTimestamp(), n: 750, base: { h: 600, b: 150, g: 150 }, hp: 900, brk: 375, grd: 375 }));
+    await expectDenied("3형이 덜 찼는데 쓰러뜨리기", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp() }));
+    await adminShard(S).update({ hits: 900, brk: 375, grd: 375 });
+    await expectDenied("쓰러뜨리며 체력도 바꾸기", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp(), hp: 1 }));
+    await expectDenied("쓰러진 시각을 옛날로 찍기", () => updateDoc(raidRef(), { defeatedAt: Timestamp.fromMillis(Date.now() - 3_600_000) }));
+    await expectAllowed("3형을 채워 쓰러뜨리기", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp() }));
     await expectDenied("쓰러진 시각을 다시 찍기", () => updateDoc(raidRef(), { defeatedAt: serverTimestamp() }));
     await adminMine.update({ uses: 10 });
     await wait();
     await steady();
     v = worth();
-    await expectDenied("쓰러진 뒤 한 방", () => strike(11, mine + v, 378 + v, 1));
+    await expectDenied("쓰러진 뒤 한 방", () => strike(11, mine + v, 900 + v, 1));
     await expectDenied("쓰러진 지 30분 안에 둘째 물결 세우기", () => spawn(2));
     await expectDenied("거대 잡초 지우기", () => deleteDoc(raidRef()));
     await expectDenied("칸 지우기", () => deleteDoc(shardRef(S)));
 
     // 도망: 태어난 지 3시간이 지난 물결은 칠 수 없다.
-    await live.set({ ...fresh(540), formAt: Timestamp.fromMillis(Date.now() - 3.5 * 3_600_000), spawnedAt: Timestamp.fromMillis(Date.now() - 3.5 * 3_600_000) });
+    await live.set({ ...fresh(300), formAt: Timestamp.fromMillis(Date.now() - 3.5 * 3_600_000), spawnedAt: Timestamp.fromMillis(Date.now() - 3.5 * 3_600_000) });
     await adminShard(S).set({ hits: 2, fighters: 1 });
     await adminMine.set({ hits: 2, uses: 1, role: 1, form: 1, pool: 0, lastAt: Timestamp.fromMillis(Date.now() - 60_000), shard: S });
     await steady();

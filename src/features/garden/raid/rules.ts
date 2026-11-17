@@ -204,6 +204,10 @@ export function addSample(
 export interface LootLedger {
   /** 도망간 물결에서 조각을 받은 물결(raidKey). 쓰러뜨린 물결은 상자 장부(raids)가 맡는다. */
   fled: number[];
+  /** 물결(raidKey)마다 내가 든 형태(1–3). 형태 보상은 그 형태에 든 사람만 받는다. */
+  parts: Record<string, number[]>;
+  /** 물결(raidKey)마다 받은 잼 보상 — 0=참여, 1–3=그 형태 격파. */
+  paid: Record<string, number[]>;
   /** 종류마다 모은 표본 조각(SAMPLES_PER_TROPHY까지). */
   samples: Partial<Record<RaidKindId, number>>;
   /** 고른 필살기 연출(전리품 상점). null이면 기본. */
@@ -211,15 +215,63 @@ export interface LootLedger {
 }
 
 export function freshLoot(): LootLedger {
-  return { fled: [], samples: {}, fx: null };
+  return { fled: [], parts: {}, paid: {}, samples: {}, fx: null };
 }
 
 export function normalizeLoot(raw: Partial<LootLedger> | undefined): LootLedger {
   return {
     fled: Array.isArray(raw?.fled) ? raw.fled.filter((n): n is number => typeof n === "number") : [],
+    parts: numberLists(raw?.parts),
+    paid: numberLists(raw?.paid),
     samples: raw?.samples && typeof raw.samples === "object" ? raw.samples : {},
     fx: typeof raw?.fx === "string" ? raw.fx : null,
   };
+}
+
+function numberLists(raw: unknown): Record<string, number[]> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, number[]> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (Array.isArray(v)) out[k] = v.filter((n): n is number => typeof n === "number");
+  }
+  return out;
+}
+
+/** 물결마다 적는 장부를 최근 것만 남긴다(열쇠가 클수록 최근이다). */
+export function trimLedger(map: Record<string, number[]>): Record<string, number[]> {
+  const keys = Object.keys(map).sort((a, b) => Number(b) - Number(a)).slice(0, LEDGER_KEEP);
+  return Object.fromEntries(keys.map((k) => [k, map[k]]));
+}
+
+// ── 잼 보상 (3.1, docs/garden-raid-boss.md §9) ───────────────────────
+
+/**
+ * 거대 잡초의 잼. 참여 300, 1형 격파 700, 2형 1,500, 3형 2,500 — 처음부터 끝까지 함께하면 5,000.
+ * 형태 보상은 그 형태에서 한 번이라도 쳤거나 지원한 사람만 받는다(늦게 와도 그 뒤 형태는 받는다).
+ * 참여 보상은 든 형태가 하나라도 넘어갔거나 물결이 끝나면 받는다 — 놓쳐도 빈손은 아니게.
+ * 장부(loot.paid)가 물결마다 한 번만 주게 한다. 형태가 넘어가는 즉시 싸움터에서 받을 수 있다.
+ */
+export const RAID_JAM = { base: 300, forms: [700, 1_500, 2_500] } as const;
+export const RAID_JAM_MAX = RAID_JAM.base + RAID_JAM.forms.reduce((a, b) => a + b, 0);
+
+export interface JamLine {
+  /** 0=참여, 1–3=그 형태 격파. */
+  id: number;
+  label: string;
+  jam: number;
+}
+
+/**
+ * 지금 받을 수 있는 잼 줄. cleared=넘어간 형태 수(0–3), ended=물결이 끝났다, parts=내가 든 형태, paid=이미 받은 것.
+ */
+export function raidJamLines(cleared: number, ended: boolean, parts: readonly number[], paid: readonly number[]): JamLine[] {
+  const lines: JamLine[] = [];
+  if (parts.length === 0) return lines;
+  if (!paid.includes(0) && (ended || cleared >= 1)) lines.push({ id: 0, label: "참여", jam: RAID_JAM.base });
+  for (let form = 1; form <= Math.min(3, cleared); form++) {
+    if (parts.includes(form) && !paid.includes(form)) lines.push({ id: form, label: `${form}형 격파`, jam: RAID_JAM.forms[form - 1] });
+  }
+  return lines;
 }
 
 // ── 포자 (§7.2 ③) ────────────────────────────────────────────────────

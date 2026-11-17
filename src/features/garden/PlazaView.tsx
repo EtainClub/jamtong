@@ -9,12 +9,13 @@ import { cellId } from "@/lib/firebase/plaza";
 import { GroundDetails, WeedArt } from "./GardenArt";
 import { RaidArena } from "./RaidArena";
 import { RaidBell } from "./raid/RaidBell";
+import { RaidJam } from "./raid/Rewards";
 import { formName } from "./raid/forms";
 import { RaidWeedArt } from "./RaidWeedArt";
 import { LeafButton, LeafSheet } from "./LeafCheck";
 import { gardenFeedback, raidFeedback } from "./feedback";
 import { RollCall } from "./raid/ArenaParts";
-import { boxPerennial, raidLoot, raidOutcome, SPORE_AT, SPORE_COUNT, SPORE_RUBS, sporeCells, SAMPLES_PER_TROPHY, tookPart } from "./raid/rules";
+import { boxPerennial, RAID_JAM, RAID_JAM_MAX, raidLoot, raidOutcome, SPORE_AT, SPORE_COUNT, SPORE_RUBS, sporeCells, SAMPLES_PER_TROPHY, tookPart } from "./raid/rules";
 
 import {
   fruitIcon,
@@ -41,7 +42,6 @@ import {
   raidGauges,
   raidNeed,
   raidNeedV3,
-  RAID_FORM_FAST,
   RAID_ROLE_MULT,
   type RaidKind,
   TIER_LABEL,
@@ -466,6 +466,7 @@ function RaidPanel({
           {order} · {r.spawnedAt !== null && r.defeatedAt !== null ? `${Math.max(1, Math.round((r.defeatedAt - r.spawnedAt) / 60_000))}분 만에` : ""}
         </p>
         <RollCall names={r.names ?? []} fighters={r.fighters} />
+        {r.v3 && <RaidJam raidKey={key} cleared={stars} ended lastForm={raid.me.form} say={say} />}
         {part && !claimed && (
           <div className="mt-2 rounded-xl bg-white/60 px-3 py-2 text-[12px]">
             <p className="font-semibold">받을 것</p>
@@ -507,6 +508,7 @@ function RaidPanel({
       <section aria-labelledby="raid" className="garden-raid-done mt-3 rounded-2xl px-4 py-3.5">
         <h3 id="raid" className="text-[14px] font-bold">💨 {kind.escaped}</h3>
         <p className="text-[11.5px] opacity-75">{order}</p>
+        {r.v3 && <RaidJam raidKey={key} cleared={0} ended lastForm={raid.me.form} say={say} />}
         <p className="mt-0.5 text-[12px] opacity-85">
           {r.fighters.toLocaleString()}명이 {(total - left).toLocaleString()}/{total.toLocaleString()}만큼 쳤지만 {formatLeft(RAID_LIFE)} 안에
           쓰러뜨리지 못했어요. 빈틈에 모이면 {need.least}명, 아니면 {need.most}명이 필요해요.
@@ -547,19 +549,20 @@ function RaidPanel({
           <details className="mt-2 text-[11.5px] leading-relaxed opacity-90">
             <summary className="min-h-[32px] cursor-pointer font-bold">규칙과 보상 보기</summary>
             <p className="mt-1">
-              거대 잡초는 세 번까지 변신해요. 한 형태의 게이지(체력·갑옷·울타리)를 {RAID_FORM_FAST / 60_000}분 안에 다 채우면 쓰러지지 않고 더 센 형태가 되고,
-              넘기면 그 자리에서 쓰러져요. 다음 형태의 크기는 그때까지 온 사람 수에 맞춰져요. 기력은 형태마다 {RAID_USES_PER_PERSON}번 —
-              {RAID_RUBS_PER_STRIKE}번 문지르면 한 번, 1초에 한 번, 필살기도 이 안에서 써요.
+              거대 잡초는 세 번 변신해요. 1형의 체력을 다 깎으면 2형이, 2형의 게이지(체력·갑옷·울타리)를 다 채우면 3형이 나오고, 3형을 채우면 쓰러져요.
+              2·3형의 크기는 1형의 2·2.5배이고, 사람이 많이 오면 더 커져요. 기력은 형태마다 {RAID_USES_PER_PERSON}번 다시 차요 —
+              {RAID_RUBS_PER_STRIKE}번 두드리면 한 방, 1초에 한 방, 필살기도 이 안에서 써요. 이어서 두드리면 피버(잠깐 한 번 두드림이 한 방)가 와요.
             </p>
             <p className="mt-1">
-              역할은 셋이에요 — 낫잡이(체력)·돋보기꾼(갑옷)·울타리지기(울타리). 제 역할의 게이지에 넣으면 한 번이 ×{RAID_ROLE_MULT}, 남의 게이지는 ×1이에요.
-              역할은 형태가 바뀔 때 다시 고를 수 있어요. 매 시 정각과 30분부터 3분은 빈틈이라 다시 ×{RAID_GAP_MULT}로 들어가요(도망 30분 전 폭주 때는 6분).
-              지원(북·우산·손전등)은 기력과 따로 1분에 한 번 걸 수 있고, 모두의 손맛만 바꿔요.
+              1형은 모두가 몸통을 쳐서 한 방이 ×{RAID_ROLE_MULT}예요. 2형부터 역할을 골라요 — 낫잡이(체력)·돋보기꾼(갑옷)·울타리지기(울타리). 제 역할의 게이지는
+              ×{RAID_ROLE_MULT}, 남의 게이지는 ×1이에요. 매 시 정각과 30분부터 3분은 빈틈이라 다시 ×{RAID_GAP_MULT}(도망 30분 전 폭주 때는 6분). 지원(북·우산·손전등)은
+              기력과 따로 1분에 한 번 걸 수 있고, 모두의 손맛만 바꿔요.
             </p>
             <p className="mt-1">
-              1형을 넘기면 한 번이라도 쳤거나 지원한 모두가 희귀 씨앗 상자(잼 {RAID_BOX.jam}, {odds(boxPerennial(0))}, ★★★이면 {odds(boxPerennial(3))})를 받아요 —
-              그 뒤 형태가 도망가도 상자는 그대로예요. 넘긴 형태 수가 ★이고 뿌리 조각도 그만큼(1·2·3), 기력을 다 쓰면 +1, 지원 3번 이상이면 +1.
-              종류마다 표본 조각을 셋 모으면 그 악초의 박제가 방에 생겨요. 1형도 못 넘기고 {formatLeft(RAID_LIFE)}이 지나면 도망가고, 친 사람에게 뿌리 조각 1. 하루 {RAID_PER_DAY}번까지 나타나요.
+              잼은 참여 {RAID_JAM.base.toLocaleString()} · 1형 격파 {RAID_JAM.forms[0].toLocaleString()} · 2형 {RAID_JAM.forms[1].toLocaleString()} · 3형{" "}
+              {RAID_JAM.forms[2].toLocaleString()} — 처음부터 끝까지 함께하면 {RAID_JAM_MAX.toLocaleString()}잼이에요. 형태 보상은 그 형태에 한 번이라도 쳤거나 지원한
+              사람이 받고, 넘어가는 즉시 받을 수 있어요. 1형을 넘기면 희귀 씨앗 상자({odds(boxPerennial(0))}, ★★★이면 {odds(boxPerennial(3))})와 뿌리 조각(넘긴 형태 수만큼)도
+              받아요. 종류마다 표본 조각을 셋 모으면 그 악초의 박제가 방에 생겨요. {formatLeft(RAID_LIFE)}이 지나면 도망가요. 하루 {RAID_PER_DAY}번까지 나타나요.
             </p>
           </details>
         </>
