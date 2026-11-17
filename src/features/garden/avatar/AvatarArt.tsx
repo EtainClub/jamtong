@@ -1,4 +1,4 @@
-import { avatarDiffRects, avatarRects, type Face, type Look, type Rect } from "./compose";
+import { avatarDiffRects, avatarRects, colorPaths, type Face, type Look, type Rect } from "./compose";
 import { DOT, GRID_H, GRID_W, type Pose } from "./sprites";
 
 /**
@@ -11,11 +11,12 @@ import { DOT, GRID_H, GRID_W, type Pose } from "./sprites";
 export const AVATAR_W = GRID_W * DOT;
 export const AVATAR_H = GRID_H * DOT;
 
+/** 색마다 path 하나 — 두 배 판은 사각형이 수백 개라 DOM·공유 카드가 무거워지지 않게. */
 function Rects({ rects }: { rects: Rect[] }) {
   return (
     <>
-      {rects.map((r) => (
-        <rect key={`${r.x}-${r.y}`} x={r.x * DOT} y={r.y * DOT} width={r.w * DOT} height={DOT} fill={r.fill} />
+      {colorPaths(rects).map(([fill, d]) => (
+        <path key={fill} d={d} fill={fill} />
       ))}
     </>
   );

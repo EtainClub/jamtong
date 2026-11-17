@@ -48,6 +48,8 @@ const nextConfig: NextConfig = {
    */
   outputFileTracingIncludes: {
     "/api/book-ask": ["./src/content/books/**/text/*.md"],
+    // 공유 카드가 가구 그림을 data URI로 넣는다(room/furnitureSprites.ts).
+    "/api/garden-card": ["./public/images/room/*.png"],
   },
 
   /** 업적 인포그래픽은 Firebase Storage에 있다. 다운로드 주소가 이 호스트로 나온다. */

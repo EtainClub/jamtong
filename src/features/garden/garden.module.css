@@ -590,10 +590,11 @@
 .game :global(.garden-avatar-bubble.is-petal)::after { border-color: #d9708f; }
 .game :global(.garden-avatar-bubble.is-letter) { background: repeating-linear-gradient(#fffdf6 0 17px, #e2c99a 17px 18px); border-radius: 4px; }
 /* 옷 갈아입기(avatar/Wardrobe.tsx). */
-.game :global(.garden-wear-btn) { position: relative; display: flex; width: 100%; min-height: 88px; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; padding: 6px 4px; border-radius: 12px; background: #fff; border: 1px solid var(--d-line); font-size: 12px; font-weight: 700; }
+.game :global(.garden-wear-btn) { position: relative; display: flex; width: 100%; height: 100%; min-height: 112px; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; padding: 10px 6px 10px; border-radius: 12px; background: #fff; border: 1px solid var(--d-line); font-size: 12px; font-weight: 700; line-height: 1.3; }
+.game :global(.garden-wear-btn > svg) { flex: none; margin-bottom: 2px; }
 .game :global(.garden-wear-btn > span.truncate) { max-width: 100%; }
 .game :global(.garden-wear-btn[aria-pressed=true]) { border: 2px solid var(--d-orange); background: #fff4ea; }
-.game :global(.garden-wear-lock) { font-size: 11px; color: #8a6d4b; }
+.game :global(.garden-wear-lock) { display: inline-flex; align-items: center; gap: 2px; margin-top: auto; padding: 2px 8px; border-radius: 999px; background: #fff4e0; font-size: 11px; line-height: 1.4; color: #8a6d4b; white-space: nowrap; }
 .game :global(.garden-avatar-swatch) { width: 36px; height: 36px; border-radius: 999px; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--d-line); }
 .game :global(.garden-avatar-swatch[aria-pressed=true]) { box-shadow: 0 0 0 3px var(--d-orange); }
 .game :global(.garden-avatar-slot) { min-height: 44px; border-radius: 8px; border: 1px dashed var(--d-line); background: #fffdf6; font-size: 18px; }

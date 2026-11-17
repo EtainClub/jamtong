@@ -19,6 +19,7 @@ import { DEFAULT_TRACK, TRACK_ORDER } from "../feedback";
 import { STORY_FURNITURE, STORY_LABEL, STORY_SOURCES, STORY_COLLECTIONS } from "./stories";
 import { PLAY_FURNITURE, VOICE_CLIPS, activityOf, voiceEmbed, voiceOriginal } from "./activities";
 import { FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS } from "./catalog";
+import { FURNITURE_SPRITES } from "./furnitureSprites";
 import {
   addShown,
   applySurface,
@@ -632,4 +633,16 @@ test("CC0 음원 5곡: 배포 경로는 Storage이며 업로드 장부와 원본
     assert.equal(bytes.length, uploaded.bytes);
     assert.equal(createHash("sha256").update(bytes).digest("hex"), uploaded.sha256);
   }
+});
+
+test("그림 파일 가구 — 표의 그림은 모두 파일이 있고, 방마다 달라지지 않는 가구는 모두 그림 파일이다", () => {
+  const arts = new Set(FURNITURE.map((f) => f.art));
+  for (const art of Object.keys(FURNITURE_SPRITES)) {
+    assert.ok(arts.has(art), `가구표에 없는 그림 ${art}`);
+    assert.ok(readFileSync(`public/images/room/${art}.png`).length > 0, `${art}.png`);
+  }
+  // 도형으로 남기는 것: 벽지·바닥재·필살기, 쪽지 액자틀, 주인이 그린 키보드, 책마다 색이 다른 책.
+  const shape = (f: (typeof FURNITURE)[number]) =>
+    ["wallpaper", "flooring", "fx", "frame-blank"].includes(f.kind) || f.art === "keyboard" || BOOK_PALETTES.has(f.art);
+  assert.deepEqual(FURNITURE.filter((f) => !shape(f) && !FURNITURE_SPRITES[f.art]).map((f) => f.art), []);
 });
