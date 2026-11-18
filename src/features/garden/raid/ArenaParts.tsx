@@ -219,7 +219,7 @@ export function KitShopSheet({ now, say, onClose }: { now: number; say: (text: s
       <p className="mt-1 text-[12.5px] font-semibold">가진 잼 {priceText(data.jam)}</p>
       <ul className="mt-2 space-y-1.5">
         {rows.map((r) => (
-          <li key={r.key} className="flex items-center gap-2 rounded-xl bg-[var(--g-panel)] px-3 py-2">
+          <li key={r.key} className="flex items-center gap-3 rounded-xl bg-[var(--g-panel)] px-3 py-2.5">
             <span className="text-[24px] leading-none" aria-hidden="true">{r.icon}</span>
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-bold">{r.label} <span className="font-normal text-smoke">· 가진 것 {r.have}</span></p>
@@ -234,7 +234,7 @@ export function KitShopSheet({ now, say, onClose }: { now: number; say: (text: s
                 track("shop_buy", { cat: "tools", from: "raid" });
                 say(`${r.icon} ${josa(r.label, "을를")} 샀어요`);
               }}
-              className="garden-shop-buy min-h-[44px] shrink-0"
+              className="garden-shop-buy is-big min-w-[88px] whitespace-nowrap"
               aria-label={`${r.label} ${r.left <= 0 ? "오늘 끝" : priceText(r.price)}`}
             >
               {r.left <= 0 ? "오늘 끝" : priceText(r.price)}
