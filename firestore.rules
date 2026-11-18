@@ -996,15 +996,18 @@ service cloud.firestore {
 
     // 변신의 새 숫자. 세 게이지가 다 찼고,
     //   base  새 형태의 0점 = 앞 목표와 지금 합계 사이(커밋이 읽은 뒤 몇 방 더 들어와도 받는다).
-    //   n     새 형태의 필요량 = 기본(1형 크기 × 2형 2 · 3형 2.5)이거나, 사람이 많으면 60 × 인원(60 단위).
+    //   n     새 형태의 필요량 = 기본(1형 크기 × 2형 6/5 · 3형 3/2)이거나, 사람이 많으면 40 × 인원(60 단위).
     //         인원은 5명까지 늦게 읽어도 받는다(읽고 쓰는 사이에 든 사람).
+    //         ★ 3.2 넘어가는 동안: 옛 화면(3.1 — 기본 ×2 · ×2.5, 60 × 인원)이 보낸 값도 받는다. 아래 oldFloor와
+    //           60 * crowd 위 끝이 그것이다. 옛 화면이 사라지면(다음 배포) 지운다 — docs/garden-raid-boss.md §11.
     //   목표  base + n의 몫 — 2형은 체력 50·갑옷 25·울타리 25%, 3형은 40·30·30%.
     function raidNextForm(raidId) {
       let d = request.resource.data;
       let was = resource.data;
       let t = raidTotals(raidId);
       let crowd = t.fighters;
-      let floor = d.form == 2 ? was.size * 2 : was.size * 5 / 2;
+      let floor = d.form == 2 ? was.size * 6 / 5 : was.size * 3 / 2;
+      let oldFloor = d.form == 2 ? was.size * 2 : was.size * 5 / 2;
       let h = d.form == 2 ? 50 : 40;
       let b = d.form == 2 ? 25 : 30;
       return was.hits + t.hits >= was.hp
@@ -1013,8 +1016,8 @@ service cloud.firestore {
         && d.n is int
         && d.n <= 60000
         && d.n >= floor
-        && d.n >= 60 * (crowd - 5)
-        && (d.n == floor || (d.n % 60 == 0 && d.n < 60 * crowd + 60))
+        && d.n >= 40 * (crowd - 5)
+        && (d.n == floor || d.n == oldFloor || (d.n % 60 == 0 && d.n < 60 * crowd + 60))
         && d.base.keys().hasOnly(['h', 'b', 'g'])
         && d.base.h is int && d.base.h >= was.hp && d.base.h <= was.hits + t.hits
         && d.base.b is int && d.base.b >= was.brk && d.base.b <= t.brk

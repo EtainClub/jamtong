@@ -23,12 +23,14 @@ import {
 import {
   FINISHER_ORDER,
   FINISHERS,
+  formatClock,
   formatLeft,
   hash,
   josa,
   raidKey as raidLedgerKey,
   RAID_USES_PER_PERSON,
   RAID_AIDS,
+  RAID_GAP_MULT,
   RAID_LIFE,
   RAID_POOL_LABEL,
   RAID_ROLE_MULT,
@@ -533,62 +535,21 @@ export function RaidArena({
           {staged ? "↙ 광장으로" : "⛶ 전체 화면 무대"}
         </button>
       )}
+      {/* 위: 이름·형태·도망까지만. 규칙·보상·지원 안내는 아래 "더 보기"로 — 치는 동안 눈이 갈 곳을 줄인다. */}
       <div className="relative z-10">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-[11.5px] font-semibold opacity-80">오늘 {["첫", "두", "세", "네", "다섯"][r.wave - 1] ?? r.wave} 번째 거대 잡초</p>
-          <p className="shrink-0 text-[11.5px] tabular-nums opacity-90">도망까지 {formatLeft(Math.max(0, escapeIn))}</p>
+          <h3 id="raid" className="min-w-0 text-[16px] font-black tracking-tight">
+            {form === 1 ? `${josa(kind.name, "이가")} 나타났어요!` : formName(kind.id, form)}
+            {form > 1 && <span className="raid-form-chip">{FORM_ORDER[form]}</span>}
+          </h3>
+          <p className="shrink-0 text-[11.5px] tabular-nums opacity-90">⏱ {formatLeft(Math.max(0, escapeIn))}</p>
         </div>
-        <h3 id="raid" className="mt-0.5 text-[17px] font-black tracking-tight">
-          {form === 1 ? `${josa(kind.name, "이가")} 나타났어요!` : formName(kind.id, form)}
-          {form > 1 && <span className="raid-form-chip">{FORM_ORDER[form]}</span>}
-        </h3>
-        <p className="text-[12px] opacity-85">{kind.trait} · {g.rule}</p>
-
-        {/* 게이지 — 3.0 물결은 셋(체력·갑옷·울타리)이고 다 차야 넘어간다. 눌러서 넣을 곳을 고른다. */}
-        <Gauges gauges={gauges} v3={Boolean(r.v3)} role={role} pool={pool} onPick={(next) => setPoolPick({ form, pool: next })} />
-        <p className="mt-1 flex justify-between text-[11.5px] tabular-nums opacity-90">
-          <span>{r.v3 ? `${FORM_ORDER[form]} · 남은 ${left.toLocaleString()}` : `체력 ${left.toLocaleString()}/${prog.need.toLocaleString()}`}</span>
-          <span>함께 {r.fighters.toLocaleString()}명 · {need3.least === need3.most ? `${need3.most}명이면 잡아요` : `빈틈에 ${need3.least}명 · 아니면 ${need3.most}명`}</span>
-        </p>
-        {r.v3 && (
-          <RaidJam raidKey={raidLedgerKey(raid.day, r.wave)} cleared={form - 1} ended={false} lastForm={raid.me.form} say={say} />
-        )}
-        {r.v3 && form > 1 && <RolePick role={role} canPick={raid.canPickRole} form={form} onPick={raid.pickRole} />}
-        {r.v3 && form === 1 && (
-          <p className="mt-2 rounded-full bg-black/25 px-3 py-1 text-center text-[12px] font-bold">
-            👊 1형은 모두가 몸통을 두드려요 · 한 번 ×{RAID_ROLE_MULT} · 2형부터 역할을 골라요
-          </p>
-        )}
-
-        {/* 합동 게이지 — 모두의 타격으로 찬다. */}
-        <div className="mt-2 flex items-center gap-2 text-[11px] font-bold">
-          <span className="shrink-0">{surging ? "☀️ 광장의 햇살!" : "🤝 합동 게이지"}</span>
-          <div className={`raid-surge h-2 flex-1 overflow-hidden rounded-full bg-black/30 ${surging ? "is-on" : ""}`}>
-            <div className="h-full" style={{ width: `${surging ? 100 : surge.fill * 100}%` }} />
-          </div>
-          <span className="shrink-0 tabular-nums">
-            {surging ? `문지르기 절반 · ${Math.ceil((surgeUntil - now) / 1000)}초` : `${"★".repeat(surge.count)}${"☆".repeat(Math.max(0, 4 - surge.count))}`}
-          </span>
-        </div>
-
-        <GapBand gap={gap} frenzy={frenzy} now={now} />
-        <AidChips
-          chips={[
-            ...(drum ? [`🥁 응원 북 · 문지르기 절반 ${Math.ceil((drum.at + RAID_AIDS.drum.ms - now) / 1000)}초`] : []),
-            ...(torch ? [`🔦 손전등 · 가짜 약점 없음 ${Math.ceil((torch.at + RAID_AIDS.torch.ms - now) / 1000)}초`] : []),
-            ...(lastUmbrella > umbrellaUsed ? ["☂️ 우산 · 다음 반격을 모두 피해요"] : []),
-            ...(sporeNow ? ["🍄 포자를 다 뽑았어요 · 이번 빈틈 문지르기 절반"] : sporeBoost ? ["🍄 포자 보너스 · 다음 빈틈에 문지르기 절반"] : []),
-          ]}
-        />
+        {r.v3 && form > 1 && raid.canPickRole && <RolePick role={role} canPick form={form} onPick={raid.pickRole} />}
+        {gap?.now && <GapBand gap={gap} frenzy={frenzy} now={now} />}
         <AidFeed aids={r.aids ?? []} now={now} />
-        {togetherLine && (
-          <p className={`raid-together mt-2 rounded-full px-3 py-1 text-center text-[12px] font-bold ${together >= 2 ? "is-team" : ""}`} aria-live="polite">
-            {togetherLine}
-          </p>
-        )}
       </div>
 
-      <p className="garden-raid-taunt relative mx-auto mt-3 w-fit max-w-full rounded-2xl bg-white px-3 py-1.5 text-center text-[12.5px] font-bold text-[#2a1a1a]" aria-live="polite">
+      <p className="garden-raid-taunt relative mx-auto mt-2 w-fit max-w-full rounded-2xl bg-white px-3 py-1 text-center text-[12px] font-bold text-[#2a1a1a]" aria-live="polite">
         &ldquo;{raidTaunt(kind, prog.have, prog.need)}&rdquo;
       </p>
 
@@ -722,6 +683,49 @@ export function RaidArena({
         )}
       </div>
 
+      {/* 싸움 HUD — 보스 바로 아래, 화면 아래쪽에 붙는다. 치는 동안 보스 게이지와 내 기력이 한눈에. */}
+      <div className="raid-hud sticky bottom-2 z-20 mt-2 rounded-2xl px-2.5 py-2" aria-label="싸움 현황">
+        <div className="flex items-center justify-between gap-2 px-1.5 text-[11px] font-bold">
+          <span className="min-w-0 truncate">
+            {r.v3 ? `${FORM_ORDER[form]} · 남은 ${left.toLocaleString()}` : `체력 ${left.toLocaleString()}/${prog.need.toLocaleString()}`}
+            {role && !raid.canPickRole && <span className="ml-1.5 opacity-85">{RAID_ROLES[role].icon} {RAID_ROLES[role].label}</span>}
+          </span>
+          <span className={`raid-together shrink-0 rounded-full px-2 py-0.5 ${together >= 2 ? "is-team" : ""}`} aria-live="polite">
+            ⚔️ {together >= 2 ? `${together}명+ 함께` : raid.meActive ? "나 혼자" : together === 1 ? "누군가 치는 중" : `${r.fighters.toLocaleString()}명 참여`}
+          </span>
+        </div>
+        <Gauges gauges={gauges} v3={Boolean(r.v3)} role={role} pool={pool} onPick={(next) => setPoolPick({ form, pool: next })} />
+        <div className="mt-1.5 flex items-center gap-2 px-1.5 text-[11px] font-bold" aria-label={`기력 ${RAID_USES_PER_PERSON - raid.me.uses}/${RAID_USES_PER_PERSON} 남음, 넣은 값 ${raid.me.hits}`}>
+          <span className="w-[74px] shrink-0">⚡ 내 기력</span>
+          <div className="raid-energy h-2.5 flex-1 overflow-hidden rounded-full">
+            <div className="h-full" style={{ width: `${((RAID_USES_PER_PERSON - raid.me.uses) / RAID_USES_PER_PERSON) * 100}%` }} />
+          </div>
+          <span className="w-[76px] shrink-0 text-right tabular-nums">{RAID_USES_PER_PERSON - raid.me.uses}/{RAID_USES_PER_PERSON}</span>
+        </div>
+        <div className="mt-1 flex items-center gap-2 px-1.5 text-[10.5px] font-bold opacity-95">
+          <span className="w-[74px] shrink-0">{surging ? "☀️ 햇살!" : "🤝 합동"}</span>
+          <div className={`raid-surge h-1.5 flex-1 overflow-hidden rounded-full bg-black/30 ${surging ? "is-on" : ""}`}>
+            <div className="h-full" style={{ width: `${surging ? 100 : surge.fill * 100}%` }} />
+          </div>
+          <span className="w-[76px] shrink-0 text-right tabular-nums">
+            {surging ? `절반 · ${Math.ceil((surgeUntil - now) / 1000)}초` : `${"★".repeat(surge.count)}${"☆".repeat(Math.max(0, 4 - surge.count))}`}
+          </span>
+        </div>
+        {gap && !gap.now && (
+          <p className="mt-1 text-center text-[10.5px] font-semibold opacity-85">
+            ⏳ 다음 빈틈 {formatClock(gap.start, now)} · 빈틈엔 한 번이 ×{RAID_GAP_MULT}
+          </p>
+        )}
+        <AidChips
+          chips={[
+            ...(drum ? [`🥁 응원 북 ${Math.ceil((drum.at + RAID_AIDS.drum.ms - now) / 1000)}초`] : []),
+            ...(torch ? [`🔦 손전등 ${Math.ceil((torch.at + RAID_AIDS.torch.ms - now) / 1000)}초`] : []),
+            ...(lastUmbrella > umbrellaUsed ? ["☂️ 우산 · 다음 반격 피함"] : []),
+            ...(sporeNow ? ["🍄 포자 · 문지르기 절반"] : sporeBoost ? ["🍄 포자 보너스 · 다음 빈틈"] : []),
+          ]}
+        />
+      </div>
+
       {/* 울타리지기의 박자 판 — 고리가 조여드는 순간 누르면 그대로 한 방이 울타리에 들어간다. */}
       {warding && !spent && r.phase === "active" && (
         <button type="button" onClick={beat} disabled={stunned} className="raid-beat mx-auto mt-3 grid place-items-center disabled:opacity-50" aria-label="박자에 맞춰 막기 — 고리가 조여들 때 누르세요">
@@ -758,29 +762,40 @@ export function RaidArena({
             })}
           </div>
           {!FINISHER_ORDER.some((id) => (haveFinishers?.[id] ?? 0) > 0) && (
-            <p className="mt-1 text-center text-[11px] opacity-80">🛒 필살기는 아래 ‘도구 사기’나 상점 탭에서 잼으로 살 수 있어요</p>
+            <p className="mt-1 text-center text-[11px] opacity-80">🛒 필살기는 아래 ‘더 보기 › 도구 사기’에서 잼으로 살 수 있어요</p>
           )}
         </div>
       )}
 
-      <div className="mt-2" aria-label={`기력 ${RAID_USES_PER_PERSON - raid.me.uses}/${RAID_USES_PER_PERSON} 남음, 넣은 값 ${raid.me.hits}`}>
-        <div className="flex justify-between text-[11.5px] font-semibold tabular-nums">
-          <span>⚡ 기력</span>
-          <span>
-            {RAID_USES_PER_PERSON - raid.me.uses}/{RAID_USES_PER_PERSON} 남음 · 넣은 값 {raid.me.hits}
-          </span>
-        </div>
-        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-black/30">
-          <div className="h-full bg-white/85" style={{ width: `${((RAID_USES_PER_PERSON - raid.me.uses) / RAID_USES_PER_PERSON) * 100}%` }} />
-        </div>
-      </div>
       {spent && (
-        <p className="mt-2 rounded-xl bg-black/25 px-3 py-2 text-[12px] font-semibold">
-          💪 기력을 다 썼어요. 이제 지원으로 도와요 — 혼자서는 쓰러뜨릴 수 없으니 친구에게도 광장을 알려 주세요!
-        </p>
+        <>
+          <p className="mt-2 rounded-xl bg-black/25 px-3 py-2 text-[12px] font-semibold">
+            💪 기력을 다 썼어요. 이제 지원으로 도와요 — 혼자서는 쓰러뜨릴 수 없으니 친구에게도 광장을 알려 주세요!
+          </p>
+          <AidButtons raidId={r.id} aidAt={raid.me.aidAt} now={now} disabled={aiding || r.phase !== "active"} onAid={(k) => void castAid(k)} />
+        </>
       )}
-      <AidButtons raidId={r.id} aidAt={raid.me.aidAt} now={now} disabled={aiding || r.phase !== "active"} onAid={(k) => void castAid(k)} />
-      <KitRow raidId={r.id} gapAt={gap && !gap.now ? gap.start : gap ? gap.start + 30 * 60_000 : null} now={now} say={say} />
+
+      {/* 더 보기 — 치는 동안에는 접어 둔다. 지원·도구·보상·규칙. */}
+      <details className="raid-more mt-2 rounded-xl px-3 py-1.5">
+        <summary className="min-h-[36px] cursor-pointer py-1.5 text-[12px] font-bold">
+          {spent ? "🧰 도구 · 잼 보상 · 규칙" : "📣 지원 · 🧰 도구 · 🍯 잼 보상 · 규칙"}
+        </summary>
+        <p className="mt-1 text-[11.5px] opacity-90">
+          오늘 {["첫", "두", "세", "네", "다섯"][r.wave - 1] ?? r.wave} 번째 거대 잡초 · {kind.trait} · {g.rule}
+        </p>
+        <p className="mt-1 text-[11.5px] tabular-nums opacity-90">
+          함께 {r.fighters.toLocaleString()}명 · {need3.least === need3.most ? `${need3.most}명이면 잡아요` : `빈틈에 ${need3.least}명 · 아니면 ${need3.most}명`} · 내가 넣은 값 {raid.me.hits}
+        </p>
+        {r.v3 && form === 1 && (
+          <p className="mt-1 text-[11.5px] opacity-90">👊 1형은 모두가 몸통을 두드려요 · 한 번 ×{RAID_ROLE_MULT} · 2형부터 역할을 골라요</p>
+        )}
+        {togetherLine && <p className="mt-1 text-[11.5px] opacity-90">{togetherLine}</p>}
+        {!gap?.now && <GapBand gap={gap} frenzy={frenzy} now={now} />}
+        {r.v3 && <RaidJam raidKey={raidLedgerKey(raid.day, r.wave)} cleared={form - 1} ended={false} lastForm={raid.me.form} say={say} />}
+        {!spent && <AidButtons raidId={r.id} aidAt={raid.me.aidAt} now={now} disabled={aiding || r.phase !== "active"} onAid={(k) => void castAid(k)} />}
+        <KitRow raidId={r.id} gapAt={gap && !gap.now ? gap.start : gap ? gap.start + 30 * 60_000 : null} now={now} say={say} />
+      </details>
       {footer}
     </section>
   );

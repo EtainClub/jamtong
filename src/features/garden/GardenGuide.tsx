@@ -305,7 +305,7 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
             </li>
             <li>
               거대 잡초는 세 번 변신해요. 1형의 체력을 다 깎으면 2형, 2형의 게이지(체력·갑옷·울타리)를 다 채우면 3형이 나오고, 3형을 채우면 쓰러져요.
-              2·3형은 1형의 2·2.5배이고 사람이 많으면 더 커져요. 잼은 참여 {RAID_JAM.base} · 1형 {RAID_JAM.forms[0]} · 2형 {RAID_JAM.forms[1]} · 3형{" "}
+              2·3형은 1형의 1.2·1.5배이고 사람이 많으면 더 커져요. 잼은 참여 {RAID_JAM.base} · 1형 {RAID_JAM.forms[0]} · 2형 {RAID_JAM.forms[1]} · 3형{" "}
               {RAID_JAM.forms[2]} — 끝까지 함께하면 {RAID_JAM_MAX.toLocaleString()}잼이고, 형태 보상은 그 형태에 든 사람이 받아요.
             </li>
             <li>

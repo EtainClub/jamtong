@@ -301,32 +301,32 @@ function move(db: Firestore, uid: string, wave: number, mine: Record<string, unk
     updateDoc(doc(A.db, "plazaRaids", rid(1)), { form: 2, formAt: serverTimestamp(), n: 600, base: { h: 300, b: 0, g: 0 }, hp: 600, brk: 150, grd: 150 }));
   await seedCell(1, 1, { hits: 110, fighters: 2 });
   await expect(false, "1형을 쓰러뜨리기(변신해야 한다)", () => updateDoc(doc(A.db, "plazaRaids", rid(1)), { defeatedAt: serverTimestamp() }));
-  await expect(true, "변신: 2형, 다섯 명이라 기본 600(체력 300·갑옷 150·울타리 150)", () =>
-    updateDoc(doc(A.db, "plazaRaids", rid(1)), { form: 2, formAt: serverTimestamp(), n: 600, base: { h: 310, b: 0, g: 0 }, hp: 310 + 300, brk: 150, grd: 150 }));
+  await expect(true, "변신: 2형, 다섯 명이라 기본 360(300 × 6/5 · 체력 180·갑옷 90·울타리 90)", () =>
+    updateDoc(doc(A.db, "plazaRaids", rid(1)), { form: 2, formAt: serverTimestamp(), n: 360, base: { h: 310, b: 0, g: 0 }, hp: 310 + 180, brk: 90, grd: 90 }));
   await expect(false, "다시 변신(이미 2형, 2형은 비었다)", () =>
     updateDoc(doc(A.db, "plazaRaids", rid(1)), { form: 3, formAt: serverTimestamp(), n: 750, base: { h: 610, b: 150, g: 150 }, hp: 910, brk: 375, grd: 375 }));
 
   console.log("넘기기 — 사람이 많으면 크게 (물결 4, 온 사람 20명)");
-  // 합계: 체력 330(목표 300) · 인원 20 → 다음 필요량 max(600, 60 × 20 = 1200) = 1200.
+  // 합계: 체력 330(목표 300) · 인원 20 → 다음 필요량 max(360, 40 × 20 = 800을 60 단위로 840) = 840.
   await seedCell(4, 0, { hits: 200, fighters: 12 });
   await seedCell(4, 1, { hits: 130, fighters: 8 });
   const morph = (over: Record<string, unknown> = {}) =>
-    updateDoc(doc(A.db, "plazaRaids", rid(4)), { form: 2, formAt: serverTimestamp(), n: 1200, base: { h: 330, b: 0, g: 0 }, hp: 330 + 600, brk: 300, grd: 300, ...over });
+    updateDoc(doc(A.db, "plazaRaids", rid(4)), { form: 2, formAt: serverTimestamp(), n: 840, base: { h: 330, b: 0, g: 0 }, hp: 330 + 420, brk: 210, grd: 210, ...over });
   await expect(false, "두 형태를 건너뛰기(3형으로)", () => morph({ form: 3 }));
-  await expect(false, "필요량을 기본값으로 줄이기(20명인데 600)", () => morph({ n: 600, hp: 330 + 300, brk: 150, grd: 150 }));
+  await expect(false, "필요량을 기본값으로 줄이기(20명인데 360)", () => morph({ n: 360, hp: 330 + 180, brk: 90, grd: 90 }));
   await expect(false, "필요량을 부풀리기(6000)", () => morph({ n: 6000, hp: 330 + 3000, brk: 1500, grd: 1500 }));
-  await expect(false, "60 단위가 아닌 필요량(1220)", () => morph({ n: 1220, hp: 330 + 610, brk: 305, grd: 305 }));
+  await expect(false, "60 단위가 아닌 필요량(860)", () => morph({ n: 860, hp: 330 + 430, brk: 215, grd: 215 }));
   await expect(false, "몫을 다르게 나누기(체력을 덜)", () => morph({ hp: 330 + 100 }));
-  await expect(false, "시작점을 합계보다 높게(체력 400)", () => morph({ base: { h: 400, b: 0, g: 0 }, hp: 400 + 600 }));
-  await expect(false, "시작점을 앞 목표보다 낮게(체력 250)", () => morph({ base: { h: 250, b: 0, g: 0 }, hp: 250 + 600 }));
+  await expect(false, "시작점을 합계보다 높게(체력 400)", () => morph({ base: { h: 400, b: 0, g: 0 }, hp: 400 + 420 }));
+  await expect(false, "시작점을 앞 목표보다 낮게(체력 250)", () => morph({ base: { h: 250, b: 0, g: 0 }, hp: 250 + 420 }));
   await expect(false, "변신하며 태어난 때를 바꾸기", () => morph({ spawnedAt: serverTimestamp() }));
-  await expect(true, "변신: 2형, 필요량 1200(체력 600·갑옷 300·울타리 300)", () => morph());
+  await expect(true, "변신: 2형, 필요량 840(40 × 20명을 60 단위로 · 체력 420·갑옷 210·울타리 210)", () => morph());
   // 읽은 뒤 몇 방 더 들어온 것은 받는다: 시작점이 합계보다 조금 낮아도, 인원을 몇 명 덜 읽었어도.
   await seedV3(4, { size: 300, form: 1, formAt: now - 5 * MIN, spawnedAt: now - 5 * MIN, hp: 300, brk: 0, grd: 0 });
   await seedCell(4, 0, { hits: 200, fighters: 12 });
   await seedCell(4, 1, { hits: 130, fighters: 8 });
-  await expect(true, "변신: 조금 늦게 읽은 값(시작점 320, 인원 17명 몫 1020)", () =>
-    updateDoc(doc(B.db, "plazaRaids", rid(4)), { form: 2, formAt: serverTimestamp(), n: 1020, base: { h: 320, b: 0, g: 0 }, hp: 320 + 510, brk: 255, grd: 255 }));
+  await expect(true, "변신: 조금 늦게 읽은 값(시작점 320, 인원 17명 몫 720)", () =>
+    updateDoc(doc(B.db, "plazaRaids", rid(4)), { form: 2, formAt: serverTimestamp(), n: 720, base: { h: 320, b: 0, g: 0 }, hp: 320 + 360, brk: 180, grd: 180 }));
 
   console.log("넘기기 — 2형 → 3형, 3형은 쓰러진다 (물결 2·5)");
   for (let s = 0; s < 8; s++) await seedCell(2, s, {});
@@ -334,7 +334,8 @@ function move(db: Firestore, uid: string, wave: number, mine: Record<string, unk
   await expect(false, "울타리가 덜 찼는데(140/150) 3형으로", () =>
     updateDoc(doc(A.db, "plazaRaids", rid(2)), { form: 3, formAt: serverTimestamp(), n: 750, base: { h: 600, b: 150, g: 150 }, hp: 900, brk: 375, grd: 375 }));
   await seedCell(2, 1, { grd: 10, fighters: 1 });
-  await expect(true, "변신: 3형, 기본 750(체력 300·갑옷 225·울타리 225)", () =>
+  // 3.2로 넘어가는 동안 옛 화면(3.1, 기본 ×2.5)이 보낸 값도 받는다. 새 값(3/2 → 450)은 check-raid-client가 화면 함수로 본다.
+  await expect(true, "변신: 3형, 옛 화면의 기본 750(체력 300·갑옷 225·울타리 225) — 넘어가는 동안 받는다", () =>
     updateDoc(doc(A.db, "plazaRaids", rid(2)), { form: 3, formAt: serverTimestamp(), n: 750, base: { h: 600, b: 150, g: 150 }, hp: 900, brk: 375, grd: 375 }));
   await seedCell(5, 0, { hits: 1200, brk: 625, grd: 360, fighters: 5 });
   await expect(false, "울타리가 덜 찼는데(360/425) 쓰러뜨리기", () => updateDoc(doc(A.db, "plazaRaids", rid(5)), { defeatedAt: serverTimestamp() }));

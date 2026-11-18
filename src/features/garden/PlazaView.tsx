@@ -550,7 +550,7 @@ function RaidPanel({
             <summary className="min-h-[32px] cursor-pointer font-bold">규칙과 보상 보기</summary>
             <p className="mt-1">
               거대 잡초는 세 번 변신해요. 1형의 체력을 다 깎으면 2형이, 2형의 게이지(체력·갑옷·울타리)를 다 채우면 3형이 나오고, 3형을 채우면 쓰러져요.
-              2·3형의 크기는 1형의 2·2.5배이고, 사람이 많이 오면 더 커져요. 기력은 형태마다 {RAID_USES_PER_PERSON}번 다시 차요 —
+              2·3형의 크기는 1형의 1.2·1.5배이고, 사람이 많이 오면 더 커져요. 기력은 형태마다 {RAID_USES_PER_PERSON}번 다시 차요 —
               {RAID_RUBS_PER_STRIKE}번 두드리면 한 방, 1초에 한 방, 필살기도 이 안에서 써요. 이어서 두드리면 피버(잠깐 한 번 두드림이 한 방)가 와요.
             </p>
             <p className="mt-1">

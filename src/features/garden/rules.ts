@@ -664,7 +664,8 @@ export type RaidPhase = "active" | "defeated" | "escaped";
  * ★ 기력은 형태마다 RAID_USES_PER_PERSON번. 제 역할의 게이지에 넣으면 한 번이 RAID_ROLE_MULT, 남의 게이지는 1
  *   (빈틈이면 다시 RAID_GAP_MULT). 한 사람이 한 형태에 넣는 최대는 60 × 2 × 2 = 240이다.
  * ★ 1형의 크기(RAID_SIZES)는 240보다 커서 혼자서는 못 잡는다. 셋이 빈틈 없이 치면 잡힌다.
- * ★ 2·3형의 크기는 1형의 2배·2.5배이고, 사람이 많으면 그보다 커진다: max(기본, 60 × 인원)을 60 단위로.
+ * ★ 2·3형의 크기는 1형의 1.2배·1.5배이고, 사람이 많으면 그보다 커진다: max(기본, 40 × 인원)을 60 단위로.
+ *   (3.2, 2026-11-18: 2배·2.5배·60은 6명이 1형을 잡고도 2형에서 도망가게 했다 — docs/garden-raid-boss.md §11.)
  *
  * 값을 바꾸면 firestore.rules의 plazaRaids 절도 같이 바꾼다 — raid.test.ts가 짝을 본다.
  */
@@ -687,10 +688,13 @@ export const RAID_ROLE_MULT = 2;
 export const RAID_SIZES = [300, 360, 420] as const;
 /** 형태마다 필요량을 체력·갑옷·울타리로 나누는 비율(%). 1형은 체력뿐이다. */
 export const RAID_FORM_SPLIT: Record<1 | 2 | 3, readonly [number, number, number]> = { 1: [100, 0, 0], 2: [50, 25, 25], 3: [40, 30, 30] };
-/** 2·3형의 기본 크기 = 1형 크기 × 이 배수(규칙은 size * 2, size * 5 / 2로 쓴다). */
-export const RAID_FORM_GROW: Record<2 | 3, number> = { 2: 2, 3: 2.5 };
-/** 사람이 많을 때: 온 사람 한 명에 이만큼(한 사람이 제 역할로 빈틈 없이 넣는 120의 절반). */
-export const RAID_NEED_PER_FIGHTER = 60;
+/**
+ * 2·3형의 기본 크기 = 1형 크기 × 분자 / 분모(규칙은 size * 6 / 5, size * 3 / 2로 쓴다). 분수로 둬서 늘 정수다 —
+ * 1형 크기(300·360·420)에서 2형 360·432·504, 3형 450·540·630. 셋 모두 몫(50·25·25%, 40·30·30%)이 정수다.
+ */
+export const RAID_FORM_GROW: Record<2 | 3, readonly [number, number]> = { 2: [6, 5], 3: [3, 2] };
+/** 사람이 많을 때: 온 사람 한 명에 이만큼(한 사람이 제 역할로 빈틈 없이 넣는 120의 ⅓ — 든 사람이 다 남지 않는다). */
+export const RAID_NEED_PER_FIGHTER = 40;
 export const RAID_NEED_STEP = 60;
 export const RAID_NEED_MAX = 60_000;
 /** 변신 커밋이 읽은 인원이 이만큼 늦어도 규칙이 받는다(그 사이 든 사람). */
@@ -708,7 +712,8 @@ export function raidSplit(n: number, form: 1 | 2 | 3): { h: number; b: number; g
 
 /** 2·3형의 기본 크기. */
 export function raidFormBase(size: number, form: 2 | 3): number {
-  return size * RAID_FORM_GROW[form];
+  const [num, den] = RAID_FORM_GROW[form];
+  return (size * num) / den;
 }
 
 /** 변신한 형태의 필요량 — 기본 크기와 온 사람 수 가운데 큰 쪽. */

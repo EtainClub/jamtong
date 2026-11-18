@@ -97,8 +97,8 @@ async function seedCell(id: string, s: number, c: { hits: number; brk: number; g
   await seedCell(id, others[1], { hits: 0, brk: 0, grd: 0, fighters: 2 });
   check("advanceRaid → 변신", (await advanceRaid(id)) === "morph");
   const second = await raid();
-  check("2형 · 필요량 600(여섯 명이라 기본) · 체력 +300 · 갑옷 +150 · 울타리 +150",
-    second.form === 2 && second.n === 600 && second.hp === second.base.h + 300 && second.brk === second.base.b + 150 && second.grd === second.base.g + 150, second);
+  check("2형 · 필요량 360(여섯 명이라 기본 300 × 6/5) · 체력 +180 · 갑옷 +90 · 울타리 +90",
+    second.form === 2 && second.n === 360 && second.hp === second.base.h + 180 && second.brk === second.base.b + 90 && second.grd === second.base.g + 90, second);
   check("넘긴 직후 또 넘기지 않는다", (await advanceRaid(id)) === null);
 
   console.log("새 형태 — 기력이 다시 차고 역할을 바꾼다");
@@ -118,7 +118,7 @@ async function seedCell(id: string, s: number, c: { hits: number; brk: number; g
   await seedCell(id, others[0], { hits: 300 + 300, brk: 150, grd: 150, fighters: 3 });
   check("advanceRaid → 변신(3형)", (await advanceRaid(id)) === "morph");
   const third = await raid();
-  check("3형 · 기본 750 · 체력 +300 · 갑옷 +225 · 울타리 +225", third.form === 3 && third.n === 750 && third.hp === third.base.h + 300 && third.brk === third.base.b + 225 && third.grd === third.base.g + 225, third);
+  check("3형 · 기본 450(300 × 3/2) · 체력 +180 · 갑옷 +135 · 울타리 +135", third.form === 3 && third.n === 450 && third.hp === third.base.h + 180 && third.brk === third.base.b + 135 && third.grd === third.base.g + 135, third);
   await sleep(1_200);
   hit = await strikeRaid(UID, id, 1, "화면", { role: "seeker", pool: 1 });
   check("3형에서 돋보기꾼으로", hit.result === "ok" && (await mine()).role === 2 && (await mine()).uses === 1, hit);

@@ -269,15 +269,17 @@ test("firestore.rules의 물결 규칙이 rules.ts의 값과 같다", () => {
   // 1형은 누구나 두 배(역할 배수), 몸통(체력)에만.
   has(`(d.get('pool', 0) + 1 == role || form == 1) ? ${RAID_ROLE_MULT} : 1`);
   has(`(form != 1 || d.get('pool', 0) == 0)`);
-  // 다음 형태의 필요량과 몫. 기본 크기는 1형의 2·2.5배.
-  assert.equal(RAID_FORM_GROW[2], 2);
-  assert.equal(RAID_FORM_GROW[3], 2.5);
-  has(`let floor = d.form == 2 ? was.size * 2 : was.size * 5 / 2;`);
+  // 다음 형태의 필요량과 몫. 기본 크기는 1형의 6/5·3/2배(3.2). 넘어가는 동안 옛 화면의 2·5/2배도 받는다.
+  assert.deepEqual(RAID_FORM_GROW[2], [6, 5]);
+  assert.deepEqual(RAID_FORM_GROW[3], [3, 2]);
+  has(`let floor = d.form == 2 ? was.size * ${RAID_FORM_GROW[2][0]} / ${RAID_FORM_GROW[2][1]} : was.size * ${RAID_FORM_GROW[3][0]} / ${RAID_FORM_GROW[3][1]};`);
+  has(`let oldFloor = d.form == 2 ? was.size * 2 : was.size * 5 / 2;`);
   has(`d.n % ${RAID_NEED_STEP} == 0`);
   has(`d.n <= ${RAID_NEED_MAX}`);
   has(`d.n >= floor\n`);
   has(`d.n >= ${RAID_NEED_PER_FIGHTER} * (crowd - ${RAID_NEED_SLACK})`);
-  has(`d.n < ${RAID_NEED_PER_FIGHTER} * crowd + ${RAID_NEED_STEP}`);
+  // 위 끝은 옛 화면(60 × 인원)까지 받는다 — 새 값(40 × 인원)은 그 안에 든다.
+  has(`(d.n == floor || d.n == oldFloor || (d.n % ${RAID_NEED_STEP} == 0 && d.n < 60 * crowd + ${RAID_NEED_STEP}))`);
   has(`let h = d.form == 2 ? ${RAID_FORM_SPLIT[2][0]} : ${RAID_FORM_SPLIT[3][0]};`);
   has(`let b = d.form == 2 ? ${RAID_FORM_SPLIT[2][1]} : ${RAID_FORM_SPLIT[3][1]};`);
   // 규칙은 갑옷과 울타리에 같은 몫(b)을 쓴다.
@@ -317,15 +319,20 @@ test("3.1: 필요량은 형태마다 정수로 나뉘고 합이 그대로다", (
   }
 });
 
-test("3.1: 2·3형은 1형의 2·2.5배, 사람이 많으면 60 × 인원(60 단위)까지 커진다", () => {
-  assert.equal(raidNextNeed(300, 2, 4), 600, "넷이면 기본");
-  assert.equal(raidNextNeed(300, 3, 4), 750);
-  assert.equal(raidNextNeed(420, 3, 6), 1050);
-  assert.equal(raidNextNeed(300, 2, 11), 660, "60 × 11");
-  assert.equal(raidNextNeed(300, 3, 11), 750, "기본이 더 크다");
-  assert.equal(raidNextNeed(300, 2, 100), 6000);
+test("3.2: 2·3형은 1형의 1.2·1.5배, 사람이 많으면 40 × 인원(60 단위)까지 커진다", () => {
+  assert.deepEqual(RAID_SIZES.map((s) => raidFormBase(s, 2)), [360, 432, 504]);
+  assert.deepEqual(RAID_SIZES.map((s) => raidFormBase(s, 3)), [450, 540, 630]);
+  assert.equal(raidNextNeed(300, 2, 4), 360, "넷이면 기본");
+  assert.equal(raidNextNeed(420, 3, 6), 630);
+  assert.equal(raidNextNeed(300, 2, 11), 480, "40 × 11 → 60 단위로 올림");
+  assert.equal(raidNextNeed(300, 3, 11), 480);
+  assert.equal(raidNextNeed(300, 2, 100), 4020);
   assert.equal(raidNextNeed(300, 2, 5000), RAID_NEED_MAX);
-  // 온 사람이 모두 제 역할로 빈틈 없이 치면(120씩) 사람 몫(60)의 두 배 — 절반만 남아 쳐도 넘긴다.
+  // 2026-11-18의 물결: 1형을 잡은 6명이 빈틈 없이(120씩) 치면 가장 큰 2·3형(504·630)도 잡힌다. 넷이면 빈틈을 써야 한다.
+  const crew = (n: number) => n * RAID_USES_PER_PERSON * RAID_ROLE_MULT;
+  assert.ok(crew(6) >= raidNextNeed(420, 3, 6), "여섯이 3형");
+  assert.ok(crew(4) < raidNextNeed(420, 2, 4) && crew(4) * RAID_GAP_MULT >= raidNextNeed(420, 3, 4), "넷은 빈틈으로");
+  // 온 사람이 모두 제 역할로 빈틈 없이 치면(120씩) 사람 몫(40)의 세 배 — ⅓만 남아 쳐도 넘긴다.
   for (const f of [11, 37, 250]) assert.ok(raidNextNeed(300, 2, f) <= f * RAID_USES_PER_PERSON * RAID_ROLE_MULT);
   // 규칙이 받는 범위 안이다(인원을 정확히 읽었을 때).
   for (const size of RAID_SIZES) {
