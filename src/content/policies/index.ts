@@ -156,6 +156,12 @@ import { TAEKWONDO_UNESCO } from "./taekwondo-unesco";
 import { BRUNSON_REMARKS } from "./brunson-remarks";
 import { PARK_RESPECT_REMARK } from "./park-respect-remark";
 import { WAGE_INCOME_TAX } from "./wage-income-tax";
+import { CAPITAL_MARKET_MEETING_2026 } from "./capital-market-meeting-2026";
+import { DUPLICATE_LISTING_RULES } from "./duplicate-listing-rules";
+import { KOSDAQ_SEGMENT_2026 } from "./kosdaq-segment-2026";
+import { HMM_SALE } from "./hmm-sale";
+import { TBS_FUNDING_2027 } from "./tbs-funding-2027";
+import { HEALTH_CHECKUP_TAX } from "./health-checkup-tax";
 import { RELIGION_POLITICS } from "./religion-politics";
 import { EV_SUBSIDY_PROCESS } from "./ev-subsidy-process";
 import { TESLA_FSD } from "./tesla-fsd";
@@ -387,6 +393,12 @@ export const POLICIES: Policy[] = [
   CYBER_SECURITY,
   CHEORWON_HOWITZER_CRASH,
   WILDFIRE_CAUSES,
+  CAPITAL_MARKET_MEETING_2026,
+  DUPLICATE_LISTING_RULES,
+  KOSDAQ_SEGMENT_2026,
+  HMM_SALE,
+  TBS_FUNDING_2027,
+  HEALTH_CHECKUP_TAX,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
