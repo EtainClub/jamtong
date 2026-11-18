@@ -631,7 +631,8 @@
 .game :global(.garden-inventory-item[aria-pressed=true]) { border: 2px solid var(--d-orange); background: #fff4ea; }
 
 /* 아래쪽 시트 */
-.game :global(.garden-sheet) { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+/* 글자색을 정원 본문 색으로 못박는다 — 시트는 dialog라 연 곳(싸움터의 흰 글자 등)의 색을 물려받는다. */
+.game :global(.garden-sheet) { padding-bottom: calc(24px + env(safe-area-inset-bottom)); color: #344b32; }
 .game :global(.garden-sheet-grip) { display: block; width: 40px; height: 4px; margin: -4px auto 10px; border-radius: 2px; background: #c9cdb8; }
 .game :global(.garden-sheet-close) { min-height: 44px; min-width: 44px; }
 
