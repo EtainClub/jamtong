@@ -64,7 +64,7 @@ export interface PublicGarden {
  * 글은 싣지 않는다 — 액자의 글은 보는 화면이 품종표에서 읽는다.
  * 피아노는 pn=건반 음 여덟 개, ps=15초 연주(누른 시각과 음 번호만).
  */
-export type PublicPlaced = { a: string; i: string; kb?: number; pn?: number[]; ps?: Array<{ t: number; n: number }>; bm?: string[]; bd?: number } | { a: string; k: string; s: string; m?: string[]; n?: string };
+export type PublicPlaced = { a: string; i: string; kb?: number; pn?: number[]; ps?: Array<{ t: number; n: number }>; bm?: string[]; bd?: number; sv?: string } | { a: string; k: string; s: string; m?: string[]; n?: string };
 
 export interface PublicRoom {
   /** 추가 키보드의 키 넷을 압축한 그림·소리·판 문자열. */
@@ -88,6 +88,8 @@ export interface PublicRoom {
    * 보는 화면이 features/garden/avatar/rules.ts의 avatarFromPublic으로 다시 본다. 세우지 않았으면 없다.
    */
   avatar?: string;
+  /** 사진첩 — 업적 품종 id(a:<slug>)를 쉼표로 이은 글자 하나(room/rules.ts의 packAlbum). 사진과 글은 보는 화면이 기념관 자료에서 읽는다. */
+  album?: string;
 }
 
 export async function publishGarden(gid: string, uid: string, garden: PublicGarden): Promise<void> {

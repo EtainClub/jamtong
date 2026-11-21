@@ -19,7 +19,7 @@ import { readFileSync } from "node:fs";
 
 import type { Firestore, Timestamp } from "firebase-admin/firestore";
 
-import { BLOOM_CARE, kstDay, RAID_HP_MIN, RAID_LIFE, RAID_MIN_FIGHTERS, RAID_SHARDS, RAID_USES_PER_PERSON } from "../src/features/garden/rules";
+import { BLOOM_CARE, kstDay, RAID_HP_MIN, RAID_LIFE, RAID_LIGHT_HPS, RAID_MIN_FIGHTERS, RAID_SHARDS, RAID_SLOTS, RAID_USES_PER_PERSON, raidClosesAtId, raidEndsFrom } from "../src/features/garden/rules";
 import { raidStars } from "../src/features/garden/raid/rules";
 
 const HOUR = 3_600_000;
@@ -169,10 +169,16 @@ async function raids(db: Firestore) {
   if (waves.length === 0) return console.log("물결 없음");
   waves.sort((a, b) => (a.spawnedAt ?? 0) - (b.spawnedAt ?? 0));
 
-  console.log(`지금 규칙: 체력 ${RAID_HP_MIN} (= ${RAID_MIN_FIGHTERS}명 몫) · ${RAID_LIFE / HOUR}시간 뒤 도망 · 칸 ${RAID_SHARDS}`);
+  console.log(
+    `지금 규칙: 하루 ${RAID_SLOTS.map((x) => `${x.label} ${x.open}–${x.close}시`).join(" · ")} · 보통 물결 체력 ${RAID_LIGHT_HPS.join("/")}(시간대 끝에 떠남) · ` +
+      `주 1회 변신 잡초 체력 ${RAID_HP_MIN}+ (${RAID_MIN_FIGHTERS}명 몫, ${RAID_LIFE / HOUR}시간 뒤 도망) · 칸 ${RAID_SHARDS}`,
+  );
+  // 물결이 떠나는 때 — 보통 물결은 시간대의 끝, 변신하는 거대 잡초는 3시간(옛 물결은 모두 3시간).
+  const endOf = (w: { id: string; spawnedAt: number | null; form?: number | null }) => raidEndsFrom(w.spawnedAt, Boolean(w.form), raidClosesAtId(w.id));
   console.log("");
   for (const w of waves) {
-    const end = w.defeatedAt ?? (w.spawnedAt !== null && NOW >= w.spawnedAt + RAID_LIFE ? w.spawnedAt + RAID_LIFE : null);
+    const leave = endOf(w);
+    const end = w.defeatedAt ?? (leave !== null && NOW >= leave ? leave : null);
     const result = w.defeatedAt ? "쓰러짐" : end ? "도망  " : "싸우는 중";
     const minutes = end && w.spawnedAt ? Math.round((end - w.spawnedAt) / 60_000) : null;
     // 빈틈 비율: 빈틈의 한 번은 두 번으로 세므로 (센 값 − 쓴 기력) = 빈틈에 쓴 기력. 표식에 새 필드를 두지 않고 셈한다.
@@ -194,7 +200,7 @@ async function raids(db: Firestore) {
   // 물결이 생기기 전(2026-11-05 전)의 문서는 id가 날짜 번호뿐이고 체력 규칙도 달랐다. 판단에서 뺀다.
   const legacy = waves.filter((w) => !w.id.includes("-")).length;
   const current = waves.filter((w) => w.id.includes("-"));
-  const ended = current.filter((w) => w.defeatedAt || (w.spawnedAt !== null && NOW >= w.spawnedAt + RAID_LIFE));
+  const ended = current.filter((w) => w.defeatedAt || ((endOf(w) ?? Infinity) <= NOW));
   const won = ended.filter((w) => w.defeatedAt);
   const toKill = won.filter((w) => w.spawnedAt).map((w) => Math.round((w.defeatedAt! - w.spawnedAt!) / 60_000));
   const escapedShort = ended.filter((w) => !w.defeatedAt && w.fighters > 0 && w.fighters < RAID_MIN_FIGHTERS).length;

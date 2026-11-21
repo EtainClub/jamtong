@@ -4,6 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 import { FRAME_BLANK, FURNITURE_BY_ID } from "./room/catalog";
 import { ROOM_SIZES } from "./room/rules";
+import { giftPool } from "./memorial/ox";
 import { CHEER_MIN, KIT, KIT_ORDER, RAID_JAM, RAID_JAM_MAX, ROOTS_CHEER, ROOTS_ESCAPE, ROOTS_FULL, SAMPLES_PER_TROPHY, SPORE_COUNT, STAR_MINUTES } from "./raid/rules";
 
 import {
@@ -39,9 +40,7 @@ import {
   TITLE_ORDER,
   TITLES,
   RAID_BOX,
-  RAID_EVERY_HOURS,
-  RAID_FIRST_HOUR,
-  RAID_GAP,
+  RAID_SLOTS,
   RAID_USES_PER_PERSON,
   RAID_AID_ORDER,
   RAID_AIDS,
@@ -77,6 +76,8 @@ import {
   WATER_PER_DAY,
   WEED,
   WEED_REWARD_PER_DAY,
+  WEED_QUIZ_ODDS,
+  WEED_QUIZ_PER_DAY,
   WEED_SEED_ODDS,
 } from "./rules";
 import type { Tier } from "./types";
@@ -295,16 +296,21 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
             </li>
             <li>잡초에서 씨앗이 나올 확률은 {pct(WEED_SEED_ODDS)}예요.</li>
             <li>
+              잡초를 뽑으면 {pct(WEED_QUIZ_ODDS)} 확률로 업적 O/X 퀴즈가 나와요(하루 {WEED_QUIZ_PER_DAY}번까지, 잼을 받는 잡초에서만). 맞히면 상점의 가구·소품·창문{" "}
+              {giftPool().length}가지 가운데 하나를 같은 확률로 선물로 받아요. 퀴즈의 숫자는 모두 업적에 실린 실제 숫자예요.
+            </li>
+            <li>
               광장 상태에 따라 새로 심는 작물이 빨리 자라요:{" "}
               {(Object.keys(PLAZA_SPEED) as Array<keyof typeof PLAZA_SPEED>).map((k) => `${PLAZA_LABEL[k]} ×${PLAZA_SPEED[k]}`).join(" · ")}.
             </li>
             <li>
-              광장이 무성해지면 거대 잡초가 나타나요. 하루 {RAID_PER_DAY}번까지,{" "}
-              {Array.from({ length: RAID_PER_DAY }, (_, i) => `${RAID_FIRST_HOUR + RAID_EVERY_HOURS * i}시`).join("·")}부터 하나씩
-              열려요. 앞 거대 잡초가 끝나고 {duration(RAID_GAP / MINUTE)}이 지나야 다음이 나와요.
+              거대 잡초는 하루 {RAID_PER_DAY}번 — {RAID_SLOTS.map((x) => `${x.label} ${x.open}–${x.close}시`).join(" · ")} — 나타나요. 다음 시간대가 열릴 때까지
+              머물러서, 그 사이 언제 와서 쳐도 다 쌓여요. 보통 거대 잡초는 체력 하나뿐이고 반격도 역할도 없어요 — 둘·셋이 기력을 다 쓰면 잡혀요:{" "}
+              {RAID_KINDS.map((k) => `${k.name} ${k.light}`).join(" · ")}. 다음 거대 잡초가 나와도 지난 거대 잡초의 보상은 광장 위에 남아 있어요.
             </li>
             <li>
-              거대 잡초는 세 번 변신해요. 1형의 체력을 다 깎으면 2형, 2형의 게이지(체력·갑옷·울타리)를 다 채우면 3형이 나오고, 3형을 채우면 쓰러져요.
+              🌀 주에 한 번, 어느 날 어느 시간대에 <b>변신하는 거대 잡초</b>가 대신 나와요. 이것만 아래처럼 세 번 변신하고, {duration(RAID_LIFE / MINUTE)}이 지나면
+              도망가요. 변신하는 거대 잡초는 세 번 변신해요. 1형의 체력을 다 깎으면 2형, 2형의 게이지(체력·갑옷·울타리)를 다 채우면 3형이 나오고, 3형을 채우면 쓰러져요.
               2·3형은 1형의 1.2·1.5배이고 사람이 많으면 더 커져요. 잼은 참여 {RAID_JAM.base} · 1형 {RAID_JAM.forms[0]} · 2형 {RAID_JAM.forms[1]} · 3형{" "}
               {RAID_JAM.forms[2]} — 끝까지 함께하면 {RAID_JAM_MAX.toLocaleString()}잼이고, 형태 보상은 그 형태에 든 사람이 받아요.
             </li>
@@ -319,7 +325,7 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
               {RAID_USES_PER_PERSON * RAID_ROLE_MULT * RAID_GAP_MULT}이고 1형의 크기는 적어도 {RAID_SIZES[0]}이라 혼자서는 못 잡아요 — 1형은 빈틈에 모이면 둘, 아무 때나 쳐도 셋–넷이면 잡혀요.
             </li>
             <li>
-              거대 잡초는 사회를 갉아먹는 악초예요. 하루 {RAID_PER_DAY}번 서로 다른 놈이 나오고, 종류마다 1형의 크기가 달라요:{" "}
+              거대 잡초는 사회를 갉아먹는 악초예요. 하루 {RAID_PER_DAY}번 서로 다른 놈이 나오고, 변신하는 거대 잡초는 종류마다 1형의 크기가 달라요:{" "}
               {RAID_KINDS.map((k) => `${k.name} ${k.size}(${raidNeedV3(k.size).least}–${raidNeedV3(k.size).most}명)`).join(" · ")}.
             </li>
             <li>
@@ -333,7 +339,7 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
               {KIT_ORDER.map((id) => `${KIT[id].icon} ${KIT[id].label} 🍯${KIT[id].price}·하루 ${KIT[id].perDay}`).join(" · ")}. 기력을 더 주는 도구는 없어요.
             </li>
             <li>
-              {duration(RAID_LIFE / MINUTE)} 안에 쓰러뜨리면 한 번이라도 쳤거나 지원한 모두가 잼 {RAID_BOX.jam}과 희귀 씨앗 상자를 받아요
+              쓰러뜨리면 한 번이라도 쳤거나 지원한 모두가 잼 {RAID_BOX.jam}과 희귀 씨앗 상자를 받아요
               ({RAID_BOX.odds.map((o) => `${TIER_LABEL[o.tier]} ${pct(o.p)}`).join(" · ")}, ★★★이면 {TIER_LABEL.flagship} {pct(1 - RAID_BOX_FAST_PERENNIAL)} ·{" "}
               {TIER_LABEL.perennial} {pct(RAID_BOX_FAST_PERENNIAL)}). 같은 물결·같은 사람이면 같은 씨앗이에요.
             </li>

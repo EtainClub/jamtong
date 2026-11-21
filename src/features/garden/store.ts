@@ -34,6 +34,8 @@ import {
   START_JAM,
   START_PLOTS,
   WEED,
+  WEED_QUIZ_ODDS,
+  WEED_QUIZ_PER_DAY,
   WEED_REWARD_PER_DAY,
   WEED_SEED_ODDS,
   withRainbow,
@@ -85,7 +87,8 @@ import { initialCoach, normalizeCoach, type CoachData, type CoachMark, type TipT
 import * as room from "./room/rules";
 import { avatarSlotOk, buyWear as buyWearRule, grantRewards, normalizeAvatar, unownedWear, type AvatarData, type WearRefusal } from "./avatar/rules";
 import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_ILCHON, type IlchonData, type NewsEntry } from "./ilchon/rules";
-import { MOODS } from "./room/catalog";
+import { MOODS, type Furniture } from "./room/catalog";
+import { pickGift } from "./memorial/ox";
 import { normalizeKeys, type RoomKey } from "./room/keyboard";
 import type { GardenTrackId } from "./musicTracks";
 import { canUseTrack } from "./musicTracks";
@@ -113,6 +116,11 @@ export interface GardenData {
   shine: { day: string; count: number };
   shop: { slot: number; bought: Record<string, number> };
   weeds: { day: string; count: number };
+  /**
+   * 잡초 O/X 퀴즈 장부(rules.ts의 WEED_QUIZ_*) — 오늘(day) 뜬 수(n)와, 떠 있는데 아직 답하지 않은 퀴즈가 있는지(open).
+   * open일 때 한 번만 선물을 받는다. 옛 장부에는 없다.
+   */
+  weedQuiz?: { day: string; n: number; open: boolean };
   /** 원본 페이지에서 받아 간 선물 씨앗. 품종마다 한 번. */
   gifts: string[];
   /**
@@ -266,6 +274,11 @@ function fresh(catalog: Species[]): GardenData {
 }
 
 /** 꽃밭이 생기기 전에 저장된 정원에 빈 칸을 채운다. */
+/** 기념품이 있는데 진열장이 방에 없으면 한 번 저절로 놓는다(꽉 찼으면 물건 하나를 보관함에 — room/rules.ts의 autoPlaceCase). */
+function withCase(r: room.RoomData): room.RoomData {
+  return room.autoPlaceCase(r)?.room ?? r;
+}
+
 function normalize(data: GardenData): GardenData {
   return {
     ...data,
@@ -290,7 +303,7 @@ function normalize(data: GardenData): GardenData {
     friends: data.friends ?? [],
     // 꼬마가 없는 옛 장부는 정원 이름으로 기본 꼬마를 정한다 — 저장되기 전에 다시 열어도 같은 꼬마.
     // 서재 세트는 가진 책 수에서 정해진다 — 이 기능이 생기기 전에 산 책에도 준다.
-    room: room.grantLibrarySets(room.normalizeRoom(data.room, data.nick || String(data.updatedAt))),
+    room: withCase(room.grantSouvenirCase(room.grantLibrarySets(room.normalizeRoom(data.room, data.nick || String(data.updatedAt))))),
     ilchon: normalizeIlchon(data.ilchon),
     news: Array.isArray(data.news) ? data.news.slice(0, NEWS_MAX) : [],
   };
@@ -530,6 +543,23 @@ interface GardenState {
   showFruit: (fruitId: string, catalog: Map<string, Species>) => { shown: room.Shown; at: string | null } | null;
   /** 쪽지를 액자에 건다. 빈 액자틀이 없으면 잼으로 하나 사서. */
   frameNote: (noteId: string, speciesId: string) => { at: string | null; bought: boolean } | null;
+  /**
+   * 잡초를 뽑은 뒤 O/X 퀴즈를 띄울지 굴린다(확률 WEED_QUIZ_ODDS, 하루 WEED_QUIZ_PER_DAY번). 띄우면 true — 장부에 적는다.
+   */
+  rollWeedQuiz: () => boolean;
+  /** 띄운 퀴즈에 답했다. 맞혔으면 상점 가구 하나를 선물로(가구 표의 것, 같은 확률). 받은 가구, 아니면 null. */
+  settleWeedQuiz: (correct: boolean) => Furniture | null;
+  /**
+   * 업적 기념관 — 문제를 맞힌 업적의 기념품을 방에 들인다(docs/garden-achievement-strategy.md §3).
+   * 잼으로 사지 않는다. 업적 품종이 품종표에 있고 아직 받지 않았을 때만. 놓인 칸(빈 칸이 없으면 null) 또는 받지 못하면 false.
+   */
+  earnSouvenir: (speciesId: string, catalog: Map<string, Species>) => { where: "case" | "stowed"; moved: string | null } | false;
+  /** 진열장을 놓느라 보관함에 넣은 물건의 알림을 읽었다. */
+  clearCaseMoved: () => void;
+  /** 사진첩에 거둔 업적 하나를 올린다. 거둔 적 없는 업적·가득 찬 사진첩·이미 올린 것은 받지 않는다(이유를 돌려준다). */
+  addToAlbum: (speciesId: string, catalog: Map<string, Species>) => true | "unharvested" | "full" | "have" | "unknown";
+  /** 사진첩에서 한 장을 내린다. */
+  removeFromAlbum: (speciesId: string) => void;
 }
 
 function marked(coach: CoachData, mark: CoachMark): CoachData {
@@ -1320,6 +1350,61 @@ export const useGarden = create<GardenState>((set, get) => {
       if (!d || !out) return null;
       commit({ ...d, room: out.room, jam: out.jam });
       return { at: out.at, bought: out.bought };
+    },
+
+    rollWeedQuiz: () => {
+      const d = get().data;
+      if (!d) return false;
+      const today = kstDay(Date.now());
+      const n = d.weedQuiz?.day === today ? d.weedQuiz.n : 0;
+      if (n >= WEED_QUIZ_PER_DAY || d.weedQuiz?.open || Math.random() >= WEED_QUIZ_ODDS) return false;
+      commit({ ...d, weedQuiz: { day: today, n: n + 1, open: true } });
+      return true;
+    },
+
+    settleWeedQuiz: (correct) => {
+      const d = get().data;
+      if (!d || !d.weedQuiz?.open) return null;
+      const closed = { ...d.weedQuiz, open: false };
+      const gift = correct ? pickGift(d.room, Math.random) : null;
+      const nextRoom = gift ? room.giftItem(d.room, gift.id) : null;
+      commit({ ...d, weedQuiz: closed, ...(nextRoom ? { room: nextRoom } : {}) });
+      return nextRoom ? gift : null;
+    },
+
+    earnSouvenir: (speciesId, catalog) => {
+      const d = get().data;
+      if (!d || !speciesId.startsWith("a:") || !catalog.has(speciesId)) return false;
+      const got = room.receiveSouvenir(d.room, speciesId);
+      if (!got) return false;
+      commit({ ...d, room: got.room, news: pushNews(d.news, newsEntry("souvenir", speciesId, Date.now())) });
+      return { where: got.where, moved: got.moved };
+    },
+
+    clearCaseMoved: () => {
+      const d = get().data;
+      if (!d?.room.caseMoved) return;
+      const { caseMoved: _seen, ...rest } = d.room;
+      void _seen;
+      commit({ ...d, room: rest });
+    },
+
+    addToAlbum: (speciesId, catalog) => {
+      const d = get().data;
+      if (!d || !room.ALBUM_ID.test(speciesId) || !catalog.has(speciesId)) return "unknown";
+      if (!d.dex[speciesId]) return "unharvested";
+      const album = d.room.album ?? [];
+      if (album.includes(speciesId)) return "have";
+      if (album.length >= room.ALBUM_MAX) return "full";
+      commit({ ...d, room: { ...d.room, album: [...album, speciesId] }, news: pushNews(d.news, newsEntry("album", speciesId, Date.now())) });
+      return true;
+    },
+
+    removeFromAlbum: (speciesId) => {
+      const d = get().data;
+      const album = d?.room.album ?? [];
+      if (!d || !album.includes(speciesId)) return;
+      commit({ ...d, room: { ...d.room, album: album.filter((id) => id !== speciesId) } });
     },
   };
 });

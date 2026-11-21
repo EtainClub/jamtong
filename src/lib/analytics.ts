@@ -117,6 +117,21 @@ export type AnalyticsEvent =
    * shop_buy: 상점에서 샀다. cat(seeds|tools|furniture|walls|trophy).
    */
   | "frame_open"
+  /**
+   * 업적 기념관·사진첩(docs/garden-achievement-strategy.md §3).
+   * souvenir_view: 기념관에서 업적 하나를 열었다(slug). souvenir_quiz: 문제에 답했다(slug, answer). souvenir_get: 기념품을 받았다(slug).
+   * souvenir_tap: 방에 놓인 기념품을 눌렀다(guest — 남의 방이면 true). album_add: 사진첩에 올렸다(slug). album_open: 사진첩을 열었다(mine).
+   * photo_go: 사진 카드에서 업적 페이지로 갔다(slug, from album|memorial|room).
+   */
+  | "souvenir_view"
+  | "souvenir_quiz"
+  | "souvenir_get"
+  | "souvenir_tap"
+  | "album_add"
+  | "album_open"
+  | "photo_go"
+  /** 잡초 O/X 퀴즈에 답했다(slug, answer=맞혔는지). 뜬 수는 plaza_pull과 견준다. */
+  | "weed_quiz"
   | "room_show"
   | "room_edit"
   | "shop_buy"

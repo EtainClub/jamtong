@@ -31,7 +31,6 @@ import {
   RAID_USES_PER_PERSON,
   RAID_AIDS,
   RAID_GAP_MULT,
-  RAID_LIFE,
   RAID_POOL_LABEL,
   RAID_ROLE_MULT,
   RAID_ROLE_ORDER,
@@ -42,7 +41,9 @@ import {
   raidGauges,
   raidNeed,
   raidNeedV3,
+  raidEndsAt,
   raidPoolValue,
+  raidSlotLabel,
   raidTaunt,
   type RaidAidId,
   type FinisherId,
@@ -370,10 +371,12 @@ export function RaidArena({
 
   // ── 대기술: 태어난 시각에서 정해진 때에 온다(raid/forms.ts) — 모두가 같은 순간 같은 예고를 본다.
   //    문지르던 사람만 맞는다. 예고 안에 누르면 피하고 덤으로 한 방. ──
+  // 보통 물결(가벼운 거대 잡초)에는 반격이 없다 — 변신하는 거대 잡초(주 한 번)만 대기술을 쓴다.
   const raidKey = r.id;
   const bornAt = r.spawnedAt;
+  const counters = Boolean(r.v3);
   useEffect(() => {
-    if (spent || bornAt === null) return;
+    if (spent || bornAt === null || !counters) return;
     let alive = true;
     let t: ReturnType<typeof setTimeout>;
     const c = g.counter;
@@ -426,7 +429,7 @@ export function RaidArena({
       clearTimeout(t);
       counterRef.current = null;
     };
-  }, [spent, g, raidKey, bornAt]);
+  }, [spent, g, raidKey, bornAt, counters]);
 
   const dodge = () => {
     if (counterRef.current?.phase !== "warn") return;
@@ -507,7 +510,7 @@ export function RaidArena({
 
   const gesture = useRubAt(rub);
 
-  const escapeIn = r.spawnedAt !== null ? r.spawnedAt + RAID_LIFE - now : RAID_LIFE;
+  const escapeIn = (raidEndsAt(r) ?? now) - now;
   const box = Math.round(216 * Math.min(1.2, 0.9 + prog.need / 3000));
   const need3 = r.v3 ? raidNeedV3(r.v3.n) : raidNeed(r.hp);
   const tier = comboTier(combo);
@@ -542,7 +545,7 @@ export function RaidArena({
             {form === 1 ? `${josa(kind.name, "이가")} 나타났어요!` : formName(kind.id, form)}
             {form > 1 && <span className="raid-form-chip">{FORM_ORDER[form]}</span>}
           </h3>
-          <p className="shrink-0 text-[11.5px] tabular-nums opacity-90">⏱ {formatLeft(Math.max(0, escapeIn))}</p>
+          <p className="shrink-0 text-[11.5px] tabular-nums opacity-90">{r.v3 ? "⏱" : "🌙 떠나기까지"} {formatLeft(Math.max(0, escapeIn))}</p>
         </div>
         {r.v3 && form > 1 && raid.canPickRole && <RolePick role={role} canPick form={form} onPick={raid.pickRole} />}
         {gap?.now && <GapBand gap={gap} frenzy={frenzy} now={now} />}
@@ -782,7 +785,7 @@ export function RaidArena({
           {spent ? "🧰 도구 · 잼 보상 · 규칙" : "📣 지원 · 🧰 도구 · 🍯 잼 보상 · 규칙"}
         </summary>
         <p className="mt-1 text-[11.5px] opacity-90">
-          오늘 {["첫", "두", "세", "네", "다섯"][r.wave - 1] ?? r.wave} 번째 거대 잡초 · {kind.trait} · {g.rule}
+          오늘 {raidSlotLabel(r.wave)} 거대 잡초{r.v3 ? " · 🌀 이번 주의 변신하는 거대 잡초" : ""} · {kind.trait} · {g.rule}
         </p>
         <p className="mt-1 text-[11.5px] tabular-nums opacity-90">
           함께 {r.fighters.toLocaleString()}명 · {need3.least === need3.most ? `${need3.most}명이면 잡아요` : `빈틈에 ${need3.least}명 · 아니면 ${need3.most}명`} · 내가 넣은 값 {raid.me.hits}

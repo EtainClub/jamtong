@@ -1,4 +1,4 @@
-import { josa, RAID_LIFE, raidGapWindow, raidKind, raidNeed, raidPhase, type RaidKind, type RaidPhase, type RaidWave } from "@/features/garden/rules";
+import { josa, raidClosesAtId, raidEndsAt, raidGapWindow, raidKind, raidNeed, raidPhase, type RaidKind, type RaidPhase, type RaidWave } from "@/features/garden/rules";
 
 /**
  * 거대 잡초 한 물결을 서버에서 읽는다 — "같이 잡자" 링크(/r/[rid])와 그 카드(/api/raid-card)가 쓴다.
@@ -56,6 +56,9 @@ export async function loadRaidCard(rid: string): Promise<RaidCard | null> {
     fighters: num(f.fighters) + shards.reduce((n, d) => n + num(d.fields?.fighters), 0),
     spawnedAt: time(f.spawnedAt),
     defeatedAt: time(f.defeatedAt),
+    closesAt: raidClosesAtId(rid),
+    // 변신하는 거대 잡초는 형태가 있다 — 3시간 뒤 도망가는 셈(raidEndsAt)에만 쓴다. 게이지는 그리지 않는다.
+    ...(f.form ? { v3: { form: 1, formAt: null, size: 0, n: 0, brk: 0, grd: 0, base: { h: 0, b: 0, g: 0 }, brkHits: 0, grdHits: 0 } } : {}),
   };
   if (raid.hp <= 0) return null;
   const now = Date.now();
@@ -71,7 +74,7 @@ export async function loadRaidCard(rid: string): Promise<RaidCard | null> {
     need: raidNeed(raid.hp).most,
     needLeast: raidNeed(raid.hp).least,
     gapAt: phase === "active" ? (raidGapWindow(now, raid.spawnedAt, raid.hp)?.start ?? null) : null,
-    escapeIn: phase === "active" && raid.spawnedAt !== null ? Math.max(0, raid.spawnedAt + RAID_LIFE - now) : 0,
+    escapeIn: phase === "active" ? Math.max(0, (raidEndsAt(raid) ?? now) - now) : 0,
   };
 }
 

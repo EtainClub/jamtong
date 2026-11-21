@@ -1,3 +1,5 @@
+import type { Memento } from "./memorial/types";
+
 /**
  * 정원의 자료형. 설계는 docs/garden-game.md §3.
  */
@@ -49,6 +51,8 @@ export interface Species {
   links: string[];
   /** 업적의 연표가 시작한 해(콘텐츠의 timeline에서). 특별한 책의 '그 시절 씨앗'이 쓴다. 업적이 아니면 없다. */
   since?: number;
+  /** 업적 기념품의 모양(memorial/build.ts의 mementoOf). 업적 품종만 — 방에 놓인 기념품을 그릴 때 쓴다. */
+  memento?: Memento;
 }
 
 export type Mutation = "golden" | "moist" | "sparkle" | "shine" | "blessed" | "rainbow";

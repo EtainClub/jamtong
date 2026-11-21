@@ -641,8 +641,119 @@ test("그림 파일 가구 — 표의 그림은 모두 파일이 있고, 방마�
     assert.ok(arts.has(art), `가구표에 없는 그림 ${art}`);
     assert.ok(readFileSync(`public/images/room/${art}.png`).length > 0, `${art}.png`);
   }
-  // 도형으로 남기는 것: 벽지·바닥재·필살기, 쪽지 액자틀, 주인이 그린 키보드, 책마다 색이 다른 책.
+  // 도형으로 남기는 것: 벽지·바닥재·필살기, 쪽지 액자틀, 주인이 그린 키보드, 책마다 색이 다른 책, 담긴 기념품이 방마다 다른 진열장.
   const shape = (f: (typeof FURNITURE)[number]) =>
-    ["wallpaper", "flooring", "fx", "frame-blank"].includes(f.kind) || f.art === "keyboard" || BOOK_PALETTES.has(f.art);
+    ["wallpaper", "flooring", "fx", "frame-blank"].includes(f.kind) || f.art === "keyboard" || f.art === "souvenir-case" || BOOK_PALETTES.has(f.art);
   assert.deepEqual(FURNITURE.filter((f) => !shape(f) && !FURNITURE_SPRITES[f.art]).map((f) => f.art), []);
+});
+
+// ── 업적 기념품·사진첩 (docs/garden-achievement-strategy.md §3) ─────────
+
+test("기념품: 업적 품종 id만 공개 방에 싣고, 남의 방은 품종표에 있는 업적만 그린다", async () => {
+  const { souvenirShownId, hasSouvenir } = await import("./rules");
+  const added = addShown(freshRoom(), { id: souvenirShownId("a:daejangdong"), kind: "souvenir", species: "a:daejangdong" })!;
+  assert.ok(hasSouvenir(added.room, "a:daejangdong"));
+  assert.ok(added.at, "빈 칸에 바로 놓인다");
+  const pub = publicRoom(added.room);
+  assert.deepEqual(pub.placed[0], { a: added.at, k: "souvenir", s: "a:daejangdong" });
+  const byId = new Map([["a:daejangdong", species("a:daejangdong", "flagship")]]);
+  const back = roomFromPublic({ ...pub, placed: [...pub.placed, { a: "b5", k: "souvenir", s: "a:nope" }, { a: "b6", k: "souvenir", s: "w:x" }] }, byId);
+  assert.equal(back.shown.filter((s) => s.kind === "souvenir").length, 1, "품종표에 없는 업적·업적이 아닌 품종은 그리지 않는다");
+});
+
+test("사진첩: 업적 품종만, 겹치지 않게, 상한까지. 공개 문서에는 쉼표로 이은 글자 하나", async () => {
+  const { ALBUM_MAX, ALBUM_ID, cleanAlbum, packAlbum, unpackAlbum } = await import("./rules");
+  assert.deepEqual(cleanAlbum(["a:x", "a:x", "w:y", "a:<b>", 3, "a:z"]), ["a:x", "a:z"]);
+  const many = Array.from({ length: ALBUM_MAX + 5 }, (_, i) => `a:s${i}`);
+  assert.equal(cleanAlbum(many).length, ALBUM_MAX);
+  assert.equal(packAlbum([]), null);
+  const packed = packAlbum(many)!;
+  assert.deepEqual(unpackAlbum(packed), cleanAlbum(many));
+  // 규칙의 모양과 같다 — 품종 id 정규식과 장수, 글자 수 상한.
+  const rules = readFileSync("firestore.rules", "utf8");
+  assert.ok(rules.includes(`'album'`), "publicRoom()이 album을 받는다");
+  assert.ok(rules.includes(`r.album.matches('^a:[a-z0-9-]{1,40}(,a:[a-z0-9-]{1,40}){0,${ALBUM_MAX - 1}}$')`));
+  assert.equal(ALBUM_ID.source, "^a:[a-z0-9-]{1,40}$");
+  const longest = Array.from({ length: ALBUM_MAX }, (_, i) => `a:${"x".repeat(38)}${String(i).padStart(2, "0")}`).join(",");
+  assert.ok(rules.includes(`r.album.size() <= ${longest.length + 1}`), `상한 ${longest.length}`);
+  assert.ok(new RegExp(`^a:[a-z0-9-]{1,40}(,a:[a-z0-9-]{1,40}){0,${ALBUM_MAX - 1}}$`).test(longest));
+  // 남의 방: 품종표에 없는 것은 뺀다.
+  const byId = new Map([["a:s1", species("a:s1")]]);
+  const back = roomFromPublic({ size: 0, wall: "", floor: "", mood: "", placed: [], album: "a:s1,a:s2" }, byId);
+  assert.deepEqual(back.album, ["a:s1"]);
+});
+
+test("기념품 진열장: 빈 칸이 있으면 거기에, 기념품은 진열장에 담는다", async () => {
+  const { receiveSouvenir, SOUVENIR_CASE, souvenirIds } = await import("./rules");
+  const first = receiveSouvenir(freshRoom(), "a:x")!;
+  assert.equal(first.where, "case");
+  assert.equal(first.moved, null);
+  assert.equal(first.room.owned[SOUVENIR_CASE], 1);
+  assert.equal(first.room.placed.filter((p) => p.it === SOUVENIR_CASE).length, 1);
+  assert.equal(first.room.placed.some((p) => p.it.startsWith("s:")), false, "기념품은 하나하나 놓지 않고 진열장에 담는다");
+  const second = receiveSouvenir(first.room, "a:y")!;
+  assert.equal(second.where, "case");
+  assert.deepEqual(souvenirIds(second.room), ["a:x", "a:y"]);
+  assert.equal(receiveSouvenir(second.room, "a:y"), null, "같은 기념품은 한 번만");
+});
+
+/** 진열장이 설 수 있는 바닥 칸을 모두 채운 방. fill이 칸마다 놓을 것을 고른다. */
+async function fullRoom(fill: (i: number) => string, own: Record<string, number>) {
+  const { SOUVENIR_CASE, openSlots: open } = await import("./rules");
+  let room = owning(own);
+  let i = 0;
+  for (const at of open(room, SOUVENIR_CASE)) room = place(room, fill(i++), at) ?? room;
+  assert.equal(open(room, SOUVENIR_CASE).length, 0, "꽉 찬 방");
+  return room;
+}
+
+test("기념품 진열장: 꽉 찬 방에도 놓는다 — 가장 싼 바닥 가구 하나를 보관함에 넣고 알려 준다", async () => {
+  const { receiveSouvenir, SOUVENIR_CASE, stowedCount: stowed } = await import("./rules");
+  const floors = FURNITURE.filter((f) => f.kind === "floor" && f.size === 1 && f.price > 0 && !f.cur && !f.reading && f.id !== "keyboard" && f.id !== "piano").map((f) => f.id);
+  const full = await fullRoom((i) => floors[i], Object.fromEntries(floors.map((id) => [id, 1])));
+  const got = receiveSouvenir(full, "a:x")!;
+  assert.equal(got.where, "case");
+  assert.ok(got.moved, "보관함에 넣은 물건을 알려 준다");
+  assert.equal(got.room.caseMoved, got.moved);
+  assert.ok(got.room.placed.some((p) => p.it === SOUVENIR_CASE));
+  assert.equal(stowed(got.room, got.moved!), 1, "넣은 물건은 보관함에 있다 — 잃지 않는다");
+  const placedPrices = full.placed.filter((p) => !p.at.startsWith("w")).map((p) => FURNITURE_BY_ID.get(p.it)!.price);
+  assert.equal(FURNITURE_BY_ID.get(got.moved!)!.price, Math.min(...placedPrices), "가장 싼 것부터");
+});
+
+test("기념품 진열장: 따로 놓은 기념품이 먼저 비켜 주고, 키보드·피아노는 건드리지 않고, 한 번만 저절로 놓는다", async () => {
+  const { autoPlaceCase, receiveSouvenir, SOUVENIR_CASE, souvenirShownId, stow: stowAt } = await import("./rules");
+  // 기념품 하나를 바닥에 따로 놓은 꽉 찬 방.
+  const floors = FURNITURE.filter((f) => f.kind === "floor" && f.size === 1 && f.price > 0 && !f.cur && !f.reading && f.id !== "keyboard" && f.id !== "piano").map((f) => f.id);
+  let room = await fullRoom((i) => floors[i], Object.fromEntries(floors.map((id) => [id, 1])));
+  const spot = room.placed.find((p) => !p.at.startsWith("w"))!;
+  room = stowAt(room, spot.at);
+  room = { ...room, shown: [...room.shown, { id: souvenirShownId("a:z"), kind: "souvenir", species: "a:z" }] };
+  room = place(room, souvenirShownId("a:z"), spot.at)!;
+  const got = receiveSouvenir(room, "a:x")!;
+  assert.equal(got.moved, souvenirShownId("a:z"), "따로 놓은 기념품은 진열장 안에 있으니 그것부터 비킨다");
+
+  // 사람이 진열장을 보관함에 넣었으면 다시 꺼내 놓지 않는다.
+  const at = got.room.placed.find((p) => p.it === SOUVENIR_CASE)!.at;
+  const putAway = stowAt(got.room, at);
+  assert.equal(autoPlaceCase(putAway), null);
+  assert.equal(receiveSouvenir(putAway, "a:y")!.where, "stowed");
+
+  // 바닥이 키보드·피아노로만 찼으면 놓지 못한다.
+  const keys = await fullRoom((i) => (i % 2 ? "keyboard" : "piano"), { keyboard: 9, piano: 9 });
+  const none = receiveSouvenir(keys, "a:x");
+  if (none) assert.equal(none.where, "stowed");
+});
+
+test("기념품 진열장: 공개 방에는 담긴 품종 id만, 남의 방은 품종표에 있는 업적만 꺼낸다", async () => {
+  const { receiveSouvenir, SOUVENIR_CASE, souvenirIds } = await import("./rules");
+  let room = receiveSouvenir(freshRoom(), "a:x")!.room;
+  room = receiveSouvenir(room, "a:y")!.room;
+  const pub = publicRoom(room);
+  const entry = pub.placed.find((p) => "i" in p && p.i === SOUVENIR_CASE) as { sv?: string };
+  assert.equal(entry.sv, "a:x,a:y");
+  const byId = new Map([["a:x", species("a:x")]]);
+  const back = roomFromPublic({ ...pub, placed: pub.placed.map((p) => ("i" in p && p.i === SOUVENIR_CASE ? { ...p, sv: "a:x,a:nope,<b>,w:z" } : p)) }, byId);
+  assert.deepEqual(souvenirIds(back), ["a:x"]);
+  assert.ok(back.placed.some((p) => p.it === SOUVENIR_CASE));
 });

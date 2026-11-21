@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { track } from "@/lib/analytics";
 
@@ -21,7 +21,9 @@ import { BookSheet } from "./BookSheet";
 import { roomBookOf } from "./library";
 import { PianoPlayer } from "./PianoPlayer";
 import { pianoNotes, pianoSong, type PianoEvent } from "./piano";
-import type { Placed, RoomData } from "./rules";
+import { PhotoCard } from "../memorial/PhotoCard";
+import { entryOf, useMemorial } from "../memorial/useMemorial";
+import { SOUVENIR_CASE, souvenirIds, type Placed, type RoomData } from "./rules";
 
 /**
  * 방에 놓인 전시품을 누르면 뜨는 시트 — 방이 근거 전시장이 되는 자리(docs/garden-miniroom.md §4.2).
@@ -63,6 +65,9 @@ export function RoomItemSheet({
   if (book && reader) {
     return <BookSheet book={book} room={room} mode={reader.mode} ownerNick={reader.ownerNick} gid={reader.gid} uid={reader.uid} catalog={[...byId.values()]} onClose={onClose} />;
   }
+  if (placed.it === SOUVENIR_CASE) {
+    return <CaseSheet ids={souvenirIds(room)} guest={reader?.mode === "guest"} ownerNick={reader?.ownerNick} onClose={onClose} />;
+  }
   if (placed.it === "piano") return <Sheet label="피아노 연주" title="피아노" onClose={onClose}><PianoPlayer key={placed.kb ?? 0} notes={pianoNotes(room.pianos?.[placed.kb ?? 0])} song={pianoSong(room.pianoSongs?.[placed.kb ?? 0])} onChange={onPianoNotes} onSave={onPianoSave} /></Sheet>;
   if (furniture && (furniture.story || activity || furniture.reading)) {
     return (
@@ -77,6 +82,9 @@ export function RoomItemSheet({
   }
   if (!shown) return null;
   const title = itemName(placed.it, room, byId);
+  if (shown.kind === "souvenir") {
+    return <SouvenirSheet title={title} speciesId={shown.species} guest={reader?.mode === "guest"} onClose={onClose} />;
+  }
   // 악초 박제 — 그 악초의 성질을 적는다. 특정 사람·집단이 아니라 누구에게나 해로운 행동이다.
   const weed = shown.kind === "trophy" ? RAID_KINDS.find((k) => k.id === shown.species) : undefined;
   if (shown.kind === "trophy") {
@@ -136,6 +144,89 @@ export function RoomItemSheet({
           </Link>
         </div>
       )}
+    </Sheet>
+  );
+}
+
+/**
+ * 방에 놓인 업적 기념품 — 누르면 그 업적의 사진 카드가 뜬다. 손님도 같은 카드를 본다.
+ * 방이 업적을 알리는 자리가 되는 곳이다(docs/garden-achievement-strategy.md §4).
+ */
+function SouvenirSheet({ title, speciesId, guest, onClose }: { title: string; speciesId?: string; guest: boolean; onClose: () => void }) {
+  const entries = useMemorial();
+  const entry = entryOf(entries, speciesId);
+  useEffect(() => {
+    if (speciesId) track("souvenir_tap", { slug: speciesId.slice(2), guest });
+  }, [speciesId, guest]);
+  return (
+    <Sheet label={`${title} 자세히 보기`} title={title} onClose={onClose}>
+      <div className="mt-3">
+        {entries === undefined ? (
+          <p className="text-[13px] text-smoke">불러오는 중…</p>
+        ) : entry ? (
+          <>
+            <p className="mb-2 text-[12.5px] text-smoke">업적 기념관에서 문제를 맞혀 받은 기념품이에요.{guest ? " 정원에서 나도 알아보고 받을 수 있어요." : ""}</p>
+            <PhotoCard entry={entry} from="room" />
+          </>
+        ) : (
+          <p className="text-[13px] text-smoke">이 업적은 지금 기념관에 없어요.</p>
+        )}
+      </div>
+    </Sheet>
+  );
+}
+
+/**
+ * 기념품 진열장 — 받은 기념품을 모두 보인다. 하나를 누르면 그 업적의 사진 카드. 손님도 같다.
+ * 방이 꽉 차도 진열장 한 칸이면 기념관의 업적이 모두 방에 있다.
+ */
+function CaseSheet({ ids, guest, ownerNick, onClose }: { ids: readonly string[]; guest: boolean; ownerNick?: string; onClose: () => void }) {
+  const entries = useMemorial();
+  const [open, setOpen] = useState<string | null>(null);
+  const list = ids.map((id) => entryOf(entries, id)).filter((e) => e !== undefined);
+  const entry = open ? entryOf(entries, open) : undefined;
+  useEffect(() => {
+    track("souvenir_tap", { slug: "case", guest });
+  }, [guest]);
+  return (
+    <Sheet label="기념품 진열장" title={`🏛️ ${guest && ownerNick ? `${ownerNick}의 ` : ""}기념품 진열장`} onClose={onClose}>
+      <div className="mt-3">
+        {entries === undefined ? (
+          <p className="text-[13px] text-smoke">불러오는 중…</p>
+        ) : entry ? (
+          <>
+            <button type="button" className="mb-2 min-h-[40px] text-[13px] font-semibold underline underline-offset-2" onClick={() => setOpen(null)}>
+              ← 진열장으로
+            </button>
+            <PhotoCard entry={entry} from="room" />
+          </>
+        ) : list.length === 0 ? (
+          <p className="text-[13px] text-smoke">아직 담긴 기념품이 없어요.</p>
+        ) : (
+          <>
+            <p className="text-[12.5px] text-smoke">
+              업적 기념관에서 문제를 맞혀 받은 기념품 {list.length}개예요. 누르면 그 업적의 카드를 볼 수 있어요.{guest ? " 정원에서 나도 알아보고 받을 수 있어요." : ""}
+            </p>
+            <ul className="mt-2 grid grid-cols-3 gap-2">
+              {list.map((e) => (
+                <li key={e.slug}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(e.speciesId);
+                      track("souvenir_tap", { slug: e.slug, guest });
+                    }}
+                    className="flex min-h-[92px] w-full flex-col items-center gap-1 rounded-2xl border border-stone bg-white px-1.5 py-2 text-center"
+                  >
+                    <span className="text-[28px] leading-none" aria-hidden="true">{e.icon}</span>
+                    <span className="line-clamp-2 text-[11.5px] font-semibold leading-tight">{e.title}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
     </Sheet>
   );
 }

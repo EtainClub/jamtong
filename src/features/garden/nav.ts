@@ -12,7 +12,7 @@ import type { Plant, PlazaLevel } from "./types";
 export type GardenTab = "room" | "beds" | "plaza" | "shop" | "friends";
 
 /** 탭 안의 칸. 방: 방·도감·방명록, 텃밭: 텃밭·온실, 광장: 광장·꽃밭. */
-export type Segment = "room" | "dex" | "guestbook" | "beds" | "greenhouse" | "plaza" | "flowers" | "shop" | "friends";
+export type Segment = "room" | "album" | "memorial" | "dex" | "guestbook" | "beds" | "greenhouse" | "plaza" | "flowers" | "shop" | "friends";
 
 /** 가 볼 수 있는 자리. 탭 이름이거나 칸 이름이다. */
 export type Place = GardenTab | Segment;
@@ -34,6 +34,8 @@ export const TABS: Array<{ id: GardenTab; icon: string; label: string }> = [
 export const SEGMENTS: Record<GardenTab, Array<{ id: Segment; label: string }>> = {
   room: [
     { id: "room", label: "방" },
+    { id: "album", label: "사진첩" },
+    { id: "memorial", label: "기념관" },
     { id: "dex", label: "도감" },
     { id: "guestbook", label: "방명록" },
   ],
@@ -120,7 +122,7 @@ export function homeNews(d: NewsInput, now: number): NewsItem[] {
   if (d.raid?.active) {
     out.push({ key: "raid", icon: "🌿", text: d.raid.text ?? "거대 잡초가 나타났어요 · 같이 잡아요", go: "plaza", goLabel: "광장" });
   } else if (d.plaza === "overgrown") {
-    out.push({ key: "overgrown", icon: "🌿", text: "광장이 무성해요 · 거대 잡초가 나올 수 있어요", go: "plaza", goLabel: "광장" });
+    out.push({ key: "overgrown", icon: "🌿", text: "광장이 무성해요 · 잡초를 뽑아 주세요", go: "plaza", goLabel: "광장" });
   }
 
   if (isRaining(now)) {

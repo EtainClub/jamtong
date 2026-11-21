@@ -533,7 +533,8 @@
 .game :global(.garden-bookmarks) { position: absolute; top: -30px; right: 12px; display: flex; gap: 3px; }
 .game :global(.garden-bookmarks button) { min-height: 32px; min-width: 52px; padding: 4px 10px 8px; border-radius: 10px 10px 0 0; border: 1px solid var(--d-line); border-bottom: 0; background: #eef3f7; font-size: 12.5px; font-weight: 800; color: #6b7882; }
 .game :global(.garden-bookmarks button[aria-pressed=true]) { background: var(--d-orange); border-color: #d9661a; color: #fff; }
-.game :global(.garden-screen-room), .game :global(.garden-screen-dex), .game :global(.garden-screen-guestbook) { padding-top: 34px; }
+/* 책갈피(위 -30px)가 들어갈 자리. 방 탭의 칸(SEGMENTS.room)마다 같아야 한다 — 빠진 칸에서는 책갈피가 위의 단추와 겹친다. */
+.game :global(.garden-screen-room), .game :global(.garden-screen-album), .game :global(.garden-screen-memorial), .game :global(.garden-screen-dex), .game :global(.garden-screen-guestbook) { padding-top: 34px; }
 
 /* 새 소식 */
 .game :global(.garden-news) { border-radius: 12px; background: #fffaf2; border: 1px solid #f6d7bb; padding: 10px 12px; }

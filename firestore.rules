@@ -219,7 +219,8 @@ service cloud.firestore {
     /*
      * 거대 잡초 — 광장이 무성해지면 나타나는 레이드 (docs/garden-game.md §3.8, docs/garden-raid-boss.md §3·§4).
      *
-     * plazaRaids/{한국 날짜 번호}-{물결}   하루 다섯 마리까지. 형태(form 1–3)·세 게이지의 목표(hp·brk·grd, 쌓인 값)·
+     * plazaRaids/{한국 날짜 번호}-{물결}   하루 세 마리(아침·점심·저녁). 보통 물결은 체력(hp)·태어난 때·쓰러진 때뿐이고,
+     *   │                                 주에 한 번 나오는 변신하는 거대 잡초만 형태(form 1–3)·세 게이지의 목표(hp·brk·grd, 쌓인 값)·
      *   │                                 이 형태의 0점(base)과 필요량(n)·종류의 기본 필요량(size)·태어난 때·쓰러진 때.
      *   ├ shards/{0–7}                    세 게이지(hits 체력·brk 갑옷·grd 울타리)와 참여 인원(fighters)을 나눠 센다. 누구나 읽는다.
      *   │                                 함께한 사람 이름(names, 칸마다 30)과 마지막 지원(aid·aidAt·aidBy)도 싣는다.
@@ -227,15 +228,17 @@ service cloud.firestore {
      *                                     지원(aid·aidAt·aids)·칸. 본인만 읽는다.
      *
      * 규칙이 지키는 것. 값은 src/features/garden/rules.ts의 RAID_*와 같다(raid.test.ts가 본다).
-     *   1. 오늘 번호로만, 물결 1–5로, 1형으로, 크기 300·360·420(모두 체력)으로 태어난다.
+     *   1. 오늘 번호로만, 물결 1–3으로, 제 시간대(8–12·12–18·18–24시) 안에 태어난다. 시간대는 겹치지 않아 앞 물결을 기다리지 않는다.
+     *      보통 물결은 체력 120·150·180으로(빈틈 없음, 한 사람 60이라 혼자서는 못 잡는다).
+     *      그 주의 변신하는 거대 잡초 자리(raidWeekly)에서만 1형·크기 300·360·420으로 — 그 자리에는 보통 물결이 못 선다.
      *      한 사람이 한 형태에 넣을 수 있는 최대는 240(기력 60 × 2 × 빈틈 2)이라 혼자서는 1형도 못 넘긴다.
-     *   2. 다음 물결은 제 시각(8·11·14·17·20시)이 됐고 앞 물결이 끝나고 30분이 지나야 태어난다.
+     *   2. (없앴다 — 2026-11-21) 앞 물결이 끝나기를 기다리지 않는다. 시간대가 끝나면 앞 물결은 떠나 있다.
      *   3. 한 번 칠 때마다 내 칸의 게이지 하나와 내 표식이 같은 커밋에서 같은 만큼 오른다. 기력 1(필살기는 20까지)을 쓰고,
      *      제 역할의 게이지면(1형은 누구나) 두 배, 빈틈이면 다시 두 배를 센다 — 빈틈은 request.time의 분과 물결의 spawnedAt으로만 본다(raidGap).
      *      아이템은 규칙이 볼 수 없는 내 정원 문서에 있으므로, 규칙은 한 커밋의 크기와 기력 60만 지킨다.
      *   4. 한 사람은 1초에 한 번만, 한 형태에 기력 60까지만 쓴다. 역할은 새 형태의 첫 커밋에서만 바꾼다.
      *   5. 지원은 종류 1–3, 앞선 지원에서 20초 뒤. 센 값은 그대로다(효과는 화면의 손맛뿐).
-     *   6. 태어나고 3시간이 지나면 칠 수 없다(도망갔다).
+     *   6. 시간대가 끝나면 칠 수 없다(떠났다). 변신하는 거대 잡초는 태어나고 3시간이 지나도 그렇다(도망갔다).
      *   7. 세 게이지가 다 차면: 3형 전이면 변신만(다음 형태의 크기는 1형의 2·2.5배, 사람이 많으면 온 사람 수에서),
      *      3형이면 쓰러진 시각만 한 번 찍힌다. 쓰러진 뒤에는 칠 수 없다.
      *   8. 참여 인원(칸의 fighters)과 이름(names)은 내 표식이 처음 생기는 커밋에서만 하나 는다. 칸의 게이지는 줄지 않는다.
@@ -699,7 +702,7 @@ service cloud.firestore {
     // 값은 src/features/garden/room/rules.ts의 PUBLIC_PLACED_MAX·PUBLIC_ID_MAX와 같다(room/rules.test.ts가 본다).
     function publicRoom(r) {
       return r is map
-        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'bgm', 'placed', 'keys', 'keyboards', 'motto', 'avatar'])
+        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'bgm', 'placed', 'keys', 'keyboards', 'motto', 'avatar', 'album'])
         && r.size is int && r.size >= 0 && r.size <= 2
         && r.wall is string && r.wall.size() <= 40
         && r.floor is string && r.floor.size() <= 40
@@ -709,6 +712,10 @@ service cloud.firestore {
         && (!('keys' in r) || publicKeys(r.keys))
         && (!('keyboards' in r) || publicKeyboards(r.keyboards))
         && (!('motto' in r) || (r.motto is string && r.motto.size() <= 30))
+        // 사진첩(docs/garden-achievement-strategy.md §3) — 업적 품종 id(a:<slug>)를 쉼표로 이은 글자 하나, 24장까지. 글이 들어갈 자리가 없다.
+        // 값은 src/features/garden/room/rules.ts의 ALBUM_MAX·ALBUM_ID와 같다(room/rules.test.ts가 본다).
+        && (!('album' in r) || (r.album is string && r.album.size() <= 1032
+              && r.album.matches('^a:[a-z0-9-]{1,40}(,a:[a-z0-9-]{1,40}){0,23}$')))
         // 꼬마(docs/garden-avatar.md §6.2) — 판;칸;돌아다니기;피부;머리색;부위 id 문자열 하나. 글자는 소문자·숫자·.;- 뿐.
         // 값은 src/features/garden/avatar/rules.ts의 AVATAR_PUBLIC_MAX·AVATAR_PUBLIC_RE와 같다(avatar.test.ts가 본다).
         && (!('avatar' in r) || (r.avatar is string && r.avatar.size() <= 160
@@ -763,25 +770,17 @@ service cloud.firestore {
     match /plazaRaids/{raidId} {
       allow read: if true;
 
-      // 세우기(3.1): 1형, 종류의 크기(300·360·420)를 모두 체력으로. 목표는 모두 쌓인 값이다.
+      // 세우기. 제 시간대 안에서, 그 자리가 이번 주의 변신하는 거대 잡초면 1형(3.1)으로, 아니면 보통 물결로.
       allow create: if request.auth != null
-        && raidId.matches('^[0-9]{5}-[1-5]$')
+        && raidId.matches('^[0-9]{5}-[1-3]$')
         && raidDay(raidId) == kstDayNumber()
         && raidOpened(raidId)
-        && request.resource.data.keys().hasOnly(['hp', 'hits', 'fighters', 'spawnedAt', 'defeatedAt', 'form', 'formAt', 'size', 'n', 'brk', 'grd', 'base'])
-        && request.resource.data.size in [300, 360, 420]
-        && request.resource.data.n == request.resource.data.size
-        && request.resource.data.hp == request.resource.data.size
-        && request.resource.data.brk == 0
-        && request.resource.data.grd == 0
-        && request.resource.data.base == {'h': 0, 'b': 0, 'g': 0}
-        && request.resource.data.form == 1
-        && request.resource.data.formAt == request.time
+        && request.time.toMillis() < raidClosesMs(raidId)
         && request.resource.data.hits == 0
         && request.resource.data.fighters == 0
         && request.resource.data.spawnedAt == request.time
         && request.resource.data.defeatedAt == null
-        && (raidWave(raidId) == 1 || raidPrevDone(raidId));
+        && (raidWeekly(raidId) ? raidBornV3() : raidBornLight());
 
       // 쓰러뜨리기: 세 게이지가 다 찼을 때 쓰러진 시각만 한 번 찍는다. 3.x 물결은 3형에서만 — 그 앞은 변신이다(아래).
       allow update: if request.auth != null
@@ -797,6 +796,7 @@ service cloud.firestore {
         && 'form' in resource.data
         && resource.data.form < 3
         && request.time < resource.data.spawnedAt + duration.value(3, 'h')
+        && request.time.toMillis() < raidClosesMs(raidId)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['form', 'formAt', 'n', 'hp', 'brk', 'grd', 'base'])
         && request.resource.data.form == resource.data.form + 1
         && request.resource.data.formAt == request.time
@@ -850,11 +850,41 @@ service cloud.firestore {
       return /databases/$(database)/documents/plazaRaids/$(raidId)/shards/$(n);
     }
 
-    // 쓰러지지 않았고 도망가지 않았다.
+    // 쓰러지지 않았고 떠나지 않았다. 시간대가 끝나면 떠난다. 변신하는 거대 잡초는 태어나고 3시간이 지나도 도망간다.
+    // (옛 물결 4·5는 시간대가 없다 — raidClosesMs가 0을 주므로 칠 수 없다. 배포한 날 떠 있던 것만 그렇다.)
     function raidLive(raidId) {
       let raid = get(raidPath(raidId)).data;
       return raid.defeatedAt == null
-        && request.time < raid.spawnedAt + duration.value(3, 'h');
+        && request.time.toMillis() < raidClosesMs(raidId)
+        && (!('form' in raid) || request.time < raid.spawnedAt + duration.value(3, 'h'));
+    }
+
+    // 보통 물결 — 체력 하나뿐. 빈틈(체력 270 이상)도, 형태도 없다.
+    function raidBornLight() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['hp', 'hits', 'fighters', 'spawnedAt', 'defeatedAt'])
+        && d.hp in [120, 150, 180];
+    }
+
+    // 변신하는 거대 잡초(3.1) — 1형, 종류의 크기(300·360·420)를 모두 체력으로. 목표는 모두 쌓인 값이다.
+    function raidBornV3() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['hp', 'hits', 'fighters', 'spawnedAt', 'defeatedAt', 'form', 'formAt', 'size', 'n', 'brk', 'grd', 'base'])
+        && d.size in [300, 360, 420]
+        && d.n == d.size
+        && d.hp == d.size
+        && d.brk == 0
+        && d.grd == 0
+        && d.base == {'h': 0, 'b': 0, 'g': 0}
+        && d.form == 1
+        && d.formAt == request.time;
+    }
+
+    // 이번 주의 변신하는 거대 잡초 자리인가 — rules.ts의 raidWeekly와 같은 셈. 주 = (날짜 번호 − 요일) ÷ 7.
+    function raidWeekly(raidId) {
+      let day = raidDay(raidId);
+      let week = int((day - day % 7) / 7);
+      return day % 7 == (week * 3 + 2) % 7 && raidWave(raidId) == (week * 5 + 1) % 3 + 1;
     }
 
     // 빈틈(rules.ts의 raidGapAt). 분이 0–2·30–32, 폭주(도망 30분 전부터)면 0–5·30–35.
@@ -1039,19 +1069,17 @@ service cloud.firestore {
       return int(raidId.split('-')[1]);
     }
 
-    // 앞 물결이 끝나고 30분이 지났다. 끝남 = 쓰러졌거나, 태어나고 3시간이 지나 도망갔다.
-    function raidPrevDone(raidId) {
-      let prev = get(/databases/$(database)/documents/plazaRaids/$(raidId.split('-')[0] + '-' + string(raidWave(raidId) - 1))).data;
-      return prev.defeatedAt != null
-        ? request.time > prev.defeatedAt + duration.value(30, 'm')
-        : request.time > prev.spawnedAt + duration.value(210, 'm');
+    // 이 물결이 열리는 시각(한국 시각 아침 8·점심 12·저녁 18시)이 됐다. 기기 시계가 어긋난 몫으로 5분을 봐준다.
+    function raidOpened(raidId) {
+      let w = raidWave(raidId);
+      return request.time.toMillis() + 300000
+        >= raidDay(raidId) * 86400000 - 32400000 + (w == 1 ? 8 : (w == 2 ? 12 : 18)) * 3600000;
     }
 
-    // 이 물결이 열리는 시각(한국 시각 8·11·14·17·20시)이 됐다. 기기 시계가 어긋난 몫으로 5분을 봐준다.
-    // 여는 시각이 없으면 앞 물결이 빨리 쓰러질 때 다음이 줄줄이 나와 오전에 몰린다.
-    function raidOpened(raidId) {
-      return request.time.toMillis() + 300000
-        >= raidDay(raidId) * 86400000 - 32400000 + (8 + 3 * (raidWave(raidId) - 1)) * 3600000;
+    // 이 물결의 시간대가 끝나는 시각(ms) — 12·18·24시. 시간대가 없는 옛 물결(4·5)은 0.
+    function raidClosesMs(raidId) {
+      let w = raidWave(raidId);
+      return w > 3 ? 0 : raidDay(raidId) * 86400000 - 32400000 + (w == 1 ? 12 : (w == 2 ? 18 : 24)) * 3600000;
     }
 
     match /plazaDays/{day} {

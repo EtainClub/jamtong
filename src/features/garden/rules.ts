@@ -417,6 +417,12 @@ export const WEED: Record<WeedStage, { rubs: number; jam: number; label: string 
 export const WEED_SEED_ODDS = 0.04;
 /** 하루에 보상을 받는 잡초 수. 넘으면 뽑을 수는 있지만 잼은 없다. */
 export const WEED_REWARD_PER_DAY = 60;
+/**
+ * 잡초 O/X 퀴즈 — 광장 잡초를 뽑으면 이 확률로 업적 O/X 퀴즈가 뜨고, 맞히면 상점 가구 하나를 받는다(memorial/ox.ts).
+ * 확률과 하루 상한을 공개한다(docs/garden-game.md §1). 잼 보상이 남은 잡초(하루 WEED_REWARD_PER_DAY포기)에서만 뜬다.
+ */
+export const WEED_QUIZ_ODDS = 0.08;
+export const WEED_QUIZ_PER_DAY = 3;
 
 /**
  * 뽑은 칸에 잡초가 다시 날 때까지(분).
@@ -433,28 +439,56 @@ export function regrowMinutes(gardenersToday: number, roll: number): number {
 // ── 거대 잡초 (레이드) ──────────────────────────────────────────────
 
 /**
- * 거대 잡초는 하루 여러 번(물결) 나타난다. 물결마다 Firestore 문서 하나 — plazaRaids/{날짜번호}-{물결}.
+ * 거대 잡초는 하루 세 번 — 아침·점심·저녁 — 나타난다(docs/garden-achievement-strategy.md §2, 2026-11-21).
+ * 물결마다 Firestore 문서 하나 — plazaRaids/{날짜번호}-{물결}.
  *
- * ★ 혼자서는 잡지 못한다. 한 사람은 물결마다 기력 RAID_USES_PER_PERSON번까지만 쓸 수 있고(빈틈이면
- *   한 번이 RAID_GAP_MULT), 체력은 적어도 RAID_MIN_FIGHTERS명이 빈틈에 끝까지 쳐야 닿는다. 규칙이 둘 다 지킨다.
- * ★ 오래 버티면 도망간다(RAID_LIFE). 그래서 "지금 같이 잡자"가 된다. 도망가면 상자는 없다.
- * ★ 물결마다 여는 시각이 있다(한국 시각 RAID_FIRST_HOUR시부터 RAID_EVERY_HOURS시간마다).
- *   앞 물결이 끝나고(쓰러지거나 도망가고) RAID_GAP이 지났고, 제 시각이 됐고, 광장이 무성할 때 나온다.
- *   여는 시각이 없을 때는 앞 물결이 빨리 쓰러지면 다음이 줄줄이 나와 오전에 몰렸다.
+ * ★ 보통 물결은 가볍다. 형태·역할·반격이 없고, 체력 하나뿐이다(RaidKind.light). 시간대가 끝날 때까지
+ *   머물러서, 그 사이 누가 언제 와서 치든 쌓인다. 같은 시각에 모일 필요가 없다.
+ * ★ 주에 한 번(raidWeekly) 변신하는 거대 잡초(3.x)가 그 시간대에 대신 나온다. 별미다. 그것만 RAID_LIFE 뒤 도망간다.
+ * ★ 시간대가 겹치지 않는다. 앞 물결은 다음 물결이 열리는 때 떠난다 — 그래서 다음 물결은 앞 물결을 기다리지 않는다.
+ *   지난 물결의 보상은 물결마다 장부에 따로 남아, 다음 물결이 나와도 받을 수 있다(PlazaView의 RaidOwed).
  * 값을 바꾸면 firestore.rules의 plazaRaids 절도 같이 바꾼다 — raid.test.ts가 짝을 본다.
  */
-export const RAID_PER_DAY = 5;
+export const RAID_PER_DAY = 3;
+/** 변신하는 거대 잡초(3.x)가 버티는 시간. 보통 물결은 제 시간대가 끝날 때까지(raidClosesAt). */
 export const RAID_LIFE = 3 * HOUR;
-export const RAID_GAP = 30 * MINUTE;
-/** 첫 물결이 열리는 시각(한국 시각, 시). */
-export const RAID_FIRST_HOUR = 8;
-/** 물결 사이 여는 시각의 간격(시간). 8·11·14·17·20시. */
-export const RAID_EVERY_HOURS = 3;
+/** 시간대(한국 시각, 시). 물결은 여는 시각부터 나올 수 있고 닫는 시각에 떠난다. */
+export const RAID_SLOTS = [
+  { label: "아침", open: 8, close: 12 },
+  { label: "점심", open: 12, close: 18 },
+  { label: "저녁", open: 18, close: 24 },
+] as const;
 
 /** 이 물결이 열리는 시각(ms). day는 한국 날짜 번호. */
 export function raidOpensAt(day: number, wave: number): number {
-  return day * 24 * HOUR - KST + (RAID_FIRST_HOUR + RAID_EVERY_HOURS * (wave - 1)) * HOUR;
+  return day * 24 * HOUR - KST + RAID_SLOTS[wave - 1].open * HOUR;
 }
+
+/** 이 물결의 시간대가 끝나는 시각(ms). 보통 물결은 이때 떠난다. */
+export function raidClosesAt(day: number, wave: number): number {
+  return day * 24 * HOUR - KST + RAID_SLOTS[wave - 1].close * HOUR;
+}
+
+/** 물결 id에서 시간대가 끝나는 시각. 모양이 맞지 않으면 undefined(옛 물결 4·5도 그렇다 — 태어나고 RAID_LIFE로 본다). */
+export function raidClosesAtId(id: string): number | undefined {
+  const m = /^(\d{5})-([1-3])$/.exec(id);
+  return m ? raidClosesAt(Number(m[1]), Number(m[2])) : undefined;
+}
+
+/** "아침"·"점심"·"저녁". */
+export function raidSlotLabel(wave: number): string {
+  return RAID_SLOTS[wave - 1]?.label ?? `${wave}번째`;
+}
+
+/**
+ * 이 물결이 이번 주의 변신하는 거대 잡초인가. 주(날짜 번호 ÷ 7)마다 요일 하나·시간대 하나.
+ * 보는 사람에게는 들쭉날쭉하지만, 규칙도 같은 셈을 한다(firestore.rules의 raidWeekly).
+ */
+export function raidWeekly(day: number, wave: number): boolean {
+  const week = (day - (day % 7)) / 7;
+  return day % 7 === (week * 3 + 2) % 7 && wave === ((week * 5 + 1) % 3) + 1;
+}
+
 /**
  * 기력 — 한 사람이 한 물결에 쓸 수 있는 횟수(거대 잡초 2.0, docs/garden-miniroom.md §7.2).
  * 센 값(hits)과 따로 센다. 빈틈에 쓴 한 번은 RAID_GAP_MULT로 센다 — 그래서 한 사람이 넣을 수 있는
@@ -488,6 +522,8 @@ export interface RaidKind {
   name: string;
   /** 2.0 물결의 체력. */
   hp: number;
+  /** 보통 물결(가벼운 거대 잡초)의 체력. RAID_LIGHT_HPS 가운데 하나. */
+  light: number;
   /** 3.x 물결의 1형 크기(RAID_SIZES). */
   size: number;
   /** 한 줄 성질. */
@@ -509,6 +545,7 @@ export const RAID_KINDS: RaidKind[] = [
     name: "악플 가시풀",
     hp: 270,
     size: 300,
+    light: 120,
     trait: "익명 뒤에 숨어 가시를 날려요",
     taunts: ["ㅋㅋ 그게 최선이야?", "얼굴 안 보이니까 아무 말이나 해도 되지~", "가시 하나에 하루가 망가지지? 그게 재밌거든", "잠깐, 신고는 하지 마…"],
     escaped: "악플 가시풀이 가시를 뿌리고 숨어 버렸어요",
@@ -519,6 +556,7 @@ export const RAID_KINDS: RaidKind[] = [
     name: "혐오 쐐기풀",
     hp: 270,
     size: 300,
+    light: 120,
     trait: "닿기만 해도 따끔, 편을 갈라 번져요",
     taunts: ["너희끼리 싸우면 내가 자라지", "다르면 틀린 거야, 몰랐어?", "한 포기 뽑아도 미움은 씨를 남겨", "어… 다 같이 덤비는 건 반칙이야!"],
     escaped: "혐오 쐐기풀이 씨를 날리고 사라졌어요",
@@ -529,6 +567,7 @@ export const RAID_KINDS: RaidKind[] = [
     name: "가짜뉴스 덩굴",
     hp: 360,
     size: 360,
+    light: 150,
     trait: "근거 없는 말을 먹고 퍼져요",
     taunts: ["근거? 그런 거 없어도 잘만 퍼지는데!", "퍼 나르는 손이 많을수록 난 커진다고", "제목만 읽고 가, 본문은 내가 지어 줄게", "원문을 확인하다니… 그건 반칙이야!"],
     escaped: "가짜뉴스 덩굴이 광장 밖으로 퍼져 나갔어요",
@@ -539,6 +578,7 @@ export const RAID_KINDS: RaidKind[] = [
     name: "검은돈 독초",
     hp: 360,
     size: 360,
+    light: 150,
     trait: "탁자 밑으로 오가는 돈에 뿌리를 내려요",
     taunts: ["이거 받고 못 본 척해", "영수증? 그런 건 없어", "뿌리는 땅 밑으로, 돈은 탁자 밑으로", "장부를 펼치지 마!"],
     escaped: "검은돈 독초가 돈다발을 챙겨 달아났어요",
@@ -549,6 +589,7 @@ export const RAID_KINDS: RaidKind[] = [
     name: "갑질 엉겅퀴",
     hp: 450,
     size: 420,
+    light: 180,
     trait: "높은 자리에서 남을 짓눌러요",
     taunts: ["내가 누군 줄 알아?", "꼬우면 네가 올라오든가", "물? 내 화분부터 줘", "여, 여럿이 오면 얘기가 다르지…"],
     escaped: "갑질 엉겅퀴가 큰소리만 남기고 떠났어요",
@@ -559,6 +600,7 @@ export const RAID_KINDS: RaidKind[] = [
     name: "땅투기 칡",
     hp: 450,
     size: 420,
+    light: 180,
     trait: "남의 땅까지 휘감아 차지해요",
     taunts: ["여기도 내 땅, 저기도 내 땅", "빈칸 보이면 바로 감는다", "광장도 곧 내 거야", "놔, 놔! 내 덩굴 놓으라고!"],
     escaped: "땅투기 칡이 광장 구석까지 휘감고 사라졌어요",
@@ -575,6 +617,17 @@ export function raidKind(day: number, wave: number): RaidKind {
     [order[i], order[j]] = [order[j], order[i]];
   }
   return RAID_KINDS[order[(wave - 1) % order.length]];
+}
+
+/**
+ * 보통 물결의 체력 — 둘·셋이 기력을 다 쓰면 잡힌다(한 사람 60, 빈틈 없음). 혼자서는 못 잡는다.
+ * firestore.rules가 이 셋만 받는다.
+ */
+export const RAID_LIGHT_HPS = [120, 150, 180] as const;
+
+/** 이 물결의 보통 체력. */
+export function raidLightHp(day: number, wave: number): number {
+  return raidKind(day, wave).light;
 }
 
 /** 이 물결의 체력(때릴 수). 종류가 정한다. */
@@ -610,7 +663,7 @@ export function raidShard(uid: string): number {
   return hash(uid) % RAID_SHARDS;
 }
 
-/** 물결 문서 id. 규칙: ^[0-9]{5}-[1-5]$ */
+/** 물결 문서 id. 규칙: ^[0-9]{5}-[1-3]$ */
 export function raidId(day: number, wave: number): string {
   return `${day}-${wave}`;
 }
@@ -631,8 +684,13 @@ export interface RaidWave {
   /** 서버가 찍은 시각. 막 세운 직후 잠깐 null일 수 있다. */
   spawnedAt: number | null;
   defeatedAt: number | null;
-  /** 3.0 물결만(아래 "거대 잡초 3.0"). 없으면 2.0 물결이다. */
+  /** 3.0 물결만(아래 "거대 잡초 3.0"). 없으면 2.0·보통 물결이다. */
   v3?: RaidV3;
+  /**
+   * 이 물결의 시간대가 끝나는 때. 문서에 없다 — 읽는 쪽이 id에서 셈해 붙인다(raidClosesAtId).
+   * 없으면 옛 셈(태어나고 RAID_LIFE)이다.
+   */
+  closesAt?: number;
 }
 
 /** 3.0 물결이 문서에 싣는 것. 목표와 시작점은 모두 태어난 때부터 쌓인 값이다. */
@@ -772,30 +830,48 @@ export function raidFormsCleared(r: RaidWave, phase: RaidPhase): number | null {
   return phase === "defeated" ? r.v3.form : r.v3.form - 1;
 }
 
+/**
+ * 이 물결이 떠나는 때. 보통 물결은 시간대의 끝, 변신하는 거대 잡초는 태어나고 RAID_LIFE(시간대가 먼저 끝나면 그때).
+ * 서버 시각이 아직 없으면(막 세운 직후) 시간대의 끝, 그것도 없으면 null.
+ */
+export function raidEndsAt(r: RaidWave): number | null {
+  return raidEndsFrom(r.spawnedAt, Boolean(r.v3), r.closesAt);
+}
+
+/** raidEndsAt의 몸 — 물결 문서를 다 읽지 않은 곳(한 방 보내기 직전)에서도 쓴다. */
+export function raidEndsFrom(spawnedAt: number | null, v3: boolean, closesAt: number | undefined): number | null {
+  if (spawnedAt === null) return closesAt ?? null;
+  const life = spawnedAt + RAID_LIFE;
+  if (v3) return closesAt !== undefined ? Math.min(life, closesAt) : life;
+  return closesAt ?? life;
+}
+
 export function raidPhase(r: RaidWave, now: number): RaidPhase {
   if (r.defeatedAt) return "defeated";
-  if (r.spawnedAt !== null && now >= r.spawnedAt + RAID_LIFE) return "escaped";
+  const end = raidEndsAt(r);
+  if (end !== null && now >= end) return "escaped";
   return "active";
 }
 
-/** 이 물결이 끝난 시각(쓰러지거나 도망간). 아직 싸우는 중이면 null. */
+/** 이 물결이 끝난 시각(쓰러지거나 떠난). 아직 싸우는 중이면 null. */
 export function raidEndedAt(r: RaidWave, now: number): number | null {
   if (r.defeatedAt) return r.defeatedAt;
-  if (r.spawnedAt !== null && now >= r.spawnedAt + RAID_LIFE) return r.spawnedAt + RAID_LIFE;
-  return null;
+  const end = raidEndsAt(r);
+  return end !== null && now >= end ? end : null;
 }
 
 /**
- * 오늘 물결들(1번부터, 없으면 null)을 보고 다음 물결이 언제 나올 수 있는지.
- * wave=다음 물결 번호, at=그 시각. 오늘 몫을 다 썼거나 아직 싸우는 중이면 null.
+ * 다음에 세울 물결. 아직 없는 물결 가운데 시간대가 끝나지 않은 첫 것 — wave=번호, at=여는 시각.
+ * 아무도 오지 않아 지나간 시간대는 건너뛴다. 오늘 몫을 다 썼으면 null.
  */
 export function nextRaidWave(waves: Array<RaidWave | null>, now: number): { wave: number; at: number } | null {
   const day = kstDayNumber(now);
-  const last = waves.reduce((n, w, i) => (w ? i + 1 : n), 0);
-  if (last === 0) return { wave: 1, at: raidOpensAt(day, 1) };
-  if (last >= RAID_PER_DAY) return null;
-  const ended = raidEndedAt(waves[last - 1]!, now);
-  return ended === null ? null : { wave: last + 1, at: Math.max(raidOpensAt(day, last + 1), ended + RAID_GAP) };
+  for (let wave = 1; wave <= RAID_PER_DAY; wave++) {
+    if (waves[wave - 1]) continue;
+    if (now >= raidClosesAt(day, wave)) continue;
+    return { wave, at: raidOpensAt(day, wave) };
+  }
+  return null;
 }
 
 /** 문지르기 이만큼이 한 방이다. */
@@ -823,6 +899,7 @@ export const RAID_FRENZY = 30 * MINUTE;
 
 /** 폭주 중인가 — 도망 RAID_FRENZY 전부터. */
 export function raidFrenzy(spawnedAt: number | null, t: number): boolean {
+  // 빈틈은 체력 270 이상(변신하는 거대 잡초)에만 있다(raidGapAt). 보통 물결에는 폭주도 없다.
   return spawnedAt !== null && t >= spawnedAt + RAID_LIFE - RAID_FRENZY;
 }
 

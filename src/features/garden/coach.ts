@@ -208,7 +208,7 @@ export const TIPS: Record<TipTab, { title: string; body: string; section: string
   plaza: {
     title: "광장",
     section: "plaza",
-    body: `모두가 함께 쓰는 정원이에요. 잡초를 문질러 뽑으면 잼을 받아요. 광장이 깨끗하면 모두의 텃밭이 ${PLAZA_SPEED.clean}배 빨리 자라요. 무성해지면 거대 잡초가 나타나는데, 혼자서는 못 잡아요 — 정각과 30분의 ‘빈틈’에 친구와 함께 치면 두 배로 들어가요!`,
+    body: `모두가 함께 쓰는 정원이에요. 잡초를 문질러 뽑으면 잼을 받아요. 광장이 깨끗하면 모두의 텃밭이 ${PLAZA_SPEED.clean}배 빨리 자라요. 거대 잡초는 하루 세 번(아침·점심·저녁) 나타나 다음 시간대까지 머물러요. 혼자서는 못 잡지만, 그 사이 언제 와서 쳐도 다 쌓여요. 주에 한 번은 변신하는 거대 잡초가 나와요!`,
   },
   greenhouse: {
     title: "탐정 온실",

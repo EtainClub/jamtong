@@ -5,6 +5,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { LineDoc } from "@/lib/firebase/ilchon";
 
 import { Dex } from "../Dex";
+import { AlbumView } from "../memorial/AlbumView";
+import { MemorialView } from "../memorial/MemorialView";
 import { gardenFeedback, gardenTrack, setGardenTrack } from "../feedback";
 import { canUseTrack } from "../musicTracks";
 import { SEGMENTS, type NewsItem, type Place, type Segment } from "../nav";
@@ -14,9 +16,9 @@ import { KeyboardSheet } from "../room/KeyboardSheet";
 import { RoomEditor } from "../room/RoomEditor";
 import { RoomItemSheet } from "../room/RoomItemSheet";
 import { activityOf } from "../room/activities";
-import { RoomScene } from "../room/RoomArt";
-import { keyboardKeys, isShownId, type Placed } from "../room/rules";
-import type { TitleId } from "../rules";
+import { itemName, RoomScene } from "../room/RoomArt";
+import { keyboardKeys, isShownId, SOUVENIR_CASE, type Placed } from "../room/rules";
+import { josa, type TitleId } from "../rules";
 import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
 import { Guestbook, IlchonNotes, MoodSheet, MottoSheet, MusicSheet, NewsPanel, VisitorCount } from "./HomeParts";
@@ -151,6 +153,10 @@ export function GardenHome({
           {tip}
           <Dex data={data} catalog={catalog} now={now} say={say} />
         </div>
+      ) : seg === "album" ? (
+        <AlbumView data={data} ownerNick={data.nick} byId={byId} say={say} />
+      ) : seg === "memorial" ? (
+        <MemorialView data={data} byId={byId} say={say} />
       ) : seg === "guestbook" ? (
         <div className="mt-4">
           {!data.share.on && <OpenRoomPrompt say={say} />}
@@ -188,7 +194,7 @@ export function GardenHome({
                     <button type="button" className="garden-diary-btn is-quiet" onClick={() => { gardenFeedback("tap"); setMoodOpen(true); }}>😊 기분 바꾸기</button>
                   </>
                 }
-                isItemActive={(p) => isShownId(p.it) || p.it === "piano" || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.shortcut || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
+                isItemActive={(p) => isShownId(p.it) || p.it === "piano" || p.it === SOUVENIR_CASE || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.shortcut || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
                 onItem={(p) => {
                   const s = FURNITURE_BY_ID.get(p.it)?.shortcut;
                   if (s) shortcut(s, p.kb ?? 0);
@@ -214,6 +220,15 @@ export function GardenHome({
                 </button>
               </span>
             </div>
+            {data.room.caseMoved && (
+              <div className="mt-2 rounded-xl border border-dashed border-[var(--g-leaf)] bg-white px-3 py-2 text-[12.5px] leading-relaxed">
+                🏛️ 기념품 진열장을 방에 놓았어요. 자리가 모자라서 「{itemName(data.room.caseMoved, data.room, byId)}」{josa(itemName(data.room.caseMoved, data.room, byId), "을를").slice(itemName(data.room.caseMoved, data.room, byId).length)} 보관함에 넣었어요 — 꾸미기에서 다시 놓을 수
+                있어요.{" "}
+                <button type="button" className="min-h-[36px] font-semibold underline underline-offset-2" onClick={() => useGarden.getState().clearCaseMoved()}>
+                  알겠어요
+                </button>
+              </div>
+            )}
             {data.room.placed.length === 0 && (
               <p className="mt-2 text-[12.5px] leading-relaxed text-smoke">
                 아직 빈 방이에요. 바구니의 열매를 ‘전시하기’로 방에 놓고, 가구는 상점 ‘가구’에서 사요.

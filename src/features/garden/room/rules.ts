@@ -20,16 +20,17 @@ import { freshKeys, KEYBOARD_ID, KEY_VER_MAX, recSlots, keysFromPublic, normaliz
  *   가구는 1칸 또는 2칸을 차지하고, 2칸은 오른쪽 칸까지 쓴다.
  * ★ 놓인 것(placed)이 산 것(owned)·전시품(shown)을 가리킨다. 보관함은 따로 적지 않는다 —
  *   가진 것에서 놓인 것을 뺀 나머지다. 장부가 둘이면 서로 어긋난다.
- * ★ 전시품 id에는 ":"가 있다(p:<열매id>, f:<쪽지id>, t:<악초 종류>). 가구 id에는 없다.
+ * ★ 전시품 id에는 ":"가 있다(p:<열매id>, f:<쪽지id>, t:<악초 종류>, s:<업적 품종 id>). 가구 id에는 없다.
+ * ★ 업적 기념품(souvenir)은 업적 기념관에서 문제를 맞혀 받는다 — 잼으로 사지 않는다(docs/garden-achievement-strategy.md §3).
  */
 
-export type ShownKind = "pot" | "tree" | "frame" | "trophy";
+export type ShownKind = "pot" | "tree" | "frame" | "trophy" | "souvenir";
 
 /** 전시품. 거둔 것에서 나온다 — 상점에서 팔지 않는다. */
 export interface Shown {
   id: string;
   kind: ShownKind;
-  /** 품종 id. 박제(trophy)는 악초 종류 id(rules.ts의 RaidKindId). */
+  /** 품종 id. 박제(trophy)는 악초 종류 id(rules.ts의 RaidKindId), 기념품(souvenir)은 업적 품종 id(a:<slug>). */
   species?: string;
   mut?: Mutation[];
   note?: string;
@@ -77,6 +78,17 @@ export interface RoomData {
    * 손님에게도 보인다(공개 문서의 bm·bd). 글이 아니라 id라서 걸러 받을 것이 없다.
    */
   books?: Record<string, RoomBookData>;
+  /**
+   * 사진첩(docs/garden-achievement-strategy.md §3) — 거둔 업적 품종 id(a:<slug>)를 올린 순서대로, ALBUM_MAX장까지.
+   * 사진과 글은 보는 화면이 기념관 자료(/garden/memorial.json)에서 읽는다. 여기에는 id만 있다.
+   */
+  album?: string[];
+  /**
+   * 기념품 진열장을 저절로 놓은 적이 있는가. 한 번만 놓는다 — 사람이 진열장을 보관함에 넣었으면 다시 꺼내 놓지 않는다.
+   */
+  caseAuto?: boolean;
+  /** 진열장을 놓느라 보관함에 넣은 물건 id. 방 화면이 한 번 알리고 지운다. */
+  caseMoved?: string;
 }
 
 export interface RoomBookData {
@@ -99,6 +111,96 @@ export const PUBLIC_PLACED_MAX = 40;
 export const PUBLIC_ID_MAX = 40;
 /** 방 한마디의 길이. firestore.rules의 publicRoom()과 같다. */
 export const MOTTO_MAX = 30;
+/** 사진첩의 장수. firestore.rules의 publicRoom()과 같다(album 글자 수 상한이 이것에서 나온다). */
+export const ALBUM_MAX = 24;
+/** 사진첩에 올릴 수 있는 품종 id — 업적 품종만. firestore.rules의 album 모양과 같다. */
+export const ALBUM_ID = /^a:[a-z0-9-]{1,40}$/;
+
+/** 사진첩 장부를 바로잡는다. 업적 품종 id만, 겹치지 않게, ALBUM_MAX장까지. */
+export function cleanAlbum(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.filter((x): x is string => typeof x === "string" && ALBUM_ID.test(x)))].slice(0, ALBUM_MAX);
+}
+
+/** 공개 문서의 사진첩 — 품종 id를 쉼표로 이은 글자 하나. 규칙이 모양을 한 번에 본다. */
+export function packAlbum(album: readonly string[] | undefined): string | null {
+  const ids = cleanAlbum(album);
+  return ids.length ? ids.join(",") : null;
+}
+
+export function unpackAlbum(raw: unknown): string[] {
+  return typeof raw === "string" ? cleanAlbum(raw.split(",")) : [];
+}
+
+/** 기념품 진열장 — 받은 기념품을 모두 담는 가구 하나(한 칸). 첫 기념품을 받으면 생긴다. */
+export const SOUVENIR_CASE = "souvenir-case";
+/** 진열장이 공개 문서에 싣는 기념품 수의 상한. */
+export const CASE_MAX = 60;
+
+/** 받은 기념품의 업적 품종 id들 — 받은 순서대로. */
+export function souvenirIds(room: RoomData): string[] {
+  return room.shown.filter((s) => s.kind === "souvenir" && typeof s.species === "string").map((s) => s.species!);
+}
+
+/** 기념품이 하나라도 있으면 진열장을 준다(옛 장부도). 이미 있으면 그대로. */
+export function grantSouvenirCase(room: RoomData): RoomData {
+  return souvenirIds(room).length > 0 ? grantItem(room, SOUVENIR_CASE) : room;
+}
+
+/** 진열장을 놓느라 보관함에 넣어도 되는 물건인가 — 주인이 그린 키보드·피아노 연주·특별한 책은 건드리지 않는다. */
+function movable(it: string): boolean {
+  return it !== KEYBOARD_ID && it !== "piano" && it !== SOUVENIR_CASE && !roomBookOf(it);
+}
+
+/**
+ * 기념품 진열장을 방에 놓는다 — 한 번만(caseAuto). 빈 바닥 칸이 있으면 거기에.
+ * 꽉 찼으면 물건 하나를 보관함에 넣고 그 자리에 놓는다. 고르는 차례:
+ *   1. 바닥에 따로 놓은 기념품(진열장 안에 이미 있다 — 잃는 것이 없다)
+ *   2. 바닥의 한 칸짜리 가구, 값이 싼 것부터
+ *   3. 바닥의 두 칸짜리 가구, 값이 싼 것부터
+ * 넣은 물건 id를 caseMoved에 적는다(방 화면이 알린다). 이미 놓였거나, 진열장이 없거나, 이미 한 번 놓았으면 그대로.
+ */
+export function autoPlaceCase(room: RoomData): { room: RoomData; moved: string | null } | null {
+  if (room.caseAuto || !(room.owned[SOUVENIR_CASE] ?? 0) || room.placed.some((p) => p.it === SOUVENIR_CASE)) return null;
+  const open = firstOpenSlot(room, SOUVENIR_CASE);
+  if (open) {
+    const placed = place(room, SOUVENIR_CASE, open);
+    return placed ? { room: { ...placed, caseAuto: true }, moved: null } : null;
+  }
+  const price = (it: string) => FURNITURE_BY_ID.get(it)?.price ?? 0;
+  const floorItems = room.placed.filter((p) => parseSlot(p.at)?.row !== "w" && movable(p.it));
+  const souvenirs = floorItems.filter((p) => room.shown.some((s) => s.id === p.it && s.kind === "souvenir"));
+  const size = (p: Placed) => placement(p.it, room.shown)?.size ?? 1;
+  const furniture = floorItems.filter((p) => !isShownId(p.it)).sort((a, b) => size(a) - size(b) || price(a.it) - price(b.it));
+  for (const p of [...souvenirs, ...furniture]) {
+    const placed = place(stow(room, p.at), SOUVENIR_CASE, p.at);
+    if (placed) return { room: { ...placed, caseAuto: true, caseMoved: p.it }, moved: p.it };
+  }
+  return null;
+}
+
+/**
+ * 기념품을 받는다 — 기념품은 진열장에 담기고, 진열장이 방에 없으면 저절로 놓는다(autoPlaceCase — 꽉 찼으면 물건 하나를 보관함에).
+ * where: case=진열장 안, stowed=진열장이 보관함에 있다(주인이 넣어 두었거나 놓을 자리가 끝내 없다). moved: 진열장 때문에 보관함에 넣은 물건.
+ * 이미 받았거나 상한이면 null.
+ */
+export function receiveSouvenir(room: RoomData, speciesId: string): { room: RoomData; where: "case" | "stowed"; moved: string | null } | null {
+  if (hasSouvenir(room, speciesId) || room.shown.length >= SHOWN_MAX) return null;
+  const next = grantSouvenirCase({ ...room, shown: [...room.shown, { id: souvenirShownId(speciesId), kind: "souvenir", species: speciesId }] });
+  if (next.placed.some((p) => p.it === SOUVENIR_CASE)) return { room: next, where: "case", moved: null };
+  const auto = autoPlaceCase(next);
+  return auto ? { room: auto.room, where: "case", moved: auto.moved } : { room: next, where: "stowed", moved: null };
+}
+
+/** 기념품의 전시품 id. */
+export function souvenirShownId(speciesId: string): string {
+  return `s:${speciesId}`;
+}
+
+/** 이 업적의 기념품을 이미 받았나. */
+export function hasSouvenir(room: RoomData, speciesId: string): boolean {
+  return room.shown.some((s) => s.kind === "souvenir" && s.species === speciesId);
+}
 
 /** 방 한마디를 한 줄로. 걸러낼 것이 있으면 빈 글 — 공개 문서에서 읽을 때도 다시 거른다(손으로 만든 요청). */
 export function cleanMotto(input: string): string {
@@ -155,6 +257,9 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined, seed = ""): Ro
     motto: typeof raw.motto === "string" ? cleanMotto(raw.motto) : "",
     avatar: normalizeAvatar(raw.avatar, seed),
     books: normalizeRoomBooks(raw.books),
+    album: cleanAlbum(raw.album),
+    ...(raw.caseAuto === true ? { caseAuto: true } : {}),
+    ...(typeof raw.caseMoved === "string" && raw.caseMoved.length <= 80 ? { caseMoved: raw.caseMoved } : {}),
   };
   // 옛 방의 여러 키보드는 같은 키를 보였다. 각각 복사해서 독립시킨다.
   const used = new Set<number>();
@@ -241,7 +346,7 @@ export function placement(it: string, shown: readonly Shown[]): { on: "wall" | "
   if (isShownId(it)) {
     const s = shown.find((x) => x.id === it);
     if (!s) return null;
-    return { on: s.kind === "frame" ? "wall" : s.kind === "trophy" ? "any" : "floor", size: 1 };
+    return { on: s.kind === "frame" ? "wall" : s.kind === "trophy" || s.kind === "souvenir" ? "any" : "floor", size: 1 };
   }
   const f = FURNITURE_BY_ID.get(it);
   if (!f) return null;
@@ -424,6 +529,12 @@ export function buyTrophyItem(room: RoomData, roots: number, id: string): { room
 }
 
 /** 받은 것을 장부에 넣는다(보상 벽지). 이미 있으면 그대로. */
+/** 선물로 하나 더 준다(잡초 O/X 퀴즈). 한 가지를 OWN_MAX개까지만 — 넘으면 null. */
+export function giftItem(room: RoomData, id: string): RoomData | null {
+  const have = room.owned[id] ?? 0;
+  return have >= OWN_MAX ? null : { ...room, owned: { ...room.owned, [id]: have + 1 } };
+}
+
 export function grantItem(room: RoomData, id: string): RoomData {
   return (room.owned[id] ?? 0) > 0 ? room : { ...room, owned: { ...room.owned, [id]: 1 } };
 }
@@ -559,6 +670,8 @@ export function publicRoom(room: RoomData): PublicRoom {
       if (short(p.it)) placed.push({
         a: p.at,
         i: p.it,
+        // 기념품 진열장 — 담긴 기념품(업적 품종 id)을 쉼표로 이은 글자 하나. 손님 화면이 품종표에 있는 것만 꺼낸다.
+        ...(p.it === SOUVENIR_CASE && souvenirIds(room).length ? { sv: souvenirIds(room).slice(0, CASE_MAX).join(",") } : {}),
         ...(p.it === KEYBOARD_ID ? { kb: p.kb ?? 0 } : p.it === "piano" ? { pn: pianoNotes(room.pianos?.[p.kb ?? 0]), ps: pianoSong(room.pianoSongs?.[p.kb ?? 0]) } : {}),
         // 특별한 책 — 펼쳐 둔 문장(id)과 들인 날. 손님이 독서대에서 본다.
         ...(bookData?.marks.length ? { bm: cleanMarks(bookData.marks) } : {}),
@@ -568,9 +681,9 @@ export function publicRoom(room: RoomData): PublicRoom {
     }
     const s = room.shown.find((x) => x.id === p.it);
     if (!s || !short(s.species)) continue;
-    if (s.kind === "trophy") {
-      // 박제는 악초 종류 id만. 보는 화면이 종류표에서 이름·그림·성질을 읽는다.
-      placed.push({ a: p.at, k: "trophy", s: s.species! });
+    if (s.kind === "trophy" || s.kind === "souvenir") {
+      // 박제는 악초 종류 id만, 기념품은 업적 품종 id만. 보는 화면이 표에서 이름·그림을 읽는다.
+      placed.push({ a: p.at, k: s.kind, s: s.species! });
     } else if (s.kind === "frame") {
       if (s.note && s.note.length <= 120) placed.push({ a: p.at, k: "frame", s: s.species!, n: s.note });
     } else {
@@ -585,7 +698,9 @@ export function publicRoom(room: RoomData): PublicRoom {
   // 꼬마는 문자열 하나. 끈 꼬마는 싣지 않고, 가지지 않은 옷은 기본으로 바꿔 싣는다(avatar/rules.ts의 packAvatar).
   const packed = room.avatar ? packAvatar(room.avatar, roomWidth(room.size)) : null;
   const avatar = packed ? { avatar: packed } : {};
-  return { size: room.size, wall: room.wall, floor: room.floor, mood: room.mood, bgm: room.bgm, placed, ...keys, ...(Object.keys(keyboards).length ? { keyboards } : {}), ...motto, ...avatar };
+  const albumText = packAlbum(room.album);
+  const album = albumText ? { album: albumText } : {};
+  return { size: room.size, wall: room.wall, floor: room.floor, mood: room.mood, bgm: room.bgm, placed, ...keys, ...(Object.keys(keyboards).length ? { keyboards } : {}), ...motto, ...avatar, ...album };
 }
 
 /**
@@ -600,7 +715,9 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
   const bgm = isGardenTrack(pub.bgm) ? pub.bgm : DEFAULT_TRACK;
   // 키는 모양을 다시 본다 — 어긋난 그림은 빈 그림, 모르는 소리는 소리 없음(keyboard.ts의 keysFromPublic).
   const avatar = avatarFromPublic(pub.avatar);
-  let room: RoomData = { size, wall, floor, mood, bgm, placed: [], owned: {}, shown: [], keys: keysFromPublic(pub.keys), motto: typeof pub.motto === "string" ? cleanMotto(pub.motto) : "", ...(avatar && avatarSlotOk(avatar.at, roomWidth(size)) ? { avatar } : {}) };
+  // 사진첩은 품종표에 있는 업적 품종만(남의 공개 문서에는 아무 값이나 담길 수 있다).
+  const album = unpackAlbum(pub.album).filter((id) => byId.has(id));
+  let room: RoomData = { size, wall, floor, mood, bgm, placed: [], owned: {}, shown: [], keys: keysFromPublic(pub.keys), motto: typeof pub.motto === "string" ? cleanMotto(pub.motto) : "", ...(avatar && avatarSlotOk(avatar.at, roomWidth(size)) ? { avatar } : {}), ...(album.length ? { album } : {}) };
   pub.placed.slice(0, PUBLIC_PLACED_MAX).forEach((p, n) => {
     if ("i" in p) {
       // 남의 방은 가진 수를 모른다. 놓인 만큼 가졌다고 본다.
@@ -611,6 +728,11 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
         const book = roomBookOf(p.i);
         if (book && (p.bm || p.bd !== undefined)) {
           room = { ...room, books: { ...room.books, [book.slug]: { marks: cleanMarks(p.bm), ...(typeof p.bd === "number" ? { since: p.bd } : {}) } } };
+        }
+        if (p.i === SOUVENIR_CASE && typeof p.sv === "string") {
+          // 진열장 안의 기념품 — 방에 놓이지 않은 전시품으로 되살린다. 업적 품종이고 품종표에 있는 것만.
+          const ids = [...new Set(p.sv.split(","))].filter((id) => /^a:[a-z0-9-]{1,40}$/.test(id) && byId.has(id)).slice(0, CASE_MAX);
+          room = { ...room, shown: [...room.shown, ...ids.filter((id) => !hasSouvenir(room, id)).map((id): Shown => ({ id: `v:case:${id}`, kind: "souvenir", species: id }))] };
         }
         if (p.i === "piano") {
           const id = room.placed.at(-1)!.kb ?? 0;
@@ -627,6 +749,14 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
     if (p.k === "trophy") {
       if (!isRaidKind(p.s)) return;
       const shown: Shown = { id: `v:${n}`, kind: "trophy", species: p.s };
+      const next = place({ ...room, shown: [...room.shown, shown] }, shown.id, p.a);
+      if (next) room = next;
+      return;
+    }
+    if (p.k === "souvenir") {
+      // 기념품은 품종표에 있는 업적 품종만.
+      if (!p.s.startsWith("a:") || !byId.has(p.s)) return;
+      const shown: Shown = { id: `v:${n}`, kind: "souvenir", species: p.s };
       const next = place({ ...room, shown: [...room.shown, shown] }, shown.id, p.a);
       if (next) room = next;
       return;
