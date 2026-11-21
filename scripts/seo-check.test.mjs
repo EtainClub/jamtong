@@ -63,6 +63,18 @@ const entries = loadModule("src/app/sitemap.ts", {
       { slug: "sample-fixture", sample: true, chapters: [{ slug: "intro" }] },
     ],
   },
+  "@/content/books/translations": {
+    translatedBooks: () => [{ locale: "ja", slug: "book-fixture" }],
+    translatedChapters: () => [{ locale: "ja", slug: "book-fixture", chapter: "intro" }],
+    chapterLanguages: (slug, chapter) =>
+      slug === "book-fixture" && chapter === "intro"
+        ? {
+            ko: "/books/book-fixture/intro",
+            ja: "/ja/books/book-fixture/intro",
+            "x-default": "/books/book-fixture/intro",
+          }
+        : {},
+  },
   "@/content/novels": {
     NOVELS: [
       {
@@ -122,6 +134,21 @@ test("수정일을 모르면 날짜를 만들어 넣지 않는다", () => {
   ]) {
     assert.equal(entryAt(path).lastModified, undefined, path);
   }
+});
+
+test("옮긴 장은 원문 장과 hreflang으로 서로를 가리킨다", () => {
+  const expected = {
+    ko: abs("/books/book-fixture/intro"),
+    ja: abs("/ja/books/book-fixture/intro"),
+    "x-default": abs("/books/book-fixture/intro"),
+  };
+  // 사이트맵 모듈은 다른 vm 영역에서 돈다. 프로토타입이 달라 JSON으로 한 번 옮겨 비교한다.
+  const languagesAt = (path) => JSON.parse(JSON.stringify(entryAt(path).alternates?.languages));
+  assert.deepEqual(languagesAt("/books/book-fixture/intro"), expected);
+  assert.deepEqual(languagesAt("/ja/books/book-fixture/intro"), expected);
+  assert.ok(entryAt("/ja/books/book-fixture"));
+  // 옮기지 않은 장에는 hreflang을 붙이지 않는다.
+  assert.equal(entryAt("/books/book-fixture").alternates, undefined);
 });
 
 test("계정/공유 URL과 로그/빈 책/샘플 책은 사이트맵에서 제외한다", () => {

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { getPublishedAchievements } from "@/content/achievements";
 import { BOOKS_BY_YEAR } from "@/content/books";
+import { chapterLanguages, translatedBooks, translatedChapters } from "@/content/books/translations";
 import { NOVELS, publishedEpisodes } from "@/content/novels";
 import { STATEMENTS } from "@/content/words";
 import { OPEN_CARTELS } from "@/content/cartels";
@@ -40,6 +41,13 @@ function toDate(value: string | undefined): Date | undefined {
   const [, y, m, d] = match;
   const date = new Date(Date.UTC(Number(y), Number(m ?? "01") - 1, Number(d ?? "01")));
   return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+/** 장의 언어별 주소. 옮긴 언어가 없으면 아무것도 붙이지 않는다. */
+function alternatesOf(slug: string, chapter: string): Pick<MetadataRoute.Sitemap[number], "alternates"> {
+  const languages = chapterLanguages(slug, chapter);
+  if (Object.keys(languages).length === 0) return {};
+  return { alternates: { languages: Object.fromEntries(Object.entries(languages).map(([l, p]) => [l, abs(p)])) } };
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -102,8 +110,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     if (book.chapters.length === 0 || book.sample) continue;
     out.push({ url: abs(`/books/${book.slug}`), priority: 0.6 });
     for (const chapter of book.chapters) {
-      out.push({ url: abs(`/books/${book.slug}/${chapter.slug}`), priority: 0.6 });
+      out.push({
+        url: abs(`/books/${book.slug}/${chapter.slug}`),
+        priority: 0.6,
+        ...alternatesOf(book.slug, chapter.slug),
+      });
     }
+  }
+
+  /*
+   * 옮긴 자서전(docs/book-i18n.md). 끝까지 옮긴 장만 있다 — 반쯤 옮긴 장은 주소가 없다.
+   * 장마다 한국어 원문과 다른 언어판을 hreflang으로 서로 가리킨다.
+   */
+  for (const { locale, slug } of translatedBooks()) {
+    out.push({ url: abs(`/${locale}/books/${slug}`), priority: 0.5 });
+  }
+  for (const { locale, slug, chapter } of translatedChapters()) {
+    out.push({ url: abs(`/${locale}/books/${slug}/${chapter}`), priority: 0.6, ...alternatesOf(slug, chapter) });
   }
 
   /* 소설. 공개 예정인 편은 주소가 없으므로 본문이 있는 편만 싣는다. */

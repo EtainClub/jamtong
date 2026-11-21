@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { BOOKS, getChapter } from "@/content/books";
+import { chapterLanguages, chapterLocales, localizedChapterPath } from "@/content/books/translations";
 import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
 import { ShareLinkButton } from "@/features/app/ShareLinkButton";
 import { ActionList } from "@/features/books/ActionList";
 import { ChapterView } from "@/features/books/ChapterView";
+import { LanguageLinks } from "@/features/books/LanguageLinks";
 import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 
 export function generateStaticParams() {
@@ -29,7 +31,8 @@ export async function generateMetadata({
   return {
     title: `${found.chapter.title} · ${found.book.title}`,
     description: found.chapter.summary,
-    alternates: { canonical: path },
+    /* 옮긴 장이 있으면 서로를 가리킨다. 없으면 languages는 빈 객체라 아무것도 나가지 않는다. */
+    alternates: { canonical: path, languages: chapterLanguages(slug, chapter) },
     openGraph: {
       type: "article",
       url: path,
@@ -131,6 +134,17 @@ export default async function ChapterPage({
           {current.title}
         </h1>
         <p className="mt-2 text-[13px] leading-relaxed text-smoke">{current.summary}</p>
+
+        <LanguageLinks
+          current="ko"
+          links={[
+            { locale: "ko", href: `/books/${book.slug}/${current.slug}` },
+            ...chapterLocales(book.slug, current.slug).map((locale) => ({
+              locale,
+              href: localizedChapterPath(locale, book.slug, current.slug),
+            })),
+          ]}
+        />
 
         <ChapterView chapter={current} />
 

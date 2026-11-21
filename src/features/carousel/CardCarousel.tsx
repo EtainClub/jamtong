@@ -19,6 +19,7 @@ export function CardCarousel<T extends { id: string }>({
   items,
   label,
   itemLabel,
+  nav = { prev: "이전 장면", next: "다음 장면", pick: "장면 선택" },
   children,
 }: {
   items: T[];
@@ -26,6 +27,8 @@ export function CardCarousel<T extends { id: string }>({
   label: string;
   /** 카드 하나의 이름. 점 단추도 같은 이름을 쓴다. */
   itemLabel: (index: number) => string;
+  /** 넘김 단추와 점 묶음의 이름. 옮긴 자서전 장이 제 언어로 넘긴다. */
+  nav?: { prev: string; next: string; pick: string };
   /** 카드 속을 그린다. 여백(p-5)은 껍데기가 이미 잡아 둔다. */
   children: (item: T, index: number, total: number) => React.ReactNode;
 }) {
@@ -78,11 +81,11 @@ export function CardCarousel<T extends { id: string }>({
       </div>
 
       <div className="flex items-center justify-between gap-4 border-t border-stone px-4 py-3">
-        <NavButton label="이전 장면" disabled={index === 0} onClick={() => goTo(index - 1)}>
+        <NavButton label={nav.prev} disabled={index === 0} onClick={() => goTo(index - 1)}>
           <path d="M15 5 8 12l7 7" />
         </NavButton>
 
-        <div className="flex gap-1.5" role="tablist" aria-label="장면 선택">
+        <div className="flex gap-1.5" role="tablist" aria-label={nav.pick}>
           {items.map((item, i) => (
             <button
               key={item.id}
@@ -99,7 +102,7 @@ export function CardCarousel<T extends { id: string }>({
         </div>
 
         <NavButton
-          label="다음 장면"
+          label={nav.next}
           disabled={index === total - 1}
           onClick={() => goTo(index + 1)}
         >

@@ -1,4 +1,6 @@
+import type { ReadLocale } from "@/content/books/i18n";
 import type { BookShort } from "@/content/books/schema";
+import { BOOK_UI } from "./ui";
 
 /**
  * 장으로 만든 숏츠.
@@ -31,30 +33,32 @@ export function ChapterShorts({
   shorts,
   chapterTitle,
   order,
+  lang = "ko",
 }: {
   shorts: BookShort[];
   chapterTitle: string;
   order: number;
+  lang?: ReadLocale;
 }) {
+  const t = BOOK_UI[lang];
   return (
     <section aria-labelledby="shorts" className="mt-8">
       <div className="flex items-baseline justify-between gap-3">
         <h2 id="shorts" className="text-[13px] font-bold text-ink">
-          이 장의 숏츠
+          {t.shortsTitle}
         </h2>
-        <span className="text-[11px] text-ash">{order}장</span>
+        <span className="text-[11px] text-ash">{t.chapterN(order)}</span>
       </div>
 
       {shorts.length === 0 ? (
         <div className="mt-3 flex gap-3">
           <div className="relative aspect-[9/16] w-[132px] shrink-0 overflow-hidden rounded-card border border-dashed border-stone bg-taupe/40">
             <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-ash">
-              준비 중
+              {t.shortsPending}
             </span>
           </div>
           <p className="min-w-0 self-center text-[12px] leading-relaxed text-smoke">
-            이 장의 본문으로 만든 숏츠가 여기 붙습니다. 아직 만들지 않았습니다 —
-            영상이 올라오면 제목과 함께 이 자리에 뜹니다.
+            {t.shortsPendingNote}
           </p>
         </div>
       ) : shorts.length === 1 ? (
@@ -89,8 +93,7 @@ export function ChapterShorts({
       )}
 
       <p className="mt-3 text-[11px] leading-relaxed text-ash">
-        「{chapterTitle}」의 요약을 옮긴 영상입니다. 짧을수록 맥락이 잘리므로, 영상만
-        보고 판단하기 전에 위의 요약 원문을 함께 보시기 바랍니다.
+        {t.shortsNote(chapterTitle)}
       </p>
     </section>
   );

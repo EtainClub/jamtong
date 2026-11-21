@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 
+import type { ReadLocale } from "@/content/books/i18n";
 import type { Chapter } from "@/content/books/schema";
 import { CardCarousel } from "@/features/carousel/CardCarousel";
 import { ChapterBody } from "./ChapterBody";
 import { ChapterShorts } from "./ChapterShorts";
 import { Figure } from "./Figure";
+import { BOOK_UI } from "./ui";
 
 /**
  * 장 하나 — 쉽게 보기와 요약 원문.
@@ -26,7 +28,8 @@ import { Figure } from "./Figure";
  * 문장인지 우리가 옮긴 요약인지를 탭 아래에 밝힌다. 본문을 싣지 못한 장에서는
  * 탭이 아예 뜨지 않는다 — 없는 것을 있는 것처럼 두지 않는다.
  */
-export function ChapterView({ chapter }: { chapter: Chapter }) {
+export function ChapterView({ chapter, lang = "ko" }: { chapter: Chapter; lang?: ReadLocale }) {
+  const t = BOOK_UI[lang];
   const [view, setView] = useState<"easy" | "body">("easy");
   const hasBody = Boolean(chapter.body);
 
@@ -35,13 +38,13 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
       {hasBody && (
         <div
           role="radiogroup"
-          aria-label="보기 방식"
+          aria-label={t.viewMode}
           className="mt-6 flex gap-1.5 rounded-full border border-stone p-1"
         >
           {(
             [
-              ["easy", "쉽게 보기"],
-              ["body", "요약 원문"],
+              ["easy", t.easyTab],
+              ["body", t.bodyTab],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -61,9 +64,9 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
       )}
 
       {view === "easy" || !hasBody ? (
-        <section aria-label="쉽게 보기" className="mt-6">
+        <section aria-label={t.easyTab} className="mt-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ash">
-            쉽게 보기 · 큰 그림으로 읽기
+            {t.easyKicker}
           </p>
           <p className="mt-2.5 text-[16px] font-light leading-relaxed text-ink">
             {chapter.easy.lead}
@@ -72,8 +75,9 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
           <div className="mt-5">
             <CardCarousel
               items={chapter.easy.points}
-              label={`장면 ${chapter.easy.points.length}개. 좌우 화살표 키로 넘길 수 있어요.`}
-              itemLabel={(i) => `${i + 1}번 장면`}
+              label={t.scenes(chapter.easy.points.length)}
+              itemLabel={t.scene}
+              nav={{ prev: t.prevScene, next: t.nextScene, pick: t.pickScene }}
             >
               {(point, i, total) => {
                 return (
@@ -95,7 +99,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
                     {point.quote && (
                       <details className="group mt-3.5">
                         <summary className="cursor-pointer list-none text-[12px] font-semibold text-navy hover:underline">
-                          요약 원문에서 이 대목
+                          {t.quoteToggle}
                           <span aria-hidden="true" className="ml-1 inline-block group-open:hidden">
                             ▾
                           </span>
@@ -118,12 +122,12 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
             shorts={chapter.shorts}
             chapterTitle={chapter.title}
             order={chapter.order}
+            lang={lang}
           />
 
           {!hasBody && (
             <p className="mt-6 rounded-card border border-stone bg-taupe/50 px-4 py-3 text-[12px] leading-relaxed text-smoke">
-              이 장은 요약 원문을 싣지 못했습니다. 위의 카드가 전부이며, 자세한
-              내용은 책을 직접 보셔야 합니다.
+              {t.noBody}
             </p>
           )}
 
@@ -133,25 +137,23 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
               onClick={() => setView("body")}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-card border border-stone bg-taupe px-5 py-3.5 text-sm font-semibold text-navy transition-colors hover:border-graphite"
             >
-              요약 원문으로 읽기
+              {t.readBody}
               <span aria-hidden="true">→</span>
             </button>
           )}
         </section>
       ) : (
-        <section aria-label="요약 원문" className="mt-6">
+        <section aria-label={t.bodyTab} className="mt-6">
           <ChapterBody chapter={chapter} />
 
           {chapter.truncated && (
             <p className="mt-5 rounded-card border border-stone bg-taupe/50 px-4 py-3 text-[12px] leading-relaxed text-smoke">
-              이 장의 요약 자료가 중간에서 끊겼습니다. 마지막 대목이 비어 있습니다.
+              {t.truncated}
             </p>
           )}
 
           <p className="mt-4 text-[11px] leading-relaxed text-ash">
-            {chapter.bodyKind === "excerpt"
-              ? "인용 범위 안의 발췌입니다. 전문이 아닙니다"
-              : "책을 읽고 우리가 옮긴 요약입니다. 저자의 문장이 아닙니다"}
+            {chapter.bodyKind === "excerpt" ? t.bodyNote.excerpt : t.bodyNote.summary}
             {chapter.bodySource ? ` — ${chapter.bodySource}` : "."}
           </p>
         </section>

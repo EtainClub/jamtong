@@ -28,16 +28,22 @@ export function ShareLinkButton({
   label,
   compact = false,
   className,
+  kakao = true,
 }: {
   /** 공유 시트에 뜨는 이름. 주소가 아니라 사람이 읽는 제목이다. */
   title: string;
   /** 어느 화면에서 공유가 나왔는지. 무엇을 공유했는지는 세지 않는다. */
   surface: "words" | "book" | "chapter" | "novel" | "episode" | "trials" | "wiki" | "task";
-  /** 버튼에 적는 말과 스크린리더가 읽는 말. */
-  label: { text: string; aria: string; copied: string };
+  /**
+   * 버튼에 적는 말과 스크린리더가 읽는 말. done은 복사한 뒤 버튼에 남는 말, prompt는 복사가 막혔을 때 묻는 말 —
+   * 옮긴 자서전 장이 제 언어로 넘긴다. 없으면 한국어.
+   */
+  label: { text: string; aria: string; copied: string; done?: string; prompt?: string };
   compact?: boolean;
   /** 버튼 모양을 바꿀 때. 주면 기본 모양 대신 이것만 쓴다(정원 머리처럼 자기 옷이 있는 곳). */
   className?: string;
+  /** 카카오톡 공유를 함께 둘지. 옮긴 자서전 장(일본어·영어)은 두지 않는다. */
+  kakao?: boolean;
 }) {
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
@@ -64,17 +70,19 @@ export function ShareLinkButton({
       setCopied(true);
       setTimeout(() => setCopied(false), 2400);
     } catch {
-      window.prompt("이 링크를 복사하세요", url);
+      window.prompt(label.prompt ?? "이 링크를 복사하세요", url);
     }
   };
 
   return (
     <span className="inline-flex shrink-0 items-center gap-1.5">
-      <KakaoShareButton
-        getUrl={() => `${window.location.origin}${pathname}`}
-        surface={surface}
-        compact={compact}
-      />
+      {kakao && (
+        <KakaoShareButton
+          getUrl={() => `${window.location.origin}${pathname}`}
+          surface={surface}
+          compact={compact}
+        />
+      )}
       <button
         type="button"
         onClick={onShare}
@@ -94,7 +102,7 @@ export function ShareLinkButton({
          */}
         {/* 자기 옷(className)을 입은 곳은 글자가 짧게 정해져 있으므로 접지 않는다. */}
         <span className={compact && !copied && !className ? "hidden sm:inline" : undefined}>
-          {copied ? "링크를 복사했습니다" : label.text}
+          {copied ? (label.done ?? "링크를 복사했습니다") : label.text}
         </span>
         <span className="sr-only" aria-live="polite">
           {copied ? label.copied : ""}

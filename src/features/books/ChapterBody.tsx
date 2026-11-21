@@ -19,14 +19,18 @@ import type { Chapter } from "@/content/books/schema";
 /** 이 길이를 넘으면 문단을 덩이로 나눈다. 두세 문장이 한 덩이가 되는 크기다. */
 const CHUNK = 170;
 
-/** 문장 끝에서 끊는다. "…다. " 뒤가 경계다. */
+/**
+ * 문장 끝에서 끊는다. "…다. " 뒤가 경계다.
+ * 일본어는 "。" 뒤에 띄어쓰기가 없으므로 그 자리도 경계로 보고, 이을 때 띄우지 않는다.
+ */
 function chunk(paragraph: string): string[] {
-  const sentences = paragraph.split(/(?<=\.)\s+/);
+  const sentences = paragraph.split(/(?<=\.)\s+|(?<=。)/);
   const out: string[] = [];
   let buffer = "";
+  const join = (a: string, b: string) => (a.endsWith("。") ? `${a}${b}` : `${a} ${b}`);
 
   for (const sentence of sentences) {
-    const merged = buffer ? `${buffer} ${sentence}` : sentence;
+    const merged = buffer ? join(buffer, sentence) : sentence;
     if (merged.length >= CHUNK) {
       out.push(merged);
       buffer = "";
@@ -37,7 +41,7 @@ function chunk(paragraph: string): string[] {
 
   if (buffer) {
     /* 남은 꼬리가 너무 짧으면 앞 덩이에 붙인다. 한 줄짜리 문단은 어색하다. */
-    if (out.length > 0 && buffer.length < 60) out[out.length - 1] += ` ${buffer}`;
+    if (out.length > 0 && buffer.length < 60) out[out.length - 1] = join(out[out.length - 1], buffer);
     else out.push(buffer);
   }
 
