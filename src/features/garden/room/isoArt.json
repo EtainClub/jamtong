@@ -1,0 +1,251 @@
+{
+  "babi-mini": {
+    "back": "babi-mini",
+    "front": "babi-mini"
+  },
+  "babi-bed": {
+    "back": "babi-bed",
+    "front": "babi-bed"
+  },
+  "babi-paw": {
+    "wall": "babi-paw-wall"
+  },
+  "babi-leash": {
+    "wall": "babi-leash-wall"
+  },
+  "go-board": {
+    "back": "go-board",
+    "front": "go-board"
+  },
+  "go-stones": {
+    "wall": "go-stones-wall"
+  },
+  "hiking-pack": {
+    "back": "hiking-pack",
+    "front": "hiking-pack"
+  },
+  "hiking-boots": {
+    "back": "hiking-boots",
+    "front": "hiking-boots"
+  },
+  "hiking-watch": {
+    "wall": "hiking-watch-wall"
+  },
+  "reading-books": {
+    "back": "reading-books",
+    "front": "reading-books"
+  },
+  "reading-shelf": {
+    "wall": "reading-shelf-wall"
+  },
+  "reading-light": {
+    "back": "reading-light",
+    "front": "reading-light"
+  },
+  "fishing-rod": {
+    "wall": "fishing-rod-wall"
+  },
+  "fishing-bag": {
+    "back": "fishing-bag",
+    "front": "fishing-bag"
+  },
+  "gukbap-table": {
+    "back": "gukbap-table",
+    "front": "gukbap-table"
+  },
+  "puer-tea": {
+    "back": "puer-tea",
+    "front": "puer-tea"
+  },
+  "jade-inkstone": {
+    "back": "jade-inkstone",
+    "front": "jade-inkstone"
+  },
+  "calligraphy-brush": {
+    "wall": "calligraphy-brush-wall"
+  },
+  "baseball-ball": {
+    "wall": "baseball-ball-wall"
+  },
+  "baseball-bat": {
+    "wall": "baseball-bat-wall"
+  },
+  "trout-aquarium": {
+    "back": "trout-aquarium-back",
+    "front": "trout-aquarium-front"
+  },
+  "tennis-racket": {
+    "wall": "tennis-racket-wall"
+  },
+  "blog-baseball": {
+    "wall": "blog-baseball-wall"
+  },
+  "soccer-ball": {
+    "back": "soccer-ball",
+    "front": "soccer-ball"
+  },
+  "blog-diary": {
+    "back": "blog-diary",
+    "front": "blog-diary"
+  },
+  "led-blue": {
+    "back": "led-blue",
+    "front": "led-blue"
+  },
+  "led-heart": {
+    "back": "led-heart",
+    "front": "led-heart"
+  },
+  "led-star": {
+    "back": "led-star",
+    "front": "led-star"
+  },
+  "led-rainbow": {
+    "back": "led-rainbow",
+    "front": "led-rainbow"
+  },
+  "led-flower": {
+    "back": "led-flower",
+    "front": "led-flower"
+  },
+  "led-wave": {
+    "back": "led-wave",
+    "front": "led-wave"
+  },
+  "play-musicbox": {
+    "back": "play-musicbox",
+    "front": "play-musicbox"
+  },
+  "play-chime": {
+    "wall": "play-chime-wall"
+  },
+  "voice-tv": {
+    "back": "voice-tv-back",
+    "front": "voice-tv-front"
+  },
+  "voice-mic": {
+    "back": "voice-mic",
+    "front": "voice-mic"
+  },
+  "clock": {
+    "wall": "clock-wall"
+  },
+  "shelf": {
+    "wall": "shelf-wall"
+  },
+  "garland": {
+    "wall": "garland-wall"
+  },
+  "painting": {
+    "wall": "frame-wall"
+  },
+  "wall-lamp": {
+    "wall": "wall-lamp-wall"
+  },
+  "star-light": {
+    "wall": "star-light-wall"
+  },
+  "bed": {
+    "back": "bed-back",
+    "front": "bed-front"
+  },
+  "sofa": {
+    "back": "sofa-back",
+    "front": "sofa-front"
+  },
+  "desk": {
+    "back": "desk",
+    "front": "desk"
+  },
+  "bookshelf": {
+    "back": "bookshelf-back",
+    "front": "bookshelf-front"
+  },
+  "wardrobe": {
+    "back": "wardrobe-back",
+    "front": "wardrobe-front"
+  },
+  "chair": {
+    "back": "chair-back",
+    "front": "chair-front"
+  },
+  "table": {
+    "back": "table",
+    "front": "table"
+  },
+  "lamp": {
+    "back": "lamp",
+    "front": "lamp"
+  },
+  "rug": {
+    "back": "rug",
+    "front": "rug"
+  },
+  "can": {
+    "back": "can",
+    "front": "can"
+  },
+  "cushion": {
+    "back": "cushion",
+    "front": "cushion"
+  },
+  "radio": {
+    "back": "radio-back",
+    "front": "radio-front"
+  },
+  "mailbox": {
+    "back": "mailbox-back",
+    "front": "mailbox-front"
+  },
+  "piano": {
+    "back": "piano-back",
+    "front": "piano-front"
+  },
+  "picnic": {
+    "back": "picnic",
+    "front": "picnic"
+  },
+  "fishbowl": {
+    "back": "fishbowl",
+    "front": "fishbowl"
+  },
+  "rocker": {
+    "back": "rocker-back",
+    "front": "rocker-front"
+  },
+  "tent": {
+    "back": "tent-back",
+    "front": "tent-front"
+  },
+  "banner": {
+    "wall": "banner-wall"
+  },
+  "drum": {
+    "back": "drum",
+    "front": "drum"
+  },
+  "lantern": {
+    "back": "lantern",
+    "front": "lantern"
+  },
+  "bench": {
+    "back": "bench-back",
+    "front": "bench-front"
+  },
+  "showcase": {
+    "back": "showcase-back",
+    "front": "showcase-front"
+  },
+  "fountain": {
+    "back": "fountain",
+    "front": "fountain"
+  },
+  "lamp-reading": {
+    "back": "lamp-reading",
+    "front": "lamp-reading"
+  },
+  "shelf-complete": {
+    "back": "shelf-complete-back",
+    "front": "shelf-complete-front"
+  }
+}

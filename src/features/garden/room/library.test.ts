@@ -10,6 +10,7 @@ import { bookPack } from "../../../lib/books/pack";
 import type { Species } from "../types";
 import { BOOK_FURNITURE, ROOM_BOOKS } from "./books";
 import { FURNITURE_BY_ID } from "./catalog";
+import { at } from "./slotTest";
 import {
   BOOK_ASK_JAM,
   BOOK_ASK_PER_DAY,
@@ -53,7 +54,7 @@ test("펼쳐 둔 문장은 id 모양만, 셋까지, 겹치지 않게", () => {
 
 test("장서표와 펼쳐 둔 문장은 공개 방으로 나가 손님 화면에 그대로 돌아온다", () => {
   const id = bookIdOf("autobiography");
-  let room = { ...freshRoom("t"), owned: { [id]: 1 }, placed: [{ at: "f0", it: id }] };
+  let room = { ...freshRoom("t"), owned: { [id]: 1 }, placed: [at(id, "f0")] };
   room = stampBookSince(room, id, 20774);
   assert.equal(stampBookSince(room, id, 20999).books?.autobiography?.since, 20774, "처음 들인 날은 바뀌지 않는다");
   room = { ...room, books: { autobiography: { marks: ["a1-p1", "a2-p1"], since: 20774 } } };

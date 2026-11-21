@@ -20,31 +20,31 @@ import { STORY_FURNITURE, STORY_LABEL, STORY_SOURCES, STORY_COLLECTIONS } from "
 import { PLAY_FURNITURE, VOICE_CLIPS, activityOf, voiceEmbed, voiceOriginal } from "./activities";
 import { FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS } from "./catalog";
 import { FURNITURE_SPRITES } from "./furnitureSprites";
+import { ISO, isoBox, SHOWN_ISO } from "./iso";
+import { at, canPlace, itemAt, move, place, slotOf, slots, stow } from "./slotTest";
+import { firstOpenSpot, stow as stowIndex } from "./rules";
+import * as R from "./rules";
+import { isoProblem, isWallPos } from "./isoPlace";
 import {
   addShown,
   applySurface,
   buyItem,
   buyTrophyItem,
-  canPlace,
   hasSurface,
   onSale,
   frameNote,
   freshRoom,
   kstWeek,
-  move,
   normalizeRoom,
   cleanMotto,
   mottoProblem,
   MOTTO_MAX,
-  openSlots,
-  place,
   PUBLIC_ID_MAX,
   PUBLIC_PLACED_MAX,
   publicRoom,
   ROOM_SIZES,
   roomFromPublic,
   shownFromFruit,
-  stow,
   stowedCount,
   upgradeRoom,
   validRoom,
@@ -126,7 +126,6 @@ test("2칸짜리는 오른쪽 칸까지 쓰고, 겹치지 않는다", () => {
   assert.ok(!canPlace(room, "chair", "b2"));
   assert.ok(!canPlace(room, "chair", "b1"));
   assert.ok(canPlace(room, "chair", "b3"));
-  assert.ok(!openSlots(room, "chair").includes("b2"));
 });
 
 test("가진 수만큼만 놓고, 넣으면 보관함으로 돌아온다", () => {
@@ -143,7 +142,7 @@ test("가진 수만큼만 놓고, 넣으면 보관함으로 돌아온다", () =>
 test("옮기기는 제 자리를 비운 셈 치고 본다", () => {
   let room = place(owning({ bed: 1 }), "bed", "b0")!;
   room = move(room, "b0", "b1")!;
-  assert.deepEqual(room.placed, [{ at: "b1", it: "bed" }]);
+  assert.deepEqual(room.placed, [at("bed", "b1")]);
   assert.equal(move(room, "b1", "w0"), null);
   assert.equal(move(room, "x9", "b2"), null);
 });
@@ -151,10 +150,10 @@ test("옮기기는 제 자리를 비운 셈 치고 본다", () => {
 test("저장할 방 검사: 겹침·가진 수 넘침·가지지 않은 벽지를 받지 않는다", () => {
   const ok = place(owning({ chair: 1 }), "chair", "f0")!;
   assert.ok(validRoom(ok));
-  assert.ok(!validRoom({ ...ok, placed: [...ok.placed, { at: "f1", it: "chair" }] }));
+  assert.ok(!validRoom({ ...ok, placed: [...ok.placed, at("chair", "f1")] }));
   assert.ok(!validRoom({ ...ok, wall: "wp-brick" }));
   assert.ok(validRoom({ ...ok, wall: "wp-brick", owned: { ...ok.owned, "wp-brick": 1 } }));
-  assert.ok(!validRoom({ ...owning({ bed: 2 }), placed: [{ at: "b0", it: "bed" }, { at: "b1", it: "bed" }] }));
+  assert.ok(!validRoom({ ...owning({ bed: 2 }), placed: [at("bed", "b0"), at("bed", "b1")] }));
 });
 
 test("벽지·바닥재는 하나면 되고, 가진 것만 바른다", () => {
@@ -190,10 +189,11 @@ test("전시: 열매가 화분·나무가 되고, 빈 칸이 있으면 바로 �
   assert.deepEqual(pot, { id: "p:abc-0", kind: "pot", species: "w:x", mut: ["golden"] });
   assert.equal(shownFromFruit(fruit, species("a:y", "perennial")).kind, "tree");
   const added = addShown(freshRoom(), pot)!;
-  assert.equal(added.at, "b0");
+  assert.equal(added.at, "0~0~0", "안쪽 꼭짓점부터");
   assert.equal(addShown(added.room, pot), null, "같은 전시품은 한 번");
-  // 바닥이 가득 차면 보관함에 둔다.
-  const full: RoomData = { ...freshRoom(), owned: { chair: 12 }, placed: ["b", "f"].flatMap((r) => [0, 1, 2, 3, 4, 5].map((i) => ({ at: `${r}${i}`, it: "chair" }))) };
+  // 바닥이 가득 차고 올릴 받침도 없으면 보관함에 둔다.
+  const grid = Array.from({ length: 36 }, (_, i) => ({ it: "wardrobe", pos: { x: (i % 6) * 2, y: Math.floor(i / 6) * 2, dir: 0 as const } }));
+  const full: RoomData = { ...freshRoom(), owned: { wardrobe: 36 }, placed: grid };
   const stowed = addShown(full, pot)!;
   assert.equal(stowed.at, null);
   assert.equal(stowedCount(stowed.room, pot.id), 1);
@@ -205,7 +205,7 @@ test("액자: 빈 틀을 쓰거나 잼 30으로 사서 건다. 쪽지 하나에 
   const bought = frameNote(freshRoom(), 30, "w:x#n1", "w:x")!;
   assert.equal(bought.jam, 0);
   assert.equal(bought.bought, true);
-  assert.equal(bought.at, "w0");
+  assert.equal(bought.at, "R~0~50", "오른쪽 벽 안쪽부터");
   assert.equal(frameNote(bought.room, 100, "w:x#n1", "w:x"), null);
   const used = frameNote(owning({ [FRAME_BLANK]: 1 }), 0, "w:x#n1", "w:x")!;
   assert.equal(used.bought, false);
@@ -221,7 +221,7 @@ test("공개 방: 글은 싣지 않고, 상한을 넘지 않는다", () => {
   assert.ok(!JSON.stringify(pub).includes("글"));
   assert.ok(pub.placed.some((p) => "k" in p && p.k === "frame" && p.n === "w:x#n1" && p.s === "w:x"));
   assert.ok(!JSON.stringify(pub).includes("undefined"));
-  const many: RoomData = { ...room, placed: Array.from({ length: 60 }, (_, i) => ({ at: `b${i}`, it: "chair" })) };
+  const many: RoomData = { ...room, placed: Array.from({ length: PUBLIC_PLACED_MAX + 20 }, () => ({ it: "chair", pos: { x: 0, y: 0, dir: 0 as const } })) };
   assert.equal(publicRoom(many).placed.length, PUBLIC_PLACED_MAX);
 });
 
@@ -237,7 +237,7 @@ test("남의 방은 표에 있는 것만 그린다", () => {
         { a: "w0", i: "clock" },
         { a: "w1", i: "unknown-thing" },
         { a: "b0", i: "bed" },
-        { a: "b1", i: "chair" }, // 침대와 겹친다
+        { a: "b1", i: "chair" }, // 침대와 겹친다 — 옛 문서(a만)는 가까운 빈자리로 옮긴다
         { a: "f0", k: "pot", s: "w:x", m: ["golden", "evil"] },
         { a: "f1", k: "pot", s: "w:missing" },
         { a: "w2", k: "frame", s: "w:x", n: "w:x#n1" },
@@ -251,13 +251,16 @@ test("남의 방은 표에 있는 것만 그린다", () => {
   assert.equal(room.wall, "wp-cream");
   assert.equal(room.floor, "fl-grass");
   assert.equal(room.mood, MOODS[0].id);
-  assert.deepEqual(room.placed.map((p) => p.at), ["w0", "b0", "f0", "w2"]);
+  assert.deepEqual(room.placed.map((p) => p.it.startsWith("v:") ? room.shown.find((x) => x.id === p.it)!.kind : p.it), ["clock", "bed", "chair", "pot", "frame"]);
+  assert.deepEqual(slots(room).filter((_, i) => room.placed[i].it !== "chair"), ["w0", "b0", "f0", "w2"]);
+  assert.notEqual(slotOf(room, room.placed[2]), "b1", "겹친 의자는 비켜 놓였다");
+  assert.equal(isoProblem(room.placed, room.shown, room.size), null);
   assert.deepEqual(room.shown.find((s) => s.kind === "pot")?.mut, ["golden"]);
 });
 
 test("옛 정원에도 방이 생긴다", () => {
   assert.deepEqual(normalizeRoom(undefined), freshRoom());
-  const odd = normalizeRoom({ size: 5 as 0, placed: [{ at: "w0", it: "clock" }, null as never] });
+  const odd = normalizeRoom({ size: 5 as 0, placed: [{ at: "w0", it: "clock" }, null] as never });
   assert.equal(odd.size, 0);
   assert.equal(odd.placed.length, 1);
 });
@@ -276,15 +279,15 @@ test("firestore.rules의 publicRoom()이 같은 상한을 쓴다", () => {
 test("악초 박제: 벽에도 바닥에도, 공개 방에는 종류 id만, 모르는 종류는 그리지 않는다", () => {
   const added = addShown(freshRoom(), { id: "t:troll", kind: "trophy", species: "troll" })!;
   assert.ok(added.at, "빈 칸에 바로 놓인다");
-  const room = stow(added.room, added.at!);
+  const room = stowIndex(added.room, 0);
   assert.ok(canPlace(room, "t:troll", "w0"), "벽");
   assert.ok(canPlace(room, "t:troll", "f3"), "바닥");
   const onWall = place(room, "t:troll", "w2")!;
   assert.ok(validRoom(onWall));
   const pub = publicRoom(onWall);
-  assert.deepEqual(pub.placed, [{ a: "w2", k: "trophy", s: "troll" }]);
+  assert.deepEqual(pub.placed, [{ a: "w2", p: "R~4~50", k: "trophy", s: "troll" }]);
   const back = roomFromPublic({ ...pub, placed: [...pub.placed, { a: "f0", k: "trophy", s: "ghost" }] }, new Map());
-  assert.deepEqual(back.placed.map((p) => p.at), ["w2"]);
+  assert.deepEqual(slots(back), ["w2"]);
   assert.equal(back.shown[0].species, "troll");
 });
 
@@ -339,7 +342,7 @@ test("빈 액자틀: 구매한 틀을 걸고 옮기고 보관하며 공개 방�
   assert.ok(typeof bought !== "string");
   let room = bought.room;
   assert.equal(stowedCount(room, FRAME_BLANK), 1);
-  assert.ok(openSlots(room, FRAME_BLANK).includes("w0"));
+  assert.ok(canPlace(room, FRAME_BLANK, "w0"));
   room = place(room, FRAME_BLANK, "w0")!;
   assert.equal(stowedCount(room, FRAME_BLANK), 0);
   room = move(room, "w0", "w3")!;
@@ -356,15 +359,15 @@ test("빈 액자틀: 벽이 꽉 차도 걸어 둔 틀의 자리에서 쪽지로 
   const filled = frameNote(room, 0, "w:x#n1", "w:x")!;
   assert.equal(filled.bought, false);
   assert.equal(filled.jam, 0);
-  assert.equal(filled.at, "w3");
+  assert.equal(filled.at, "R~6~50", "걸어 둔 틀의 자리");
   assert.equal(filled.room.owned[FRAME_BLANK], undefined);
   assert.equal(filled.room.placed.length, 6);
-  assert.deepEqual(filled.room.placed.find((p) => p.at === "w3"), { at: "w3", it: "f:w:x#n1" });
+  assert.equal(itemAt(filled.room, "w3")?.it, "f:w:x#n1");
   assert.equal(validRoom(filled.room), true);
 
   const spare = frameNote({ ...room, owned: { ...room.owned, [FRAME_BLANK]: 2 } }, 0, "w:x#n2", "w:x")!;
-  assert.deepEqual(spare.room.placed.find((p) => p.at === "w3"), { at: "w3", it: FRAME_BLANK });
-  assert.equal(spare.at, null, "보관함의 틀을 썼고 벽이 꽉 차면 전시품은 보관한다");
+  assert.equal(itemAt(spare.room, "w3")?.it, FRAME_BLANK, "걸어 둔 빈 틀은 그대로");
+  assert.ok(spare.at, "보관함의 틀을 썼고, 아이소 방은 벽이 두 면이라 빈자리에 건다");
   assert.equal(validRoom(spare.room), true);
 });
 
@@ -393,7 +396,7 @@ test("이야기 소품 25종: 상시 구매·가구 배치·이동·공개 복�
     const loaded = normalizeRoom(JSON.parse(JSON.stringify(moved)));
     const visited = roomFromPublic(publicRoom(loaded), new Map());
     assert.deepEqual(visited.placed, moved.placed, f.id);
-    assert.equal(stowedCount(stow(moved, moved.placed[0].at), f.id), 1);
+    assert.equal(stowedCount(stowIndex(moved, 0), f.id), 1);
     // 공개 문서에는 이야기나 외부 주소를 넣지 않는다. 소품 id로 현행 설명을 읽는다.
     assert.equal(JSON.stringify(publicRoom(loaded)).includes(source.url), false);
   }
@@ -457,7 +460,7 @@ test("자서전 소품: 내용 있는 책 전부를 100,000잼에 팔고 각각 
     const placed = place(bought.room, f.id, "f0")!;
     assert.ok(placed);
     const shared = publicRoom(placed);
-    assert.deepEqual(shared.placed, [{ a: "f0", i: f.id }]);
+    assert.deepEqual(shared.placed, [{ a: "f0", p: "0~6~0", i: f.id }]);
     assert.equal(roomFromPublic(shared, new Map()).placed[0]?.it, f.id);
     assert.equal(stowedCount(stow(placed, "f0"), f.id), 1);
   }
@@ -473,7 +476,7 @@ test("피아노 음: 여덟 건반과 안전한 세 옥타브 범위로 정규�
 });
 
 test("피아노: 기존 여러 대도 독립 번호를 받고 이동·보관·공유에서 음을 유지", () => {
-  let room = normalizeRoom({ ...freshRoom(), owned: { piano: 2 }, placed: [{ at: "b0", it: "piano" }, { at: "f0", it: "piano" }] });
+  let room = normalizeRoom({ ...freshRoom(), owned: { piano: 2 }, placed: [{ at: "b0", it: "piano" }, { at: "f0", it: "piano" }] as never });
   assert.deepEqual(room.placed.map((p) => p.kb), [0, 1]);
   const first = [48, 50, 52, 53, 55, 57, 59, 60];
   const second = [72, 74, 76, 77, 79, 81, 83, 84];
@@ -481,12 +484,12 @@ test("피아노: 기존 여러 대도 독립 번호를 받고 이동·보관·�
   assert.ok(validRoom(room));
   assert.equal(validRoom({ ...room, placed: room.placed.map((p) => ({ ...p, kb: 0 })) }), false);
   room = move(room, "b0", "b2")!;
-  assert.equal(room.placed.find((p) => p.at === "b2")?.kb, 0);
+  assert.equal(itemAt(room, "b2")?.kb, 0);
   room = place(stow(room, "b2"), "piano", "b0")!;
   assert.deepEqual(room.pianos?.[0], first);
   const restored = roomFromPublic(publicRoom(room), new Map());
   for (const item of restored.placed) {
-    const original = room.placed.find((p) => p.at === item.at)!;
+    const original = room.placed.find((p) => slotOf(room, p) === slotOf(restored, item))!;
     assert.deepEqual(restored.pianos?.[item.kb ?? 0], room.pianos?.[original.kb ?? 0]);
     assert.deepEqual(restored.pianoSongs?.[item.kb ?? 0], room.pianoSongs?.[original.kb ?? 0]);
   }
@@ -510,9 +513,9 @@ test("피아노 15초 곡: 시각·음을 검증하고 동시음을 유지하며
 });
 
 test("피아노 곡: 놓인 피아노의 곡만 공유하고 잘못된 공개 연주는 제거한다", () => {
-  const room = normalizeRoom({ ...freshRoom(), owned: { piano: 2 }, placed: [{ at: "b0", it: "piano", kb: 1 }], pianoSongs: { 0: [{ t: 0, n: 48 }], 1: [{ t: 500, n: 72 }] } });
+  const room = normalizeRoom({ ...freshRoom(), owned: { piano: 2 }, placed: [{ at: "b0", it: "piano", kb: 1 }] as never, pianoSongs: { 0: [{ t: 0, n: 48 }], 1: [{ t: 500, n: 72 }] } });
   const shared = publicRoom(room);
-  assert.deepEqual(shared.placed, [{ a: "b0", i: "piano", pn: PIANO_DEFAULT, ps: [{ t: 500, n: 72 }] }]);
+  assert.deepEqual(shared.placed, [{ a: "b0", p: "0~0~0", i: "piano", pn: PIANO_DEFAULT, ps: [{ t: 500, n: 72 }] }]);
   const hostile = roomFromPublic({ ...shared, placed: [{ a: "b0", i: "piano", ps: [{ t: 15000, n: 60 }, { t: 10, n: 999 }] }] }, new Map());
   assert.deepEqual(hostile.pianoSongs?.[0], []);
 });
@@ -655,7 +658,7 @@ test("기념품: 업적 품종 id만 공개 방에 싣고, 남의 방은 품종�
   assert.ok(hasSouvenir(added.room, "a:daejangdong"));
   assert.ok(added.at, "빈 칸에 바로 놓인다");
   const pub = publicRoom(added.room);
-  assert.deepEqual(pub.placed[0], { a: added.at, k: "souvenir", s: "a:daejangdong" });
+  assert.deepEqual(pub.placed[0], { a: slotOf(added.room, added.room.placed[0]), p: added.at, k: "souvenir", s: "a:daejangdong" });
   const byId = new Map([["a:daejangdong", species("a:daejangdong", "flagship")]]);
   const back = roomFromPublic({ ...pub, placed: [...pub.placed, { a: "b5", k: "souvenir", s: "a:nope" }, { a: "b6", k: "souvenir", s: "w:x" }] }, byId);
   assert.equal(back.shown.filter((s) => s.kind === "souvenir").length, 1, "품종표에 없는 업적·업적이 아닌 품종은 그리지 않는다");
@@ -697,50 +700,53 @@ test("기념품 진열장: 빈 칸이 있으면 거기에, 기념품은 진열�
   assert.equal(receiveSouvenir(second.room, "a:y"), null, "같은 기념품은 한 번만");
 });
 
-/** 진열장이 설 수 있는 바닥 칸을 모두 채운 방. fill이 칸마다 놓을 것을 고른다. */
-async function fullRoom(fill: (i: number) => string, own: Record<string, number>) {
-  const { SOUVENIR_CASE, openSlots: open } = await import("./rules");
+/** 바닥을 빈틈없이 채운 방 — 가로 w × 깊이 1 타일의 가구를 격자로. 진열장(1 × 0.5)이 설 자리가 없다. */
+async function fullRoom(fill: (i: number) => string, own: Record<string, number>, w = 1) {
+  const { SOUVENIR_CASE, place: put } = await import("./rules");
   let room = owning(own);
   let i = 0;
-  for (const at of open(room, SOUVENIR_CASE)) room = place(room, fill(i++), at) ?? room;
-  assert.equal(open(room, SOUVENIR_CASE).length, 0, "꽉 찬 방");
+  for (let y = 0; y < 12; y += 2) for (let x = 0; x + w * 2 <= 12; x += w * 2) room = put(room, fill(i++), { x, y, dir: 0 }) ?? room;
+  assert.equal(firstOpenSpot(room, SOUVENIR_CASE), null, "꽉 찬 방");
   return room;
 }
 
+/** 1×1 바닥 가구 — 잼으로 사는 것. */
+const squares = FURNITURE.filter((f) => f.kind === "floor" && ISO[f.id]?.layer === "furniture" && ISO[f.id].w === 1 && ISO[f.id].d === 1 && f.price > 0 && !f.cur && !f.reading).map((f) => f.id);
+
 test("기념품 진열장: 꽉 찬 방에도 놓는다 — 가장 싼 바닥 가구 하나를 보관함에 넣고 알려 준다", async () => {
   const { receiveSouvenir, SOUVENIR_CASE, stowedCount: stowed } = await import("./rules");
-  const floors = FURNITURE.filter((f) => f.kind === "floor" && f.size === 1 && f.price > 0 && !f.cur && !f.reading && f.id !== "keyboard" && f.id !== "piano").map((f) => f.id);
-  const full = await fullRoom((i) => floors[i], Object.fromEntries(floors.map((id) => [id, 1])));
+  const full = await fullRoom((i) => squares[i % squares.length], Object.fromEntries(squares.map((id) => [id, 9])));
   const got = receiveSouvenir(full, "a:x")!;
   assert.equal(got.where, "case");
   assert.ok(got.moved, "보관함에 넣은 물건을 알려 준다");
   assert.equal(got.room.caseMoved, got.moved);
   assert.ok(got.room.placed.some((p) => p.it === SOUVENIR_CASE));
-  assert.equal(stowed(got.room, got.moved!), 1, "넣은 물건은 보관함에 있다 — 잃지 않는다");
-  const placedPrices = full.placed.filter((p) => !p.at.startsWith("w")).map((p) => FURNITURE_BY_ID.get(p.it)!.price);
+  assert.equal(stowed(got.room, got.moved!), stowed(full, got.moved!) + 1, "넣은 물건은 보관함에 있다 — 잃지 않는다");
+  const placedPrices = full.placed.map((p) => FURNITURE_BY_ID.get(p.it)!.price);
   assert.equal(FURNITURE_BY_ID.get(got.moved!)!.price, Math.min(...placedPrices), "가장 싼 것부터");
 });
 
 test("기념품 진열장: 따로 놓은 기념품이 먼저 비켜 주고, 키보드·피아노는 건드리지 않고, 한 번만 저절로 놓는다", async () => {
-  const { autoPlaceCase, receiveSouvenir, SOUVENIR_CASE, souvenirShownId, stow: stowAt } = await import("./rules");
-  // 기념품 하나를 바닥에 따로 놓은 꽉 찬 방.
-  const floors = FURNITURE.filter((f) => f.kind === "floor" && f.size === 1 && f.price > 0 && !f.cur && !f.reading && f.id !== "keyboard" && f.id !== "piano").map((f) => f.id);
-  let room = await fullRoom((i) => floors[i], Object.fromEntries(floors.map((id) => [id, 1])));
-  const spot = room.placed.find((p) => !p.at.startsWith("w"))!;
-  room = stowAt(room, spot.at);
+  const { autoPlaceCase, receiveSouvenir, SOUVENIR_CASE, souvenirShownId, place: put } = await import("./rules");
+  // 기념품 하나를 바닥에 따로 놓은 꽉 찬 방 — 가구 하나를 치운 1×1 자리에 기념품과 물뿌리개를 앞뒤로 둔다.
+  // 기념품을 치우면 진열장(1 × 0.5)이 설 띠가 생기고, 물뿌리개를 치우면 생기지 않는다.
+  let room = await fullRoom((i) => squares[i % squares.length], { ...Object.fromEntries(squares.map((id) => [id, 9])), can: 1 });
+  const spot = room.placed[0].pos as { x: number; y: number; dir: 0 };
+  room = stowIndex(room, 0);
   room = { ...room, shown: [...room.shown, { id: souvenirShownId("a:z"), kind: "souvenir", species: "a:z" }] };
-  room = place(room, souvenirShownId("a:z"), spot.at)!;
+  room = put(room, souvenirShownId("a:z"), { x: spot.x, y: spot.y, dir: 0 })!;
+  room = put(room, "can", { x: spot.x, y: spot.y + 1, dir: 0 })!;
+  assert.equal(firstOpenSpot(room, SOUVENIR_CASE), null, "기념품 둘레에도 진열장 자리는 없다");
   const got = receiveSouvenir(room, "a:x")!;
   assert.equal(got.moved, souvenirShownId("a:z"), "따로 놓은 기념품은 진열장 안에 있으니 그것부터 비킨다");
 
   // 사람이 진열장을 보관함에 넣었으면 다시 꺼내 놓지 않는다.
-  const at = got.room.placed.find((p) => p.it === SOUVENIR_CASE)!.at;
-  const putAway = stowAt(got.room, at);
+  const putAway = stowIndex(got.room, got.room.placed.findIndex((p) => p.it === SOUVENIR_CASE));
   assert.equal(autoPlaceCase(putAway), null);
   assert.equal(receiveSouvenir(putAway, "a:y")!.where, "stowed");
 
   // 바닥이 키보드·피아노로만 찼으면 놓지 못한다.
-  const keys = await fullRoom((i) => (i % 2 ? "keyboard" : "piano"), { keyboard: 9, piano: 9 });
+  const keys = await fullRoom((i) => (i % 2 ? "keyboard" : "piano"), { keyboard: 9, piano: 9 }, 2);
   const none = receiveSouvenir(keys, "a:x");
   if (none) assert.equal(none.where, "stowed");
 });
@@ -756,4 +762,131 @@ test("기념품 진열장: 공개 방에는 담긴 품종 id만, 남의 방은 �
   const back = roomFromPublic({ ...pub, placed: pub.placed.map((p) => ("i" in p && p.i === SOUVENIR_CASE ? { ...p, sv: "a:x,a:nope,<b>,w:z" } : p)) }, byId);
   assert.deepEqual(souvenirIds(back), ["a:x"]);
   assert.ok(back.placed.some((p) => p.it === SOUVENIR_CASE));
+});
+
+// ── 아이소 방의 층 표(docs/garden-miniroom-iso.md §5) ──────────────────────
+
+const PLACEABLE = FURNITURE.filter((f) => f.kind === "floor" || f.kind === "wall" || f.kind === "window" || f.kind === "frame-blank");
+
+test("아이소 표: 방에 놓는 가구는 모두 층과 크기가 있고, 벽 것은 벽걸이·바닥 것은 바닥 층이다", () => {
+  for (const f of PLACEABLE) {
+    const spec = ISO[f.id];
+    assert.ok(spec, `${f.id}: room/iso.ts의 ISO에 없다`);
+    assert.equal(spec.layer === "wall", f.kind !== "floor", `${f.id}: 가구표 kind ${f.kind}와 층 ${spec.layer}이 맞지 않다`);
+  }
+  for (const id of Object.keys(ISO)) assert.ok(PLACEABLE.some((f) => f.id === id), `${id}: 방에 놓는 가구가 아니다`);
+});
+
+test("아이소 표: 크기는 반 타일 단위, 벽걸이는 깊이 0, 높이는 벽(120px) 안", () => {
+  const half = (n: number) => Number.isInteger(n * 2);
+  for (const [id, s] of [...Object.entries(ISO), ...Object.entries(SHOWN_ISO).map(([k, v]) => [`shown:${k}`, v] as const)]) {
+    assert.ok(half(s.w) && s.w > 0, `${id}: w`);
+    assert.ok(half(s.d) && (s.layer === "wall" ? s.d === 0 : s.d > 0), `${id}: d`);
+    assert.ok(s.h >= 0 && s.h <= 120, `${id}: h`);
+    assert.equal(s.layer === "rug", s.h === 0, `${id}: 깔개만 높이 0`);
+    if (s.surface !== undefined) assert.ok(s.layer === "furniture" && s.surface <= s.h, `${id}: 올림면은 가구의 높이 안`);
+    if (s.seatZ !== undefined) assert.ok(s.layer === "furniture" && s.seatZ <= s.h, `${id}: 자리는 가구의 높이 안`);
+    if (s.wallOk) assert.equal(s.layer, "small", `${id}: 벽에도 거는 것은 올려 두는 것`);
+  }
+});
+
+test("아이소 표: 자리 높이는 자세(pose)가 있는 가구에만", () => {
+  for (const f of PLACEABLE) assert.equal(ISO[f.id].seatZ !== undefined, f.pose !== undefined, `${f.id}: pose ${f.pose ?? "없음"}`);
+});
+
+test("아이소 표: 그림 상자 — 시범 그림(public/images/room-iso)의 크기와 같다", () => {
+  assert.deepEqual(isoBox(ISO.bed), { w: 100, h: 83 });
+  assert.deepEqual(isoBox(ISO.desk), { w: 60, h: 59 });
+  assert.deepEqual(isoBox(ISO.chair), { w: 40, h: 60 });
+  assert.deepEqual(isoBox(ISO.rug), { w: 100, h: 50 });
+  assert.deepEqual(isoBox(ISO.painting), { w: 20, h: 45 });
+});
+
+// ── 아이소 방의 놓기·옮기기(docs/garden-miniroom-iso.md §7·§8) ─────────────
+
+test("받침: 책상 위에 올린 라디오는 책상을 옮기면 따라가고, 돌리면 새 바닥 상자 안으로, 넣으면 함께 보관함으로", () => {
+  let room = owning({ desk: 1, radio: 1, chair: 1 });
+  room = R.place(room, "desk", { x: 4, y: 0, dir: 0 })!; // u 2..4, v 0..1
+  room = R.place(room, "radio", { x: 7, y: 1, dir: 0, on: 0 })!;
+  assert.ok(validRoom(room));
+  assert.equal(R.place(room, "chair", { x: 4, y: 0, dir: 0 }), null, "의자는 책상과 부딪친다");
+  const moved = R.move(room, 0, { x: 4, y: 6, dir: 0 })!;
+  assert.deepEqual(moved.placed[1].pos, { x: 7, y: 7, dir: 0, on: 0 }, "같은 만큼 따라간다");
+  const turned = R.turn(moved, 0)!;
+  const desk = turned.placed[0].pos as { x: number; y: number };
+  const radio = turned.placed[1].pos as { x: number; y: number };
+  assert.ok(radio.x >= desk.x && radio.x + 1 <= desk.x + 2 && radio.y >= desk.y && radio.y + 1 <= desk.y + 4, "돌린 책상(1 × 2) 안");
+  const stowed = R.stow(turned, 0);
+  assert.equal(stowed.placed.length, 0);
+  assert.equal(stowedCount(stowed, "radio"), 1);
+});
+
+test("받침: 뒤 순번의 책상 위로 올리면 라디오가 목록 끝으로 가서 받침이 늘 앞에 있다", () => {
+  let room = owning({ desk: 1, radio: 1 });
+  room = R.place(room, "radio", { x: 0, y: 10, dir: 0 })!;
+  room = R.place(room, "desk", { x: 4, y: 0, dir: 0 })!;
+  const pos = { x: 5, y: 0, dir: 0 as const, on: 1 };
+  const next = R.move(room, 0, pos)!;
+  assert.equal(R.movedIndex(room, 0, pos), 1);
+  assert.deepEqual(next.placed.map((p) => p.it), ["desk", "radio"]);
+  assert.deepEqual(next.placed[1].pos, { x: 5, y: 0, dir: 0, on: 0 });
+  assert.ok(validRoom(next));
+});
+
+test("빈자리 찾기: 바닥이 꽉 차면 작은 것은 책상 위로, 박제는 벽으로", () => {
+  const grid = Array.from({ length: 36 }, (_, i) => ({ it: i === 0 ? "table" : "wardrobe", pos: { x: (i % 6) * 2, y: Math.floor(i / 6) * 2, dir: 0 as const } }));
+  const full: RoomData = { ...owning({ wardrobe: 35, table: 1, radio: 1 }), placed: grid, shown: [{ id: "t:troll", kind: "trophy", species: "troll" }] };
+  assert.deepEqual(firstOpenSpot(full, "radio"), { x: 0, y: 0, dir: 0, on: 0 });
+  assert.deepEqual(firstOpenSpot(full, "t:troll"), { x: 0, y: 0, dir: 0, on: 0 }, "박제도 올려 두는 것 — 받침이 먼저");
+  assert.equal(firstOpenSpot(full, "chair"), null);
+  assert.ok(isWallPos(firstOpenSpot({ ...full, placed: grid.map((p) => ({ ...p, it: "wardrobe" })) }, "t:troll")!), "받침도 없으면 벽에");
+});
+
+test("옛 칸 장부는 한 번 아이소 방으로 옮겨지고, 옮긴 사실(isoMoved)을 남긴다", () => {
+  const old = { ...owning({ bed: 1, chair: 1, clock: 1 }), placed: [{ at: "b0", it: "bed" }, { at: "f2", it: "chair" }, { at: "w4", it: "clock" }] } as never;
+  const room = normalizeRoom(old);
+  assert.equal(room.isoMoved, 0);
+  assert.deepEqual(slots(room), ["b0", "f2", "w4"]);
+  assert.ok(validRoom(room));
+  // 다시 읽어도 그대로(이미 좌표다).
+  const again = normalizeRoom(JSON.parse(JSON.stringify(room)));
+  assert.deepEqual(again.placed, room.placed);
+  // 겹치는 저장(손으로 고친 장부)은 앞의 것이 남는다. 받침이 빠진 것도 빠진다.
+  const bad = normalizeRoom({ ...room, placed: [...room.placed, { it: "chair", pos: { x: 0, y: 0, dir: 0 } }, { it: "radio", pos: { x: 0, y: 0, dir: 0, on: 9 } }] });
+  assert.deepEqual(bad.placed.map((p) => p.it), ["bed", "chair", "clock"]);
+});
+
+test("공개 방: 받침 위의 것은 실린 순번으로 다시 매기고, 손님 방에서 같은 자리로 돌아온다", () => {
+  let room = owning({ desk: 1, radio: 1, clock: 1 });
+  room = R.place(room, "clock", { wall: "L", a: 2, z: 40 })!;
+  room = R.place(room, "desk", { x: 4, y: 0, dir: 1 })!;
+  room = R.place(room, "radio", { x: 4, y: 1, dir: 0, on: 1 })!;
+  const pub = publicRoom(room);
+  assert.deepEqual(pub.placed.map((p) => p.p), ["L~2~40", "4~0~1", "4~1~0~1"]);
+  assert.deepEqual(pub.placed.map((p) => p.a), ["w1", "b2", "b2"], "옛 화면용 칸");
+  assert.deepEqual(roomFromPublic(pub, new Map()).placed, room.placed);
+  // 받침이 실리지 않으면(표에 없는 id 등) 올린 것도 싣지 않는다.
+  const hostile = roomFromPublic({ ...pub, placed: [pub.placed[0], { ...pub.placed[2] }] }, new Map());
+  assert.deepEqual(hostile.placed.map((p) => p.it), ["clock"]);
+});
+
+test("아이소 그림 목록(isoArt.json): 가구표에 있는 가구이고, 적힌 그림 파일이 모두 있다", async () => {
+  const art = (await import("./isoArt.json")).default as Record<string, { back: string; front: string } | { wall: string }>;
+  for (const [id, n] of Object.entries(art)) {
+    assert.ok(FURNITURE_BY_ID.get(id) && ISO[id], id);
+    assert.equal("wall" in n, ISO[id].layer === "wall", `${id}: 벽걸이는 wall 한 장`);
+    for (const name of Object.values(n)) assert.ok(readFileSync(`public/images/room-iso/${name}.png`).length > 0, `${name}.png`);
+  }
+});
+
+test("돌리기: 좌우로는 보는 사람을 향한 두 방향(0 ↔ 1)만, 뒤돌리기는 등이 보이게(0 ↔ 2)", () => {
+  let room = R.place(owning({ sofa: 1 }), "sofa", { x: 4, y: 4, dir: 0 })!;
+  const dir = (r: RoomData) => (r.placed[0].pos as { dir: number }).dir;
+  room = R.turn(room, 0)!;
+  assert.equal(dir(room), 1);
+  room = R.turn(room, 0)!;
+  assert.equal(dir(room), 0, "좌우로 두 번이면 제자리 — 등을 보이지 않는다");
+  room = R.turn(room, 0, "back")!;
+  assert.equal(dir(room), 2);
+  assert.equal(dir(R.turn(room, 0)!), 3, "뒤돌린 채 좌우로");
 });

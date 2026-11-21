@@ -2,8 +2,7 @@ import { ImageResponse } from "next/og";
 import { renderToStaticMarkup } from "react-dom/server.edge";
 
 import { buildCatalog } from "@/features/garden/catalog";
-import { RoomSvg, CELL, HEIGHT } from "@/features/garden/room/RoomSvg";
-import { roomWidth } from "@/features/garden/room/rules";
+import { IsoRoomSvg, isoGeom } from "@/features/garden/room/IsoRoom";
 import { spriteDataUris } from "@/features/garden/room/furnitureSprites";
 import { OG_CONTENT_TYPE, OG_SIZE, dataUri, ogFonts } from "@/lib/og/card";
 import { GARDEN_OG as G, loadGardenCard } from "@/lib/og/garden-state";
@@ -17,10 +16,10 @@ export async function GET(request: Request) {
   if (!card) return new Response("없거나 공개를 끈 정원입니다.", { status: 404 });
   const mark = await dataUri("public/images/jamtong-icon-192.png");
   const byId = new Map(buildCatalog().map((s) => [s.id, s]));
-  const svg = await spriteDataUris(renderToStaticMarkup(<RoomSvg room={card.room} byId={byId} now={Date.now()} label="친구의 방" />), (p) => dataUri(p));
+  const svg = await spriteDataUris(renderToStaticMarkup(<IsoRoomSvg room={card.room} byId={byId} now={Date.now()} label="친구의 방" />), (p) => dataUri(p));
   const image = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
-  const width = roomWidth(card.room.size) * CELL;
-  const scale = Math.min(1056 / width, 410 / HEIGHT);
+  const { W: width, H: height } = isoGeom(card.room.size);
+  const scale = Math.min(1056 / width, 410 / height);
 
   return new ImageResponse(
     <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", background: G.cream, fontFamily: "Pretendard", padding: "28px 48px", gap: 18 }}>
@@ -31,7 +30,7 @@ export async function GET(request: Request) {
       </div>
       <div style={{ display: "flex", flex: 1, width: "100%", alignItems: "center", justifyContent: "center", background: "#e7efdf", borderRadius: 20 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image} width={width * scale} height={HEIGHT * scale} alt="친구가 꾸민 방" />
+        <img src={image} width={width * scale} height={height * scale} alt="친구가 꾸민 방" />
       </div>
       <div style={{ display: "flex", width: "100%", justifyContent: "space-between", fontSize: 24, color: G.muted }}>
         <span>JAMTONG GARDEN · 내 방 구경하기</span>

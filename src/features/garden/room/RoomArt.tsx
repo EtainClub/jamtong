@@ -1,36 +1,37 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from "react";
 
 import { RAID_KINDS } from "../rules";
 import type { Species } from "../types";
 import { FURNITURE_BY_ID, moodOf } from "./catalog";
 import { AVATAR_NAME } from "../avatar/catalog";
 import { AVATAR_H } from "../avatar/AvatarArt";
-import { avatarSlotOk, furnitureAt, hopsOnTap, roamNext } from "../avatar/rules";
+import { avatarAtOk, furnitureAt, hopsOnTap, roamNext } from "../avatar/rules";
 import { activityOf } from "./activities";
 import { playActivitySound } from "./activitySound";
-import { parseSlot, placement, roomWidth, slotsOf, type Placed, type RoomData, type Shown } from "./rules";
-import { CELL, HEIGHT, ROWS, ROOM_COLORS as C, FurnitureArt, RoomSvg, ShownArt, Surface, type AvatarLive } from "./RoomSvg";
+import { isoSpecOf, isWallPos } from "./isoPlace";
+import { avatarScreen, IsoRoomSvg, isoGeom, itemBox } from "./IsoRoom";
+import { roomWidth, type Placed, type RoomData, type Shown } from "./rules";
+import { ART_H, CELL, ROOM_COLORS as C, FurnitureArt, ShownArt, Surface, type AvatarLive } from "./RoomSvg";
 export { weatherAt, type Weather } from "./RoomSvg";
 
 /**
- * 방 그림 — 정면에서 본 방(뒷벽 + 바닥). 설계는 docs/garden-miniroom.md §3.3·§4.1.
+ * 방 그림 — 아이소 방(IsoRoom.tsx, docs/garden-miniroom-iso.md). 바탕 설계는 docs/garden-miniroom.md §3.3·§4.1.
  *
- * ★ 도트 느낌은 방 그림에만: shape-rendering crispEdges, 굵은 외곽선, 정해 둔 색 몇 가지.
- *   글자는 그림 밖 HTML로 또렷하게 둔다.
- * ★ 칸 누르기는 그림 위에 겹친 진짜 <button>이 맡는다. SVG 조각에 포커스를 주는 것보다
- *   키보드·화면 읽기 프로그램이 다루기 쉽고, 누름 자리를 44px 위로 지키기 쉽다.
- * ★ 화분 그림은 품종표의 PlantArt를 그대로 쓴다. 품종 220여 개의 그림을 따로 그리지 않는다.
- *   등급은 화분 크기, 변이는 화분 빛깔로.
+ * ★ 도트 느낌은 방 그림에만. 글자는 그림 밖 HTML로 또렷하게 둔다.
+ * ★ 물건 누르기는 그림 위에 겹친 진짜 <button>이 맡는다. SVG 조각에 포커스를 주는 것보다
+ *   키보드·화면 읽기 프로그램이 다루기 쉽다. 단추는 그림 상자(itemBox)와 같은 자리, 뒤의 것부터 쌓는다.
+ * ★ 꾸미기(edit)에서는 단추가 끌기의 손잡이다 — 누르고 끄는 일은 RoomEditor가 한다.
+ * ★ 화분 그림은 품종표의 PlantArt를 그대로 쓴다. 등급은 화분 크기, 변이는 화분 빛깔로.
  */
 
-const ROW_NAME = { w: "벽", b: "바닥 뒷줄", f: "바닥 앞줄" } as const;
-const MIN_CELL_PX = 46;
-
-export function slotLabel(at: string): string {
-  const p = parseSlot(at);
-  return p ? `${ROW_NAME[p.row]} ${p.i + 1}번 칸` : at;
+/** 화면 읽기용 자리 이름. */
+export function posLabel(room: Pick<RoomData, "size">, p: Placed): string {
+  if (isWallPos(p.pos)) return `${p.pos.wall === "L" ? "왼쪽" : "오른쪽"} 벽`;
+  if (p.pos.on !== undefined) return "받침 위";
+  const n = roomWidth(room.size);
+  return `${p.pos.y / 2 < n / 2 ? "안쪽" : "앞쪽"} 바닥`;
 }
 
 /** 놓인 것의 이름. 화면 읽기와 시트 제목에 쓴다. */
@@ -47,6 +48,23 @@ export function itemName(it: string, room: RoomData, byId: ReadonlyMap<string, S
   return `화분${title ? ` · ${title}` : ""}`;
 }
 
+/** 꾸미기 손잡이. RoomEditor가 끌기·키보드를 맡는다. */
+export interface SceneEdit {
+  selected: number | null;
+  /** 놓을 수 없는 자리로 끄는 중인 물건. */
+  bad: number | null;
+  onItemDown: (index: number, e: PointerEvent<HTMLButtonElement>) => void;
+  onItemKey: (index: number, e: KeyboardEvent<HTMLButtonElement>) => void;
+  onBackground: () => void;
+  /** 꼬마 끌기·키보드. 꼬마가 서 있을 때만. */
+  onAvatarDown: (e: PointerEvent<HTMLButtonElement>) => void;
+  onAvatarKey: (e: KeyboardEvent<HTMLButtonElement>) => void;
+  /** 꼬마를 골랐다(누른 채). */
+  avatarPicked: boolean;
+  /** 방 그림 상자 — 화면 좌표를 방 좌표로 바꿀 때. */
+  stageRef: RefObject<HTMLDivElement | null>;
+}
+
 interface SceneProps {
   room: RoomData;
   byId: ReadonlyMap<string, Species>;
@@ -54,32 +72,42 @@ interface SceneProps {
   /** 그림 전체의 이름(화면 읽기). */
   label: string;
   /** 눌리는 놓인 것. 없으면 그 물건은 그림일 뿐이다. */
-  onItem?: (p: Placed) => void;
+  onItem?: (p: Placed, index: number) => void;
   isItemActive?: (p: Placed) => boolean;
-  /** 꾸미기: 빈 칸 누르기. 있으면 모든 빈 칸이 단추가 된다. */
-  onSlot?: (at: string) => void;
-  /** 꾸미기: 지금 놓을 수 있는 칸. */
-  open?: ReadonlySet<string>;
-  /** 꾸미기: 골라 둔 놓인 것의 칸. */
-  selected?: string | null;
   /** 미리 보기로 얹은 것(상점의 "방에 놓아 보기"). 흐리게 그린다. */
   ghost?: Placed | null;
   /** 꼬마를 눌렀을 때 아래에 뜨는 단추(주인: 옷 갈아입기·기분 바꾸기). 없으면 말풍선만. */
   avatarActions?: ReactNode;
   /** 꼬마를 눌렀다(계측). */
   onAvatarTap?: () => void;
+  /** 꾸미기. 있으면 놓인 것이 모두 끌기 손잡이가 되고, 꼬마는 멈춘 그림이다. */
+  edit?: SceneEdit;
 }
 
 const ROAM_EVERY = 5000;
 const STEP_MS = 800;
+/** 누름 자리의 가장 작은 변(방 그림 px). 라디오 같은 작은 물건도 누를 수 있게. */
+const MIN_HIT = 28;
 
 function reducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot, open, selected, ghost, avatarActions, onAvatarTap }: SceneProps) {
+/** 누름 단추를 쌓는 차례 — 벽 → 깔개 → 나머지는 안쪽부터(그림의 앞뒤 순서와 거의 같다). */
+function hitOrder(room: RoomData, i: number): number {
+  const p = room.placed[i];
+  const spec = isoSpecOf(p.it, room.shown);
+  if (!spec) return -1;
+  if (isWallPos(p.pos)) return 0;
+  if (spec.layer === "rug") return 1;
+  const odd = p.pos.dir % 2 === 1;
+  return 10 + p.pos.x / 2 + p.pos.y / 2 + (odd ? spec.d + spec.w : spec.w + spec.d) / 2 + (p.pos.on !== undefined ? 0.5 : 0);
+}
+
+export function RoomScene({ room, byId, now, label, onItem, isItemActive, ghost, avatarActions, onAvatarTap, edit }: SceneProps) {
   const uid = useId().replace(/:/g, "");
-  const av = room.avatar?.on && avatarSlotOk(room.avatar.at, roomWidth(room.size)) ? room.avatar : null;
+  const editing = Boolean(edit);
+  const av = room.avatar?.on && avatarAtOk(room.avatar.at, roomWidth(room.size)) ? room.avatar : null;
   const rest = (at: string | null): AvatarLive | null => (at ? { at, act: null, walking: false, nonce: 0 } : null);
   const [live, setLive] = useState<AvatarLive | null>(() => rest(av?.at ?? null));
   // talk = 머리 위 말풍선(4초), menu = 그림 아래 단추 줄(닫을 때까지).
@@ -89,21 +117,26 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot
   const later = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)); };
   useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
   const home = av?.at ?? null;
-  const roam = Boolean(av?.roam) && !onSlot;
+  const roam = Boolean(av?.roam) && !editing;
   // 자리가 바뀌거나 꾸미기를 드나들면 제자리로(렌더 중에 맞춘다 — effect에서 setState하지 않는다).
-  const restKey = `${home}|${Boolean(onSlot)}`;
+  const restKey = `${home}|${editing}`;
   const [seenKey, setSeenKey] = useState(restKey);
   if (seenKey !== restKey) {
     setSeenKey(restKey);
     setLive(rest(home));
   }
+  // 돌아다니기는 가구를 피한다 — 지금 방을 ref로 읽어 방이 바뀔 때마다 걸음 시계를 다시 맞추지 않는다.
+  const roomNow = useRef(room);
+  useEffect(() => {
+    roomNow.current = room;
+  });
   useEffect(() => {
     if (!roam || !home || reducedMotion()) return;
     const step = () => {
       if (document.hidden) return;
       setLive((cur) => {
         if (!cur || cur.act) return cur;
-        const next = roamNext(cur.at, roomWidth(room.size), `${label}:${Math.floor(Date.now() / ROAM_EVERY)}`);
+        const next = roamNext(cur.at, roomNow.current, `${label}:${Math.floor(Date.now() / ROAM_EVERY)}`);
         if (next === cur.at) return cur;
         later(STEP_MS, () => setLive((c) => (c ? { ...c, walking: false } : c)));
         return { ...cur, at: next, walking: true };
@@ -111,7 +144,7 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot
     };
     const id = window.setInterval(step, ROAM_EVERY);
     return () => window.clearInterval(id);
-  }, [roam, home, room.size, label]);
+  }, [roam, home, label]);
   function tapAvatar() {
     if (!live) return;
     onAvatarTap?.();
@@ -122,74 +155,76 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot
     later(4000, () => setTalk((t) => (t === n ? 0 : t)));
     later(1400, () => setLive((c) => (c ? { ...c, act: null } : c)));
   }
-  const [pulses, setPulses] = useState<Record<string, number>>({});
-  const [reacted, setReacted] = useState<{ placed: Placed; message: string } | null>(null);
-  function activate(p: Placed) {
-    const action = !onSlot ? activityOf(p.it) : undefined;
-    if (!action) { onItem?.(p); return; }
-    setPulses((prev) => ({ ...prev, [p.at]: (prev[p.at] ?? 0) + 1 }));
+  const [pulses, setPulses] = useState<Record<number, number>>({});
+  const [reacted, setReacted] = useState<{ index: number; it: string; message: string } | null>(null);
+  function activate(i: number) {
+    const p = room.placed[i];
+    if (!p) return;
+    const action = !editing ? activityOf(p.it) : undefined;
+    if (!action) { onItem?.(p, i); return; }
+    setPulses((prev) => ({ ...prev, [i]: (prev[i] ?? 0) + 1 }));
     const played = action.sound ? playActivitySound(action.sound) : true;
-    setReacted({ placed: p, message: played ? action.message : `${action.message} 이 브라우저에서는 소리를 재생할 수 없어요.` });
-    if (action.clips) onItem?.(p);
+    setReacted({ index: i, it: p.it, message: played ? action.message : `${action.message} 이 브라우저에서는 소리를 재생할 수 없어요.` });
+    if (action.clips) onItem?.(p, i);
   }
-  const width = roomWidth(room.size);
-  const W = width * CELL;
-  const items = [...room.placed, ...(ghost ? [ghost] : [])]
-    .map((p) => ({ p, spec: placement(p.it, room.shown), slot: parseSlot(p.at) }))
-    .filter((x): x is { p: Placed; spec: NonNullable<typeof x.spec>; slot: NonNullable<typeof x.slot> } => Boolean(x.spec && x.slot))
-    .sort((a, b) => "wbf".indexOf(a.slot.row) - "wbf".indexOf(b.slot.row));
-  const busy = new Set(room.placed.flatMap((p) => slotsOf(p.at, placement(p.it, room.shown)?.size ?? 1, width) ?? []));
-  const box = (row: "w" | "b" | "f", i: number, size: number) => ({
-    left: `${((i * CELL) / W) * 100}%`,
-    top: `${(ROWS[row].y / HEIGHT) * 100}%`,
-    width: `${((size * CELL) / W) * 100}%`,
-    height: `${(ROWS[row].h / HEIGHT) * 100}%`,
-  });
+  const { W, H } = isoGeom(room.size);
+  const pct = (b: { x: number; y: number; w: number; h: number }) => {
+    const w = Math.max(b.w, MIN_HIT);
+    const h = Math.max(b.h, MIN_HIT);
+    return {
+      left: `${((b.x - (w - b.w) / 2) / W) * 100}%`,
+      top: `${((b.y - (h - b.h) / 2) / H) * 100}%`,
+      width: `${(w / W) * 100}%`,
+      height: `${(h / H) * 100}%`,
+    };
+  };
+  const hits = room.placed
+    .map((p, i) => ({ p, i, box: itemBox(room, p) }))
+    .filter((x): x is { p: Placed; i: number; box: NonNullable<typeof x.box> } =>
+      // 꾸미기는 모두 손잡이, 보기는 눌리는 것만.
+      Boolean(x.box) && (editing || (onItem !== undefined && (isItemActive ? isItemActive(x.p) : true))))
+    .sort((a, b) => hitOrder(room, a.i) - hitOrder(room, b.i));
+  const avatarAt = live?.at ?? home;
+  const avPoint = av && avatarAt ? avatarScreen(room, avatarAt) : null;
 
   return (
     <div>
     <div className="garden-room-scroll">
-      <div className="garden-room" style={{ minWidth: width * MIN_CELL_PX, aspectRatio: `${W} / ${HEIGHT}` }}>
-        <RoomSvg room={room} byId={byId} now={now} label={label} uid={uid} ghost={ghost} selected={selected} pulses={onSlot ? undefined : pulses} avatar={onSlot ? null : live} />
+      <div ref={edit?.stageRef} className={`garden-room ${editing ? "is-editing" : ""}`} style={{ aspectRatio: `${W} / ${H}` }}>
+        <IsoRoomSvg room={room} byId={byId} now={now} label={label} uid={uid} ghost={ghost} selected={edit?.selected} bad={edit?.bad} pulses={editing ? undefined : pulses} avatar={editing ? null : live} />
 
-        {onSlot &&
-          (["w", "b", "f"] as const).flatMap((row) =>
-            Array.from({ length: width }, (_, i) => {
-              const at = `${row}${i}`;
-              if (busy.has(at)) return null;
-              const can = open?.has(at) ?? false;
-              return (
-                <button
-                  key={at}
-                  type="button"
-                  disabled={!can}
-                  onClick={() => onSlot(at)}
-                  aria-label={`${slotLabel(at)}에 놓기`}
-                  className={`garden-room-slot ${can ? "is-open" : ""}`}
-                  style={box(row, i, 1)}
-                />
-              );
-            }),
-          )}
+        {edit && <div className="garden-room-bg" onPointerDown={() => edit.onBackground()} aria-hidden="true" />}
 
-        {onItem &&
-          items
-            .filter(({ p }) => p !== ghost && (isItemActive ? isItemActive(p) : true))
-            .map(({ p, spec, slot }) => (
-              <button
-                key={`hit-${p.at}`}
-                type="button"
-                onClick={() => activate(p)}
-                aria-pressed={selected !== undefined ? selected === p.at : undefined}
-                aria-label={`${itemName(p.it, room, byId)} · ${slotLabel(p.at)}${!onSlot && activityOf(p.it) ? " · 눌러서 반응 보기" : ""}`}
-                className={`garden-room-item ${selected === p.at ? "is-picked" : ""}`}
-                style={box(slot.row, slot.i, spec.size)}
-              />
-            ))}
-        {!onSlot && live && (() => {
-          const slot = parseSlot(live.at)!;
-          const top = ROWS[slot.row].y + ROWS[slot.row].h - AVATAR_H;
+        {hits.map(({ p, i, box }) => (
+          <button
+            key={`hit-${i}-${p.it}`}
+            type="button"
+            onClick={edit ? undefined : () => activate(i)}
+            onPointerDown={edit ? (e) => edit.onItemDown(i, e) : undefined}
+            onKeyDown={edit ? (e) => edit.onItemKey(i, e) : undefined}
+            aria-pressed={edit ? edit.selected === i : undefined}
+            aria-label={`${itemName(p.it, room, byId)} · ${posLabel(room, p)}${edit ? " · 끌어서 옮기기, 화살표로 옮기고 R로 돌리기·B로 뒤돌리기" : activityOf(p.it) ? " · 눌러서 반응 보기" : ""}`}
+            className={`garden-room-item ${edit?.selected === i ? "is-picked" : ""}`}
+            style={pct(box)}
+          />
+        ))}
+        {edit && av && (() => {
+          const p = avatarScreen(room, av.at);
+          return (
+            <button
+              type="button"
+              onPointerDown={(e) => edit.onAvatarDown(e)}
+              onKeyDown={(e) => edit.onAvatarKey(e)}
+              aria-pressed={edit.avatarPicked}
+              aria-label={`${AVATAR_NAME} · 끌어서 서는 자리 옮기기, 화살표로 한 칸씩. 의자·소파는 앉고 침대는 자고 피아노·키보드는 연주해요`}
+              className={`garden-room-item garden-avatar-hit ${edit.avatarPicked ? "is-picked" : ""}`}
+              style={pct({ x: p.x - 16, y: p.y - AVATAR_H, w: 32, h: AVATAR_H })}
+            />
+          );
+        })()}
+        {!editing && live && avPoint && (() => {
           const mood = moodOf(room.mood);
+          const top = avPoint.y - AVATAR_H;
           return (
             <>
               <button
@@ -197,13 +232,13 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot
                 onClick={tapAvatar}
                 aria-label={`${AVATAR_NAME} · 오늘의 기분 ${mood.label} · 눌러서 인사하기`}
                 className="garden-room-item garden-avatar-hit"
-                style={{ ...box(slot.row, slot.i, 1), top: `${(top / HEIGHT) * 100}%`, height: `${(AVATAR_H / HEIGHT) * 100}%` }}
+                style={pct({ x: avPoint.x - 16, y: top, w: 32, h: AVATAR_H })}
               />
               {talk > 0 && (
                 <div
                   role="status"
                   className={`garden-avatar-bubble is-${room.avatar?.look.bubble ?? "basic"}`}
-                  style={{ left: `${(((slot.i + 0.5) * CELL) / W) * 100}%`, top: `${(top / HEIGHT) * 100}%` }}
+                  style={{ left: `${(avPoint.x / W) * 100}%`, top: `${(top / H) * 100}%` }}
                 >
                   <span aria-hidden="true">{mood.icon}</span> {mood.label}
                   {room.motto && <span className="garden-avatar-bubble-line">{room.motto}</span>}
@@ -214,28 +249,28 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, onSlot
         })()}
       </div>
     </div>
-    {!onSlot && menu && live && (() => {
-      const under = furnitureAt(room.placed, live.at);
-      const underActive = under && onItem && (isItemActive ? isItemActive(under as Placed) : true);
+    {!editing && menu && live && (() => {
+      const under = furnitureAt(room, live.at);
+      const underActive = under !== undefined && onItem && (isItemActive ? isItemActive(room.placed[under]) : true);
       if (!avatarActions && !underActive) return null;
       return (
         <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-[var(--d-line)] p-2 text-[12px]">
           {avatarActions}
           {underActive && (
-            <button type="button" className="garden-diary-btn" onClick={() => activate(under as Placed)}>
-              {itemName(under.it, room, byId)} 보기
+            <button type="button" className="garden-diary-btn" onClick={() => activate(under)}>
+              {itemName(room.placed[under].it, room, byId)} 보기
             </button>
           )}
           <button type="button" className="garden-diary-btn" onClick={() => { setMenu(false); setTalk(0); }}>닫기</button>
         </div>
       );
     })()}
-    {!onSlot && reacted && room.placed.some((p) => p.it === reacted.placed.it && p.at === reacted.placed.at) && (
+    {!editing && reacted && room.placed[reacted.index]?.it === reacted.it && (
       <div className="mt-2 rounded-xl border border-[var(--d-line)] p-2 text-[12px]">
         <p role="status">{reacted.message}</p>
         <div className="mt-1 flex flex-wrap gap-2">
-          <button type="button" className="garden-diary-btn" onClick={() => activate(reacted.placed)}>↻ 한 번 더</button>
-          <button type="button" className="garden-diary-btn" onClick={() => onItem?.(reacted.placed)}>이야기·설명 보기</button>
+          <button type="button" className="garden-diary-btn" onClick={() => activate(reacted.index)}>↻ 한 번 더</button>
+          <button type="button" className="garden-diary-btn" onClick={() => onItem?.(room.placed[reacted.index], reacted.index)}>이야기·설명 보기</button>
         </div>
       </div>
     )}
@@ -259,7 +294,7 @@ export function FurnitureIcon({ id, size = 64 }: { id: string; size?: number }) 
   const w = f.size * CELL;
   return (
     <svg viewBox={`-2 -2 ${w + 4} 50`} width={size * (f.size === 2 ? 1.6 : 1)} height={size} aria-hidden="true" className="garden-room-icon">
-      <FurnitureArt art={f.art} w={w} h={46} weather="day" />
+      <FurnitureArt art={f.art} w={w} h={ART_H} weather="day" />
     </svg>
   );
 }

@@ -1,5 +1,7 @@
 import { hash, rng } from "../rules";
 import { FURNITURE_BY_ID } from "../room/catalog";
+import { floorTiles, footprint, isoSpecOf, isWallPos, type IsoPos } from "../room/isoPlace";
+import type { Shown } from "../room/rules";
 import { FREE, isFree, PARTS, WEAR, WEAR_BY_ID, wearOf, type Part, type Reward, type Wear } from "./catalog";
 import type { Face, Look } from "./compose";
 import { CLOTHS, HAIR_COLORS, SKINS } from "./palette";
@@ -18,7 +20,10 @@ import type { Pose } from "./sprites";
 export interface AvatarData {
   /** 방에 세우기. 끄면 방에 없다(장부는 남는다). */
   on: boolean;
-  /** 바닥 칸 "b2" | "f4". */
+  /**
+   * 바닥 자리 "x~y" — 반 타일 단위, 타일 한가운데라 늘 홀수(docs/garden-miniroom-iso.md §6). 옛 장부의 칸("b2"·"f4")은
+   * normalizeAvatar가 그 칸이 옮겨 간 자리로 바꾼다. 그 자리를 덮은 가구가 자세를 정한다(앉기·자기·연주).
+   */
   at: string;
   /** 돌아다니기. */
   roam: boolean;
@@ -27,14 +32,32 @@ export interface AvatarData {
   owned: string[];
 }
 
-/** 공개 문자열의 판. 모양이 바뀌면 올린다. firestore.rules의 publicRoom()과 같다. */
-export const AVATAR_VER = 1;
+/** 공개 문자열의 판. 모양이 바뀌면 올린다. 2 = 자리가 바닥 좌표(x~y). firestore.rules의 publicRoom()과 같다. */
+export const AVATAR_VER = 2;
 /** 공개 문자열의 길이. firestore.rules의 publicRoom()과 같다. */
 export const AVATAR_PUBLIC_MAX = 160;
-/** firestore.rules의 정규식과 같다(avatar.test.ts가 본다). */
-export const AVATAR_PUBLIC_RE = /^1;[bf][0-9];[01];[0-9];[0-9];[a-z0-9.;-]{0,140}$/;
+/** 판 1(옛 화면이 실은 것)의 모양 — 자리가 칸(b·f + 번호). 읽기만 한다. */
+export const AVATAR_V1_RE = /^1;[bf][0-9];[01];[0-9];[0-9];[a-z0-9.;-]{0,140}$/;
+/**
+ * firestore.rules가 받는 모양(avatar.test.ts가 본다) — 판 1과, 아이소 방(docs/garden-miniroom-iso.md §8)의 판 2.
+ * 판 2의 자리는 바닥 좌표 x~y(반 타일 단위). 규칙은 받침 순번 s<n>도 받지만 싣지 않는다 — 꼬마는 바닥 자리만 갖고,
+ * 그 자리를 덮은 가구가 자세를 정한다(가구 순번은 꾸미면 바뀐다).
+ */
+export const AVATAR_RULE_RE = /^(1;[bf][0-9]|2;([0-9]{1,2}~[0-9]{1,2}|s[0-9]{1,2}));[01];[0-9];[0-9];[a-z0-9.;-]{0,140}$/;
+/** 읽는 모양 — 규칙과 같다. */
+export const AVATAR_PUBLIC_RE = AVATAR_RULE_RE;
 
 const SLOT_RE = /^[bf][0-9]$/;
+const POINT_RE = /^(\d{1,2})~(\d{1,2})$/;
+
+/** 옛 칸 → 그 칸이 아이소 방으로 옮겨 간 바닥 자리(room/isoPlace.ts의 slotToPos)의 한가운데. 방 밖의 칸이면 null. */
+export function slotToPoint(at: string, size: number): string | null {
+  if (!SLOT_RE.test(at)) return null;
+  const n = floorTiles(size);
+  const i = Number(at.slice(1));
+  if (i >= n) return null;
+  return `${i * 2 + 1}~${at[0] === "f" ? n + 1 : 1}`;
+}
 const LOOK_PARTS: Array<Exclude<Part, "bubble">> = ["hair", "eyes", "top", "bottom", "shoes", "hat", "face", "held"];
 const TINTED = ["top", "bottom", "shoes"] as const;
 
@@ -45,7 +68,8 @@ export function freshAvatar(seed = ""): AvatarData {
   const tint = () => Math.floor(roll() * CLOTHS.length);
   return {
     on: true,
-    at: "f1",
+    // 작은 방(6×6)의 앞쪽 둘째 타일 — 옛 기본 칸 f1이 옮겨 간 자리.
+    at: "3~7",
     roam: false,
     look: {
       skin: Math.floor(roll() * 6),
@@ -91,13 +115,14 @@ export function cleanLook(raw: Partial<Look> | undefined, base: Look): Look {
   return look;
 }
 
-export function normalizeAvatar(raw: Partial<AvatarData> | undefined, seed = ""): AvatarData {
+/** size는 방 크기 — 옛 칸 자리를 바닥 좌표로 바꿀 때 쓴다. */
+export function normalizeAvatar(raw: Partial<AvatarData> | undefined, seed = "", size = 0): AvatarData {
   const base = freshAvatar(seed);
   if (!raw || typeof raw !== "object") return base;
   const owned = Array.isArray(raw.owned) ? [...new Set(raw.owned.filter((id) => typeof id === "string" && WEAR_BY_ID.has(id)))] : [];
   return {
     on: typeof raw.on === "boolean" ? raw.on : base.on,
-    at: typeof raw.at === "string" && SLOT_RE.test(raw.at) ? raw.at : base.at,
+    at: typeof raw.at === "string" ? (POINT_RE.test(raw.at) ? raw.at : slotToPoint(raw.at, size) ?? base.at) : base.at,
     roam: raw.roam === true,
     look: cleanLook(raw.look, base.look),
     owned,
@@ -127,9 +152,13 @@ export function ownedLook(avatar: AvatarData): Look {
   return look;
 }
 
-/** 방 너비 안의 칸인가. */
-export function avatarSlotOk(at: string, width: number): boolean {
-  return SLOT_RE.test(at) && Number(at.slice(1)) < width;
+/** 방(한 변 width 타일) 안의 바닥 자리인가 — 타일 한가운데(홀수)만. */
+export function avatarAtOk(at: string, width: number): boolean {
+  const m = POINT_RE.exec(at);
+  if (!m) return false;
+  const x = Number(m[1]);
+  const y = Number(m[2]);
+  return x % 2 === 1 && y % 2 === 1 && x < width * 2 && y < width * 2;
 }
 
 // ── 공개 ─────────────────────────────────────────────────────────────
@@ -139,7 +168,7 @@ export function avatarSlotOk(at: string, width: number): boolean {
  * 끈 꼬마·방 밖의 칸은 싣지 않는다(null).
  */
 export function packAvatar(avatar: AvatarData, width: number): string | null {
-  if (!avatar.on || !avatarSlotOk(avatar.at, width)) return null;
+  if (!avatar.on || !avatarAtOk(avatar.at, width)) return null;
   const look = ownedLook(avatar);
   const tinted = (part: (typeof TINTED)[number]) => {
     const n = look.tint?.[part];
@@ -152,8 +181,11 @@ export function packAvatar(avatar: AvatarData, width: number): string | null {
   return out.length <= AVATAR_PUBLIC_MAX && AVATAR_PUBLIC_RE.test(out) ? out : null;
 }
 
-/** 남의 꼬마를 그릴 모양으로. 판·칸·id를 다시 보고, 모르는 것은 그 부위의 기본으로. 읽을 수 없으면 null. */
-export function avatarFromPublic(raw: unknown): AvatarData | null {
+/**
+ * 남의 꼬마를 그릴 모양으로. 판·자리·id를 다시 보고, 모르는 것은 그 부위의 기본으로. 읽을 수 없으면 null.
+ * 판 1(옛 화면)의 칸은 바닥 자리로 바꾼다(size = 그 방의 크기). 판 2의 받침 순번(s<n>)은 싣지 않는 모양이라 읽지 않는다.
+ */
+export function avatarFromPublic(raw: unknown, size = 0): AvatarData | null {
   if (typeof raw !== "string" || raw.length > AVATAR_PUBLIC_MAX || !AVATAR_PUBLIC_RE.test(raw)) return null;
   const f = raw.split(";");
   if (f.length !== 14) return null;
@@ -171,7 +203,9 @@ export function avatarFromPublic(raw: unknown): AvatarData | null {
   );
   // 남의 꼬마는 가진 것을 모른다. 그린 옷을 모두 가졌다고 본다(표에 있는 것만 남았다).
   const owned = [...LOOK_PARTS.map((p) => look[p]), look.bubble].filter((x): x is string => Boolean(x));
-  return { on: true, at: f[1], roam: f[2] === "1", look, owned };
+  const at = f[0] === "1" ? slotToPoint(f[1], size) : POINT_RE.test(f[1]) ? f[1] : null;
+  if (!at) return null;
+  return { on: true, at, roam: f[2] === "1", look, owned };
 }
 
 // ── 기분 · 자세 ──────────────────────────────────────────────────────
@@ -208,22 +242,65 @@ export function hopsOnTap(mood: string): boolean {
   return mood === "happy" || mood === "excited";
 }
 
-/** 이 칸을 덮은 가구. 2칸 가구는 왼쪽 칸에 적혀 있다. */
-export function furnitureAt(placed: ReadonlyArray<{ at: string; it: string }>, at: string): { at: string; it: string } | undefined {
-  const row = at[0];
-  const i = Number(at.slice(1));
-  return placed.find((p) => {
-    if (p.at[0] !== row) return false;
-    const j = Number(p.at.slice(1));
-    const size = FURNITURE_BY_ID.get(p.it)?.size ?? 1;
-    return i >= j && i < j + size;
+/** 꼬마가 서는 방 — 아이소 방의 장부(room/rules.ts의 RoomData 중 이것만). */
+export interface AvatarRoom {
+  placed: ReadonlyArray<{ it: string; pos: IsoPos }>;
+  shown: readonly Shown[];
+  size: number;
+}
+
+/**
+ * 꼬마 칸의 바닥 자리(타일). 꼬마는 4단계(docs/garden-miniroom-iso.md §6)까지 옛 칸(b·f + 번호)에 선다 —
+ * 그 칸이 아이소 방으로 옮겨 간 자리(room/isoPlace.ts의 slotToPos)의 한가운데.
+ */
+export function avatarPoint(at: string, size: number): { u: number; v: number } {
+  const m = POINT_RE.exec(at) ?? POINT_RE.exec(slotToPoint(at, size) ?? "1~1")!;
+  return { u: Number(m[1]) / 2, v: Number(m[2]) / 2 };
+}
+
+/** 바닥 점(타일 좌표)에 가장 가까운 꼬마 자리 — 그 타일의 한가운데. */
+export function avatarAtFor(u: number, v: number, size: number): string {
+  const n = floorTiles(size);
+  const tile = (t: number) => Math.max(0, Math.min(n - 1, Math.floor(t)));
+  return `${tile(u) * 2 + 1}~${tile(v) * 2 + 1}`;
+}
+
+/** 꼬마가 설 수 없는 자리인가 — 자세가 없는 가구(옷장·책장…)가 덮었다. 자세 가구(의자·침대·피아노)는 앉고 눕는 자리다. */
+export function avatarBlocked(room: AvatarRoom, at: string): boolean {
+  const i = furnitureAt(room, at);
+  return i !== undefined && !FURNITURE_BY_ID.get(room.placed[i].it)?.pose;
+}
+
+/** 설 수 있는 가장 가까운 자리. 지금 자리가 괜찮으면 그대로, 방 전체가 막혔으면 null. 꾸미기를 마칠 때 본다. */
+export function avatarFree(room: AvatarRoom, at: string): string | null {
+  const n = floorTiles(room.size);
+  const here = avatarPoint(at, room.size);
+  const spots: Array<{ at: string; d: number }> = [];
+  for (let x = 0; x < n; x++) for (let y = 0; y < n; y++) spots.push({ at: `${x * 2 + 1}~${y * 2 + 1}`, d: Math.abs(x + 0.5 - here.u) + Math.abs(y + 0.5 - here.v) });
+  spots.sort((a, b) => a.d - b.d);
+  return spots.find((s) => !avatarBlocked(room, s.at))?.at ?? null;
+}
+
+/** 꼬마 자리를 덮은 바닥 가구의 순번. 여럿이면 자세가 있는 것, 그다음 앞에 그려지는 것. 없으면 undefined. */
+export function furnitureAt(room: AvatarRoom, at: string): number | undefined {
+  const { u, v } = avatarPoint(at, room.size);
+  let best: number | undefined;
+  room.placed.forEach((p, i) => {
+    if (isWallPos(p.pos) || p.pos.on !== undefined) return;
+    const spec = isoSpecOf(p.it, room.shown);
+    if (!spec || spec.layer !== "furniture") return;
+    const f = footprint(spec, p.pos);
+    if (u < f.u || u >= f.u + f.w || v < f.v || v >= f.v + f.d) return;
+    const posed = (j: number | undefined) => (j !== undefined && FURNITURE_BY_ID.get(room.placed[j].it)?.pose ? 1 : 0);
+    if (best === undefined || posed(i) >= posed(best)) best = i;
   });
+  return best;
 }
 
 /** 이 칸에 선 꼬마의 자세. */
-export function poseAt(placed: ReadonlyArray<{ at: string; it: string }>, at: string): Pose {
-  const p = furnitureAt(placed, at);
-  return (p && FURNITURE_BY_ID.get(p.it)?.pose) ?? "stand";
+export function poseAt(room: AvatarRoom, at: string): Pose {
+  const i = furnitureAt(room, at);
+  return (i !== undefined && FURNITURE_BY_ID.get(room.placed[i].it)?.pose) || "stand";
 }
 
 /** 자세가 바꾸는 표정 — 자면 눈을 감는다. */
@@ -233,15 +310,23 @@ export function faceFor(pose: Pose, mood: string): Face {
 }
 
 /**
- * 다음 칸 — 같은 줄의 옆 칸 하나. 가구 앞도 지나간다(꼬마는 자기 줄 가구 앞에 그려진다).
- * 멈춘 칸의 가구가 자세를 정한다(poseAt). seed가 같으면 같은 곳 — 같은 때 보는 사람은 같은 곳에서 본다.
- * ★ 처음에는 빈 칸·자세 가구 칸으로만 갔다. 꾸민 방에서는 양옆이 다 막혀 꼬마가 꼼짝하지 않았다(2026-11-15).
+ * 다음 자리 — 앞뒤좌우 옆 타일 하나. 설 수 있는 타일(빈 바닥·자세 가구) 가운데서 고르고, 사방이 막혔으면 막힌 타일도 지나간다.
+ * 멈춘 자리의 가구가 자세를 정한다(poseAt). seed가 같으면 같은 곳 — 같은 때 보는 사람은 같은 곳에서 본다.
+ * ★ 옛 칸 방에서 빈 칸·자세 가구 칸으로만 가게 했더니 꾸민 방에서 꼬마가 꼼짝하지 않았다(2026-11-15). 그래서 막히면 지나간다.
  */
-export function roamNext(cur: string, width: number, seed: string): string {
-  const i = Number(cur.slice(1));
-  const near = [i - 1, i + 1].filter((j) => j >= 0 && j < width).map((j) => `${cur[0]}${j}`);
-  if (!near.length) return cur;
-  return near[Math.floor(rng(hash(`roam:${seed}`))() * near.length)];
+export function roamNext(cur: string, room: AvatarRoom, seed: string): string {
+  const m = POINT_RE.exec(cur);
+  if (!m) return cur;
+  const n = floorTiles(room.size);
+  const x = Number(m[1]);
+  const y = Number(m[2]);
+  const near = [[x - 2, y], [x + 2, y], [x, y - 2], [x, y + 2]]
+    .filter(([a, b]) => a > 0 && b > 0 && a < n * 2 && b < n * 2)
+    .map(([a, b]) => `${a}~${b}`);
+  const open = near.filter((at) => !avatarBlocked(room, at));
+  const pool = open.length ? open : near;
+  if (!pool.length) return cur;
+  return pool[Math.floor(rng(hash(`roam:${seed}`))() * pool.length)];
 }
 
 // ── 사기 · 받기 ──────────────────────────────────────────────────────

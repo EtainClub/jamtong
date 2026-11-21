@@ -1,0 +1,624 @@
+<title>아이소 방 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@400;600&display=swap">
+<style>
+/* 레이아웃: 위에서 아래로 한 줄 — 조절 → 방(무대) → 고른 물건 → 보관함 → 작은 화면 → 크기 표 */
+:root {
+  --bg: #eef2f4;
+  --panel: #ffffff;
+  --fg: #26303a;
+  --muted: #5e6b77;
+  --line: #d3dbe1;
+  --accent: #e8711a;
+  --accent-ink: #ffffff;
+  --bad: #c8412f;
+  --stage: #dfe8ee;
+  --display: "Jua", "IBM Plex Sans KR", system-ui, sans-serif;
+  --body: "IBM Plex Sans KR", system-ui, -apple-system, "Apple SD Gothic Neo", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151b21; --panel: #1e262e; --fg: #e6ebef; --muted: #9aa7b3; --line: #33404c;
+    --accent: #f48a3a; --accent-ink: #1b1209; --bad: #f07a68; --stage: #24303a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151b21; --panel: #1e262e; --fg: #e6ebef; --muted: #9aa7b3; --line: #33404c;
+  --accent: #f48a3a; --accent-ink: #1b1209; --bad: #f07a68; --stage: #24303a; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--body); line-height: 1.55; }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: 1.9rem; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 1.2rem; margin: 0 0 8px; }
+p { margin: 0; max-width: 65ch; }
+.lead { color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.label { font-size: .78rem; letter-spacing: .04em; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-right: 1px solid var(--line); background: var(--panel); color: var(--fg); padding: 6px 12px; font: inherit; cursor: pointer; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.btn { border: 1px solid var(--line); background: var(--panel); color: var(--fg); border-radius: 8px; padding: 6px 12px; font: inherit; cursor: pointer; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.stage { background: var(--stage); border-radius: 14px; padding: 10px; display: flex; justify-content: center; overflow: hidden; }
+#room { width: 100%; height: auto; touch-action: none; user-select: none; -webkit-user-select: none; display: block; }
+#room [data-id] { cursor: grab; }
+#room .bad { opacity: .5; }
+.selbar { min-height: 44px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.selbar .name { font-weight: 600; margin-right: auto; }
+.msg { color: var(--bad); font-size: .9rem; }
+.tray { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.tray button { flex: 0 0 auto; touch-action: none; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 76px; padding: 8px 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--fg); font: inherit; font-size: .85rem; cursor: grab; }
+.tray button:disabled { opacity: .4; cursor: default; }
+.tray small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.tray svg { width: 56px; height: 40px; }
+.minis { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+.mini { display: flex; flex-direction: column; gap: 4px; }
+.mini svg { background: #e7efdf; border-radius: 6px; display: block; max-width: 100%; height: auto; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; font-size: .88rem; min-width: 560px; width: 100%; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+th { font-size: .78rem; color: var(--muted); font-weight: 600; letter-spacing: .03em; }
+td.num { font-variant-numeric: tabular-nums; }
+code, .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .82rem; }
+.packed { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; overflow-x: auto; white-space: pre; }
+.notes { display: grid; gap: 6px; padding-left: 18px; margin: 0; max-width: 70ch; }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>잼통 정원 · 아이소 방 0단계 시안</h1>
+    <p class="lead">투시·크기·층을 정하려는 시안이다. 가구는 GPT로 만든 시범 도트 그림이고(상자 자리표시로 바꿔 볼 수 있다), 꼬마는 실제 그림(<code>AvatarFigure</code>)이다. 물건을 끌어서 옮기고, 보관함에서 끌어 넣어 본다.</p>
+  </header>
+
+  <div class="row" role="group" aria-label="시안 조절">
+    <span class="label">타일 너비</span>
+    <span class="seg" id="tileSeg"><button type="button" data-v="32">32px</button><button type="button" data-v="40">40px</button></span>
+    <span class="label" style="margin-left:8px">방</span>
+    <span class="seg" id="sizeSeg"><button type="button" data-v="6">6×6</button><button type="button" data-v="8">8×8</button><button type="button" data-v="10">10×10</button></span>
+    <span class="label" style="margin-left:8px">가구</span>
+    <span class="seg" id="artSeg"><button type="button" data-v="1">도트 그림</button><button type="button" data-v="0">상자</button></span>
+    <span style="flex:1"></span>
+    <button type="button" class="btn" id="undo">되돌리기</button>
+    <button type="button" class="btn" id="reset">처음 배치</button>
+  </div>
+
+  <div class="stage"><svg id="room" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="아이소메트릭 방 시안"></svg></div>
+
+  <div class="selbar" id="selbar" aria-live="polite"></div>
+
+  <section>
+    <h2>보관함</h2>
+    <div class="tray" id="tray"></div>
+    <p class="lead" style="font-size:.88rem;margin-top:6px">누르면 빈 자리에 놓이고, 끌면 원하는 자리에 놓인다. 라디오를 책상 위로 끌면 책상에 올라간다. 꼬마를 의자나 침대에 끌어 놓으면 앉거나 잔다.</p>
+  </section>
+
+  <section>
+    <h2>작은 화면에서</h2>
+    <p class="lead" style="margin-bottom:10px">같은 방을 줄여 그렸다. 가장 작은 곳에서도 침대·책상·꼬마가 구별되는지 본다.</p>
+    <div class="minis">
+      <div class="mini"><svg id="miniCard"></svg><span class="label">공유 카드 (1200×630의 1/3 크기)</span></div>
+      <div class="mini"><svg id="miniThumb"></svg><span class="label">1촌 목록 썸네일 (가로 120px)</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>크기·기준점 표</h2>
+    <p class="lead" style="margin-bottom:10px">그림 상자는 바닥 크기와 높이에서 정해진다. 가로 = (w + d) × 타일/2, 세로 = (w + d) × 타일/4 + 높이. 기준점은 바닥의 앞 꼭짓점이다.</p>
+    <div class="tablewrap"><table id="spec"></table></div>
+  </section>
+
+  <section>
+    <h2>공개 문서에 실릴 모양</h2>
+    <p class="lead" style="margin-bottom:10px">물건 하나가 짧은 문자열 하나다. 바닥: <code>id~u×2~v×2~방향[~받침번호]</code>, 벽: <code>id~L|R~가로×2~높이</code>.</p>
+    <div class="packed mono" id="packed"></div>
+  </section>
+
+  <section>
+    <h2>이 시안으로 정할 것</h2>
+    <ol class="notes">
+      <li>타일 너비 40px로 정했다(2026-11-21). 꼬마(40×48)가 타일 한 칸 너비다. 10×10 방은 폰에서 0.8배쯤 줄여 보인다. 32px는 비교용으로 남긴다.</li>
+      <li>방 크기 6/8/10 정사각으로 정했다. 지금 바닥 12/16/20칸이 36/64/100타일이 된다.</li>
+      <li>벽 높이 120px — 꼬마(48px)의 2.5배.</li>
+      <li>음영: 윗면 원색, 왼쪽 면 12% 어둡게, 오른쪽 면 25% 어둡게. 외곽선은 잉크색 1px.</li>
+      <li>꼬마는 정면을 본다. 방이 돌아도 꼬마 그림은 하나다.</li>
+      <li>가구 도트 그림은 GPT로 만들었다(<code>pnpm room:iso-gen</code>). 방향마다 두 장(뒤가 먼 쪽·가까운 쪽)이고, 나머지 두 방향은 좌우 반전이다.</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+const AV = {"w":40,"h":48,"stand":"<g shape-rendering=\"crispEdges\"><path d=\"M11 0h2v1h-2zM19 0h2v1h-2zM27 0h2v1h-2zM9 1h2v1h-2zM13 1h2v1h-2zM17 1h2v1h-2zM21 1h2v1h-2zM25 1h2v1h-2zM29 1h2v1h-2zM15 2h2v1h-2zM23 2h2v1h-2zM7 3h1v1h-1zM32 3h1v1h-1zM5 5h1v1h-1zM34 5h1v1h-1zM3 7h1v1h-1zM36 7h1v1h-1zM3 8h1v1h-1zM36 8h1v1h-1zM2 9h1v1h-1zM37 9h1v1h-1zM2 10h1v1h-1zM37 10h1v1h-1zM2 11h1v1h-1zM37 11h1v1h-1zM2 12h1v1h-1zM37 12h1v1h-1zM2 13h1v1h-1zM37 13h1v1h-1zM2 14h1v1h-1zM37 14h1v1h-1zM3 15h1v1h-1zM36 15h1v1h-1zM3 16h1v1h-1zM36 16h1v1h-1zM5 18h2v1h-2zM33 18h2v1h-2zM7 19h2v1h-2zM31 19h2v1h-2zM7 20h2v1h-2zM31 20h2v1h-2zM9 21h1v1h-1zM30 21h1v1h-1zM9 22h2v1h-2zM29 22h2v1h-2zM11 23h2v1h-2zM27 23h2v1h-2zM14 24h1v1h-1zM25 24h1v1h-1zM14 25h1v1h-1zM25 25h1v1h-1zM13 26h1v1h-1zM26 26h1v1h-1zM11 27h1v1h-1zM28 27h1v1h-1zM9 29h1v1h-1zM30 29h1v1h-1zM8 31h1v1h-1zM31 31h1v1h-1zM8 32h1v1h-1zM31 32h1v1h-1zM8 33h1v1h-1zM31 33h1v1h-1zM8 34h1v1h-1zM31 34h1v1h-1zM9 36h1v1h-1zM12 36h1v1h-1zM27 36h1v1h-1zM30 36h1v1h-1zM11 37h2v1h-2zM27 37h2v1h-2zM12 38h1v1h-1zM27 38h1v1h-1zM10 40h1v1h-1zM29 40h1v1h-1zM10 41h1v1h-1zM29 41h1v1h-1zM19 43h2v1h-2zM19 44h2v1h-2zM10 45h1v1h-1zM18 45h4v1h-4zM29 45h1v1h-1zM10 46h2v1h-2zM17 46h6v1h-6zM28 46h2v1h-2zM11 47h18v1h-18z\" fill=\"#3a2f2a\"></path><path d=\"M11 1h2v1h-2zM19 1h2v1h-2zM27 1h2v1h-2zM9 2h2v1h-2zM13 2h2v1h-2zM17 2h2v1h-2zM21 2h2v1h-2zM25 2h2v1h-2zM29 2h2v1h-2zM8 3h1v1h-1zM15 3h2v1h-2zM23 3h2v1h-2zM31 3h1v1h-1zM7 4h2v1h-2zM31 4h2v1h-2zM6 5h1v1h-1zM33 5h1v1h-1zM5 6h2v1h-2zM33 6h2v1h-2zM4 7h1v1h-1zM35 7h1v1h-1zM4 8h1v1h-1zM35 8h1v1h-1zM3 9h1v1h-1zM36 9h1v1h-1zM3 10h1v1h-1zM36 10h1v1h-1zM3 11h1v1h-1zM36 11h1v1h-1zM3 12h1v1h-1zM36 12h1v1h-1zM3 13h1v1h-1zM36 13h1v1h-1zM3 14h1v1h-1zM36 14h1v1h-1zM4 15h1v1h-1zM35 15h1v1h-1zM4 16h1v1h-1zM35 16h1v1h-1zM5 17h2v1h-2zM33 17h2v1h-2zM7 18h3v1h-3zM30 18h3v1h-3z\" fill=\"#503729\"></path><path d=\"M11 2h1v1h-1zM19 2h1v1h-1zM27 2h1v1h-1zM9 3h2v1h-2zM13 3h1v1h-1zM17 3h2v1h-2zM21 3h1v1h-1zM25 3h2v1h-2zM29 3h1v1h-1zM15 4h2v1h-2zM23 4h2v1h-2zM7 5h2v1h-2zM31 5h1v1h-1zM5 7h2v1h-2zM33 7h1v1h-1zM4 9h1v1h-1z\" fill=\"#bfa493\"></path><path d=\"M12 2h1v1h-1zM20 2h1v1h-1zM28 2h1v1h-1zM14 3h1v1h-1zM22 3h1v1h-1zM30 3h1v1h-1zM30 4h1v1h-1zM32 5h1v1h-1zM32 6h1v1h-1zM34 7h1v1h-1zM34 8h1v1h-1zM10 9h2v1h-2zM15 9h2v1h-2zM21 9h2v1h-2zM26 9h2v1h-2zM35 9h1v1h-1zM9 10h1v1h-1zM14 10h1v1h-1zM17 10h1v1h-1zM20 10h1v1h-1zM23 10h1v1h-1zM25 10h1v1h-1zM35 10h1v1h-1zM9 11h1v1h-1zM12 11h2v1h-2zM18 11h2v1h-2zM24 11h2v1h-2zM28 11h1v1h-1zM35 11h1v1h-1zM9 12h1v1h-1zM29 12h1v1h-1zM35 12h1v1h-1zM9 13h1v1h-1zM35 13h1v1h-1zM4 14h1v1h-1zM9 14h1v1h-1zM35 14h1v1h-1zM9 15h1v1h-1zM34 15h1v1h-1zM5 16h2v1h-2zM9 16h1v1h-1zM33 16h2v1h-2zM7 17h3v1h-3zM30 17h3v1h-3z\" fill=\"#764b30\"></path><path d=\"M11 3h2v1h-2zM19 3h2v1h-2zM27 3h2v1h-2zM9 4h3v1h-3zM13 4h2v1h-2zM17 4h6v1h-6zM25 4h5v1h-5zM9 5h2v1h-2zM15 5h2v1h-2zM18 5h1v1h-1zM20 5h11v1h-11zM7 6h3v1h-3zM11 6h2v1h-2zM19 6h13v1h-13zM7 7h8v1h-8zM17 7h16v1h-16zM5 8h29v1h-29zM5 9h5v1h-5zM12 9h3v1h-3zM17 9h4v1h-4zM23 9h3v1h-3zM28 9h7v1h-7zM4 10h5v1h-5zM12 10h2v1h-2zM18 10h2v1h-2zM24 10h1v1h-1zM28 10h7v1h-7zM4 11h5v1h-5zM29 11h6v1h-6zM4 12h5v1h-5zM30 12h5v1h-5zM4 13h5v1h-5zM30 13h5v1h-5zM5 14h4v1h-4zM30 14h5v1h-5zM5 15h4v1h-4zM30 15h4v1h-4zM7 16h2v1h-2zM30 16h3v1h-3z\" fill=\"#8a5a3b\"></path><path d=\"M12 4h1v1h-1zM11 5h4v1h-4zM17 5h1v1h-1zM19 5h1v1h-1zM10 6h1v1h-1zM13 6h6v1h-6zM15 7h2v1h-2z\" fill=\"#c5ad9d\"></path><path d=\"M10 10h1v1h-1zM15 10h1v1h-1zM21 10h1v1h-1zM26 10h1v1h-1z\" fill=\"#663f27\"></path><path d=\"M11 10h1v1h-1zM16 10h1v1h-1zM22 10h1v1h-1zM27 10h1v1h-1zM10 11h2v1h-2zM14 11h4v1h-4zM20 11h4v1h-4zM26 11h2v1h-2z\" fill=\"#5e3c28\"></path><path d=\"M10 12h3v1h-3zM15 12h10v1h-10zM27 12h1v1h-1z\" fill=\"#dfab7a\"></path><path d=\"M13 12h2v1h-2zM25 12h2v1h-2zM12 13h1v1h-1zM14 13h2v1h-2zM24 13h1v1h-1zM26 13h2v1h-2zM12 14h2v1h-2zM15 14h1v1h-1zM24 14h2v1h-2zM27 14h1v1h-1zM12 15h1v1h-1zM15 15h1v1h-1zM24 15h1v1h-1zM27 15h1v1h-1zM13 16h2v1h-2zM25 16h2v1h-2z\" fill=\"#2a211d\"></path><path d=\"M28 12h1v1h-1zM29 13h1v1h-1zM29 14h1v1h-1zM29 15h1v1h-1zM29 16h1v1h-1zM29 17h1v1h-1zM29 19h1v1h-1zM10 20h1v1h-1zM29 20h1v1h-1zM11 21h2v1h-2zM27 21h2v1h-2zM13 22h2v1h-2zM25 22h2v1h-2zM15 23h10v1h-10zM11 34h1v1h-1zM29 34h1v1h-1zM10 35h2v1h-2zM28 35h2v1h-2z\" fill=\"#e1ad7c\"></path><path d=\"M10 13h2v1h-2zM16 13h8v1h-8zM28 13h1v1h-1zM10 14h2v1h-2zM16 14h8v1h-8zM28 14h1v1h-1zM10 15h2v1h-2zM16 15h8v1h-8zM28 15h1v1h-1zM10 16h3v1h-3zM15 16h10v1h-10zM27 16h2v1h-2zM10 17h19v1h-19zM12 18h6v1h-6zM22 18h6v1h-6zM10 19h8v1h-8zM22 19h7v1h-7zM11 20h8v1h-8zM21 20h8v1h-8zM13 21h14v1h-14zM15 22h10v1h-10zM10 34h1v1h-1zM28 34h1v1h-1z\" fill=\"#f0c08f\"></path><path d=\"M13 13h1v1h-1zM25 13h1v1h-1zM14 14h1v1h-1zM26 14h1v1h-1zM15 26h2v1h-2zM22 26h2v1h-2zM15 27h2v1h-2zM22 27h3v1h-3zM16 28h1v1h-1zM22 28h2v1h-2zM14 42h3v1h-3zM22 42h3v1h-3z\" fill=\"#ffffff\"></path><path d=\"M13 15h2v1h-2zM25 15h2v1h-2z\" fill=\"#6b4636\"></path><path d=\"M10 18h1v1h-1zM29 18h1v1h-1z\" fill=\"#ffa9bb\"></path><path d=\"M11 18h1v1h-1zM28 18h1v1h-1z\" fill=\"#ffc8d3\"></path><path d=\"M18 18h4v1h-4zM18 19h1v1h-1zM21 19h1v1h-1zM19 20h2v1h-2z\" fill=\"#9c3f33\"></path><path d=\"M9 19h1v1h-1zM30 19h1v1h-1zM9 20h1v1h-1zM30 20h1v1h-1zM10 21h1v1h-1zM29 21h1v1h-1zM11 22h2v1h-2zM27 22h2v1h-2zM13 23h2v1h-2zM25 23h2v1h-2zM15 24h10v1h-10zM9 34h1v1h-1zM12 34h1v1h-1zM27 34h1v1h-1zM30 34h1v1h-1zM9 35h1v1h-1zM12 35h1v1h-1zM27 35h1v1h-1zM30 35h1v1h-1zM10 36h2v1h-2zM28 36h2v1h-2z\" fill=\"#87664b\"></path><path d=\"M19 19h2v1h-2z\" fill=\"#f08a80\"></path><path d=\"M15 25h3v1h-3zM22 25h3v1h-3zM14 26h1v1h-1zM25 26h1v1h-1zM18 43h1v1h-1zM21 43h1v1h-1z\" fill=\"#858282\"></path><path d=\"M18 25h4v1h-4zM12 27h2v1h-2zM26 27h2v1h-2zM11 28h1v1h-1zM28 28h1v1h-1zM10 29h1v1h-1zM29 29h1v1h-1zM9 30h1v1h-1zM12 30h2v1h-2zM26 30h2v1h-2zM30 30h1v1h-1zM9 31h1v1h-1zM12 31h2v1h-2zM26 31h2v1h-2zM30 31h1v1h-1zM9 32h1v1h-1zM12 32h2v1h-2zM26 32h2v1h-2zM30 32h1v1h-1zM9 33h1v1h-1zM12 33h2v1h-2zM26 33h2v1h-2zM30 33h1v1h-1zM13 34h1v1h-1zM26 34h1v1h-1zM13 35h1v1h-1zM26 35h1v1h-1zM13 36h1v1h-1zM26 36h1v1h-1zM13 37h1v1h-1zM26 37h1v1h-1zM13 38h1v1h-1zM26 38h1v1h-1zM12 39h1v1h-1zM27 39h1v1h-1zM11 40h1v1h-1zM28 40h1v1h-1zM11 41h1v1h-1zM28 41h1v1h-1zM12 42h2v1h-2zM18 42h4v1h-4zM26 42h2v1h-2z\" fill=\"#8e7c62\"></path><path d=\"M17 26h1v1h-1zM24 26h1v1h-1zM14 27h1v1h-1zM17 27h1v1h-1zM25 27h1v1h-1zM15 28h1v1h-1zM17 28h1v1h-1zM24 28h1v1h-1zM16 29h2v1h-2zM22 29h2v1h-2zM17 42h1v1h-1zM25 42h1v1h-1zM14 43h4v1h-4zM22 43h4v1h-4z\" fill=\"#e5e8eb\"></path><path d=\"M18 26h3v1h-3zM12 28h2v1h-2zM25 28h2v1h-2zM11 29h1v1h-1zM24 29h1v1h-1zM10 30h1v1h-1zM16 30h1v1h-1zM22 30h2v1h-2zM18 32h4v1h-4zM18 36h4v1h-4zM13 39h1v1h-1zM12 40h1v1h-1z\" fill=\"#fff8e8\"></path><path d=\"M21 26h1v1h-1zM21 27h1v1h-1zM14 28h1v1h-1zM21 28h1v1h-1zM27 28h1v1h-1zM12 29h2v1h-2zM15 29h1v1h-1zM18 29h4v1h-4zM26 29h3v1h-3zM11 30h1v1h-1zM17 30h1v1h-1zM25 30h1v1h-1zM29 30h1v1h-1zM11 31h1v1h-1zM17 31h1v1h-1zM25 31h1v1h-1zM29 31h1v1h-1zM11 32h1v1h-1zM25 32h1v1h-1zM29 32h1v1h-1zM10 33h2v1h-2zM18 33h4v1h-4zM25 33h1v1h-1zM28 33h2v1h-2zM17 34h1v1h-1zM25 34h1v1h-1zM17 35h1v1h-1zM25 35h1v1h-1zM25 36h1v1h-1zM25 37h1v1h-1zM25 38h1v1h-1zM26 39h1v1h-1zM27 40h1v1h-1zM12 41h16v1h-16z\" fill=\"#efdcb5\"></path><path d=\"M18 27h3v1h-3zM18 28h3v1h-3zM14 29h1v1h-1zM25 29h1v1h-1zM14 30h2v1h-2zM24 30h1v1h-1zM28 30h1v1h-1zM10 31h1v1h-1zM14 31h3v1h-3zM22 31h3v1h-3zM28 31h1v1h-1zM10 32h1v1h-1zM14 32h4v1h-4zM22 32h3v1h-3zM28 32h1v1h-1zM14 33h4v1h-4zM22 33h3v1h-3zM14 34h3v1h-3zM22 34h3v1h-3zM14 35h3v1h-3zM22 35h3v1h-3zM14 36h4v1h-4zM22 36h3v1h-3zM14 37h11v1h-11zM14 38h11v1h-11zM14 39h12v1h-12zM13 40h14v1h-14z\" fill=\"#fff3d6\"></path><path d=\"M18 30h3v1h-3zM18 34h3v1h-3z\" fill=\"#8e979e\"></path><path d=\"M21 30h1v1h-1zM18 31h4v1h-4zM21 34h1v1h-1zM18 35h4v1h-4z\" fill=\"#7e8387\"></path><path d=\"M12 43h2v1h-2zM26 43h2v1h-2zM11 44h1v1h-1zM18 44h1v1h-1zM21 44h1v1h-1zM28 44h1v1h-1zM11 45h1v1h-1zM17 45h1v1h-1zM22 45h1v1h-1zM28 45h1v1h-1zM12 46h5v1h-5zM23 46h5v1h-5z\" fill=\"#6b5b7e\"></path><path d=\"M12 44h5v1h-5zM23 44h4v1h-4z\" fill=\"#ded5f3\"></path><path d=\"M17 44h1v1h-1zM22 44h1v1h-1zM27 44h1v1h-1zM12 45h5v1h-5zM23 45h5v1h-5z\" fill=\"#ad9adc\"></path></g>","sit":"<g shape-rendering=\"crispEdges\"><path d=\"M11 6h2v1h-2zM19 6h2v1h-2zM27 6h2v1h-2zM9 7h2v1h-2zM13 7h2v1h-2zM17 7h2v1h-2zM21 7h2v1h-2zM25 7h2v1h-2zM29 7h2v1h-2zM15 8h2v1h-2zM23 8h2v1h-2zM7 9h1v1h-1zM32 9h1v1h-1zM5 11h1v1h-1zM34 11h1v1h-1zM3 13h1v1h-1zM36 13h1v1h-1zM3 14h1v1h-1zM36 14h1v1h-1zM2 15h1v1h-1zM37 15h1v1h-1zM2 16h1v1h-1zM37 16h1v1h-1zM2 17h1v1h-1zM37 17h1v1h-1zM2 18h1v1h-1zM37 18h1v1h-1zM2 19h1v1h-1zM37 19h1v1h-1zM2 20h1v1h-1zM37 20h1v1h-1zM3 21h1v1h-1zM36 21h1v1h-1zM3 22h1v1h-1zM36 22h1v1h-1zM5 24h2v1h-2zM33 24h2v1h-2zM7 25h2v1h-2zM31 25h2v1h-2zM7 26h2v1h-2zM31 26h2v1h-2zM9 27h1v1h-1zM30 27h1v1h-1zM9 28h2v1h-2zM29 28h2v1h-2zM11 29h2v1h-2zM27 29h2v1h-2zM14 30h1v1h-1zM25 30h1v1h-1zM14 31h1v1h-1zM25 31h1v1h-1zM13 32h1v1h-1zM26 32h1v1h-1zM11 33h1v1h-1zM28 33h1v1h-1zM9 35h1v1h-1zM30 35h1v1h-1zM8 37h1v1h-1zM31 37h1v1h-1zM8 38h1v1h-1zM31 38h1v1h-1zM8 39h1v1h-1zM31 39h1v1h-1zM8 40h1v1h-1zM31 40h1v1h-1zM12 42h1v1h-1zM27 42h1v1h-1zM10 43h1v1h-1zM29 43h1v1h-1zM9 44h1v1h-1zM30 44h1v1h-1zM8 45h1v1h-1zM31 45h1v1h-1zM8 46h1v1h-1zM31 46h1v1h-1z\" fill=\"#3a2f2a\"></path><path d=\"M11 7h2v1h-2zM19 7h2v1h-2zM27 7h2v1h-2zM9 8h2v1h-2zM13 8h2v1h-2zM17 8h2v1h-2zM21 8h2v1h-2zM25 8h2v1h-2zM29 8h2v1h-2zM8 9h1v1h-1zM15 9h2v1h-2zM23 9h2v1h-2zM31 9h1v1h-1zM7 10h2v1h-2zM31 10h2v1h-2zM6 11h1v1h-1zM33 11h1v1h-1zM5 12h2v1h-2zM33 12h2v1h-2zM4 13h1v1h-1zM35 13h1v1h-1zM4 14h1v1h-1zM35 14h1v1h-1zM3 15h1v1h-1zM36 15h1v1h-1zM3 16h1v1h-1zM36 16h1v1h-1zM3 17h1v1h-1zM36 17h1v1h-1zM3 18h1v1h-1zM36 18h1v1h-1zM3 19h1v1h-1zM36 19h1v1h-1zM3 20h1v1h-1zM36 20h1v1h-1zM4 21h1v1h-1zM35 21h1v1h-1zM4 22h1v1h-1zM35 22h1v1h-1zM5 23h2v1h-2zM33 23h2v1h-2zM7 24h3v1h-3zM30 24h3v1h-3z\" fill=\"#503729\"></path><path d=\"M11 8h1v1h-1zM19 8h1v1h-1zM27 8h1v1h-1zM9 9h2v1h-2zM13 9h1v1h-1zM17 9h2v1h-2zM21 9h1v1h-1zM25 9h2v1h-2zM29 9h1v1h-1zM15 10h2v1h-2zM23 10h2v1h-2zM7 11h2v1h-2zM31 11h1v1h-1zM5 13h2v1h-2zM33 13h1v1h-1zM4 15h1v1h-1z\" fill=\"#bfa493\"></path><path d=\"M12 8h1v1h-1zM20 8h1v1h-1zM28 8h1v1h-1zM14 9h1v1h-1zM22 9h1v1h-1zM30 9h1v1h-1zM30 10h1v1h-1zM32 11h1v1h-1zM32 12h1v1h-1zM34 13h1v1h-1zM34 14h1v1h-1zM10 15h2v1h-2zM15 15h2v1h-2zM21 15h2v1h-2zM26 15h2v1h-2zM35 15h1v1h-1zM9 16h1v1h-1zM14 16h1v1h-1zM17 16h1v1h-1zM20 16h1v1h-1zM23 16h1v1h-1zM25 16h1v1h-1zM35 16h1v1h-1zM9 17h1v1h-1zM12 17h2v1h-2zM18 17h2v1h-2zM24 17h2v1h-2zM28 17h1v1h-1zM35 17h1v1h-1zM9 18h1v1h-1zM29 18h1v1h-1zM35 18h1v1h-1zM9 19h1v1h-1zM35 19h1v1h-1zM4 20h1v1h-1zM9 20h1v1h-1zM35 20h1v1h-1zM9 21h1v1h-1zM34 21h1v1h-1zM5 22h2v1h-2zM9 22h1v1h-1zM33 22h2v1h-2zM7 23h3v1h-3zM30 23h3v1h-3z\" fill=\"#764b30\"></path><path d=\"M11 9h2v1h-2zM19 9h2v1h-2zM27 9h2v1h-2zM9 10h3v1h-3zM13 10h2v1h-2zM17 10h6v1h-6zM25 10h5v1h-5zM9 11h2v1h-2zM15 11h2v1h-2zM18 11h1v1h-1zM20 11h11v1h-11zM7 12h3v1h-3zM11 12h2v1h-2zM19 12h13v1h-13zM7 13h8v1h-8zM17 13h16v1h-16zM5 14h29v1h-29zM5 15h5v1h-5zM12 15h3v1h-3zM17 15h4v1h-4zM23 15h3v1h-3zM28 15h7v1h-7zM4 16h5v1h-5zM12 16h2v1h-2zM18 16h2v1h-2zM24 16h1v1h-1zM28 16h7v1h-7zM4 17h5v1h-5zM29 17h6v1h-6zM4 18h5v1h-5zM30 18h5v1h-5zM4 19h5v1h-5zM30 19h5v1h-5zM5 20h4v1h-4zM30 20h5v1h-5zM5 21h4v1h-4zM30 21h4v1h-4zM7 22h2v1h-2zM30 22h3v1h-3z\" fill=\"#8a5a3b\"></path><path d=\"M12 10h1v1h-1zM11 11h4v1h-4zM17 11h1v1h-1zM19 11h1v1h-1zM10 12h1v1h-1zM13 12h6v1h-6zM15 13h2v1h-2z\" fill=\"#c5ad9d\"></path><path d=\"M10 16h1v1h-1zM15 16h1v1h-1zM21 16h1v1h-1zM26 16h1v1h-1z\" fill=\"#663f27\"></path><path d=\"M11 16h1v1h-1zM16 16h1v1h-1zM22 16h1v1h-1zM27 16h1v1h-1zM10 17h2v1h-2zM14 17h4v1h-4zM20 17h4v1h-4zM26 17h2v1h-2z\" fill=\"#5e3c28\"></path><path d=\"M10 18h3v1h-3zM15 18h10v1h-10zM27 18h1v1h-1z\" fill=\"#dfab7a\"></path><path d=\"M13 18h2v1h-2zM25 18h2v1h-2zM12 19h1v1h-1zM14 19h2v1h-2zM24 19h1v1h-1zM26 19h2v1h-2zM12 20h2v1h-2zM15 20h1v1h-1zM24 20h2v1h-2zM27 20h1v1h-1zM12 21h1v1h-1zM15 21h1v1h-1zM24 21h1v1h-1zM27 21h1v1h-1zM13 22h2v1h-2zM25 22h2v1h-2z\" fill=\"#2a211d\"></path><path d=\"M28 18h1v1h-1zM29 19h1v1h-1zM29 20h1v1h-1zM29 21h1v1h-1zM29 22h1v1h-1zM29 23h1v1h-1zM29 25h1v1h-1zM10 26h1v1h-1zM29 26h1v1h-1zM11 27h2v1h-2zM27 27h2v1h-2zM13 28h2v1h-2zM25 28h2v1h-2zM15 29h10v1h-10zM11 40h1v1h-1zM29 40h1v1h-1zM10 41h2v1h-2zM28 41h2v1h-2z\" fill=\"#e1ad7c\"></path><path d=\"M10 19h2v1h-2zM16 19h8v1h-8zM28 19h1v1h-1zM10 20h2v1h-2zM16 20h8v1h-8zM28 20h1v1h-1zM10 21h2v1h-2zM16 21h8v1h-8zM28 21h1v1h-1zM10 22h3v1h-3zM15 22h10v1h-10zM27 22h2v1h-2zM10 23h19v1h-19zM12 24h6v1h-6zM22 24h6v1h-6zM10 25h8v1h-8zM22 25h7v1h-7zM11 26h8v1h-8zM21 26h8v1h-8zM13 27h14v1h-14zM15 28h10v1h-10zM10 40h1v1h-1zM28 40h1v1h-1z\" fill=\"#f0c08f\"></path><path d=\"M13 19h1v1h-1zM25 19h1v1h-1zM14 20h1v1h-1zM26 20h1v1h-1zM15 32h2v1h-2zM22 32h2v1h-2zM15 33h2v1h-2zM22 33h3v1h-3zM16 34h1v1h-1zM22 34h2v1h-2z\" fill=\"#ffffff\"></path><path d=\"M13 21h2v1h-2zM25 21h2v1h-2z\" fill=\"#6b4636\"></path><path d=\"M10 24h1v1h-1zM29 24h1v1h-1z\" fill=\"#ffa9bb\"></path><path d=\"M11 24h1v1h-1zM28 24h1v1h-1z\" fill=\"#ffc8d3\"></path><path d=\"M18 24h4v1h-4zM18 25h1v1h-1zM21 25h1v1h-1zM19 26h2v1h-2z\" fill=\"#9c3f33\"></path><path d=\"M9 25h1v1h-1zM30 25h1v1h-1zM9 26h1v1h-1zM30 26h1v1h-1zM10 27h1v1h-1zM29 27h1v1h-1zM11 28h2v1h-2zM27 28h2v1h-2zM13 29h2v1h-2zM25 29h2v1h-2zM15 30h10v1h-10zM9 40h1v1h-1zM12 40h1v1h-1zM27 40h1v1h-1zM30 40h1v1h-1zM9 41h1v1h-1zM12 41h1v1h-1zM27 41h1v1h-1zM30 41h1v1h-1zM10 42h2v1h-2zM28 42h2v1h-2z\" fill=\"#87664b\"></path><path d=\"M19 25h2v1h-2z\" fill=\"#f08a80\"></path><path d=\"M15 31h3v1h-3zM22 31h3v1h-3zM14 32h1v1h-1zM25 32h1v1h-1z\" fill=\"#858282\"></path><path d=\"M18 31h4v1h-4zM12 33h2v1h-2zM26 33h2v1h-2zM11 34h1v1h-1zM28 34h1v1h-1zM10 35h1v1h-1zM29 35h1v1h-1zM9 36h1v1h-1zM12 36h2v1h-2zM26 36h2v1h-2zM30 36h1v1h-1zM9 37h1v1h-1zM12 37h2v1h-2zM26 37h2v1h-2zM30 37h1v1h-1zM9 38h1v1h-1zM12 38h2v1h-2zM26 38h2v1h-2zM30 38h1v1h-1zM9 39h1v1h-1zM12 39h2v1h-2zM26 39h2v1h-2zM30 39h1v1h-1zM13 40h1v1h-1zM26 40h1v1h-1zM13 41h1v1h-1zM26 41h1v1h-1zM13 42h1v1h-1zM26 42h1v1h-1zM11 43h2v1h-2zM27 43h2v1h-2zM10 44h1v1h-1zM29 44h1v1h-1zM9 45h1v1h-1zM30 45h1v1h-1zM16 46h2v1h-2zM22 46h2v1h-2z\" fill=\"#8e7c62\"></path><path d=\"M17 32h1v1h-1zM24 32h1v1h-1zM14 33h1v1h-1zM17 33h1v1h-1zM25 33h1v1h-1zM15 34h1v1h-1zM17 34h1v1h-1zM24 34h1v1h-1zM16 35h2v1h-2zM22 35h2v1h-2z\" fill=\"#e5e8eb\"></path><path d=\"M18 32h3v1h-3zM12 34h2v1h-2zM25 34h2v1h-2zM11 35h1v1h-1zM24 35h1v1h-1zM10 36h1v1h-1zM16 36h1v1h-1zM22 36h2v1h-2zM18 38h4v1h-4zM18 42h4v1h-4zM13 43h1v1h-1zM11 44h2v1h-2zM27 44h1v1h-1z\" fill=\"#fff8e8\"></path><path d=\"M21 32h1v1h-1zM21 33h1v1h-1zM14 34h1v1h-1zM21 34h1v1h-1zM27 34h1v1h-1zM12 35h2v1h-2zM15 35h1v1h-1zM18 35h4v1h-4zM26 35h3v1h-3zM11 36h1v1h-1zM17 36h1v1h-1zM25 36h1v1h-1zM29 36h1v1h-1zM11 37h1v1h-1zM17 37h1v1h-1zM25 37h1v1h-1zM29 37h1v1h-1zM11 38h1v1h-1zM25 38h1v1h-1zM29 38h1v1h-1zM10 39h2v1h-2zM18 39h4v1h-4zM25 39h1v1h-1zM28 39h2v1h-2zM17 40h1v1h-1zM25 40h1v1h-1zM17 41h1v1h-1zM25 41h1v1h-1zM25 42h1v1h-1zM26 43h1v1h-1zM28 44h1v1h-1zM10 45h20v1h-20z\" fill=\"#efdcb5\"></path><path d=\"M18 33h3v1h-3zM18 34h3v1h-3zM14 35h1v1h-1zM25 35h1v1h-1zM14 36h2v1h-2zM24 36h1v1h-1zM28 36h1v1h-1zM10 37h1v1h-1zM14 37h3v1h-3zM22 37h3v1h-3zM28 37h1v1h-1zM10 38h1v1h-1zM14 38h4v1h-4zM22 38h3v1h-3zM28 38h1v1h-1zM14 39h4v1h-4zM22 39h3v1h-3zM14 40h3v1h-3zM22 40h3v1h-3zM14 41h3v1h-3zM22 41h3v1h-3zM14 42h4v1h-4zM22 42h3v1h-3zM14 43h12v1h-12zM13 44h14v1h-14z\" fill=\"#fff3d6\"></path><path d=\"M18 36h3v1h-3zM18 40h3v1h-3z\" fill=\"#8e979e\"></path><path d=\"M21 36h1v1h-1zM18 37h4v1h-4zM21 40h1v1h-1zM18 41h4v1h-4z\" fill=\"#7e8387\"></path><path d=\"M9 46h1v1h-1zM30 46h1v1h-1zM9 47h1v1h-1zM16 47h1v1h-1zM23 47h1v1h-1zM30 47h1v1h-1z\" fill=\"#6b5b7e\"></path><path d=\"M10 46h5v1h-5zM24 46h5v1h-5z\" fill=\"#ded5f3\"></path><path d=\"M15 46h1v1h-1zM29 46h1v1h-1zM10 47h6v1h-6zM24 47h6v1h-6z\" fill=\"#ad9adc\"></path></g>","sleep":"<g shape-rendering=\"crispEdges\"><path d=\"M30 0h8v1h-8zM30 1h8v1h-8zM34 2h3v1h-3zM34 3h2v1h-2zM32 4h2v1h-2zM31 5h3v1h-3zM11 6h2v1h-2zM19 6h2v1h-2zM27 6h11v1h-11zM9 7h2v1h-2zM13 7h2v1h-2zM17 7h2v1h-2zM21 7h2v1h-2zM25 7h2v1h-2zM29 7h9v1h-9zM15 8h2v1h-2zM23 8h2v1h-2zM31 8h1v1h-1zM7 9h1v1h-1zM5 11h1v1h-1zM34 11h1v1h-1zM3 13h1v1h-1zM36 13h1v1h-1zM3 14h1v1h-1zM36 14h1v1h-1zM2 15h1v1h-1zM37 15h1v1h-1zM2 16h1v1h-1zM37 16h1v1h-1zM2 17h1v1h-1zM37 17h1v1h-1zM2 18h1v1h-1zM37 18h1v1h-1zM2 19h1v1h-1zM37 19h1v1h-1zM2 20h1v1h-1zM37 20h1v1h-1zM3 21h1v1h-1zM36 21h1v1h-1zM3 22h1v1h-1zM36 22h1v1h-1zM5 24h2v1h-2zM33 24h2v1h-2zM7 25h2v1h-2zM31 25h2v1h-2zM7 26h2v1h-2zM31 26h2v1h-2zM9 27h1v1h-1zM30 27h1v1h-1zM9 28h2v1h-2zM29 28h2v1h-2zM11 29h2v1h-2zM27 29h2v1h-2zM14 30h1v1h-1zM25 30h1v1h-1zM14 31h1v1h-1zM25 31h1v1h-1zM13 32h1v1h-1zM26 32h1v1h-1zM11 33h1v1h-1zM28 33h1v1h-1zM9 35h1v1h-1zM30 35h1v1h-1zM8 37h1v1h-1zM31 37h1v1h-1zM8 38h1v1h-1zM31 38h1v1h-1zM8 39h1v1h-1zM31 39h1v1h-1zM8 40h1v1h-1zM31 40h1v1h-1zM12 42h1v1h-1zM27 42h1v1h-1zM10 43h1v1h-1zM29 43h1v1h-1zM9 44h1v1h-1zM30 44h1v1h-1zM8 45h1v1h-1zM31 45h1v1h-1zM8 46h1v1h-1zM31 46h1v1h-1z\" fill=\"#3a2f2a\"></path><path d=\"M11 7h2v1h-2zM19 7h2v1h-2zM27 7h2v1h-2zM9 8h2v1h-2zM13 8h2v1h-2zM17 8h2v1h-2zM21 8h2v1h-2zM25 8h2v1h-2zM29 8h2v1h-2zM8 9h1v1h-1zM15 9h2v1h-2zM23 9h2v1h-2zM31 9h1v1h-1zM7 10h2v1h-2zM31 10h2v1h-2zM6 11h1v1h-1zM33 11h1v1h-1zM5 12h2v1h-2zM33 12h2v1h-2zM4 13h1v1h-1zM35 13h1v1h-1zM4 14h1v1h-1zM35 14h1v1h-1zM3 15h1v1h-1zM36 15h1v1h-1zM3 16h1v1h-1zM36 16h1v1h-1zM3 17h1v1h-1zM36 17h1v1h-1zM3 18h1v1h-1zM36 18h1v1h-1zM3 19h1v1h-1zM36 19h1v1h-1zM3 20h1v1h-1zM36 20h1v1h-1zM4 21h1v1h-1zM35 21h1v1h-1zM4 22h1v1h-1zM35 22h1v1h-1zM5 23h2v1h-2zM33 23h2v1h-2zM7 24h3v1h-3zM30 24h3v1h-3z\" fill=\"#503729\"></path><path d=\"M11 8h1v1h-1zM19 8h1v1h-1zM27 8h1v1h-1zM9 9h2v1h-2zM13 9h1v1h-1zM17 9h2v1h-2zM21 9h1v1h-1zM25 9h2v1h-2zM29 9h1v1h-1zM15 10h2v1h-2zM23 10h2v1h-2zM7 11h2v1h-2zM31 11h1v1h-1zM5 13h2v1h-2zM33 13h1v1h-1zM4 15h1v1h-1z\" fill=\"#bfa493\"></path><path d=\"M12 8h1v1h-1zM20 8h1v1h-1zM28 8h1v1h-1zM14 9h1v1h-1zM22 9h1v1h-1zM30 9h1v1h-1zM30 10h1v1h-1zM32 11h1v1h-1zM32 12h1v1h-1zM34 13h1v1h-1zM34 14h1v1h-1zM10 15h2v1h-2zM15 15h2v1h-2zM21 15h2v1h-2zM26 15h2v1h-2zM35 15h1v1h-1zM9 16h1v1h-1zM14 16h1v1h-1zM17 16h1v1h-1zM20 16h1v1h-1zM23 16h1v1h-1zM25 16h1v1h-1zM35 16h1v1h-1zM9 17h1v1h-1zM12 17h2v1h-2zM18 17h2v1h-2zM24 17h2v1h-2zM28 17h1v1h-1zM35 17h1v1h-1zM9 18h1v1h-1zM29 18h1v1h-1zM35 18h1v1h-1zM9 19h1v1h-1zM35 19h1v1h-1zM4 20h1v1h-1zM9 20h1v1h-1zM35 20h1v1h-1zM9 21h1v1h-1zM34 21h1v1h-1zM5 22h2v1h-2zM9 22h1v1h-1zM33 22h2v1h-2zM7 23h3v1h-3zM30 23h3v1h-3z\" fill=\"#764b30\"></path><path d=\"M11 9h2v1h-2zM19 9h2v1h-2zM27 9h2v1h-2zM9 10h3v1h-3zM13 10h2v1h-2zM17 10h6v1h-6zM25 10h5v1h-5zM9 11h2v1h-2zM15 11h2v1h-2zM18 11h1v1h-1zM20 11h11v1h-11zM7 12h3v1h-3zM11 12h2v1h-2zM19 12h13v1h-13zM7 13h8v1h-8zM17 13h16v1h-16zM5 14h29v1h-29zM5 15h5v1h-5zM12 15h3v1h-3zM17 15h4v1h-4zM23 15h3v1h-3zM28 15h7v1h-7zM4 16h5v1h-5zM12 16h2v1h-2zM18 16h2v1h-2zM24 16h1v1h-1zM28 16h7v1h-7zM4 17h5v1h-5zM29 17h6v1h-6zM4 18h5v1h-5zM30 18h5v1h-5zM4 19h5v1h-5zM30 19h5v1h-5zM5 20h4v1h-4zM30 20h5v1h-5zM5 21h4v1h-4zM30 21h4v1h-4zM7 22h2v1h-2zM30 22h3v1h-3z\" fill=\"#8a5a3b\"></path><path d=\"M12 10h1v1h-1zM11 11h4v1h-4zM17 11h1v1h-1zM19 11h1v1h-1zM10 12h1v1h-1zM13 12h6v1h-6zM15 13h2v1h-2z\" fill=\"#c5ad9d\"></path><path d=\"M10 16h1v1h-1zM15 16h1v1h-1zM21 16h1v1h-1zM26 16h1v1h-1z\" fill=\"#663f27\"></path><path d=\"M11 16h1v1h-1zM16 16h1v1h-1zM22 16h1v1h-1zM27 16h1v1h-1zM10 17h2v1h-2zM14 17h4v1h-4zM20 17h4v1h-4zM26 17h2v1h-2z\" fill=\"#5e3c28\"></path><path d=\"M10 18h18v1h-18z\" fill=\"#dfab7a\"></path><path d=\"M28 18h1v1h-1zM29 19h1v1h-1zM29 20h1v1h-1zM29 21h1v1h-1zM29 22h1v1h-1zM29 23h1v1h-1zM29 25h1v1h-1zM10 26h1v1h-1zM29 26h1v1h-1zM11 27h2v1h-2zM27 27h2v1h-2zM13 28h2v1h-2zM25 28h2v1h-2zM15 29h10v1h-10zM11 40h1v1h-1zM29 40h1v1h-1zM10 41h2v1h-2zM28 41h2v1h-2z\" fill=\"#e1ad7c\"></path><path d=\"M10 19h19v1h-19zM10 20h19v1h-19zM10 21h2v1h-2zM13 21h2v1h-2zM16 21h8v1h-8zM25 21h2v1h-2zM28 21h1v1h-1zM10 22h3v1h-3zM15 22h10v1h-10zM27 22h2v1h-2zM10 23h19v1h-19zM12 24h6v1h-6zM22 24h6v1h-6zM10 25h8v1h-8zM22 25h7v1h-7zM11 26h8v1h-8zM21 26h8v1h-8zM13 27h14v1h-14zM15 28h10v1h-10zM10 40h1v1h-1zM28 40h1v1h-1z\" fill=\"#f0c08f\"></path><path d=\"M12 21h1v1h-1zM15 21h1v1h-1zM24 21h1v1h-1zM27 21h1v1h-1zM13 22h2v1h-2zM25 22h2v1h-2z\" fill=\"#2a211d\"></path><path d=\"M10 24h1v1h-1zM29 24h1v1h-1z\" fill=\"#ffa9bb\"></path><path d=\"M11 24h1v1h-1zM28 24h1v1h-1z\" fill=\"#ffc8d3\"></path><path d=\"M18 24h4v1h-4zM18 25h1v1h-1zM21 25h1v1h-1zM19 26h2v1h-2z\" fill=\"#9c3f33\"></path><path d=\"M9 25h1v1h-1zM30 25h1v1h-1zM9 26h1v1h-1zM30 26h1v1h-1zM10 27h1v1h-1zM29 27h1v1h-1zM11 28h2v1h-2zM27 28h2v1h-2zM13 29h2v1h-2zM25 29h2v1h-2zM15 30h10v1h-10zM9 40h1v1h-1zM12 40h1v1h-1zM27 40h1v1h-1zM30 40h1v1h-1zM9 41h1v1h-1zM12 41h1v1h-1zM27 41h1v1h-1zM30 41h1v1h-1zM10 42h2v1h-2zM28 42h2v1h-2z\" fill=\"#87664b\"></path><path d=\"M19 25h2v1h-2z\" fill=\"#f08a80\"></path><path d=\"M15 31h3v1h-3zM22 31h3v1h-3zM14 32h1v1h-1zM25 32h1v1h-1z\" fill=\"#858282\"></path><path d=\"M18 31h4v1h-4zM12 33h2v1h-2zM26 33h2v1h-2zM11 34h1v1h-1zM28 34h1v1h-1zM10 35h1v1h-1zM29 35h1v1h-1zM9 36h1v1h-1zM12 36h2v1h-2zM26 36h2v1h-2zM30 36h1v1h-1zM9 37h1v1h-1zM12 37h2v1h-2zM26 37h2v1h-2zM30 37h1v1h-1zM9 38h1v1h-1zM12 38h2v1h-2zM26 38h2v1h-2zM30 38h1v1h-1zM9 39h1v1h-1zM12 39h2v1h-2zM26 39h2v1h-2zM30 39h1v1h-1zM13 40h1v1h-1zM26 40h1v1h-1zM13 41h1v1h-1zM26 41h1v1h-1zM13 42h1v1h-1zM26 42h1v1h-1zM11 43h2v1h-2zM27 43h2v1h-2zM10 44h1v1h-1zM29 44h1v1h-1zM9 45h1v1h-1zM30 45h1v1h-1zM16 46h2v1h-2zM22 46h2v1h-2z\" fill=\"#8e7c62\"></path><path d=\"M15 32h2v1h-2zM22 32h2v1h-2zM15 33h2v1h-2zM22 33h3v1h-3zM16 34h1v1h-1zM22 34h2v1h-2z\" fill=\"#ffffff\"></path><path d=\"M17 32h1v1h-1zM24 32h1v1h-1zM14 33h1v1h-1zM17 33h1v1h-1zM25 33h1v1h-1zM15 34h1v1h-1zM17 34h1v1h-1zM24 34h1v1h-1zM16 35h2v1h-2zM22 35h2v1h-2z\" fill=\"#e5e8eb\"></path><path d=\"M18 32h3v1h-3zM12 34h2v1h-2zM25 34h2v1h-2zM11 35h1v1h-1zM24 35h1v1h-1zM10 36h1v1h-1zM16 36h1v1h-1zM22 36h2v1h-2zM18 38h4v1h-4zM18 42h4v1h-4zM13 43h1v1h-1zM11 44h2v1h-2zM27 44h1v1h-1z\" fill=\"#fff8e8\"></path><path d=\"M21 32h1v1h-1zM21 33h1v1h-1zM14 34h1v1h-1zM21 34h1v1h-1zM27 34h1v1h-1zM12 35h2v1h-2zM15 35h1v1h-1zM18 35h4v1h-4zM26 35h3v1h-3zM11 36h1v1h-1zM17 36h1v1h-1zM25 36h1v1h-1zM29 36h1v1h-1zM11 37h1v1h-1zM17 37h1v1h-1zM25 37h1v1h-1zM29 37h1v1h-1zM11 38h1v1h-1zM25 38h1v1h-1zM29 38h1v1h-1zM10 39h2v1h-2zM18 39h4v1h-4zM25 39h1v1h-1zM28 39h2v1h-2zM17 40h1v1h-1zM25 40h1v1h-1zM17 41h1v1h-1zM25 41h1v1h-1zM25 42h1v1h-1zM26 43h1v1h-1zM28 44h1v1h-1zM10 45h20v1h-20z\" fill=\"#efdcb5\"></path><path d=\"M18 33h3v1h-3zM18 34h3v1h-3zM14 35h1v1h-1zM25 35h1v1h-1zM14 36h2v1h-2zM24 36h1v1h-1zM28 36h1v1h-1zM10 37h1v1h-1zM14 37h3v1h-3zM22 37h3v1h-3zM28 37h1v1h-1zM10 38h1v1h-1zM14 38h4v1h-4zM22 38h3v1h-3zM28 38h1v1h-1zM14 39h4v1h-4zM22 39h3v1h-3zM14 40h3v1h-3zM22 40h3v1h-3zM14 41h3v1h-3zM22 41h3v1h-3zM14 42h4v1h-4zM22 42h3v1h-3zM14 43h12v1h-12zM13 44h14v1h-14z\" fill=\"#fff3d6\"></path><path d=\"M18 36h3v1h-3zM18 40h3v1h-3z\" fill=\"#8e979e\"></path><path d=\"M21 36h1v1h-1zM18 37h4v1h-4zM21 40h1v1h-1zM18 41h4v1h-4z\" fill=\"#7e8387\"></path><path d=\"M9 46h1v1h-1zM30 46h1v1h-1zM9 47h1v1h-1zM16 47h1v1h-1zM23 47h1v1h-1zM30 47h1v1h-1z\" fill=\"#6b5b7e\"></path><path d=\"M10 46h5v1h-5zM24 46h5v1h-5z\" fill=\"#ded5f3\"></path><path d=\"M15 46h1v1h-1zM29 46h1v1h-1zM10 47h6v1h-6zM24 47h6v1h-6z\" fill=\"#ad9adc\"></path></g>"};
+const INK = "#3a2f2a";
+const C = { paper:"#fffdf6", cream:"#fff3d6", wood:"#d39a5e", woodD:"#9a6439", sky:"#9fd8f2", skyD:"#2f9bd8",
+  orange:"#f47b20", pink:"#f5a3c0", pinkL:"#fbd3e1", green:"#86c46d", greenD:"#3f8a4a", yellow:"#ffd85c",
+  floor:"#e2b07a", floorL:"#ebc08e", wallL:"#f3e6cf", wallR:"#fbf1de", base:"#c98f57", white:"#ffffff", grey:"#cfd5da" };
+
+/* 물건 표 — 높이는 타일 32 기준 px. layer: rug(깔개) · furniture(가구) · small(올려 두는 것) · wall(벽걸이) */
+const DEFS = {
+  bed:   { label:"침대",  layer:"furniture", w:2, d:3, h:26, seat:{ pose:"sleep", z:13 } },
+  desk:  { label:"책상",  layer:"furniture", w:2, d:1, h:23, surface:23 },
+  chair: { label:"의자",  layer:"furniture", w:1, d:1, h:32, seat:{ pose:"sit", z:16 } },
+  radio: { label:"라디오", layer:"small", w:0.5, d:0.5, h:10 },
+  rug:   { label:"러그",  layer:"rug", w:3, d:2, h:0 },
+  frame: { label:"액자",  layer:"wall", w:1, h:28 },
+};
+const OWN = { bed:1, desk:1, chair:2, radio:2, rug:1, frame:2 };
+const LAYER_KO = { rug:"깔개", furniture:"가구", small:"올려 두는 것", wall:"벽걸이" };
+const WALL_H = 96, BASE = 8;
+
+function initial() {
+  return {
+    n: 8,
+    items: [
+      { id:"i1", it:"rug", u:2.5, v:3, dir:0 },
+      { id:"i2", it:"bed", u:0, v:4, dir:1 },
+      { id:"i3", it:"desk", u:3, v:0, dir:0 },
+      { id:"i4", it:"radio", u:3.5, v:0.5, dir:0, on:"i3" },
+      { id:"i5", it:"chair", u:3.5, v:1.5, dir:2 },
+      { id:"i6", it:"frame", wall:"L", a:1.5, z:46 },
+      { id:"i7", it:"frame", wall:"R", a:5.5, z:40 },
+    ],
+    av: { u:5.5, v:4.5, seat:null },
+  };
+}
+
+const st = { tile:40, art:true, ...initial(), sel:null, hist:[], drag:null, msg:"", seq:10 };
+
+/* ── 투영 ── */
+const k = () => st.tile / 32;
+const TW = () => st.tile, TH = () => st.tile / 2;
+const PAD = 14;
+function dims() {
+  const n = st.n, W = n * TW() + PAD * 2;
+  const ox = PAD + n * TW() / 2, oy = PAD + WALL_H * k();
+  const H = oy + n * TH() + BASE * k() + PAD;
+  return { W, H, ox, oy };
+}
+function P(u, v, z) { const { ox, oy } = dims(); return [ox + (u - v) * TW() / 2, oy + (u + v) * TH() / 2 - z * k()]; }
+function toUV(x, y) {
+  const { ox, oy } = dims(); const a = (x - ox) / (TW() / 2), b = (y - oy) / (TH() / 2);
+  return { u: (a + b) / 2, v: (b - a) / 2 };
+}
+const pts = (arr) => arr.map((p) => p.map((n) => n.toFixed(1)).join(",")).join(" ");
+const poly = (arr, fill, sw = 1) => `<polygon points="${pts(arr)}" fill="${fill}" stroke="${INK}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+function shade(hex, t) {
+  const n = parseInt(hex.slice(1), 16); const f = (c) => Math.round(c * (1 - t));
+  return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`;
+}
+
+/* ── 상자 ── */
+function box(r, z, h, color, sw = 1) {
+  const { u, v, w, d } = r;
+  const top = [P(u, v, z + h), P(u + w, v, z + h), P(u + w, v + d, z + h), P(u, v + d, z + h)];
+  if (h <= 0) return poly(top, color, sw);
+  const left = [P(u, v + d, z), P(u + w, v + d, z), P(u + w, v + d, z + h), P(u, v + d, z + h)];
+  const right = [P(u + w, v, z), P(u + w, v + d, z), P(u + w, v + d, z + h), P(u + w, v, z + h)];
+  return poly(left, shade(color, .12), sw) + poly(right, shade(color, .25), sw) + poly(top, color, sw);
+}
+function fp(item) {
+  const D = DEFS[item.it]; const odd = item.dir % 2 === 1;
+  return { u:item.u, v:item.v, w: odd ? D.d : D.w, d: odd ? D.w : D.d };
+}
+/* 뒤에서부터 a..b 만큼의 띠. 방향 0: 뒤 = v 작은 쪽, 1: u 작은 쪽, 2: v 큰 쪽, 3: u 큰 쪽 */
+function slice(f, dir, a, b) {
+  switch (dir) {
+    case 0: return { u:f.u, v:f.v + a, w:f.w, d:b - a };
+    case 1: return { u:f.u + a, v:f.v, w:b - a, d:f.d };
+    case 2: return { u:f.u, v:f.v + f.d - b, w:f.w, d:b - a };
+    default: return { u:f.u + f.w - b, v:f.v, w:b - a, d:f.d };
+  }
+}
+function inset(r, dir, m) {
+  return dir % 2 === 0 ? { ...r, u:r.u + m, w:r.w - 2 * m } : { ...r, v:r.v + m, d:r.d - 2 * m };
+}
+const lenOf = (f, dir) => (dir % 2 === 0 ? f.d : f.w);
+
+/* 앞뒤 순서 — 바닥에서 떨어져 있으면 그것으로, 겹치면 높이로, 그래도 같으면 중심으로 */
+function before(a, b) {
+  const e = 1e-6;
+  if (a.u + a.w <= b.u + e) return true;
+  if (b.u + b.w <= a.u + e) return false;
+  if (a.v + a.d <= b.v + e) return true;
+  if (b.v + b.d <= a.v + e) return false;
+  if (a.top <= b.z + e) return true;
+  if (b.top <= a.z + e) return false;
+  const ca = a.u + a.v + (a.w + a.d) / 2, cb = b.u + b.v + (b.w + b.d) / 2;
+  if (Math.abs(ca - cb) > e) return ca < cb;
+  return (a.order ?? 0) < (b.order ?? 0);
+}
+function depthSort(nodes) {
+  const left = [...nodes], out = [];
+  while (left.length) {
+    let pick = left.findIndex((x) => !left.some((y) => y !== x && before(y, x)));
+    if (pick < 0) {
+      pick = 0; let best = Infinity;
+      left.forEach((x, i) => { const c = x.u + x.v + (x.w + x.d) / 2; if (c < best) { best = c; pick = i; } });
+    }
+    out.push(left.splice(pick, 1)[0]);
+  }
+  return out;
+}
+function parts(list) { return depthSort(list).map((p) => p.svg).join(""); }
+const part = (r, z, h, color, order = 0) => ({ ...r, z, top: z + h, order, svg: box(r, z, h, color) });
+
+/* ── 가구 그림(자리표시) ── */
+/* ── 도트 그림(public/images/room-iso) ── 방향 0·2는 그림 그대로, 1·3은 좌우 반전 */
+const SPR = {
+  bed:{ back:"bed-back", front:"bed-front" }, desk:{ back:"desk", front:"desk" }, chair:{ back:"chair-back", front:"chair-front" },
+  radio:{ back:"radio-back", front:"radio-front" }, rug:{ back:"rug", front:"rug" }, frame:{ wall:"frame-wall" },
+};
+const SPR_BASE = location.protocol === "file:" ? "../public/images/room-iso/" : "room-iso/";
+function img(name, x, y, w, h, mirror) {
+  const t = mirror ? ` transform="translate(${(2 * x + w).toFixed(1)} 0) scale(-1 1)"` : "";
+  return `<image href="${SPR_BASE}${name}.png" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" preserveAspectRatio="xMidYMax meet" style="image-rendering:pixelated"${t}/>`;
+}
+function spriteItem(item) {
+  const D = DEFS[item.it], f = fp(item), z = zOf(item);
+  const name = SPR[item.it][item.dir >= 2 ? "front" : "back"];
+  const x = P(f.u, f.v + f.d, z)[0], bottom = P(f.u + f.w, f.v + f.d, z)[1];
+  const w = (f.w + f.d) * TW() / 2, h = (f.w + f.d) * TH() / 2 + D.h * k();
+  return img(name, x, bottom - h, w, h, item.dir % 2 === 1);
+}
+function spriteWall(item) {
+  const D = DEFS[item.it], q = wallQuad(item, item.a, item.a + D.w, item.z, item.z + D.h);
+  const xs = q.map((p) => p[0]), ys = q.map((p) => p[1]);
+  const x = Math.min(...xs), y = Math.min(...ys);
+  return img(SPR.frame.wall, x, y, Math.max(...xs) - x, Math.max(...ys) - y, item.wall === "R");
+}
+
+function drawItem(item) {
+  if (st.art && SPR[item.it]) return spriteItem(item);
+  const D = DEFS[item.it], f = fp(item), z = zOf(item), dir = item.dir, L = lenOf(f, dir);
+  switch (item.it) {
+    case "bed": return parts([
+      part(f, 0, 5, C.woodD),
+      part(slice(f, dir, 0, .22), 0, 26, C.wood, 1),
+      part(inset(slice(f, dir, .22, L), dir, .04), 5, 7, C.paper),
+      part(inset(slice(f, dir, .32, .85), dir, .2), 12, 4, C.pinkL, 2),
+      part(inset(slice(f, dir, 1.05, L), dir, .02), 5, 9, C.sky, 3),
+    ]);
+    case "desk": {
+      const t = .14, legs = [[0,0],[f.w - t,0],[0,f.d - t],[f.w - t,f.d - t]].map(([a,b]) => part({ u:f.u + a, v:f.v + b, w:t, d:t }, 0, 20, C.woodD));
+      return parts([...legs, part(f, 20, 3, C.wood, 1)]);
+    }
+    case "chair": {
+      const s = inset(inset(slice(f, dir, 0, L), dir, .14), (dir + 1) % 4, .14), t = .1;
+      const legs = [[0,0],[s.w - t,0],[0,s.d - t],[s.w - t,s.d - t]].map(([a,b]) => part({ u:s.u + a, v:s.v + b, w:t, d:t }, 0, 13, C.woodD));
+      const back = slice(s, dir, 0, .12);
+      return parts([...legs, part(s, 13, 3, C.wood, 1), part(back, 16, 16, C.wood, 2)]);
+    }
+    case "radio": return parts([
+      part(f, z, 10, C.orange),
+      part(inset(slice(f, dir, .05, .2), dir, .1), z + 10, 2, INK, 1),
+    ]);
+    case "rug": {
+      const inner = { u:f.u + .25, v:f.v + .25, w:f.w - .5, d:f.d - .5 };
+      return box(f, 0, 0, C.pink) + `<polygon points="${pts([P(inner.u,inner.v,0),P(inner.u+inner.w,inner.v,0),P(inner.u+inner.w,inner.v+inner.d,0),P(inner.u,inner.v+inner.d,0)])}" fill="${C.pinkL}"/>`;
+    }
+  }
+  return "";
+}
+function wallQuad(item, a0, a1, z0, z1) {
+  const q = item.wall === "L" ? (a, z) => P(0, a, z) : (a, z) => P(a, 0, z);
+  return [q(a0, z0), q(a1, z0), q(a1, z1), q(a0, z1)];
+}
+function drawWall(item) {
+  if (st.art && SPR[item.it]) return spriteWall(item);
+  const D = DEFS[item.it], a = item.a, z = item.z, m = .12, mz = 4;
+  const hill = wallQuad(item, a + m, a + D.w - m, z + mz, z + D.h * .45);
+  return poly(wallQuad(item, a, a + D.w, z, z + D.h), C.wood) +
+    `<polygon points="${pts(wallQuad(item, a + m, a + D.w - m, z + mz, z + D.h - mz))}" fill="${C.sky}"/>` +
+    `<polygon points="${pts(hill)}" fill="${C.green}"/>`;
+}
+function zOf(item) {
+  if (!item.on) return 0;
+  const p = st.items.find((x) => x.id === item.on);
+  return p ? DEFS[p.it].surface : 0;
+}
+
+/* ── 꼬마 ── */
+function avatarPlace() {
+  const seat = st.av.seat && st.items.find((x) => x.id === st.av.seat);
+  if (seat) {
+    const f = fp(seat), S = DEFS[seat.it].seat;
+    const c = seat.it === "bed" ? slice(f, seat.dir, .5, 1.5) : f;
+    return { u:c.u + c.w / 2, v:c.v + c.d / 2, z:S.z, pose:S.pose, node:{ ...f, z:S.z, top:S.z + 40, order:9 } };
+  }
+  const { u, v } = st.av;
+  return { u, v, z:0, pose:"stand", node:{ u:u - .25, v:v - .25, w:.5, d:.5, z:0, top:40, order:9 } };
+}
+function drawAvatar() {
+  const a = avatarPlace(); const [x, y] = P(a.u, a.v, a.z);
+  return `<g data-id="avatar" transform="translate(${(x - 20).toFixed(1)} ${(y - 46).toFixed(1)})">${AV[a.pose]}</g>`;
+}
+
+/* ── 방 ── */
+function drawShell() {
+  const n = st.n, H = WALL_H;
+  let s = "";
+  s += poly([P(0,0,0), P(n,0,0), P(n,0,H), P(0,0,H)], C.wallR);
+  s += poly([P(0,0,0), P(0,n,0), P(0,n,H), P(0,0,H)], C.wallL);
+  s += poly([P(0,0,0), P(n,0,0), P(n,0,BASE), P(0,0,BASE)], C.base);
+  s += poly([P(0,0,0), P(0,n,0), P(0,n,BASE), P(0,0,BASE)], shade(C.base, .08));
+  s += poly([P(n,0,-BASE), P(n,n,-BASE), P(n,n,0), P(n,0,0)], shade(C.floor, .3));
+  s += poly([P(0,n,-BASE), P(n,n,-BASE), P(n,n,0), P(0,n,0)], shade(C.floor, .15));
+  s += poly([P(0,0,0), P(n,0,0), P(n,n,0), P(0,n,0)], C.floor);
+  for (let i = 1; i < n; i++) {
+    s += `<line x1="${P(i,0,0)[0]}" y1="${P(i,0,0)[1]}" x2="${P(i,n,0)[0]}" y2="${P(i,n,0)[1]}" stroke="${shade(C.floor,.12)}" stroke-width="1"/>`;
+  }
+  return s;
+}
+function nodeOf(item) {
+  const f = fp(item), z = zOf(item);
+  return { ...f, z, top: z + DEFS[item.it].h, order: item.on ? 1 : 0, svg: "" , item };
+}
+function sceneSVG() {
+  const bad = st.drag && !st.drag.valid ? st.drag.id : null;
+  const wrap = (it, body) => `<g data-id="${it.id}"${it.id === bad ? ' class="bad"' : ""}>${body}</g>`;
+  let s = drawShell();
+  st.items.filter((x) => DEFS[x.it].layer === "wall").forEach((x) => { s += wrap(x, drawWall(x)); });
+  st.items.filter((x) => DEFS[x.it].layer === "rug").forEach((x) => { s += wrap(x, drawItem(x)); });
+  const nodes = st.items.filter((x) => !["wall","rug"].includes(DEFS[x.it].layer)).map(nodeOf);
+  const av = avatarPlace();
+  nodes.push({ ...av.node, avatar:true });
+  for (const nd of depthSort(nodes)) s += nd.avatar ? drawAvatar() : wrap(nd.item, drawItem(nd.item));
+  return s;
+}
+function overlaySVG() {
+  let s = "";
+  if (st.drag) {
+    for (let i = .5; i < st.n; i += .5) {
+      const op = i % 1 === 0 ? .35 : .15;
+      s += `<line x1="${P(i,0,0)[0]}" y1="${P(i,0,0)[1]}" x2="${P(i,st.n,0)[0]}" y2="${P(i,st.n,0)[1]}" stroke="${INK}" stroke-opacity="${op}"/>`;
+      s += `<line x1="${P(0,i,0)[0]}" y1="${P(0,i,0)[1]}" x2="${P(st.n,i,0)[0]}" y2="${P(st.n,i,0)[1]}" stroke="${INK}" stroke-opacity="${op}"/>`;
+    }
+  }
+  const sel = st.items.find((x) => x.id === st.sel);
+  if (sel) {
+    const color = st.drag && !st.drag.valid ? "#c8412f" : "#e8711a";
+    let q;
+    if (DEFS[sel.it].layer === "wall") q = wallQuad(sel, sel.a, sel.a + DEFS[sel.it].w, sel.z, sel.z + DEFS[sel.it].h);
+    else { const f = fp(sel), z = zOf(sel); q = [P(f.u,f.v,z), P(f.u+f.w,f.v,z), P(f.u+f.w,f.v+f.d,z), P(f.u,f.v+f.d,z)]; }
+    s += `<polygon points="${pts(q)}" fill="${color}" fill-opacity=".18" stroke="${color}" stroke-width="2" stroke-dasharray="4 3" pointer-events="none"/>`;
+  }
+  return s;
+}
+
+/* ── 규칙 ── */
+const overlap = (a, b) => a.u < b.u + b.w - 1e-6 && b.u < a.u + a.w - 1e-6 && a.v < b.v + b.d - 1e-6 && b.v < a.v + a.d - 1e-6;
+const inside = (pt, f) => pt.u >= f.u && pt.u <= f.u + f.w && pt.v >= f.v && pt.v <= f.v + f.d;
+function valid(item) {
+  const D = DEFS[item.it];
+  if (D.layer === "wall") return !st.items.some((x) => x !== item && x.wall === item.wall && Math.abs(x.a - item.a) < D.w && Math.abs(x.z - item.z) < D.h);
+  const f = fp(item);
+  if (f.u < 0 || f.v < 0 || f.u + f.w > st.n + 1e-6 || f.v + f.d > st.n + 1e-6) return false;
+  if (D.layer === "rug" || item.on) return true;
+  const solid = st.items.filter((x) => x !== item && x.on !== item.id && !x.on && x.u !== undefined && DEFS[x.it].layer !== "rug");
+  return !solid.some((x) => {
+    const xl = DEFS[x.it].layer;
+    if (D.layer === "small" && xl === "small") return false;
+    return overlap(f, fp(x));
+  });
+}
+function surfaceUnder(item) {
+  const f = fp(item), c = { u:f.u + f.w / 2, v:f.v + f.d / 2 };
+  return st.items.find((x) => x !== item && DEFS[x.it].surface && !x.on && inside(c, fp(x)));
+}
+const snap = (x) => Math.round(x * 2) / 2;
+const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+const snapshot = () => JSON.stringify({ n:st.n, items:st.items, av:st.av });
+function restore(s) { const o = JSON.parse(s); st.n = o.n; st.items = o.items; st.av = o.av; }
+function commit(before) { if (before !== snapshot()) { st.hist.push(before); if (st.hist.length > 50) st.hist.shift(); } }
+
+function placeFree(it) {
+  const D = DEFS[it], id = "i" + (++st.seq);
+  if (D.layer === "wall") {
+    for (const wall of ["L","R"]) for (let a = 0; a <= st.n - D.w; a += .5) {
+      const item = { id, it, wall, a, z:44 };
+      st.items.push(item); if (valid(item)) return item; st.items.pop();
+    }
+    return null;
+  }
+  if (D.layer === "small") {
+    for (const s of st.items.filter((x) => DEFS[x.it].surface && !x.on)) {
+      const f = fp(s);
+      for (let u = f.u; u <= f.u + f.w - D.w; u += .5) for (let v = f.v; v <= f.v + f.d - D.d; v += .5) {
+        if (st.items.some((x) => x.on === s.id && x.u === u && x.v === v)) continue;
+        const item = { id, it, u, v, dir:0, on:s.id }; st.items.push(item); return item;
+      }
+    }
+  }
+  for (let sum = 0; sum <= st.n * 2; sum += .5) for (let u = 0; u <= sum; u += .5) {
+    const item = { id, it, u, v:sum - u, dir:0 };
+    st.items.push(item); if (valid(item)) return item; st.items.pop();
+  }
+  return null;
+}
+
+/* ── 그리기 ── */
+const $ = (id) => document.getElementById(id);
+function render() {
+  const { W, H } = dims();
+  const room = $("room");
+  room.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  room.style.maxWidth = `${Math.round(W * 2)}px`;
+  room.innerHTML = `<g id="scene">${sceneSVG()}</g><g>${overlaySVG()}</g>`;
+  const card = Math.min(1056 / W, 410 / H) / 3;
+  for (const [id, w, h] of [["miniCard", W * card, H * card], ["miniThumb", 120, 120 * H / W]]) {
+    const m = $(id); m.setAttribute("viewBox", `0 0 ${W} ${H}`); m.setAttribute("width", Math.round(w)); m.setAttribute("height", Math.round(h));
+    m.innerHTML = `<use href="#scene"/>`;
+  }
+  for (const b of $("tileSeg").children) b.setAttribute("aria-pressed", String(Number(b.dataset.v) === st.tile));
+  for (const b of $("sizeSeg").children) b.setAttribute("aria-pressed", String(Number(b.dataset.v) === st.n));
+  for (const b of $("artSeg").children) b.setAttribute("aria-pressed", String((b.dataset.v === "1") === st.art));
+  $("undo").disabled = st.hist.length === 0;
+  renderSel(); renderTray(); renderSpec(); renderPacked();
+}
+function renderSel() {
+  const bar = $("selbar");
+  const sel = st.items.find((x) => x.id === st.sel);
+  if (st.sel === "avatar") { bar.innerHTML = `<span class="name">꼬마</span><span class="lead">의자·침대 위로 끌면 앉고 잔다</span>`; return; }
+  if (!sel) { bar.innerHTML = `<span class="lead">방 안의 물건을 누르면 여기서 돌리거나 넣을 수 있다.</span>${st.msg ? `<span class="msg">${st.msg}</span>` : ""}`; return; }
+  const D = DEFS[sel.it], canTurn = D.layer !== "wall";
+  bar.innerHTML = `<span class="name">${D.label}</span>${st.msg ? `<span class="msg">${st.msg}</span>` : ""}` +
+    (canTurn ? `<button type="button" class="btn" id="turn">돌리기</button>` : "") +
+    `<button type="button" class="btn" id="stow">보관함에 넣기</button>`;
+  if (canTurn) $("turn").onclick = () => turn(sel);
+  $("stow").onclick = () => stow(sel);
+}
+function turn(sel) {
+  const b = snapshot(); const prev = { ...sel };
+  sel.dir = (sel.dir + 1) % 4;
+  if (!valid(sel)) { Object.assign(sel, prev); st.msg = "돌리면 다른 물건과 겹친다"; render(); return; }
+  for (const c of st.items.filter((x) => x.on === sel.id)) { const f = fp(sel); c.u = clamp(c.u, f.u, f.u + f.w - .5); c.v = clamp(c.v, f.v, f.v + f.d - .5); }
+  st.msg = ""; commit(b); render();
+}
+function stow(sel) {
+  const b = snapshot();
+  st.items = st.items.filter((x) => x !== sel && x.on !== sel.id);
+  if (st.av.seat === sel.id) st.av.seat = null;
+  st.sel = null; st.msg = ""; commit(b); render();
+}
+function trayIcon(it) {
+  const D = DEFS[it];
+  const color = { bed:C.sky, desk:C.wood, chair:C.wood, radio:C.orange, rug:C.pink, frame:C.green }[it];
+  return `<svg viewBox="0 0 56 40" aria-hidden="true"><rect x="${D.layer === "wall" ? 18 : 10}" y="${D.layer === "rug" ? 26 : 10}" width="${D.layer === "wall" ? 20 : 36}" height="${D.layer === "rug" ? 8 : 22}" rx="3" fill="${color}" stroke="${INK}"/></svg>`;
+}
+function renderTray() {
+  const tray = $("tray"); tray.innerHTML = "";
+  for (const it of Object.keys(DEFS)) {
+    const left = OWN[it] - st.items.filter((x) => x.it === it).length;
+    const b = document.createElement("button");
+    b.type = "button"; b.disabled = left <= 0; b.dataset.it = it;
+    b.innerHTML = `${trayIcon(it)}<span>${DEFS[it].label}</span><small>${left}개 남음</small>`;
+    tray.appendChild(b);
+  }
+}
+function renderSpec() {
+  const rows = Object.entries(DEFS).map(([id, D]) => {
+    const wall = D.layer === "wall";
+    const boxW = wall ? D.w * TW() / 2 : (D.w + D.d) * TW() / 2;
+    const boxH = wall ? D.h * k() + D.w * TH() / 2 : (D.w + D.d) * TH() / 2 + D.h * k();
+    const extra = D.surface ? `올림면 ${Math.round(D.surface * k())}px` : D.seat ? `${D.seat.pose === "sit" ? "앉는" : "눕는"} 자리 ${Math.round(D.seat.z * k())}px` : "";
+    return `<tr><td>${D.label}</td><td>${LAYER_KO[D.layer]}</td><td class="num">${wall ? `가로 ${D.w}` : `${D.w} × ${D.d}`}</td><td class="num">${Math.round(D.h * k())}px</td><td class="num">${Math.round(boxW)} × ${Math.round(boxH)}</td><td>${extra}</td></tr>`;
+  }).join("");
+  $("spec").innerHTML = `<thead><tr><th>물건</th><th>층</th><th>바닥(타일)</th><th>높이 px</th><th>그림 상자 px (타일 ${st.tile})</th><th>자리</th></tr></thead><tbody>${rows}<tr><td>꼬마</td><td>—</td><td class="num">0.5 × 0.5</td><td class="num">48px</td><td class="num">40 × 48 (고정)</td><td>도트 2px</td></tr></tbody>`;
+}
+function renderPacked() {
+  const idx = new Map(st.items.map((x, i) => [x.id, i]));
+  const s = st.items.map((x) => x.wall ? `${x.it}~${x.wall}~${x.a * 2}~${x.z}` : `${x.it}~${x.u * 2}~${x.v * 2}~${x.dir}${x.on ? `~${idx.get(x.on)}` : ""}`);
+  const a = avatarPlace();
+  $("packed").textContent = `placed (${st.items.length}개)\n` + s.join("\n") + `\n\navatar 자리: ${st.av.seat ? `받침 ${idx.get(st.av.seat)}번` : `${st.av.u * 2}~${st.av.v * 2}`} · 자세 ${a.pose}`;
+}
+
+/* ── 끌기 ── */
+function svgPoint(e) {
+  const room = $("room"), pt = room.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  return pt.matrixTransform(room.getScreenCTM().inverse());
+}
+function startDrag(id, e, fresh = false) {
+  const p = svgPoint(e), uv = toUV(p.x, p.y);
+  const before = st.drag?.before ?? snapshot();
+  if (id === "avatar") { st.drag = { id, before, du:uv.u - avatarPlace().u, dv:uv.v - avatarPlace().v, valid:true, moved:false }; return; }
+  const item = st.items.find((x) => x.id === id);
+  if (DEFS[item.it].layer === "wall") { st.drag = { id, before, da:0, dz:0, valid:true, moved:fresh, fresh, wall:true }; return; }
+  const f = fp(item);
+  st.drag = { id, before, du: fresh ? f.w / 2 : uv.u - item.u, dv: fresh ? f.d / 2 : uv.v - item.v, valid:true, moved:fresh, fresh,
+    kids: st.items.filter((x) => x.on === id).map((x) => ({ x, du:x.u - item.u, dv:x.v - item.v })) };
+}
+function moveDrag(e) {
+  const d = st.drag; if (!d) return;
+  const p = svgPoint(e), uv = toUV(p.x, p.y);
+  d.moved = true;
+  if (d.id === "avatar") {
+    st.av.u = clamp(snap(uv.u - d.du), .25, st.n - .25); st.av.v = clamp(snap(uv.v - d.dv), .25, st.n - .25); st.av.seat = null;
+    render(); return;
+  }
+  const item = st.items.find((x) => x.id === d.id), D = DEFS[item.it];
+  if (d.wall) {
+    const { ox, oy } = dims(); const wall = p.x < ox ? "L" : "R";
+    const a = Math.abs(p.x - ox) / (TW() / 2), z = (oy + a * TH() / 2 - p.y) / k();
+    item.wall = wall; item.a = clamp(snap(a - D.w / 2), 0, st.n - D.w); item.z = clamp(Math.round(z - D.h / 2), BASE + 4, WALL_H - D.h - 4);
+  } else {
+    const f = fp(item);
+    item.u = clamp(snap(uv.u - d.du), 0, st.n - f.w); item.v = clamp(snap(uv.v - d.dv), 0, st.n - f.d);
+    if (D.layer === "small") { const s = surfaceUnder(item); item.on = s ? s.id : undefined; if (!s) delete item.on; }
+    for (const c of d.kids ?? []) { c.x.u = item.u + c.du; c.x.v = item.v + c.dv; }
+  }
+  d.valid = valid(item);
+  render();
+}
+function endDrag() {
+  const d = st.drag; if (!d) return;
+  st.drag = null;
+  if (d.id === "avatar") {
+    const pt = { u:st.av.u, v:st.av.v };
+    const seat = st.items.find((x) => DEFS[x.it].seat && inside(pt, fp(x)));
+    st.av.seat = seat ? seat.id : null;
+    commit(d.before); render(); return;
+  }
+  if (!d.valid) {
+    restore(d.before); st.msg = d.fresh ? "그 자리에는 놓을 수 없다" : "겹쳐서 제자리로 돌아갔다";
+    if (d.fresh) st.sel = null;
+  } else { st.msg = ""; commit(d.before); }
+  render();
+}
+
+$("room").addEventListener("pointerdown", (e) => {
+  const g = e.target.closest("[data-id]");
+  st.msg = "";
+  if (!g) { st.sel = null; render(); return; }
+  e.preventDefault();
+  st.sel = g.dataset.id; startDrag(g.dataset.id, e); render();
+});
+window.addEventListener("pointermove", (e) => {
+  if (st.drag) { moveDrag(e); return; }
+  const t = st.trayPress;
+  if (t && Math.hypot(e.clientX - t.x, e.clientY - t.y) > 8) {
+    st.trayPress = null;
+    const before = snapshot(), item = placeFree(t.it);
+    if (!item) return;
+    st.sel = item.id; st.drag = { before }; startDrag(item.id, e, true); moveDrag(e);
+  }
+});
+window.addEventListener("pointerup", () => {
+  if (st.drag) { endDrag(); return; }
+  const t = st.trayPress; st.trayPress = null;
+  if (t) {
+    const before = snapshot(), item = placeFree(t.it);
+    st.msg = item ? "" : "빈 자리가 없다"; if (item) { st.sel = item.id; commit(before); }
+    render();
+  }
+});
+window.addEventListener("pointercancel", () => { if (st.drag) { st.drag.valid = st.drag.valid && st.drag.moved; endDrag(); } st.trayPress = null; });
+$("tray").addEventListener("pointerdown", (e) => {
+  const b = e.target.closest("button"); if (!b || b.disabled) return;
+  e.preventDefault(); st.trayPress = { it:b.dataset.it, x:e.clientX, y:e.clientY };
+});
+$("tray").addEventListener("keydown", (e) => {
+  const b = e.target.closest("button"); if (!b || (e.key !== "Enter" && e.key !== " ")) return;
+  e.preventDefault(); const before = snapshot(), item = placeFree(b.dataset.it);
+  st.msg = item ? "" : "빈 자리가 없다"; if (item) { st.sel = item.id; commit(before); } render();
+});
+$("tileSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { st.tile = Number(b.dataset.v); render(); } });
+$("artSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { st.art = b.dataset.v === "1"; render(); } });
+$("sizeSeg").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  const before = snapshot(); st.n = Number(b.dataset.v);
+  const out = st.items.filter((x) => !x.on && !valid(x));
+  st.items = st.items.filter((x) => !out.includes(x) && !out.some((o) => o.id === x.on));
+  st.av.u = clamp(st.av.u, .25, st.n - .25); st.av.v = clamp(st.av.v, .25, st.n - .25);
+  if (st.av.seat && !st.items.some((x) => x.id === st.av.seat)) st.av.seat = null;
+  st.msg = out.length ? `방 밖으로 나간 ${out.length}개를 보관함에 넣었다` : ""; commit(before); render();
+});
+$("undo").onclick = () => { const s = st.hist.pop(); if (s) { restore(s); st.sel = null; st.msg = ""; render(); } };
+$("reset").onclick = () => { const b = snapshot(); Object.assign(st, initial()); st.sel = null; st.msg = ""; commit(b); render(); };
+
+render();
+</script>

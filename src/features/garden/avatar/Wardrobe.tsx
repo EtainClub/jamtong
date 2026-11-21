@@ -8,7 +8,6 @@ import { gardenFeedback } from "../feedback";
 import { josa } from "../rules";
 import { Sheet } from "../Sheet";
 import { CURRENCY, priceText, shortText } from "../shop/parts";
-import { roomWidth } from "../room/rules";
 import { useGarden, type GardenData } from "../store";
 import { AvatarIcon } from "./AvatarArt";
 import { AVATAR_NAME, PARTS, WEAR, WEAR_BY_ID, type Part, type Wear } from "./catalog";
@@ -49,7 +48,6 @@ export function Wardrobe({
   const [part, setPart] = useState<Part>("hair");
   const owned = { owned: saved.owned };
   const face = moodFace(data.room.mood);
-  const width = roomWidth(data.room.size);
   // 시트는 누른 뒤에만 열리므로(서버에서 그리지 않는다) 처음 값에서 바로 읽어도 된다.
   const [reduceMotion] = useState(() => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
@@ -197,29 +195,9 @@ export function Wardrobe({
         />
       )}
 
-      <fieldset className="mt-4">
-        <legend className="text-[13px] font-bold">서는 자리</legend>
-        <div className="mt-1.5 grid gap-1" style={{ gridTemplateColumns: `repeat(${width}, minmax(0, 1fr))` }}>
-          {(["b", "f"] as const).flatMap((row) =>
-            Array.from({ length: width }, (_, i) => {
-              const at = `${row}${i}`;
-              return (
-                <button
-                  key={at}
-                  type="button"
-                  aria-pressed={draft.at === at}
-                  aria-label={`바닥 ${row === "b" ? "뒷줄" : "앞줄"} ${i + 1}번 칸`}
-                  className="garden-avatar-slot"
-                  onClick={() => { gardenFeedback("tap"); setDraft((d) => ({ ...d, at })); }}
-                >
-                  {draft.at === at ? "🧍" : ""}
-                </button>
-              );
-            }),
-          )}
-        </div>
-        <p className="mt-1 text-[12px] text-smoke">의자·소파에 세우면 앉고, 침대면 자고, 피아노·키보드면 연주해요. 칸을 차지하지 않아요.</p>
-      </fieldset>
+      <p className="mt-4 text-[12.5px] leading-relaxed text-smoke">
+        서는 자리는 방 ‘✏️ 꾸미기’에서 {AVATAR_NAME}를 끌어 옮겨요. 의자·소파에 두면 앉고, 침대면 자고, 피아노·키보드면 연주해요.
+      </p>
 
       <div className="mt-3 flex flex-wrap gap-4 text-[13px]">
         <label className="flex min-h-[44px] items-center gap-2">

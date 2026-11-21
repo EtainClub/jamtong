@@ -12,7 +12,7 @@ import { FurnitureStory } from "../room/FurnitureStory";
 import { STORY_COLLECTIONS, STORY_LABEL, type StoryCollection } from "../room/stories";
 import { activityOf } from "../room/activities";
 import { FurnitureIcon, RoomScene } from "../room/RoomArt";
-import { firstOpenSlot, hasSurface, nextRoomSize, OWN_MAX, ROOM_SIZES, onSale, weekLeft, weeklyPicks, type BuyRefusal } from "../room/rules";
+import { firstOpenSpot, hasSurface, nextRoomSize, OWN_MAX, ROOM_SIZES, onSale, weekLeft, weeklyPicks, type BuyRefusal } from "../room/rules";
 import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
 import { BuySheet, ExpandBanner, priceText, ShopCard } from "./parts";
@@ -233,8 +233,8 @@ export function RoomShop({
   );
 }
 
-/** 미리 보기 자리. 가진 수와 상관없이 첫 빈 칸에 흐리게 얹어 본다. */
+/** 미리 보기 자리. 가진 수와 상관없이 첫 빈자리에 흐리게 얹어 본다. */
 function previewSlot(room: GardenData["room"], id: string) {
-  const at = firstOpenSlot(room, id);
-  return at ? { at, it: id } : null;
+  const pos = firstOpenSpot(room, id);
+  return pos ? { pos, it: id } : null;
 }
