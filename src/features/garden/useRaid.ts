@@ -29,13 +29,16 @@ import {
   RAID_AID_MIN_GAP,
   RAID_AIDS,
   RAID_FINISHER_MAX,
-  RAID_LIFE,
   RAID_PER_DAY,
   raidShard,
   RAID_SHARDS,
   RAID_STRIKE_GAP,
   RAID_USES_PER_PERSON,
   raidAdvanceKind,
+  raidClosesAtId,
+  raidEndsAt,
+  raidLightHp,
+  raidWeekly,
   raidFilled,
   raidFormsCleared,
   raidId,
@@ -50,11 +53,10 @@ import {
   type RaidPool,
   type RaidRoleId,
 } from "./rules";
-import type { PlazaLevel } from "./types";
 
 /**
- * 거대 잡초 — 광장이 무성해지면 하루 여러 번(물결) 나타난다. 설계는 docs/garden-game.md §3.8,
- * 거대 잡초 2.0은 docs/garden-miniroom.md §7.
+ * 거대 잡초 — 하루 세 번(아침·점심·저녁) 나타난다. 설계는 docs/garden-game.md §3.8,
+ * 거대 잡초 2.0은 docs/garden-miniroom.md §7, 하루 세 번·주 한 번 변신은 docs/garden-achievement-strategy.md §2.
  *
  * ★ 문지른 것은 화면에서 세고, 기력 한 번씩 서버로 보낸다. 빈틈이면 그 한 번이 두 배로 센다(규칙이 본다).
  *   한 사람은 1초에 한 번만 칠 수 있다(규칙). 손이 빠르면 쌓이고, 쌓인 것은 간격을 두고 차례로 나간다.
@@ -146,6 +148,11 @@ interface LocalRaids {
   waves: Array<(Raid & { mine: RaidMine }) | null>;
 }
 
+/** 이 브라우저 안의 거대 잡초(파이어베이스 없는 모드) — 지난 물결의 보상 카드도 읽는다. */
+export function readLocalRaids(day: number): LocalRaids {
+  return readLocal(day);
+}
+
 function readLocal(day: number): LocalRaids {
   try {
     const raw = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? "null") as LocalRaids | null;
@@ -168,7 +175,6 @@ export function useRaid(
   uid: string | null,
   nick: string,
   now: number,
-  level: PlazaLevel,
   onResult: (result: StrikeResult, hits: number) => void,
 ): RaidState {
   const day = kstDayNumber(now);
@@ -248,7 +254,7 @@ export function useRaid(
       ? remote.waves
       : WAVES.map(() => undefined)
     : local?.day === day
-      ? local.waves
+      ? local.waves.map((w, i) => (w ? { ...w, closesAt: raidClosesAtId(raidId(day, i + 1)) } : null))
       : WAVES.map(() => null);
   const loaded = waves.every((w) => w !== undefined);
 
@@ -266,9 +272,10 @@ export function useRaid(
 
   // 갓 태어났거나 갓 변신한 물결을 봤으면 서버에 알린다 — 알림을 켠 기기에 푸시가 간다(docs/garden-raid-boss.md §8).
   // 세운 화면도, 그 직후에 본 화면도 부른다. 서버가 물결·형태마다 한 번만 보낸다.
+  // 주에 한 번 나오는 변신하는 거대 잡초만 알린다. 보통 물결(하루 셋)까지 알리면 알림이 소음이 된다.
   const shownForm = raid?.v3?.form ?? 1;
   const bornAt = raid?.v3 && raid.v3.form > 1 ? raid.v3.formAt : (raid?.spawnedAt ?? null);
-  const fresh = raid?.phase === "active" && bornAt !== null && now - bornAt < PUSH_FRESH;
+  const fresh = Boolean(raid?.v3) && raid?.phase === "active" && bornAt !== null && now - bornAt < PUSH_FRESH;
   useEffect(() => {
     if (firebaseConfigured && fresh && currentId) pingRaidSpawn(currentId, shownForm);
   }, [fresh, currentId, shownForm]);
@@ -319,11 +326,13 @@ export function useRaid(
     raidRef.current = raid;
   });
 
-  // 광장이 무성하고 다음 물결이 나올 때가 됐으면 세운다. 먼저 본 사람이 세우고, 나머지는 그것을 본다.
+  // 시간대가 열렸고 그 물결이 아직 없으면 세운다. 먼저 본 사람이 세우고, 나머지는 그것을 본다.
+  // 광장이 얼마나 무성한지는 보지 않는다 — 하루 세 번을 약속한다(2026-11-21).
   const spawning = useRef(false);
-  const due = level === "overgrown" && next !== null && now >= next.at ? next.wave : null;
+  const due = next !== null && now >= next.at ? next.wave : null;
   useEffect(() => {
     if (due === null || spawning.current) return;
+    const weekly = raidWeekly(day, due);
     const size = raidSize(day, due);
     if (!firebaseConfigured) {
       const cur = readLocal(day);
@@ -331,15 +340,17 @@ export function useRaid(
       const waves = [...cur.waves];
       const first = raidSplit(size, 1);
       const born = Date.now();
-      waves[due - 1] = {
-        hp: first.h,
-        hits: 0,
-        fighters: 0,
-        spawnedAt: born,
-        defeatedAt: null,
-        v3: { form: 1, formAt: born, size, n: size, brk: first.b, grd: first.g, base: { h: 0, b: 0, g: 0 }, brkHits: 0, grdHits: 0 },
-        mine: NO_MINE,
-      };
+      waves[due - 1] = weekly
+        ? {
+            hp: first.h,
+            hits: 0,
+            fighters: 0,
+            spawnedAt: born,
+            defeatedAt: null,
+            v3: { form: 1, formAt: born, size, n: size, brk: first.b, grd: first.g, base: { h: 0, b: 0, g: 0 }, brkHits: 0, grdHits: 0 },
+            mine: NO_MINE,
+          }
+        : { hp: raidLightHp(day, due), hits: 0, fighters: 0, spawnedAt: born, defeatedAt: null, mine: NO_MINE };
       const nextLocal = { day, waves };
       writeLocal(nextLocal);
       // 외부 저장소(localStorage)와 맞추는 것이다.
@@ -349,9 +360,9 @@ export function useRaid(
     }
     if (!uid) return;
     spawning.current = true;
-    spawnRaid(raidId(day, due), size)
+    spawnRaid(raidId(day, due), weekly ? { weekly: true, size } : { weekly: false, hp: raidLightHp(day, due) })
       .then((made) => {
-        if (made) track("raid_spawn", { wave: due });
+        if (made) track("raid_spawn", { wave: due, weekly });
       })
       .catch((error) => console.error("[raid] 거대 잡초를 세우지 못했다", error))
       .finally(() => {
@@ -386,7 +397,7 @@ export function useRaid(
   const endedPhase = raid && raid.phase !== "active" && (me.hits > 0 || me.aids > 0) ? raid.phase : null;
   useEffect(() => {
     if (!raid || endedPhase === null || !markEnded(raid.id)) return;
-    const end = raid.defeatedAt ?? (raid.spawnedAt !== null ? raid.spawnedAt + RAID_LIFE : null);
+    const end = raid.defeatedAt ?? raidEndsAt(raid);
     track("raid_end", {
       raid: raid.id,
       wave: raid.wave,
@@ -439,7 +450,7 @@ export function useRaid(
           const cur = readLocal(day);
           const w = cur.waves[wave - 1];
           if (!w || w.defeatedAt) result = "over";
-          else if (w.spawnedAt !== null && Date.now() >= w.spawnedAt + RAID_LIFE) result = "escaped";
+          else if ((raidEndsAt({ ...w, closesAt: raidClosesAtId(id) }) ?? Infinity) <= Date.now()) result = "escaped";
           else {
             // 이 브라우저 안의 거대 잡초 — 서버 규칙과 같은 셈을 여기서 한다(게이지 하나에 넣고, 다 차면 변신하거나 쓰러진다).
             const form = w.v3?.form ?? 0;

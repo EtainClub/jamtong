@@ -188,7 +188,7 @@ export function canSign(mode: GuestbookMode, isFriend: boolean): boolean {
  * 소식은 글이 아니라 종류 번호다(§5.2). k=종류, s=품종 id, m=변이 id 또는 방 크기, t=때.
  * 읽는 화면이 표에서 문장을 만든다. 번호는 공개 문서에 실린다 — 순서를 바꾸지 않는다.
  */
-export const NEWS_KINDS = ["species", "mutant", "room"] as const;
+export const NEWS_KINDS = ["species", "mutant", "room", "souvenir", "album"] as const;
 export type NewsKind = (typeof NEWS_KINDS)[number];
 
 export interface NewsEntry {
@@ -234,6 +234,8 @@ export function newsText(entry: NewsEntry, byId: ReadonlyMap<string, Species>): 
   const species = byId.get(entry.s);
   if (!species) return null;
   if (kind === "species") return `새 품종 「${species.title}」을 거뒀어요`;
+  if (kind === "souvenir") return `업적 기념관에서 「${species.title}」 기념품을 받았어요`;
+  if (kind === "album") return `사진첩에 「${species.title}」을 올렸어요`;
   if (kind === "mutant") {
     const m = entry.m as Mutation | undefined;
     if (!m || !MUTATION_ORDER.includes(m)) return null;

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ACHIEVEMENT_CARDS, byRecency, getPublishedAchievements } from "@/content/achievements";
+import { ACHIEVEMENT_HEROES } from "@/content/achievements/heroes";
 import { MILESTONES, ALL_CLAIMS, ALL_SOURCES } from "@/content/milestones";
 import { findScene, validateMilestones } from "@/content/schema";
 import { AppTopBar } from "@/features/app/AppTopBar";
@@ -22,22 +23,7 @@ import { JsonLd, webSiteLd } from "@/lib/seo/jsonld";
  * 정작 대다수가 쓰는 쪽이 부실해진다.
  */
 
-const HERO_IMAGES: Partial<Record<string, string>> = {
-  "export-surplus": "/images/heroes/export-surplus.webp",
-  "inbound-tourism": "/images/heroes/inbound-tourism.webp",
-  "birth-rebound": "/images/heroes/birth-rebound.webp",
-  "housing-stabilization": "/images/achievements/housing-stabilization-hero.webp",
-  "youth-future-savings": "/images/heroes/youth-future-savings.jpg",
-  "arctic-route": "/images/heroes/arctic-route.jpg",
-  daejangdong: "/images/heroes/daejangdong.jpg",
-  "gyeonggi-valley": "/images/heroes/gyeonggi-valley.jpg",
-  "mexico-visit": "/images/heroes/mexico-visit.jpg",
-  "nuclear-submarine": "/images/heroes/nuclear-submarine-plan.jpg",
-  "oil-supply": "/images/heroes/oil-supply.jpg",
-  "prosecution-reform": "/images/heroes/prosecution-reform.jpg",
-  "seongnam-debt": "/images/heroes/seongnam-debt.jpg",
-  "stock-market": "/images/heroes/stock-market.jpg",
-};
+const HERO_IMAGES = ACHIEVEMENT_HEROES;
 
 /**
  * 지금 국회에 걸려 있는 일 — 2027년 예산안.

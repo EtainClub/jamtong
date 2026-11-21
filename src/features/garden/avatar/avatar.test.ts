@@ -202,7 +202,7 @@ test("받는 옷은 조건을 채우면 들어오고, 같으면 같은 것을 �
 
 test("firestore.rules의 publicRoom()이 같은 길이·정규식을 본다", () => {
   const rules = readFileSync("firestore.rules", "utf8");
-  assert.match(rules, /'avatar'\]\)/);
+  assert.match(rules, /'avatar'(, 'album')?\]\)/);
   assert.ok(rules.includes(`r.avatar.size() <= ${AVATAR_PUBLIC_MAX}`));
   assert.ok(rules.includes(`r.avatar.matches('${AVATAR_PUBLIC_RE.source}')`));
 });

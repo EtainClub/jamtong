@@ -1,6 +1,8 @@
 import Link from "next/link";
 
-import { HORIZON_LABEL, type ActionItem } from "@/content/books/schema";
+import type { ReadLocale } from "@/content/books/i18n";
+import type { ActionItem } from "@/content/books/schema";
+import { BOOK_UI } from "./ui";
 
 /**
  * 할 일 — 이 섹션이 있는 이유.
@@ -13,7 +15,8 @@ import { HORIZON_LABEL, type ActionItem } from "@/content/books/schema";
  * 읽지 않고 내려온 사람도 여기서 멈추게 하려는 것이다 — 읽는 것이 목적이
  * 아니라 하는 것이 목적이다.
  */
-export function ActionList({ actions }: { actions: ActionItem[] }) {
+export function ActionList({ actions, lang = "ko" }: { actions: ActionItem[]; lang?: ReadLocale }) {
+  const t = BOOK_UI[lang];
   /* 오늘 → 이번 주 → 늘. 가까운 것부터 보여야 시작할 수 있다. */
   const order = { today: 0, week: 1, always: 2 } as const;
   const sorted = [...actions].sort((a, b) => order[a.horizon] - order[b.horizon]);
@@ -22,11 +25,10 @@ export function ActionList({ actions }: { actions: ActionItem[] }) {
     <section aria-labelledby="actions" className="mt-9">
       <div className="rounded-card border-2 border-ink bg-taupe/60 px-4 py-5">
         <h2 id="actions" className="text-[15px] font-bold text-ink">
-          이 장을 읽었다면, 할 수 있는 일
+          {t.actionsTitle}
         </h2>
         <p className="mt-1.5 text-[12px] leading-relaxed text-smoke">
-          읽고 끝나지 않게 하려고 둡니다. 이 장이 말한 범위 안에서 뽑은 것이고,
-          그 밖의 주장은 넣지 않습니다.
+          {t.actionsNote}
         </p>
 
         <ol className="mt-4 space-y-3">
@@ -37,7 +39,7 @@ export function ActionList({ actions }: { actions: ActionItem[] }) {
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-semibold text-eggshell">
-                  {HORIZON_LABEL[action.horizon]}
+                  {t.horizon[action.horizon]}
                 </span>
               </div>
 

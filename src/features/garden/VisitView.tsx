@@ -21,9 +21,11 @@ import { FURNITURE_BY_ID, moodOf } from "./room/catalog";
 import { KeyboardSheet } from "./room/KeyboardSheet";
 import { blankKeys, KEYBOARD_ID } from "./room/keyboard";
 import { RoomItemSheet } from "./room/RoomItemSheet";
+import { AlbumView } from "./memorial/AlbumView";
+import { Sheet } from "./Sheet";
 import { activityOf } from "./room/activities";
 import { RoomScene } from "./room/RoomArt";
-import { keyboardKeys, hasKeyboard, isShownId, roomFromPublic, type Placed } from "./room/rules";
+import { keyboardKeys, hasKeyboard, isShownId, roomFromPublic, SOUVENIR_CASE, type Placed } from "./room/rules";
 import { formatLeft, kstDayNumber, TIER_LABEL, WATER_CUT, WATER_PER_DAY } from "./rules";
 import { useGarden } from "./store";
 import type { Species } from "./types";
@@ -67,6 +69,7 @@ export function VisitView({
   const [state, setState] = useState<{ gid: string; uid: string | null; loaded: Loaded | null | "error" } | null>(null);
   const [watering, setWatering] = useState(false);
   const [opened, setOpened] = useState<Placed | null>(null);
+  const [albumOpen, setAlbumOpen] = useState(false);
   const [counter, setCounter] = useState<{ gid: string; c: Counter } | null>(null);
   /** 내가 이 방 주인의 1촌인가. 규칙이 읽게 해 주는 내 1촌 문서로 확인한다. */
   const [friendOf, setFriendOf] = useState<{ gid: string; yes: boolean } | null>(null);
@@ -272,7 +275,7 @@ export function VisitView({
               now={now}
               label={`${garden.nick || "이름 없는"}의 방`}
               onAvatarTap={() => track("avatar_tap", { mine: false })}
-              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID || p.it === "piano" || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
+              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID || p.it === "piano" || p.it === SOUVENIR_CASE || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
               onItem={(p) => {
                 gardenFeedback("tap");
                 if (p.it === "piano") keyAudio();
@@ -286,8 +289,18 @@ export function VisitView({
             <span className="text-smoke"> (위쪽 ♪로 켜고 꺼요)</span>
           </p>
           <p className="mt-1 text-[12px] text-smoke">
-            화분과 액자를 누르면 그 품종과 쪽지의 원본으로 갈 수 있어요.{hasKeyboard(theirRoom) ? " ⌨️ 키보드를 누르면 키를 눌러 볼 수 있어요." : ""}
+            화분·액자·기념품을 누르면 그 업적과 근거로 갈 수 있어요.{hasKeyboard(theirRoom) ? " ⌨️ 키보드를 누르면 키를 눌러 볼 수 있어요." : ""}
           </p>
+          {(theirRoom.album?.length ?? 0) > 0 && (
+            <button type="button" className="garden-diary-btn mt-2 min-h-[44px]" onClick={() => { gardenFeedback("tap"); setAlbumOpen(true); }}>
+              📷 {garden.nick || "이름 없는"}의 사진첩 {theirRoom.album!.length}장 보기
+            </button>
+          )}
+          {albumOpen && (
+            <Sheet label="사진첩" title="📷 사진첩" onClose={() => setAlbumOpen(false)}>
+              <AlbumView album={theirRoom.album} ownerNick={garden.nick || "이름 없는"} byId={byId} />
+            </Sheet>
+          )}
           {opened && (
             <RoomItemSheet
               room={theirRoom}

@@ -13,6 +13,7 @@ import { CHEERS } from "../src/content/cheers";
 import { validateCheers } from "../src/content/cheers/schema";
 import { BOOKS } from "../src/content/books";
 import { validateBook } from "../src/content/books/schema";
+import { translationReport } from "../src/content/books/translations";
 import { POLICIES } from "../src/content/policies";
 import { CORRECTIONS, validateCorrections } from "../src/content/corrections";
 import { archiveEntry } from "../src/content/source-archive";
@@ -129,6 +130,27 @@ for (const book of BOOKS) {
     `\u2713 자서전 ${book.slug} — 챕터 ${book.chapters.length}, ` +
       `본문 ${bodies}, 행동 ${actions}`,
   );
+}
+
+/*
+ * 옮긴 자서전 (docs/book-i18n.md).
+ *
+ * 원본과 맞는가(id·도형·옮긴 자리), 옮긴 본문 안에서 인용이 실재하는가. 맞지 않으면 실패한다.
+ * 원본이 바뀐 뒤 갱신하지 않은 번역과 검수 전 번역은 경고만 한다 — 화면이 그렇게 밝힌다.
+ */
+for (const { locale, slug, errors, localized } of translationReport()) {
+  if (errors.length > 0) {
+    failed = true;
+    console.error(`\n\u2717 자서전 번역 ${slug} (${locale})`);
+    for (const error of errors) console.error(`    ${error}`);
+    continue;
+  }
+  const infos = Object.entries(localized.info);
+  console.log(`\u2713 자서전 번역 ${slug} (${locale}) — 장 ${infos.length}`);
+  for (const [id, info] of infos) {
+    if (info.stale) console.warn(`  \u26a0 ${locale}/${id}: 원문이 바뀐 뒤 갱신하지 않은 번역 — 다시 옮긴 뒤 basedOn을 ${info.fingerprint}로 올린다`);
+    if (!info.review.reviewed) console.warn(`  \u26a0 ${locale}/${id}: 원어민 검수 전`);
+  }
 }
 
 const unsourced = BOOKS.filter((book) => !book.source.verified);

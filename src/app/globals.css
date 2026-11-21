@@ -110,6 +110,22 @@ body {
   text-wrap: pretty;
 }
 
+/*
+ * 옮긴 자서전 장(/ja/…)의 글꼴. Pretendard에는 가나가 없고 한자가 한국식 자형이라,
+ * 일본어 갈래는 일본어 시스템 글꼴을 먼저 쓴다. 그 안에 한국어로 남긴 원제(lang="ko")는
+ * 다시 한국어 글꼴로. 속성 선택자라 상속으로 퍼지고, base 층이라 font-mono 같은 유틸리티가 이긴다.
+ * 영어(/en/…)는 Pretendard의 라틴 글자로 충분하다.
+ */
+@layer base {
+  [lang="ja"] {
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Meiryo,
+      var(--font-sans);
+  }
+  [lang="ko"] {
+    font-family: var(--font-sans);
+  }
+}
+
 /* 숫자는 표 정렬. 스크럽 중에 자릿수가 흔들리면 읽을 수 없다. */
 .tabular {
   font-variant-numeric: tabular-nums;

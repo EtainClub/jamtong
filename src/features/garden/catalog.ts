@@ -6,6 +6,7 @@ import { archiveEntry } from "@/content/source-archive";
 import { STATEMENTS } from "@/content/words";
 
 import { arrivedOn } from "./arrivals";
+import { mementoOf } from "./memorial/build";
 import { hash, leafId } from "./rules";
 import type { Case, CaseOption, Leaf, Note, NoteKind, Species, Tier } from "./types";
 
@@ -96,6 +97,7 @@ export function buildCatalog(): Species[] {
       seed: hash(a.slug),
       arrivedOn: arrivedOn(`a:${a.slug}`),
       ...sinceOf(a.timeline.map((e) => e.date)),
+      memento: mementoOf(a),
     });
   }
 

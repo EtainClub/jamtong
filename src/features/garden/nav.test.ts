@@ -3,9 +3,10 @@
  * 옛 ?tab= 값이 새 탭의 해당 칸으로 가는지, 홈의 새 소식이 지금 할 일을 말하는지 본다.
  */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { BASKET_WARN_AT, defaultNav, homeNews, navOf, type NewsInput } from "./nav";
+import { BASKET_WARN_AT, defaultNav, homeNews, navOf, SEGMENTS, type NewsInput } from "./nav";
 import type { Plant } from "./types";
 
 const KST = 9 * 3_600_000;
@@ -69,4 +70,11 @@ test("새 소식: 단비가 가까우면 알리고, 오는 중이면 남은 시�
   const during = Date.UTC(2026, 10, 17, 12, 33) - KST;
   assert.match(homeNews(input(), during).find((n) => n.key === "rain")?.text ?? "", /오는 중/);
   assert.equal(homeNews(input(), NOW).find((n) => n.key === "rain"), undefined);
+});
+
+test("방 탭의 칸마다 책갈피 자리(padding-top)가 있다 — 빠지면 책갈피가 위 단추와 겹친다", () => {
+  const css = readFileSync("src/features/garden/garden.module.css", "utf8");
+  const rule = css.split("\n").find((l) => l.includes("padding-top: 34px") && l.includes(".garden-screen-room"));
+  assert.ok(rule, "책갈피 자리 규칙이 없다");
+  for (const s of SEGMENTS.room) assert.ok(rule!.includes(`.garden-screen-${s.id})`), `${s.id} 칸에 자리가 없다`);
 });

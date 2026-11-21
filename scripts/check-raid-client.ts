@@ -69,8 +69,8 @@ async function seedCell(id: string, s: number, c: { hits: number; brk: number; g
   const others = [0, 1, 2].filter((n) => n !== raidShard(UID)).slice(0, 2);
 
   console.log("세우기");
-  check("spawnRaid(300)", (await spawnRaid(id, 300)) === true);
-  check("한 번 더 세우면 아무 일도 없다", (await spawnRaid(id, 300)) === false);
+  check("spawnRaid(300)", (await spawnRaid(id, { weekly: true, size: 300 })) === true);
+  check("한 번 더 세우면 아무 일도 없다", (await spawnRaid(id, { weekly: true, size: 300 })) === false);
   const born = await raid();
   check("1형 · 체력 300 · 갑옷 0 · 울타리 0", born.form === 1 && born.hp === 300 && born.brk === 0 && born.grd === 0, born);
 

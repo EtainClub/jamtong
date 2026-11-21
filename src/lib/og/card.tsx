@@ -26,6 +26,26 @@ export const ogFonts = [
   { name: "Pretendard", data: semibold, weight: 600 as const, style: "normal" as const },
 ];
 
+/**
+ * 일본어 카드용 서체 — 옮긴 자서전 장(/ja/books/…)만 쓴다.
+ *
+ * Pretendard에는 가나가 없고, 한자는 한국식 자형이다. Noto Sans JP를 JIS X 0208(제1·2수준 한자)과
+ * 가나·전각 기호·ASCII로 줄여 둔 파일이다(assets/fonts/README.md). 모든 카드가 읽지 않도록
+ * 부를 때 한 번만 읽는다. 목록 앞의 Noto Sans JP가 먼저 쓰이고, 없는 글자(한글)는 Pretendard로 넘어간다.
+ */
+let jaFonts: Promise<typeof ogFonts> | undefined;
+export function ogFontsJa(): Promise<typeof ogFonts> {
+  jaFonts ??= Promise.all([
+    readFile(join(FONT_DIR, "NotoSansJP-Light.otf")),
+    readFile(join(FONT_DIR, "NotoSansJP-Medium.otf")),
+  ]).then(([jaLight, jaMedium]) => [
+    { name: "Noto Sans JP", data: jaLight, weight: 300 as const, style: "normal" as const },
+    { name: "Noto Sans JP", data: jaMedium, weight: 600 as const, style: "normal" as const },
+    ...ogFonts,
+  ]);
+  return jaFonts;
+}
+
 /** 디자인 토큰. globals.css의 값을 그대로 옮긴다 — 한 곳에서 갈라지면 안 된다. */
 export const C = {
   eggshell: "#fdfcfc",

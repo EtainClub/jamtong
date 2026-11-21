@@ -8,7 +8,6 @@ import {
   RAID_FINISHER_MAX,
   RAID_GAP_EVERY,
   RAID_GAP_MULT,
-  RAID_LIFE,
   RAID_NAMES_PER_SHARD,
   RAID_POOLS,
   RAID_ROLE_MULT,
@@ -17,6 +16,8 @@ import {
   RAID_USES_PER_PERSON,
   raidAdvanceKind,
   raidAidOf,
+  raidClosesAtId,
+  raidEndsFrom,
   raidFilled,
   raidId,
   raidNextNeed,
@@ -147,6 +148,7 @@ export function watchRaidWave(id: string, onRaid: (raid: Raid | null) => void): 
         spawnedAt: toMillis(snap.get("spawnedAt", { serverTimestamps: "estimate" })),
         defeatedAt: toMillis(snap.get("defeatedAt", { serverTimestamps: "estimate" })),
         v3: v3Of((k) => snap.get(k), snap.get("formAt", { serverTimestamps: "estimate" })),
+        closesAt: raidClosesAtId(id),
       };
       emit();
     },
@@ -236,36 +238,41 @@ export async function loadTodayRaids(day: number): Promise<Array<{ wave: number;
       spawnedAt: toMillis(d.get("spawnedAt")),
       defeatedAt: toMillis(d.get("defeatedAt")),
       v3: v3Of((k) => d.get(k), d.get("formAt")),
+      closesAt: raidClosesAtId(d.id),
     },
   }));
 }
 
 /**
- * 물결을 세운다(빈 칸까지 함께). 이미 있으면 아무것도 하지 않는다. 앞 물결이 덜 끝났으면 규칙이 막는다.
- * 내가 세웠으면 true.
+ * 물결을 세운다. 보통 물결은 체력 하나(hp)뿐이고, 그 주의 변신하는 거대 잡초만 1형(3.1)으로 선다 — 규칙이 자리를 본다.
+ * 이미 있으면 false(먼저 본 사람이 세웠다).
  */
-export async function spawnRaid(id: string, size: number): Promise<boolean> {
+export async function spawnRaid(id: string, born: { weekly: true; size: number } | { weekly: false; hp: number }): Promise<boolean> {
   const db = firebaseDb();
   if (!db) return false;
   const ref = doc(db, "plazaRaids", id);
-  const first = raidSplit(size, 1);
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (snap.exists()) return false;
-    tx.set(ref, {
-      hp: first.h,
-      brk: first.b,
-      grd: first.g,
-      size,
-      n: size,
-      base: { h: 0, b: 0, g: 0 },
-      form: 1,
-      formAt: serverTimestamp(),
-      hits: 0,
-      fighters: 0,
-      spawnedAt: serverTimestamp(),
-      defeatedAt: null,
-    });
+    if (born.weekly) {
+      const first = raidSplit(born.size, 1);
+      tx.set(ref, {
+        hp: first.h,
+        brk: first.b,
+        grd: first.g,
+        size: born.size,
+        n: born.size,
+        base: { h: 0, b: 0, g: 0 },
+        form: 1,
+        formAt: serverTimestamp(),
+        hits: 0,
+        fighters: 0,
+        spawnedAt: serverTimestamp(),
+        defeatedAt: null,
+      });
+    } else {
+      tx.set(ref, { hp: born.hp, hits: 0, fighters: 0, spawnedAt: serverTimestamp(), defeatedAt: null });
+    }
     for (const n of shardIds) tx.set(doc(db, "plazaRaids", id, "shards", n), { hits: 0, fighters: 0 });
     return true;
   });
@@ -340,7 +347,8 @@ export async function strikeRaid(
       if (!raid.exists() || raid.get("defeatedAt")) return { result: "over", uses: 0, hits: 0 };
       const spawnedAt = toMillis(raid.get("spawnedAt"));
       const now = Date.now();
-      if (spawnedAt !== null && now >= spawnedAt + RAID_LIFE) return { result: "escaped", uses: 0, hits: 0 };
+      const ends = raidEndsFrom(spawnedAt, raid.get("form") !== undefined, raidClosesAtId(id));
+      if (ends !== null && now >= ends) return { result: "escaped", uses: 0, hits: 0 };
       const before = mine.exists() ? mineOf((k) => mine.get(k), mine.get("aidAt")) : NO_MINE;
       const enter = entering(raid.data(), before, aim);
       const n = Math.min(want, RAID_USES_PER_PERSON - enter.usesWas);
@@ -414,7 +422,8 @@ export async function aidRaid(uid: string, id: string, aid: RaidAidId, nick: str
       const [raid, mine, cell] = await Promise.all([tx.get(raidRef), tx.get(mineRef), tx.get(shardRef)]);
       if (!raid.exists() || raid.get("defeatedAt")) return "over";
       const spawnedAt = toMillis(raid.get("spawnedAt"));
-      if (spawnedAt !== null && Date.now() >= spawnedAt + RAID_LIFE) return "escaped";
+      const ends = raidEndsFrom(spawnedAt, raid.get("form") !== undefined, raidClosesAtId(id));
+      if (ends !== null && Date.now() >= ends) return "escaped";
       const before = mine.exists() ? mineOf((k) => mine.get(k), mine.get("aidAt")) : NO_MINE;
       // 새 형태에서 지원으로 먼저 들 수도 있다 — 그때도 형태를 맞추고 기력을 0부터 다시 센다.
       const enter = entering(raid.data(), before, { role, pool: 0 });

@@ -43,6 +43,7 @@ export function itemName(it: string, room: RoomData, byId: ReadonlyMap<string, S
   if (s.kind === "frame") return `쪽지 액자${title ? ` · ${title}` : ""}`;
   if (s.kind === "tree") return `나무${title ? ` · ${title}` : ""}`;
   if (s.kind === "trophy") return `박제 · ${RAID_KINDS.find((k) => k.id === s.species)?.name ?? "악초"}`;
+  if (s.kind === "souvenir") return `기념품${title ? ` · ${title}` : ""}`;
   return `화분${title ? ` · ${title}` : ""}`;
 }
 

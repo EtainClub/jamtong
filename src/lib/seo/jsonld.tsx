@@ -79,6 +79,10 @@ export interface ArticleLdInput {
   citation?: string;
   /** 어떤 더 큰 것의 일부인지. 자서전의 장이 그렇다. */
   isPartOf?: object;
+  /** 글의 언어. 옮긴 자서전 장만 한국어가 아니다. */
+  inLanguage?: string;
+  /** 이 글이 옮긴 원문 글의 주소. 옮긴 자서전 장이 한국어 장을 가리킨다. */
+  translationOf?: string;
   /**
    * 이 글의 그림. 공유 카드를 그대로 가리킨다.
    *
@@ -96,7 +100,10 @@ export function articleLd(input: ArticleLdInput) {
     headline: input.headline,
     description: input.description,
     url: abs(input.path),
-    inLanguage: "ko",
+    inLanguage: input.inLanguage ?? "ko",
+    ...(input.translationOf
+      ? { translationOfWork: { "@type": "Article", "@id": abs(input.translationOf), inLanguage: "ko" } }
+      : {}),
     /* 로그인도 결제도 없이 다 읽을 수 있다. */
     isAccessibleForFree: true,
     ...(input.datePublished ? { datePublished: input.datePublished } : {}),

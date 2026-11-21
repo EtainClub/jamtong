@@ -11,7 +11,7 @@ import { FURNITURE_SPRITES, spriteHref } from "./furnitureSprites";
 import { activityOf } from "./activities";
 import { KeyFace } from "./KeyArt";
 import { freshKeys, type RoomKey } from "./keyboard";
-import { keyboardKeys, parseSlot, placement, roomWidth, type Placed, type RoomData, type Shown } from "./rules";
+import { keyboardKeys, parseSlot, placement, roomWidth, SOUVENIR_CASE, type Placed, type RoomData, type Shown } from "./rules";
 import { AVATAR_H, AvatarFigure } from "../avatar/AvatarArt";
 import { avatarSlotOk, faceFor, poseAt } from "../avatar/rules";
 
@@ -175,6 +175,10 @@ export function ItemArt({
 }) {
   const s = shown.find((x) => x.id === it);
   if (s) return <ShownArt shown={s} byId={byId} w={w} h={h} rainbow={rainbow} />;
+  if (it === SOUVENIR_CASE) {
+    const icons = shown.filter((x) => x.kind === "souvenir").map((x) => (x.species ? byId.get(x.species)?.memento?.icon : undefined) ?? "🏅");
+    return <CaseArt icons={icons} w={w} h={h} />;
+  }
   const f = FURNITURE_BY_ID.get(it);
   return f ? <FurnitureArt art={f.art} w={w} h={h} weather={weather} keys={keys} /> : null;
 }
@@ -228,6 +232,38 @@ export function ShownArt({ shown, byId, w, h, rainbow }: { shown: Shown; byId: R
         <rect x="10" y="9" width={w - 20} height="28" fill={C.paper} stroke={C.woodD} strokeWidth="1" />
         <rect x="13" y="13" width={w - 26} height="3" fill={C.skyD} />
         {[20, 25, 30].map((y) => <rect key={y} x="13" y={y} width={y === 30 ? (w - 26) * 0.6 : w - 26} height="2" fill={C.greyD} />)}
+      </g>
+    );
+  }
+  if (shown.kind === "souvenir") {
+    // 업적 기념품 — 받침 위의 작은 모형. 진행을 아는 업적만 모습이 다르다: 계획이면 설계도, 추진 중이면 비계.
+    // 진행을 모르면(대부분) 유리 덮개를 씌운 보통 모형이다 — 완료라고 그리지 않는다.
+    const memento = species?.memento;
+    const status = memento?.status ?? null;
+    const cx = w / 2;
+    return (
+      <g>
+        <g shapeRendering="crispEdges">
+          <rect x={cx - 16} y={h - 9} width="32" height="9" fill={C.wood} stroke={C.ink} strokeWidth="2" />
+          <rect x={cx - 12} y={h - 6} width="24" height="2" fill={C.woodD} />
+        </g>
+        {status === "planned" ? (
+          <g>
+            <rect x={cx - 15} y={h - 37} width="30" height="26" fill="#cfe3f6" stroke="#4a78a8" strokeWidth="1.5" strokeDasharray="3 2" />
+            <text x={cx} y={h - 17} fontSize="17" textAnchor="middle" opacity=".55">{memento?.icon ?? "🏅"}</text>
+          </g>
+        ) : (
+          <g>
+            <text x={cx} y={h - 14} fontSize="22" textAnchor="middle">{memento?.icon ?? "🏅"}</text>
+            {status === "ongoing" ? (
+              <g stroke={C.greyD} strokeWidth="1.5" fill="none">
+                <path d={`M${cx - 15} ${h - 9}V${h - 40}M${cx + 15} ${h - 9}V${h - 40}M${cx - 15} ${h - 24}H${cx + 15}M${cx - 15} ${h - 38}H${cx + 15}`} />
+              </g>
+            ) : (
+              <path d={`M${cx - 15} ${h - 9}V${h - 30}Q${cx - 15} ${h - 42} ${cx} ${h - 42}Q${cx + 15} ${h - 42} ${cx + 15} ${h - 30}V${h - 9}`} fill="#dff1ff" fillOpacity=".28" stroke="#9cc6e6" strokeWidth="1.5" />
+            )}
+          </g>
+        )}
       </g>
     );
   }
@@ -327,6 +363,43 @@ function Sky({ x, y, w, h, weather }: { x: number; y: number; w: number; h: numb
   );
 }
 
+/**
+ * 기념품 진열장 — 유리장 세 칸에 받은 기념품을 여섯까지 보이고, 그보다 많으면 수를 단다.
+ * 상점·보관함의 아이콘(FurnitureArt)은 빈 진열장이다.
+ */
+export function CaseArt({ icons, w, h }: { icons: readonly string[]; w: number; h: number }) {
+  const cw = Math.min(w - 4, 36);
+  const x = (w - cw) / 2;
+  const top = h - 44;
+  const shelves = [top + 13, top + 26, top + 39];
+  const shown = icons.slice(0, 6);
+  return (
+    <g>
+      <g shapeRendering="crispEdges">
+        <rect x={x} y={top} width={cw} height="44" fill={C.wood} stroke={C.ink} strokeWidth="2" />
+        <rect x={x + 3} y={top + 3} width={cw - 6} height="38" fill="#e6f3fb" />
+        {shelves.map((y) => (
+          <rect key={y} x={x + 3} y={y} width={cw - 6} height="2" fill={C.woodD} />
+        ))}
+      </g>
+      {shown.map((icon, i) => (
+        <text key={i} x={x + 3 + ((i % 2) + 0.5) * ((cw - 6) / 2)} y={shelves[Math.floor(i / 2)] - 1} fontSize="10" textAnchor="middle">
+          {icon}
+        </text>
+      ))}
+      <rect x={x + 3} y={top + 3} width={(cw - 6) / 2} height="38" fill="#ffffff" opacity=".18" />
+      {icons.length > 6 && (
+        <g>
+          <rect x={x + cw - 14} y={top - 6} width="16" height="10" rx="5" fill={C.ink} />
+          <text x={x + cw - 6} y={top + 1.5} fontSize="7" fontWeight="700" fill="#fff" textAnchor="middle">
+            {icons.length}
+          </text>
+        </g>
+      )}
+    </g>
+  );
+}
+
 export function FurnitureArt({ art, w, h, weather, keys }: { art: string; w: number; h: number; weather: Weather; keys?: readonly RoomKey[] }) {
   const sprite = FURNITURE_SPRITES[art];
   if (sprite) {
@@ -352,6 +425,7 @@ export function FurnitureArt({ art, w, h, weather, keys }: { art: string; w: num
       </>
     );
   }
+  if (art === SOUVENIR_CASE) return <CaseArt icons={[]} w={w} h={h} />;
   const base = h; // 바닥 물건은 아래 변에 선다
   const cx = w / 2;
   const book = BOOK_PALETTES.get(art);
