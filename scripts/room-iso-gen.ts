@@ -65,11 +65,13 @@ const CUSTOM: Pilot[] = [
   { id: "radio-back", ref: "radio", iso: "radio", view: "back", what: "a small retro orange radio with a round speaker grille and a short antenna, facing the viewer" },
   { id: "radio-front", ref: "radio", iso: "radio", view: "front", what: "the same small orange radio seen from behind: plain back panel, antenna visible" },
   { id: "rug", ref: "rug", iso: "rug", view: "back", what: "a flat ROUND (oval in this isometric view) pink rug with a lighter pink inner ring, lying flat on the floor, no thickness, filling the floor diamond of the guide" },
+  { id: "speech-screen-back", ref: "speech-screen", iso: "speech-screen", view: "back", what: "a small home theater: a low wooden cabinet with a tiny cream film projector in its open middle shelf, and above it a wide screen whose picture is an empty wooden speech podium with two microphones on a soft blue backdrop, red curtains tied with cream bows on both sides, a cream roller bar on top. The screen faces the viewer. No people, no faces" },
+  { id: "speech-screen-front", ref: "speech-screen", iso: "speech-screen", view: "front", what: "the same small home theater turned around: we see the plain wooden back of the screen and the back of the curtains and of the low wooden cabinet, the picture is NOT visible. No people, no faces" },
   { id: "frame-wall", ref: "painting", iso: "painting", view: "wall", what: "a small framed landscape picture (wooden frame, sky and green hill) hanging flat on the LEFT wall, so it is a slanted parallelogram following the wall" },
 ];
 
 /** 앞뒤가 뚜렷해 두 장(back·front)을 그리는 가구. 나머지는 한 장을 방향마다 좌우 반전해 쓴다. */
-const TWO_VIEWS = new Set(["bed", "chair", "radio", "sofa", "rocker", "bench", "piano", "bookshelf", "wardrobe", "mailbox", "voice-tv", "showcase", "shelf-complete", "tent", "trout-aquarium"]);
+const TWO_VIEWS = new Set(["bed", "chair", "radio", "sofa", "rocker", "bench", "piano", "bookshelf", "wardrobe", "mailbox", "voice-tv", "speech-screen", "showcase", "shelf-complete", "tent", "trout-aquarium"]);
 /** 정면 그림 파일이 있어도 코드가 그리는 것 — 창문은 유리 자리에 창밖 날씨를 그린다. */
 const SKIP = new Set(["win-round", "win-wide"]);
 

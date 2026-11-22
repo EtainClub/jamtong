@@ -71,6 +71,7 @@ export const FURNITURE_SPRITES: Readonly<Record<string, FurnitureSprite>> = {
   "play-musicbox": { h: 32 },
   "voice-tv": { h: 40 },
   "voice-mic": { h: 40 },
+  "speech-screen": { h: 44 },
   // 이야기 소품·놀이 가구 — 벽
   "babi-paw": { h: 30, wall: true },
   "babi-leash": { h: 34, wall: true },

@@ -629,5 +629,19 @@
     "box": "160x440",
     "prompt": "Edit the attached pixel-art windmill: produce the SAME windmill (same tower, roof, finial, window, blue door, same angle, same pixel size, same colors, same outline) but with the four white sails and their wooden arms completely REMOVED. Keep only the small round wooden hub cap on the front face. Where the sails covered the tower, paint the tower's wooden planks continuing naturally. Background: flat magenta. No text.",
     "note": "날개는 IsoYard.tsx의 WindmillSails가 SVG로 그려 돌린다. 원본 탑 높이(320px)에 맞춰 오른쪽 아래를 맞췄다."
+  },
+  "speech-screen-back": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-22",
+    "reference": "room/speech-screen.png + geometry guide",
+    "box": "240x328",
+    "prompt": "Use your built-in image generation tool to create ONE image, then copy the generated PNG into the current directory as speech-screen-back.png. Do not write any code other than the copy command. Subject: a small home theater: a low wooden cabinet with a tiny cream film projector in its open middle shelf, and above it a wide screen whose picture is an empty wooden speech podium with two microphones on a soft blue backdrop, red curtains tied with cream bows on both sides, a cream roller bar on top. The screen faces the viewer. No people, no faces. Projection: classic 2:1 isometric pixel art (dimetric, floor edges rise 1 pixel for every 2 across), camera fixed from the front-right corner of a room looking down, exactly like the attached geometry guide (the SECOND attached image). The object must fill the grey block in the guide: same angle, same footprint proportions and same height proportion. The red line in the geometry guide marks the BACK of the object (the far edge). Style: match the FIRST attached image (the same object drawn front-on in this game) — cute, soft Korean cozy-room pixel art, chunky clean pixels, warm pastel palette, dark brown 1-pixel outline, light from the upper left (top face brightest, left face medium, right face darkest). Background: one flat solid pure magenta #ff00ff everywhere outside the object, no gradient, no floor, no shadow, no room, no other objects. Exactly one object, centered, fully inside the frame with margin. Absolutely no text, letters, numbers, logos or watermark."
+  },
+  "speech-screen-front": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-22",
+    "reference": "room/speech-screen.png + geometry guide",
+    "box": "240x328",
+    "prompt": "Use your built-in image generation tool to create ONE image, then copy the generated PNG into the current directory as speech-screen-front.png. Do not write any code other than the copy command. Subject: the same small home theater turned around: we see the plain wooden back of the screen and the back of the curtains and of the low wooden cabinet, the picture is NOT visible. No people, no faces. Projection: classic 2:1 isometric pixel art (dimetric, floor edges rise 1 pixel for every 2 across), camera fixed from the front-right corner of a room looking down, exactly like the attached geometry guide (the SECOND attached image). The object must fill the grey block in the guide: same angle, same footprint proportions and same height proportion. The red line in the geometry guide marks the BACK of the object, which here is the NEAR edge (the object is turned away from us). Style: match the FIRST attached image (the same object drawn front-on in this game) — cute, soft Korean cozy-room pixel art, chunky clean pixels, warm pastel palette, dark brown 1-pixel outline, light from the upper left (top face brightest, left face medium, right face darkest). Background: one flat solid pure magenta #ff00ff everywhere outside the object, no gradient, no floor, no shadow, no room, no other objects. Exactly one object, centered, fully inside the frame with margin. Absolutely no text, letters, numbers, logos or watermark."
   }
 }

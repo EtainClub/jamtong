@@ -86,7 +86,9 @@ test("가구표: id가 겹치지 않고, 값과 크기가 설계 범위 안이�
     assert.ok(!f.id.includes(":"), `가구 id에 ':'가 있으면 전시품과 헷갈린다: ${f.id}`);
     assert.ok(f.id.length <= PUBLIC_ID_MAX);
     if (f.kind === "window") assert.equal(f.size, 2);
-    assert.ok(f.price >= 0 && f.price <= (BOOK_FURNITURE.some((book) => book.id === f.id) ? 100_000 : 2000), f.id);
+    // 특별한 책과 연설 상영관(10,000잼 — 쌓인 잼을 쓸 큰 목표)만 2,000을 넘는다.
+    const cap = BOOK_FURNITURE.some((book) => book.id === f.id) ? 100_000 : f.id === "speech-screen" ? 10_000 : 2000;
+    assert.ok(f.price >= 0 && f.price <= cap, f.id);
   }
   assert.equal(FURNITURE_BY_ID.get(FRAME_BLANK)?.price, 30);
   assert.equal(MOODS.length, 12);

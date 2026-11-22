@@ -123,6 +123,10 @@
     "back": "voice-tv-back",
     "front": "voice-tv-front"
   },
+  "speech-screen": {
+    "back": "speech-screen-back",
+    "front": "speech-screen-front"
+  },
   "voice-mic": {
     "back": "voice-mic",
     "front": "voice-mic"
