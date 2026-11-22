@@ -47,6 +47,7 @@ import { Neighbors } from "./Neighbors";
 import { bookTitleInput } from "./room/library";
 import { useBlooms } from "./useBlooms";
 import { usePlaza } from "./usePlaza";
+import { installChipScroll } from "./chipScroll";
 
 /**
  * 잼통 정원. 설계는 docs/garden-game.md §3 (B안 MVP), 화면 구조는 docs/garden-miniroom.md §3.
@@ -148,6 +149,9 @@ export function GardenApp({
     if (toastTimer.current) clearTimeout(toastTimer.current);
     leaveGardenSound();
   }, []);
+
+  // 칩 줄을 데스크톱 휠·끌기로도 넘긴다(chipScroll.ts).
+  useEffect(() => installChipScroll(), []);
 
   // 브라우저가 자동 재생을 막으므로 켜 두었어도 실제 소리는 첫 터치 때 난다.
   useEffect(() => {

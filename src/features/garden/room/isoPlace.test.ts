@@ -28,6 +28,14 @@ test("겹침: 가구끼리는 막고, 깔개는 무엇과도, 올려 두는 것�
   assert.equal(isoProblemAt([floor("radio", 1, 1), floor("bed", 0, 0)], 1, NONE, 0), "overlap", "거꾸로도");
 });
 
+test("방석: 애완동물만 올라간다", () => {
+  for (const seat of ["cushion", "babi-bed"]) {
+    assert.equal(isoProblemAt([floor(seat, 0, 0), floor("babi-mini", 0, 0, { on: 0 })], 1, NONE, 0), null, `${seat} 위 바비`);
+    assert.equal(isoProblemAt([floor(seat, 0, 0), floor("radio", 0, 0, { on: 0 })], 1, NONE, 0), "base", `${seat} 위 라디오는 안 된다`);
+  }
+  assert.equal(isoProblemAt([floor("desk", 4, 0), floor("babi-mini", 5, 1, { on: 0 })], 1, NONE, 0), null, "책상 위에도 그대로 놓인다");
+});
+
 test("받침: 올림면이 있는 가구 위, 그 바닥 상자 안에만 올린다", () => {
   const desk = floor("desk", 4, 0); // u 2..4, v 0..1
   assert.equal(isoProblemAt([desk, floor("radio", 5, 1, { on: 0 })], 1, NONE, 0), null);

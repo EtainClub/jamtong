@@ -1,5 +1,5 @@
 import { ROOM_SIZES } from "./catalog";
-import { ISO, SHOWN_ISO, type IsoSpec } from "./iso";
+import { holds, ISO, SHOWN_ISO, type IsoSpec } from "./iso";
 import type { Shown } from "./rules";
 
 /**
@@ -116,7 +116,7 @@ export function isoProblemAt(items: readonly IsoItem[], i: number, shown: readon
     const base = items[pos.on];
     if (spec.layer !== "small" || !Number.isInteger(pos.on) || pos.on >= i || !base || isWallPos(base.pos) || base.pos.on !== undefined) return "base";
     const bs = isoSpecOf(base.it, shown);
-    if (!bs?.surface || !within(fp, footprint(bs, base.pos))) return "base";
+    if (!bs || !holds(bs, spec) || !within(fp, footprint(bs, base.pos))) return "base";
     return null;
   }
   if (spec.layer === "rug") return null;
