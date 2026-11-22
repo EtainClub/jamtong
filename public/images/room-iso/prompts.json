@@ -621,5 +621,13 @@
     "reference": "room/.png + geometry guide",
     "box": "160x440",
     "prompt": "Use your built-in image generation tool to create ONE image, then copy the generated PNG into the current directory as yard-windmill.png. Do not write any code other than the copy command. Subject: a small cute wooden garden windmill with four white sails and a blue door, an outdoor garden decoration (draw only the object — no grass, no ground patch under it). Projection: classic 2:1 isometric pixel art (dimetric, floor edges rise 1 pixel for every 2 across), camera fixed from the front-right corner of a room looking down, exactly like the attached geometry guide (the SECOND attached image). The object must fill the grey block in the guide: same angle, same footprint proportions and same height proportion. The red line in the geometry guide marks the BACK of the object (the far edge). Style: match the FIRST attached image exactly (another isometric object from this same game — same pixel size, outline and shading) — cute, soft Korean cozy-room pixel art, chunky clean pixels, warm pastel palette, dark brown 1-pixel outline, light from the upper left (top face brightest, left face medium, right face darkest). Background: one flat solid pure magenta #ff00ff everywhere outside the object, no gradient, no floor, no shadow, no room, no other objects. Exactly one object, centered, fully inside the frame with margin. Absolutely no text, letters, numbers, logos or watermark."
+  },
+  "yard-windmill-body": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-22",
+    "reference": "room-iso/yard-windmill.png (image edit)",
+    "box": "160x440",
+    "prompt": "Edit the attached pixel-art windmill: produce the SAME windmill (same tower, roof, finial, window, blue door, same angle, same pixel size, same colors, same outline) but with the four white sails and their wooden arms completely REMOVED. Keep only the small round wooden hub cap on the front face. Where the sails covered the tower, paint the tower's wooden planks continuing naturally. Background: flat magenta. No text.",
+    "note": "날개는 IsoYard.tsx의 WindmillSails가 SVG로 그려 돌린다. 원본 탑 높이(320px)에 맞춰 오른쪽 아래를 맞췄다."
   }
 }

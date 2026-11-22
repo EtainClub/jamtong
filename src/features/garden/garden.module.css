@@ -159,7 +159,7 @@
 @keyframes rain-fall { to { transform: translate(-30px, 220px); } }
 @media (max-width: 370px) {
   .game :global(.garden-weather) { max-width: 100%; }
-  .game :global(.garden-field) { padding-inline: 10px; }
+  .game :global(.garden-field) { padding-inline: 6px; }
   .game :global(.garden-field-hint) { font-size: 9px; }
   .game :global(.garden-meadow-cell) { min-height: 44px; }
 }
@@ -753,20 +753,48 @@
 .game :global(.garden-jar-fruit[aria-pressed=true]) { border-color: var(--d-orange); background: #fff4ea; }
 
 /* 아이소 마당(docs/garden-farm-v2.md §6 4단계). 그림은 SVG, 밭 누르기는 그 위의 단추. */
-.game :global(.garden-yard) { position: relative; width: 100%; }
+.game :global(.garden-yard) { position: relative; width: calc(100% + 20px); margin-inline: -10px; }
 .game :global(.garden-yard-art) { display: block; width: 100%; height: auto; }
-.game :global(.garden-yard-plot) { position: absolute; display: flex; align-items: flex-end; justify-content: center; border-radius: 10px; }
-.game :global(.garden-yard-plot:focus-visible) { outline: 3px solid var(--g-leaf); }
-.game :global(.garden-yard-tag) { margin-bottom: 4%; padding: 1px 7px; border-radius: 999px; background: #0000005c; color: #fff; font-size: 11px; font-weight: 800; white-space: nowrap; }
-.game :global(.garden-yard-plot.is-ripe .garden-yard-tag) { background: var(--g-leaf); }
+/* 밭 단추는 흙 윗면 마름모만 누른다 — 단추 상자는 누르지 않고(pointer-events: none) 안의 마름모(.garden-yard-hit)와 딱지만 받는다.
+   상자째 받으면 이웃 밭의 모서리까지 덮는다. 누른 것은 단추로 올라가 onClick이 그대로 돈다. */
+.game :global(.garden-yard-plot) { position: absolute; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.game :global(.garden-yard-plot:focus-visible) { outline: 3px solid var(--g-leaf); outline-offset: 2px; }
+.game :global(.garden-yard-hit) { position: absolute; inset: 0; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); pointer-events: auto; }
+.game :global(.garden-yard-plot .garden-yard-tag) { position: relative; pointer-events: auto; }
+.game :global(.garden-yard-stem) { position: absolute; border-radius: 40% 40% 8px 8px; }
+.game :global(.garden-yard-tag) { padding: 0 6px; border-radius: 999px; background: #00000052; color: #fff; font-size: 10px; line-height: 16px; font-weight: 800; white-space: nowrap; }
+.game :global(.garden-yard-plot.is-ripe .garden-yard-tag) { min-width: 18px; padding: 0; background: var(--g-leaf); box-shadow: 0 0 0 2px #fff8; }
+.game :global(.garden-yard-plot.is-empty .garden-yard-tag) { min-width: 18px; padding: 0; background: #ffffffb8; color: #2f6b22; }
 .game :global(.garden-yard-avatar) { transition: transform .7s ease-in-out; }
 .game :global(.garden-yard-glow) { animation: yard-glow 1.6s ease-in-out infinite; }
 .game :global(.garden-yard-rain) { animation: yard-rain .6s linear infinite; }
 @keyframes yard-glow { 50% { opacity: .2; } }
 @keyframes yard-rain { from { transform: translateY(-8px); } to { transform: translateY(8px); } }
+/* 마당 소품의 움직임(IsoYard.tsx의 YardDeco). 그림의 아래 가운데를 축으로 흔든다. */
+.game :global(.garden-deco-sway), .game :global(.garden-deco-breeze) { transform-box: fill-box; transform-origin: 50% 100%; }
+.game :global(.garden-deco-sway) { animation: deco-sway 3.4s ease-in-out infinite; }
+.game :global(.garden-deco-breeze) { animation: deco-breeze 2.6s ease-in-out infinite; }
+.game :global(.garden-deco-spin) { animation: deco-spin 6s linear infinite; }
+.game :global(.garden-deco-glow) { animation: deco-glow 2.8s ease-in-out infinite; mix-blend-mode: screen; }
+.game :global(.garden-deco-bird) { animation: deco-bird 7s ease-in-out infinite; }
+.game :global(.garden-deco-butterfly) { animation: deco-butterfly 6s ease-in-out infinite; }
+.game :global(.garden-deco-flap) { transform-box: fill-box; transform-origin: 50% 50%; animation: deco-flap .35s ease-in-out infinite alternate; }
+.game :global(.garden-deco-twinkle) { transform-box: fill-box; transform-origin: 50% 50%; animation: deco-twinkle 2.4s ease-in-out infinite; opacity: 0; }
+@keyframes deco-sway { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+@keyframes deco-breeze { 0%, 100% { transform: skewX(0deg) scaleY(1); } 30% { transform: skewX(-4deg) scaleY(.98); } 60% { transform: skewX(3deg) scaleY(1.01); } }
+@keyframes deco-spin { to { transform: rotate(360deg); } }
+@keyframes deco-glow { 0%, 100% { opacity: .55; } 40% { opacity: .95; } 70% { opacity: .7; } }
+/* 새 — 지붕 위에서 한 바퀴 날고 돌아와 잠시 쉰다. */
+@keyframes deco-bird { 0%, 45%, 100% { transform: translate(0, 0) scale(1); opacity: 1; } 55% { transform: translate(-22px, -18px) scale(.9); } 65% { transform: translate(-40px, -8px) scale(.8); opacity: .9; } 75% { transform: translate(-18px, -26px) scale(.9); } 85% { transform: translate(6px, -10px); } }
+@keyframes deco-butterfly { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-10px, -9px); } 50% { transform: translate(4px, -15px); } 75% { transform: translate(11px, -5px); } }
+@keyframes deco-flap { from { transform: scaleX(1); } to { transform: scaleX(.3); } }
+@keyframes deco-twinkle { 0%, 70%, 100% { opacity: 0; transform: scale(.4); } 80% { opacity: 1; transform: scale(1); } 90% { opacity: .6; transform: scale(.7); } }
 @media (prefers-reduced-motion: reduce) {
   .game :global(.garden-yard-avatar) { transition: none; }
   .game :global(.garden-yard-glow), .game :global(.garden-yard-rain) { animation: none; }
+  .game :global(.garden-deco-sway), .game :global(.garden-deco-breeze), .game :global(.garden-deco-spin), .game :global(.garden-deco-glow),
+  .game :global(.garden-deco-bird), .game :global(.garden-deco-butterfly), .game :global(.garden-deco-flap) { animation: none; }
+  .game :global(.garden-deco-twinkle) { animation: none; opacity: .8; }
 }
 .game :global(.garden-yard-slot) { position: absolute; transform: translate(-50%, -70%); width: 40px; height: 40px; border-radius: 999px; border: 2px dashed #2f6b22; background: #ffffffcc; color: #2f6b22; font-size: 18px; font-weight: 900; }
 .game :global(.garden-yard-slot.is-full) { border-style: solid; background: #fff4ea; color: #9a4512; border-color: #e8711a; }
