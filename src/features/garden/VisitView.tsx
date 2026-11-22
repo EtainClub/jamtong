@@ -21,7 +21,7 @@ import { FURNITURE_BY_ID, moodOf } from "./room/catalog";
 import { KeyboardSheet } from "./room/KeyboardSheet";
 import { blankKeys, KEYBOARD_ID } from "./room/keyboard";
 import { RoomItemSheet } from "./room/RoomItemSheet";
-import { AlbumView } from "./memorial/AlbumView";
+import { AlbumView } from "./album/AlbumView";
 import { Sheet } from "./Sheet";
 import { activityOf } from "./room/activities";
 import { RoomScene } from "./room/RoomArt";
@@ -291,14 +291,22 @@ export function VisitView({
           <p className="mt-1 text-[12px] text-smoke">
             화분·액자·기념품을 누르면 그 업적과 근거로 갈 수 있어요.{hasKeyboard(theirRoom) ? " ⌨️ 키보드를 누르면 키를 눌러 볼 수 있어요." : ""}
           </p>
-          {(theirRoom.album?.length ?? 0) > 0 && (
-            <button type="button" className="garden-diary-btn mt-2 min-h-[44px]" onClick={() => { gardenFeedback("tap"); setAlbumOpen(true); }}>
-              📷 {garden.nick || "이름 없는"}의 사진첩 {theirRoom.album!.length}장 보기
-            </button>
-          )}
+          {/* 사진첩 2 — 사진은 공개 방의 photos에 있다(장수는 공개 문서에 없다). 옛 사진첩만 있는 방은 그것을 그린다. */}
+          <button type="button" className="garden-diary-btn mt-2 min-h-[44px]" onClick={() => { gardenFeedback("tap"); setAlbumOpen(true); }}>
+            📷 {garden.nick || "이름 없는"}의 사진첩 보기
+          </button>
           {albumOpen && (
             <Sheet label="사진첩" title="📷 사진첩" onClose={() => setAlbumOpen(false)}>
-              <AlbumView album={theirRoom.album} ownerNick={garden.nick || "이름 없는"} byId={byId} />
+              <AlbumView
+                ownerNick={garden.nick || "이름 없는"}
+                byId={byId}
+                uid={uid}
+                gid={gid}
+                canComment={Boolean(uid) && !mine && canSign(garden.guestbook ?? "all", isFriend)}
+                legacy={theirRoom.album}
+                onVisit={(g) => { setAlbumOpen(false); onVisit(g); }}
+                say={say}
+              />
             </Sheet>
           )}
           {opened && (

@@ -6,6 +6,7 @@ import { TRIAL_POLICIES } from "@/content/policies/trials";
 import { BackButton } from "@/features/app/BackButton";
 import { BottomNav } from "@/features/app/BottomNav";
 import { ShareLinkButton } from "@/features/app/ShareLinkButton";
+import { PolicyClips } from "@/features/garden/album/PolicyClips";
 import { WikiNotes } from "@/features/wiki/WikiNotes";
 import { contentPages, getPublicPage, pageSummary, publicTitles } from "@/lib/wiki/load";
 import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
@@ -139,6 +140,7 @@ export default async function WikiPage({
 
         {nodes}
         <WikiNotes notes={notes} />
+        {page.name.startsWith("policy/") && <PolicyClips slug={page.name.slice("policy/".length)} />}
       </main>
 
       <BottomNav />

@@ -96,10 +96,11 @@ import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_
 import { MOODS, type Furniture } from "./room/catalog";
 import { pickGift } from "./memorial/ox";
 import { buyYardItem, normalizeYard, setYardSlot as setYardSlotRule, type YardData, type YardRefusal } from "./yard";
+import * as album from "./album/rules";
 import { normalizeKeys, type RoomKey } from "./room/keyboard";
 import type { GardenTrackId } from "./musicTracks";
 import { canUseTrack } from "./musicTracks";
-import type { LineProblem } from "./ilchon/text";
+import { lineProblem, type LineProblem } from "./ilchon/text";
 import type { Case, Fruit, Mutation, Plant, PlazaLevel, Species } from "./types";
 
 /**
@@ -201,6 +202,11 @@ export interface GardenData {
   /** 마당 꾸미기(yard.ts, docs/garden-farm-v2.md §6 4b) — 가진 소품과 자리마다 놓인 것. 옛 장부에는 없다. */
   yard?: YardData;
   /**
+   * 사진첩 2(docs/garden-album-review.md) — 담은 사진·내 정원의 순간·퍼가기 보상 장부(album/rules.ts).
+   * 옛 장부의 room.album(업적 품종 id 목록)은 정원을 열 때 이리로 옮긴다.
+   */
+  album?: album.AlbumLedger;
+  /**
    * 이 정원을 마지막으로 맞춘 계정. 없으면 아직 어느 계정과도 맞춘 적 없는
    * 이 기기만의 정원이다. updatedAt만으로 고르면 새 기기에서 갓 만든 빈 정원이
    * "더 새것"이 되어 계정에 쌓인 정원을 덮는다 — 그래서 주인부터 본다.
@@ -284,6 +290,7 @@ function fresh(catalog: Species[]): GardenData {
     room: room.freshRoom(String(Date.now()) + Math.random()),
     ilchon: freshIlchon(),
     news: [],
+    album: album.freshAlbum(),
     updatedAt: Date.now(),
   };
 }
@@ -292,6 +299,20 @@ function fresh(catalog: Species[]): GardenData {
 /** 기념품이 있는데 진열장이 방에 없으면 한 번 저절로 놓는다(꽉 찼으면 물건 하나를 보관함에 — room/rules.ts의 autoPlaceCase). */
 function withCase(r: room.RoomData): room.RoomData {
   return room.autoPlaceCase(r)?.room ?? r;
+}
+
+/** 사진첩 2로 옮긴 뒤 방 장부의 옛 사진첩을 뺀다. 공개 방에도 더는 싣지 않는다(손님은 photos를 읽는다). */
+function withoutOldAlbum(r: room.RoomData): room.RoomData {
+  if (r.album === undefined) return r;
+  const { album: _moved, ...rest } = r;
+  void _moved;
+  return rest;
+}
+
+/** 내 정원의 순간을 사진첩 후보로 기억한다. */
+function withMoment(d: GardenData, m: album.Moment): GardenData {
+  const a = d.album ?? album.freshAlbum();
+  return { ...d, album: { ...a, moments: album.pushMoment(a.moments, m) } };
 }
 
 function normalize(data: GardenData): GardenData {
@@ -318,7 +339,9 @@ function normalize(data: GardenData): GardenData {
     friends: data.friends ?? [],
     // 꼬마가 없는 옛 장부는 정원 이름으로 기본 꼬마를 정한다 — 저장되기 전에 다시 열어도 같은 꼬마.
     // 서재 세트는 가진 책 수에서 정해진다 — 이 기능이 생기기 전에 산 책에도 준다.
-    room: withCase(room.grantSouvenirCase(room.grantLibrarySets(room.normalizeRoom(data.room, data.nick || String(data.updatedAt))))),
+    room: withoutOldAlbum(withCase(room.grantSouvenirCase(room.grantLibrarySets(room.normalizeRoom(data.room, data.nick || String(data.updatedAt)))))),
+    // 옛 사진첩(room.album)은 사진 장부로 옮긴다 — 옮긴 뒤에는 방 장부에서 뺀다(withoutOldAlbum).
+    album: album.normalizeAlbum(data.album, data.room?.album),
     ilchon: normalizeIlchon(data.ilchon),
     news: Array.isArray(data.news) ? data.news.slice(0, NEWS_MAX) : [],
     plotLog: Array.isArray(data.plotLog)
@@ -589,9 +612,16 @@ interface GardenState {
   /** 옛 칸 방을 아이소 방으로 옮겼다는 알림을 봤다(room/rules.ts의 isoMoved). */
   clearIsoMoved: () => void;
   /** 사진첩에 거둔 업적 하나를 올린다. 거둔 적 없는 업적·가득 찬 사진첩·이미 올린 것은 받지 않는다(이유를 돌려준다). */
-  addToAlbum: (speciesId: string, catalog: Map<string, Species>) => true | "unharvested" | "full" | "have" | "unknown";
-  /** 사진첩에서 한 장을 내린다. */
-  removeFromAlbum: (speciesId: string) => void;
+  /**
+   * 사진첩에 담는다(docs/garden-album-review.md). 업적·카툰 칸은 거둔 업적만, 언행·정책·책은 조건 없이.
+   * 담았으면 그 사진, 못 담았으면 까닭.
+   */
+  clipPhoto: (input: album.PhotoInput, catalog: Map<string, Species>) => album.Photo | album.AddRefusal | "unharvested" | "unknown";
+  /** 사진의 내 몫(문구·스티커·폴더·한 줄·대표·댓글 받기)을 고친다. 한 줄에 걸러낼 것이 있으면 그 까닭. */
+  editPhoto: (id: string, patch: album.PhotoPatch) => true | LineProblem | "missing";
+  removePhoto: (id: string) => void;
+  /** 받은 퍼감에서 잼을 받는다(한 번에 20, 하루 100). 새 퍼감이 없으면 null. */
+  claimScraps: (scraps: ReadonlyArray<{ at: number }>) => { jam: number; count: number } | null;
 }
 
 function marked(coach: CoachData, mark: CoachMark): CoachData {
@@ -699,7 +729,7 @@ export const useGarden = create<GardenState>((set, get) => {
           : null;
 
       const seen = new Set([...(d.dex[species.id] ?? []), ...fruit.mutations]);
-      commit({
+      let next: GardenData = {
         ...d,
         beds,
         plotLog,
@@ -709,7 +739,11 @@ export const useGarden = create<GardenState>((set, get) => {
         // 처음 거둔 품종은 1촌 소식이 된다.
         news: d.dex[species.id] ? d.news : pushNews(d.news, newsEntry("species", species.id, now)),
         notes: fruit.noteId && !d.notes.includes(fruit.noteId) ? [...d.notes, fruit.noteId] : d.notes,
-      });
+      };
+      // 내 정원의 순간 — 사진첩에 담을 수 있게 기억해 둔다(album/rules.ts).
+      if (!d.dex[species.id]) next = withMoment(next, { t: "species", s: species.id, v: Object.keys(next.dex).length, at: now });
+      for (const m of ["golden", "rainbow"] as const) if (fruit.mutations.includes(m)) next = withMoment(next, { t: m, s: species.id, at: now });
+      commit(next);
       return gift ? { ...fruit, gift } : fruit;
     },
 
@@ -997,6 +1031,7 @@ export const useGarden = create<GardenState>((set, get) => {
         raids: [...d.raids, key].slice(-60),
         loot: { ...d.loot, samples: sample.samples },
         room: nextRoom,
+        album: withMoment(d, { t: "raid", s: kind, v: key, at: Date.now() }).album,
       });
       return { species, jam: RAID_BOX.jam, roots: loot.roots, trophy: sample.trophy, wallpaper };
     },
@@ -1005,7 +1040,11 @@ export const useGarden = create<GardenState>((set, get) => {
       const d = get().data;
       const had = d?.library.read[slug] ?? [];
       if (!d || had.includes(chapter) || !roomBookOf(bookIdOf(slug))) return false;
-      commit({ ...d, library: { ...d.library, read: { ...d.library.read, [slug]: [...had, chapter] } } });
+      const read = [...had, chapter];
+      const book = roomBookOf(bookIdOf(slug));
+      const done = book && read.length >= book.chapters && had.length < book.chapters;
+      const next: GardenData = { ...d, library: { ...d.library, read: { ...d.library.read, [slug]: read } } };
+      commit(done ? withMoment(next, { t: "book", s: slug, at: Date.now() }) : next);
       return true;
     },
 
@@ -1476,7 +1515,7 @@ export const useGarden = create<GardenState>((set, get) => {
       if (!d || !speciesId.startsWith("a:") || !catalog.has(speciesId)) return false;
       const got = room.receiveSouvenir(d.room, speciesId);
       if (!got) return false;
-      commit({ ...d, room: got.room, news: pushNews(d.news, newsEntry("souvenir", speciesId, Date.now())) });
+      commit(withMoment({ ...d, room: got.room, news: pushNews(d.news, newsEntry("souvenir", speciesId, Date.now())) }, { t: "souvenir", s: speciesId, at: Date.now() }));
       return { where: got.where, moved: got.moved };
     },
 
@@ -1496,22 +1535,50 @@ export const useGarden = create<GardenState>((set, get) => {
       commit({ ...d, room: rest });
     },
 
-    addToAlbum: (speciesId, catalog) => {
+    clipPhoto: (input, catalog) => {
       const d = get().data;
-      if (!d || !room.ALBUM_ID.test(speciesId) || !catalog.has(speciesId)) return "unknown";
-      if (!d.dex[speciesId]) return "unharvested";
-      const album = d.room.album ?? [];
-      if (album.includes(speciesId)) return "have";
-      if (album.length >= room.ALBUM_MAX) return "full";
-      commit({ ...d, room: { ...d.room, album: [...album, speciesId] }, news: pushNews(d.news, newsEntry("album", speciesId, Date.now())) });
+      const anchor = album.parseAnchor(input.a);
+      if (!d || !anchor) return "unknown";
+      const species = album.speciesOf(anchor);
+      if (species && !catalog.has(species)) return "unknown";
+      // 퍼 온 사진은 남이 거둔 것이라 거두기 조건을 보지 않는다(출처가 붙는다).
+      if (album.needsHarvest(anchor) && species && !d.dex[species] && !input.from) return "unharvested";
+      if (input.x && lineProblem(input.x)) return "bad";
+      const got = album.addPhoto(d.album ?? album.freshAlbum(), input, uid().slice(0, 20), Date.now());
+      if (typeof got === "string") return got;
+      // 1촌 소식은 품종이 있는 사진만(소식 글은 품종표에서 나온다 — newsText).
+      const newsOf = species ?? (anchor.kind === "moment" && got.photo.md?.s && catalog.has(got.photo.md.s) ? got.photo.md.s : null);
+      commit({ ...d, album: got.album, ...(newsOf ? { news: pushNews(d.news, newsEntry("album", newsOf, Date.now())) } : {}) });
+      return got.photo;
+    },
+
+    editPhoto: (id, patch) => {
+      const d = get().data;
+      if (!d?.album) return "missing";
+      if (patch.x) {
+        const problem = lineProblem(patch.x);
+        if (problem) return problem;
+      }
+      const next = album.editPhoto(d.album, id, patch);
+      if (!next) return "missing";
+      commit({ ...d, album: next });
       return true;
     },
 
-    removeFromAlbum: (speciesId) => {
+    removePhoto: (id) => {
       const d = get().data;
-      const album = d?.room.album ?? [];
-      if (!d || !album.includes(speciesId)) return;
-      commit({ ...d, room: { ...d.room, album: album.filter((id) => id !== speciesId) } });
+      const next = d?.album ? album.removePhoto(d.album, id) : null;
+      if (!d || !next) return;
+      commit({ ...d, album: next });
+    },
+
+    claimScraps: (scraps) => {
+      const d = get().data;
+      if (!d) return null;
+      const got = album.scrapJam(d.album ?? album.freshAlbum(), scraps, kstDayNumber(Date.now()));
+      if (!got) return null;
+      commit({ ...d, jam: d.jam + got.jam, album: got.album });
+      return { jam: got.jam, count: got.count };
     },
   };
 });

@@ -5,7 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { LineDoc } from "@/lib/firebase/ilchon";
 
 import { Dex } from "../Dex";
-import { AlbumView } from "../memorial/AlbumView";
+import { AlbumView } from "../album/AlbumView";
 import { MemorialView } from "../memorial/MemorialView";
 import { gardenFeedback, gardenTrack, setGardenTrack } from "../feedback";
 import { canUseTrack } from "../musicTracks";
@@ -53,6 +53,8 @@ export function GardenHome({
   uid,
   lines,
   onVisit,
+  clip,
+  onClipDone,
 }: {
   data: GardenData;
   catalog: Species[];
@@ -77,6 +79,9 @@ export function GardenHome({
   lines: { notes: LineDoc[] | null; guestbook: LineDoc[] | null; reload: () => void } | null;
   /** 방명록의 이름을 누르면 그 사람 방으로(마실). */
   onVisit: (gid: string) => void;
+  /** 사이트 페이지의 "사진첩에 담기"로 왔다(앵커, album/rules.ts). 사진첩 칸이 담기 시트를 연다. */
+  clip?: string | null;
+  onClipDone?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [moodOpen, setMoodOpen] = useState(false);
@@ -154,7 +159,7 @@ export function GardenHome({
           <Dex data={data} catalog={catalog} now={now} say={say} />
         </div>
       ) : seg === "album" ? (
-        <AlbumView data={data} ownerNick={data.nick} byId={byId} say={say} />
+        <AlbumView data={data} ownerNick={data.nick} byId={byId} uid={uid} clip={clip} onClipDone={onClipDone} onVisit={onVisit} say={say} />
       ) : seg === "memorial" ? (
         <MemorialView data={data} byId={byId} say={say} />
       ) : seg === "guestbook" ? (
