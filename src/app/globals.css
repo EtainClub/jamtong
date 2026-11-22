@@ -392,3 +392,177 @@ body {
   background: linear-gradient(135deg, #fde2ec, #fbeef3 60%, #f4f7ec);
   box-shadow: inset 0 0 0 1px #f5b8cc;
 }
+
+/*
+ * 업적 카툰(src/features/garden/memorial/CartoonView.tsx, docs/garden-cartoon-review.md).
+ * 한 칸: 번호 원 · 해설 상자 · 그림(숫자 딱지) · 잼통이 말풍선. 움직이는 칸(is-anim)은 차례로 등장한다 —
+ * 해설 → 그림이 천천히 다가옴 → 말풍선. 움직임 줄이기면 모두 멈춘다.
+ */
+.cartoon-tab {
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid #d9d2c4;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.cartoon-tab[aria-pressed="true"],
+.cartoon-tab[aria-checked="true"] {
+  background: #2a2420;
+  border-color: #2a2420;
+  color: #fff;
+}
+.cartoon-tab:disabled {
+  opacity: 0.4;
+}
+.cartoon-panel {
+  overflow: hidden;
+  border: 3px solid #2a2420;
+  border-radius: 14px;
+  background: #fffdf7;
+}
+.cartoon-caption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #fff3c4;
+  border-bottom: 3px solid #2a2420;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #2a2420;
+}
+.cartoon-num {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #2a2420;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+.cartoon-frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3 / 2;
+  background: #f1ebde;
+}
+.cartoon-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cartoon-fact {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  max-width: 70%;
+  padding: 4px 10px;
+  border: 2px solid #2a2420;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  color: #b3261e;
+  box-shadow: 2px 2px 0 #2a2420;
+}
+.cartoon-talk {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px;
+}
+.cartoon-face {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  background: url("/cartoons/jamtongi-face.webp") center / contain no-repeat;
+}
+.cartoon-balloon {
+  position: relative;
+  flex: 1;
+  padding: 9px 12px;
+  border: 2px solid #2a2420;
+  border-radius: 16px;
+  background: #fff;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #2a2420;
+}
+.cartoon-balloon::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  bottom: 12px;
+  border: 8px solid transparent;
+  border-right-color: #2a2420;
+  border-left: 0;
+}
+.cartoon-nav {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid #d9d2c4;
+  background: #fff;
+  font-size: 22px;
+  line-height: 1;
+}
+.cartoon-dot {
+  position: relative;
+  overflow: hidden;
+  width: 18px;
+  height: 8px;
+  border-radius: 999px;
+  background: #e4ddcf;
+}
+.cartoon-dot.is-on {
+  width: 30px;
+  background: #e4ddcf;
+}
+.cartoon-dot span {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  background: #2a2420;
+  animation: cartoon-progress linear forwards;
+}
+.cartoon-panel.is-anim .cartoon-caption {
+  animation: cartoon-drop 0.45s ease-out both;
+}
+.cartoon-panel.is-anim .cartoon-img {
+  animation: cartoon-zoom 4.8s ease-out both;
+}
+.cartoon-panel.is-anim .cartoon-fact {
+  animation: cartoon-pop 0.4s 1.1s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.cartoon-panel.is-anim .cartoon-talk {
+  animation: cartoon-pop 0.45s 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes cartoon-drop {
+  from { opacity: 0; transform: translateY(-12px); }
+}
+@keyframes cartoon-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+@keyframes cartoon-pop {
+  from { opacity: 0; transform: scale(0.7); }
+}
+@keyframes cartoon-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cartoon-panel.is-anim *,
+  .cartoon-dot span {
+    animation: none !important;
+  }
+}

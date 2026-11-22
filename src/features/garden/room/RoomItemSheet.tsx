@@ -21,7 +21,7 @@ import { BookSheet } from "./BookSheet";
 import { roomBookOf } from "./library";
 import { PianoPlayer } from "./PianoPlayer";
 import { pianoNotes, pianoSong, type PianoEvent } from "./piano";
-import { PhotoCard } from "../memorial/PhotoCard";
+import { EntryStory } from "../memorial/EntryStory";
 import { entryOf, useMemorial } from "../memorial/useMemorial";
 import { SOUVENIR_CASE, souvenirIds, type Placed, type RoomData } from "./rules";
 
@@ -166,7 +166,7 @@ function SouvenirSheet({ title, speciesId, guest, onClose }: { title: string; sp
         ) : entry ? (
           <>
             <p className="mb-2 text-[12.5px] text-smoke">업적 기념관에서 문제를 맞혀 받은 기념품이에요.{guest ? " 정원에서 나도 알아보고 받을 수 있어요." : ""}</p>
-            <PhotoCard entry={entry} from="room" />
+            <EntryStory entry={entry} from="room" />
           </>
         ) : (
           <p className="text-[13px] text-smoke">이 업적은 지금 기념관에 없어요.</p>
@@ -198,7 +198,7 @@ function CaseSheet({ ids, guest, ownerNick, onClose }: { ids: readonly string[];
             <button type="button" className="mb-2 min-h-[40px] text-[13px] font-semibold underline underline-offset-2" onClick={() => setOpen(null)}>
               ← 진열장으로
             </button>
-            <PhotoCard entry={entry} from="room" />
+            <EntryStory entry={entry} from="room" />
           </>
         ) : list.length === 0 ? (
           <p className="text-[13px] text-smoke">아직 담긴 기념품이 없어요.</p>

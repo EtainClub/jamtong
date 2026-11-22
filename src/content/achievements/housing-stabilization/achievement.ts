@@ -49,6 +49,51 @@ const raw: AchievementInput = {
     { id: "hs-t-debt", date: "2026-04-01", datePrecision: "day", title: "다주택자 대출 만기연장 금지", summary: "수도권·규제지역 아파트, 4월 17일 시행.", claimIds: ["hs-debt-2026"] },
     { id: "hs-t-1y", date: "2026-10-05", datePrecision: "day", title: "10·15 대책 1년 시점 통계", summary: "서울 10.42% 상승, 강남 1.40%, 87주 연속 상승.", claimIds: ["hs-seoul-price", "hs-district"] },
   ],
+  // 쉬운 설명 초안은 GPT(Codex)가 claim만 보고 썼고, 문장마다 claim과 대조해 고쳤다(2026-11-21).
+  eli5: {
+    intro: "빌릴 수 있는 돈과 세금을 조이고 집을 더 짓겠다고 했어요. 1년 뒤 동네마다 결과가 달랐어요.",
+    scenes: [
+      {
+        id: "hs-e-loan", title: "집 살 때 빌리는 돈을 줄였어요",
+        say: "2025년 6월 28일부터 수도권·규제지역에서 집 살 돈은 최대 6억 원까지만 빌릴 수 있어요. 10월엔 서울 전역과 경기 12곳에서 무주택자가 집값의 70%까지 빌리던 것을 40%로 낮췄어요.",
+        art: "hs-loan", fact: { value: "최대 6억 원", tone: "ice" }, claimIds: ["hs-627", "hs-1015"],
+      },
+      {
+        id: "hs-e-tax", title: "집 여러 채 가진 사람의 부담을 늘렸어요",
+        say: "2026년 4월 17일부터 다주택자의 수도권 아파트 대출은 원칙적으로 만기를 늘려 주지 않아요. 5월 10일부터는 조정대상지역 집을 팔 때 내는 세금에 20~30%포인트가 더 붙어요.",
+        art: "hs-tax", fact: { value: "+20~30%p", tone: "ice" }, claimIds: ["hs-debt-2026", "hs-tax"],
+      },
+      {
+        id: "hs-e-supply", title: "집을 더 짓겠다는 계획도 냈어요",
+        say: "2026년부터 2030년까지 수도권에서 135만 호 공사를 시작하겠대요. 아직은 계획이고, 실제로 얼마나 시작했는지는 확인하지 못했어요.",
+        art: "hs-supply", fact: { value: "135만 호 계획", tone: "ice" }, claimIds: ["hs-supply"],
+      },
+      {
+        id: "hs-e-seoul", title: "서울 아파트값은 계속 올랐어요",
+        say: "서울 아파트값은 2026년 10월 5일까지 87주 연속 올랐어요. 10·15 대책 직후부터 1년 동안 10.42% 올랐어요.",
+        art: "hs-seoul", fact: { value: "1년 10.42%", tone: "warm" }, claimIds: ["hs-seoul-price"],
+      },
+      {
+        id: "hs-e-district", title: "강남은 덜 오르고, 외곽은 많이 올랐어요",
+        say: "같은 1년 동안 강남구는 1.40%, 서초구는 3.35% 올랐지만 성북구는 16.52% 올랐어요. 서초구는 2026년 10월 첫째 주까지 9주째 내렸어요.",
+        art: "hs-district", claimIds: ["hs-district"],
+      },
+      {
+        id: "hs-e-gap", title: "전세 끼고 사는 집은 절반으로 줄었어요",
+        say: "서울 아파트를 살 때 세입자 보증금을 안고 사는 '갭투자' 비중이 15.76%에서 7.80%로 줄었어요.",
+        art: "hs-gap", fact: { value: "15.76% → 7.80%", tone: "ice" }, claimIds: ["hs-gap"],
+      },
+      {
+        id: "hs-e-jeonse", title: "전셋값은 크게 올랐어요",
+        say: "서울 아파트 전셋값은 1년 동안 9.92% 올라, 그 전 1년(2.41%)보다 훨씬 많이 올랐어요. 전세·월세로 나온 집도 12.5% 줄었어요.",
+        art: "hs-jeonse", fact: { value: "1년 9.92%", tone: "warm" }, claimIds: ["hs-jeonse"],
+      },
+    ],
+    caveat: {
+      text: "대책은 진행 중이에요. 2026년 9월 은행 가계대출이 줄었지만, 보도는 기준금리 인상을 주된 이유로 들어 대책 효과라고 단정할 수 없어요. 서울 토지거래허가구역을 2026년 뒤에도 이어 갈지는 아직 정해지지 않았어요.",
+      claimIds: ["hs-loans-sep", "hs-permit-end"],
+    },
+  },
   scenes: [{
     id: "hs-explainer", kind: "explainer", heading: "대책은 어디까지 왔나", lede: "발표된 대책과 시행된 날, 아직 남은 결정을 나눠 봅니다.",
     claimIds: ["hs-627", "hs-1015", "hs-tax", "hs-debt-2026", "hs-permit-end"],

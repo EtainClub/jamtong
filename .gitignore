@@ -38,5 +38,8 @@ next-env.d.ts
 /refs/
 .refs-preview/
 
+# 카툰 그림을 만드는 작업 폴더(scripts/cartoon-gen.ts)
+.cartoon-work/
+
 # 아이소 방 가구 그림을 만드는 작업 폴더(scripts/room-iso-gen.ts)
 .room-iso-work/

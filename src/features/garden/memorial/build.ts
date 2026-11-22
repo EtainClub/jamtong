@@ -1,10 +1,14 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
 import { getPublishedAchievements } from "@/content/achievements";
 import { ACHIEVEMENT_HEROES } from "@/content/achievements/heroes";
+import { CARTOON_MEDIA } from "@/content/cartoons";
 import { MILESTONES } from "@/content/milestones";
 import type { Achievement, AchievementCategory } from "@/content/schema";
 
 import { hash } from "../rules";
-import type { MemorialEntry, MemorialFact, Memento, SouvenirStatus } from "./types";
+import type { MemorialCartoon, MemorialEntry, MemorialFact, Memento, SouvenirStatus } from "./types";
 
 /**
  * 업적 기념관·사진첩의 자료 — 콘텐츠에서 빌드 때 만든다. 서버에서만 부른다(docs/garden-achievement-strategy.md §3).
@@ -82,6 +86,33 @@ export function mementoOf(a: Pick<Achievement, "slug" | "categories">): Memento 
 
 type KeyNumber = Achievement["keyNumbers"][number];
 
+/**
+ * 카툰 — 쉬운 설명 장면마다 public/cartoons/<slug>/<장면id>.webp가 있으면 한 칸(docs/garden-cartoon-review.md).
+ * 한 칸이라도 그림이 없으면 카툰을 열지 않는다(반쯤 그린 만화는 싣지 않는다).
+ * 공유용 GIF·MP4는 Firebase Storage에 있고, 주소는 src/content/cartoons/media.json에서 읽는다(pnpm cartoon:upload).
+ */
+export function cartoonOf(a: Achievement): MemorialCartoon | undefined {
+  const scenes = a.eli5?.scenes ?? [];
+  if (scenes.length === 0) return undefined;
+  const dir = join(process.cwd(), "public", "cartoons", a.slug);
+  if (!scenes.every((s) => existsSync(join(dir, `${s.id}.webp`)))) return undefined;
+  const gif = CARTOON_MEDIA[a.slug]?.gif?.url;
+  const mp4 = CARTOON_MEDIA[a.slug]?.mp4?.url;
+  return {
+    panels: scenes.map((s) => ({
+      id: s.id,
+      image: `/cartoons/${a.slug}/${s.id}.webp`,
+      title: s.title,
+      say: s.say,
+      ...(s.fact ? { fact: s.fact.value } : {}),
+      anchors: s.claimIds.map((id) => `${a.slug}#${id}`),
+    })),
+    ...(a.eli5?.caveat ? { caveat: a.eli5.caveat.text } : {}),
+    ...(gif ? { gif } : {}),
+    ...(mp4 ? { mp4 } : {}),
+  };
+}
+
 function valueText(k: KeyNumber): string {
   return `${k.prefix ? `${k.prefix} ` : ""}${k.value}${k.unit ?? ""}`.replace(/\s+/g, " ").trim();
 }
@@ -152,6 +183,7 @@ export function buildMemorial(): MemorialEntry[] {
         : { src: `/achievement/${a.slug}/opengraph-image`, kind: "card", alt: `${a.title} 공유 카드` },
       facts,
       ...(counter ? { counter: { text: clip(counter.question, 90), href: `/achievement/${a.slug}#counterpoint` } } : {}),
+      ...(cartoonOf(a) ? { cartoon: cartoonOf(a) } : {}),
       quiz: {
         question: `「${a.title}」에서 확인된 숫자는 무엇일까요?`,
         options,

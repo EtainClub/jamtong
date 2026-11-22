@@ -1,0 +1,38 @@
+{
+  "e-sh-closed": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-21",
+    "reference": "jamtongi character sheet",
+    "prompt": "Scene: A quiet Korean city street in the early 2000s. Two large general hospital buildings have closed down: dark windows, rolled-down shutters, a chained front gate. A worried elderly couple and a parent holding a feverish child look at the closed hospital. Jamtongi stands in the foreground looking sad and worried. Draw Jamtongi EXACTLY as in the attached character sheet ... (scripts/cartoon-gen.ts의 STYLE과 같다)"
+  },
+  "e-sh-petition": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-21",
+    "reference": "jamtongi character sheet",
+    "prompt": "Scene: A cold winter street in a Korean city. Ordinary citizens of all ages in warm coats gather around a folding table collecting signatures on clipboards with blank papers; people line up to sign. Jamtongi stands on the table holding a clipboard with determination. Draw Jamtongi EXACTLY as in the attached character sheet ... (scripts/cartoon-gen.ts의 STYLE과 같다)"
+  },
+  "e-sh-rejected": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-21",
+    "reference": "jamtongi character sheet",
+    "prompt": "Scene: View from the public gallery of a city council chamber: rows of council desks below (generic, faces not detailed). Two large symbolic red X marks float in the air above the chamber, meaning rejected twice. Citizens in the gallery look disappointed but determined. Jamtongi clenches its little fists, not giving up. Draw Jamtongi EXACTLY as in the attached character sheet ... (scripts/cartoon-gen.ts의 STYLE과 같다)"
+  },
+  "e-sh-passed": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-21",
+    "reference": "jamtongi character sheet",
+    "prompt": "Scene: The same city council chamber: every council member raises a hand in agreement (generic people). Citizens in the public gallery cheer and hug, confetti in the air. Jamtongi jumps with both arms up, cheering. Draw Jamtongi EXACTLY as in the attached character sheet ... (scripts/cartoon-gen.ts의 STYLE과 같다)"
+  },
+  "e-sh-ground": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-21",
+    "reference": "jamtongi character sheet",
+    "prompt": "Scene: A fenced empty construction lot where weeds and grass have grown tall over several years, with seasons drifting by (falling autumn leaves on one side, a little snow on the other). In the middle, a few workers in hard hats finally push shovels into the dirt for a groundbreaking. Jamtongi holds a tiny shovel, sweating but happy. Draw Jamtongi EXACTLY as in the attached character sheet ... (scripts/cartoon-gen.ts의 STYLE과 같다)"
+  },
+  "e-sh-open": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-21",
+    "reference": "jamtongi character sheet",
+    "prompt": "Scene: A large modern public hospital building opens its doors on a bright sunny day. Doctors and nurses in white coats welcome patients at the entrance; through the glass you can see many hospital beds. Families walk in smiling. Jamtongi waves happily by the entrance. Draw Jamtongi EXACTLY as in the attached character sheet ... (scripts/cartoon-gen.ts의 STYLE과 같다)"
+  }
+}
