@@ -793,6 +793,18 @@ keys: Array<{ f: string; s: string; v?: number /* s가 "rec"일 때만 */ }>
 곡 소개(`hint`)는 곡을 듣고 쓴 것이 아니라 제목에서 지은 한 줄이다. 듣고 고칠 것.
 규칙·색인은 바꿀 것이 없다(공개 방의 `bgm`은 id만, 40자 안). 화면만 배포하면 된다 — Storage에는 이미 올라가 있다.
 
+#### 잼통 AI 가요 다섯 곡 추가 (2026-11-21)
+
+`assets/노래/`에 새로 만든 다섯 곡을 `pnpm bgm:upload`(32kHz · 96kbps · -20 LUFS)로 `bgm/catalog/<slug>.mp3`에 올렸다. 모두 잼통 AI 스튜디오의 AI 창작곡, 1,000잼. 상점 음원은 16곡이 된다(무료 합성곡 5곡은 그대로).
+
+| 곡 | id · Storage | 길이 | 바이트 | SHA-256 |
+|---|---|---|---|---|
+| 우리가 심은 내일 | `song-planted-tomorrow` · `planted-tomorrow.mp3` | 2:59 | 2,147,948 | `8f4744fad0839a81a202ad3f27c6f000e8ea98338832e701c2b991e08298986e` |
+| 오늘 가장 예쁜 맛 | `song-sweetest-today` · `sweetest-today.mp3` | 2:38 | 1,897,388 | `9254cf3e58d3e5a3137cf393f759075e2bedf8fa7a91bdd357303793605f7fa2` |
+| 우리가 머문 페이지 | `song-our-page` · `our-page.mp3` | 2:58 | 2,134,124 | `4082c36a0d6dc6f5b823fe8302dd719911ebe5748b838ca216fb20cec7241c01` |
+| 오늘 밤 나랑 마실 갈래요 | `song-evening-visit` · `evening-visit.mp3` | 3:02 | 2,183,804 | `d807bcfd4fa5f2ba0d60e4a89b0266d3f8f9074b1c666588828e1f9bf159db1a` |
+| 너와 나의 별자리 | `song-our-constellation` · `our-constellation.mp3` | 3:00 | 2,166,956 | `795ce7e0a698de57b21df426bac642aba98c28b8992df1547176cab8ea317116` |
+
 ### 특별한 책 혜택 (2026-11-17)
 
 한 권 100,000잼의 특별한 책을 **방에 놓으면** 독서대가 열린다(`room/BookSheet.tsx`, 규칙은 `room/library.ts`). 요약은 잼통 사이트에서 누구나 읽으므로 정보를 잠그지 않고, 바깥에서 할 수 없는 경험을 준다. 잼 이자와 소장 번호는 두지 않는다(결정).

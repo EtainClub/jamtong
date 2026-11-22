@@ -546,7 +546,7 @@ test("바비는 실제 강아지 녹음 효과음을 쓰며 실제 바비 음성
 
 
 test("상점 음원: 카탈로그 곡은 한 번만 구매하고, 잼이 부족하면 상태를 바꾸지 않는다", () => {
-  assert.equal(MUSIC_SHOP.length, 11);
+  assert.equal(MUSIC_SHOP.length, 16);
   for (const t of MUSIC_SHOP) {
     // 공개 방의 bgm은 40자까지(firestore.rules), 파일은 운영자가 올린 bgm/catalog/ 아래만(storage.rules).
     assert.ok(t.id.length <= 40, t.id);
@@ -600,8 +600,9 @@ test("음원 저장소: 구매 전 선택 차단, 구매 후 설정, 중복 구�
     useGarden.setState({ data: null });
     useGarden.getState().boot([]);
     const base = useGarden.getState().data!;
-    useGarden.setState({ data: { ...base, jam: 10000, room: freshRoom() } });
-    let expected = 10000;
+    const budget = MUSIC_SHOP.reduce((sum, track) => sum + track.price, 0);
+    useGarden.setState({ data: { ...base, jam: budget, room: freshRoom() } });
+    let expected = budget;
     for (const track of MUSIC_SHOP) {
       const previous = useGarden.getState().data!.room.bgm;
       useGarden.getState().setBgm(track.id);
