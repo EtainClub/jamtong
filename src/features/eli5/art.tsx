@@ -13,6 +13,7 @@ import {
   TrSpend,
   TrVisa,
 } from "./TourismBirthArt";
+import { HsDistrict, HsGap, HsJeonse, HsLoan, HsSeoul, HsSupply, HsTax } from "./HousingArt";
 
 /**
  * 쉬운 설명 삽화.
@@ -3150,6 +3151,13 @@ export const ELI5_ART: Record<Eli5Art, () => React.ReactNode> = {
   "br-cum": BrCum,
   "br-natural": BrNatural,
   "br-why": BrWhy,
+  "hs-loan": HsLoan,
+  "hs-tax": HsTax,
+  "hs-supply": HsSupply,
+  "hs-seoul": HsSeoul,
+  "hs-district": HsDistrict,
+  "hs-gap": HsGap,
+  "hs-jeonse": HsJeonse,
   "suez-long": SuezLong,
   "arctic-short": ArcticShort,
   "compare-bars": CompareBars,

@@ -968,6 +968,15 @@ export const Eli5Art = z.enum([
   "br-cum",
   "br-natural",
   "br-why",
+
+  // 부동산 안정화 대책
+  "hs-loan",
+  "hs-tax",
+  "hs-supply",
+  "hs-seoul",
+  "hs-district",
+  "hs-gap",
+  "hs-jeonse",
 ]);
 export type Eli5Art = z.infer<typeof Eli5Art>;
 
