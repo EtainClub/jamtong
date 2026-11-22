@@ -12,16 +12,17 @@ import type { PolicyInput } from "./schema";
  *   본인이 든 이유, 비판을 함께 적는다. 사례 목록은 다 모은 것이 아니다(gaps).
  * ★ 국토보유세의 그 뒤는 policy:land-holding-tax, 금투세는 policy:capital-taxes에 더 있다.
  * ★ 2026-11-15 처음 등록 — factbot-gap #286·#288·#289.
+ * ★ 2026-11-22 불체포특권(2023)·위성정당 금지 약속(2024) 사례를 더했다 — factbot-gap #300.
  */
 export const PARK_RESPECT_REMARK: PolicyInput = {
   slug: "park-respect-remark",
   title: "'존경하는 박근혜' 발언과 '말 바꾸기' 비판",
   scope:
     "2021년 12월 3일 전주 간담회의 '존경하는 박근혜 전 대통령' 발언과 12월 7일 서울대 강연의 해명, 선거캠프 설명, " +
-    "그리고 '말 바꾸기' 비판이 가리키는 국토보유세·기본소득(2021)과 금투세(2024) 입장 변화",
+    "그리고 '말 바꾸기' 비판이 가리키는 국토보유세·기본소득(2021), 불체포특권 포기(2023), 위성정당 금지 약속(2024), 금투세(2024) 입장 변화",
   ministries: [],
   categories: ["institution"],
-  asOf: "2026-11-15",
+  asOf: "2026-11-22",
   rumors: [
     {
       id: "rumor-respect",
@@ -31,7 +32,16 @@ export const PARK_RESPECT_REMARK: PolicyInput = {
     {
       id: "rumor-flip",
       text: "이재명 대통령이 자기가 한 말을 번번이 뒤집어 왔다",
-      claimIds: ["claim-explanation", "claim-land-tax-2021", "claim-land-tax-2025", "claim-fit", "claim-fit-critique"],
+      claimIds: [
+        "claim-explanation",
+        "claim-land-tax-2021",
+        "claim-land-tax-2025",
+        "claim-immunity-pledge",
+        "claim-immunity-appeal",
+        "claim-satellite",
+        "claim-fit",
+        "claim-fit-critique",
+      ],
     },
   ],
   claims: [
@@ -93,6 +103,34 @@ export const PARK_RESPECT_REMARK: PolicyInput = {
       verified: true,
     },
     {
+      id: "claim-immunity-pledge",
+      text:
+        "이재명 당시 민주당 대표는 2023년 6월 19일 국회 교섭단체 대표연설에서 \"(검찰이) 구속영장을 청구하면 제 발로 출석해 " +
+        "영장실질심사를 받겠다\"며 불체포특권 포기를 선언했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-newdaily-20230921", "src-pressian-20230921"],
+      verified: true,
+    },
+    {
+      id: "claim-immunity-appeal",
+      text:
+        "그러나 9월 21일 체포동의안 표결 전날 페이스북에 \"검찰독재의 폭주 기관차를 국회 앞에서 멈춰 세워 달라\"고 올려 사실상 " +
+        "부결을 호소했다. 체포동의안은 찬성 149, 반대 136, 기권 6, 무효 4로 가결됐다.",
+      assertionType: "FACT",
+      sourceIds: ["src-newdaily-20230921", "src-pressian-20230921"],
+      verified: true,
+    },
+    {
+      id: "claim-satellite",
+      text:
+        "2024년 2월 5일 이 대표는 비례대표 선거제를 준연동형으로 유지하고 통합형 비례정당을 만들겠다고 발표하면서 \"약속드린 " +
+        "위성정당 금지 입법을 하지 못한 점을 사과드린다\", \"결국 준위성정당을 창당하게 된 점을 사과드린다\"고 했다. 국민의힘의 " +
+        "위성정당에 대한 대응이라는 설명이었다.",
+      assertionType: "FACT",
+      sourceIds: ["src-khan-202402050935001", "src-newsis-20240205-satellite"],
+      verified: true,
+    },
+    {
       id: "claim-fit",
       text:
         "금융투자소득세는 2024년 8월 전당대회 때 사견을 전제로 시행 유예 필요성을 꺼냈고, 11월 4일 최고위원회의에서 \"정부와 여당이 " +
@@ -130,6 +168,22 @@ export const PARK_RESPECT_REMARK: PolicyInput = {
       claimIds: ["claim-explanation", "claim-land-tax-2021"],
     },
     {
+      id: "t-immunity",
+      date: "2023-06-19",
+      datePrecision: "day",
+      title: "불체포특권 포기 선언",
+      summary: "9월 표결 전날에는 부결을 호소했다.",
+      claimIds: ["claim-immunity-pledge", "claim-immunity-appeal"],
+    },
+    {
+      id: "t-satellite",
+      date: "2024-02-05",
+      datePrecision: "day",
+      title: "준연동형 유지·준위성정당 창당 사과",
+      summary: "위성정당 금지 약속을 지키지 못했다.",
+      claimIds: ["claim-satellite"],
+    },
+    {
       id: "t-fit",
       date: "2024-11-04",
       datePrecision: "day",
@@ -148,7 +202,7 @@ export const PARK_RESPECT_REMARK: PolicyInput = {
   ],
   gaps: [
     "전주 간담회 발언의 전체 녹취는 확인하지 못했다. 발언은 디지털타임스가 옮긴 문장이다.",
-    "'말 바꾸기'로 지목되는 사례를 모두 모은 것은 아니다. 공개 기록으로 입장 변화와 본인 설명이 확인되는 국토보유세·기본소득·금투세만 적었다.",
+    "'말 바꾸기'로 지목되는 사례를 모두 모은 것은 아니다. 공개 기록으로 입장 변화와 본인 설명이 확인되는 국토보유세·기본소득·불체포특권·위성정당·금투세만 적었다. 대통령 취임 뒤의 사례는 아직 모으지 못했다.",
   ],
   sources: [
     {
@@ -184,6 +238,42 @@ export const PARK_RESPECT_REMARK: PolicyInput = {
       publisher: "택스워치",
       url: "https://www.taxwatch.co.kr/article/tax/2025/05/12/0001",
       publishedAt: "2025-05-14",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newdaily-20230921",
+      title: "이재명 체포안 가결… 민주당 소신 39표가 '방탄 갑옷' 뚫었다",
+      publisher: "뉴데일리",
+      url: "https://www.newdaily.co.kr/site/data/html/2023/09/21/2023092100269.html",
+      publishedAt: "2023-09-21",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-pressian-20230921",
+      title: "이재명 체포동의안 가결",
+      publisher: "프레시안",
+      url: "https://pressian.com/pages/articles/2023092115215356841",
+      publishedAt: "2023-09-21",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-khan-202402050935001",
+      title: "[속보] 이재명 \"과거 회귀 아닌, 준연동제 안에서 승리의 길을 찾겠다\"",
+      publisher: "경향신문",
+      url: "https://www.khan.co.kr/article/202402050935001",
+      publishedAt: "2024-02-05",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-newsis-20240205-satellite",
+      title: "이재명 \"준연동제 안에서 승리의 길\"…'위성정당'으로 세번 사과하기도(종합)",
+      publisher: "뉴시스",
+      url: "https://www.newsis.com/view/NISX20240205_0002616966",
+      publishedAt: "2024-02-05",
       type: "press",
       license: "link-only",
     },
