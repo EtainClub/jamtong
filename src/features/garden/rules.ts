@@ -281,11 +281,97 @@ export function rollMutations(plant: Plant, plaza: PlazaLevel): Mutation[] {
   return withRainbow(out);
 }
 
-/** bonus는 꽃밭 보너스(만개한 업적 수에서 나온다). 신품종 보너스는 거둔 때로 정해진다. */
+/**
+ * bonus는 꽃밭 보너스(만개한 업적 수에서 나온다). 신품종 보너스는 거둔 때로 정해진다.
+ * 돌려짓기(fruit.rot)는 같은 자리에 더한다 — 기본 × 변이 × (1 + 꽃밭 + 신품종 + 돌려짓기).
+ */
 export function fruitValue(fruit: Fruit, species: Species, bonus = 0): number {
   const multiplier = fruit.mutations.reduce((m, k) => m * MUTATION[k].multiplier, 1);
   const fresh = isNewVariety(species, fruit.harvestedAt) ? NEW_VARIETY_BONUS : 0;
-  return Math.round(baseJam(species) * multiplier * (1 + bonus + fresh));
+  return Math.round(baseJam(species) * multiplier * Math.max(0, 1 + bonus + fresh + (fruit.rot ?? 0)));
+}
+
+// ── 돌려짓기 (docs/garden-farm-v2.md §4) ─────────────────────────────
+
+/** 연작(같은 품종을 같은 칸에 연달아)과 돌려짓기(다른 분야로)의 잼 가감. 화면에 그대로 보인다. */
+export const ROTATION = { same: -0.3, other: 0.1 } as const;
+
+/** 칸마다 마지막으로 거둔 품종(s)과 그 분야(r). 갈아엎은 것은 적지 않는다. */
+export interface PlotRecord {
+  s: string;
+  r: string;
+}
+
+/** 이 칸에 이 품종을 심으면 붙는 가감. 기록이 없으면 0. */
+export function rotationOf(prev: PlotRecord | null | undefined, species: Pick<Species, "id" | "region">): number {
+  if (!prev) return 0;
+  if (prev.s === species.id) return ROTATION.same;
+  if (prev.r !== species.region) return ROTATION.other;
+  return 0;
+}
+
+/** 화면에 붙이는 이름 — "돌려짓기 +10%" · "연작 −30%". 0이면 빈 글. */
+export function rotationLabel(rot: number | undefined): string {
+  if (!rot) return "";
+  const pct = Math.round(Math.abs(rot) * 100);
+  return rot > 0 ? `돌려짓기 +${pct}%` : `연작 −${pct}%`;
+}
+
+// ── 첫 수확 선물 (docs/garden-farm-v2.md §3) ──────────────────────────
+
+/** 처음 거두는 순간 주는 방 소품 — 텃밭이 방을 꾸민다는 것을 첫 수확에서 보인다. */
+export const FIRST_HARVEST_GIFT = "can";
+
+// ── 잼 공방 (docs/garden-farm-v2.md §5) ──────────────────────────────
+
+/** 분야 잼 병 하나에 드는 열매 — 같은 분야의 서로 다른 품종 셋. */
+export const JAR_FRUITS = 3;
+
+/** 분야마다 병의 잼 색과 표식. 분야 표(REGION_ORDER)와 짝이 맞아야 한다(rules.test.ts). */
+export const JAR_STYLE: Record<string, { jam: string; icon: string }> = {
+  economy: { jam: "#e0a12b", icon: "💰" },
+  welfare: { jam: "#e46a8a", icon: "🤝" },
+  institution: { jam: "#6a7fd0", icon: "🏛️" },
+  diplomacy: { jam: "#3fa39a", icon: "🕊️" },
+  region: { jam: "#7bb84a", icon: "🛤️" },
+  disaster: { jam: "#e2643e", icon: "🛟" },
+  words: { jam: "#a07ad8", icon: "💬" },
+};
+
+/** 병에 옮겨 가는 변이 — 재료 열매의 변이를 모은다(겹치지 않게, 정한 차례로). 셋 이상이면 무지개. */
+export function jarMutations(fruits: ReadonlyArray<Pick<Fruit, "mutations">>): Mutation[] {
+  const all = new Set<Mutation>(fruits.flatMap((f) => f.mutations).filter((m) => m !== "rainbow"));
+  return withRainbow(MUTATION_ORDER.filter((m) => all.has(m)));
+}
+
+/**
+ * 병을 만들 수 있는 재료인가 — 셋, 모두 같은 분야(region), 품종이 서로 다르다. 맞으면 그 분야, 아니면 null.
+ */
+export function jarRegion(fruits: ReadonlyArray<Pick<Fruit, "speciesId">>, byId: ReadonlyMap<string, Pick<Species, "region">>): string | null {
+  if (fruits.length !== JAR_FRUITS) return null;
+  if (new Set(fruits.map((f) => f.speciesId)).size !== JAR_FRUITS) return null;
+  const regions = new Set(fruits.map((f) => byId.get(f.speciesId)?.region));
+  const [region] = [...regions];
+  return regions.size === 1 && region && JAR_STYLE[region] ? region : null;
+}
+
+/** 바구니에서 병을 만들 수 있는 분야들 — 서로 다른 품종 열매가 셋 이상 있는 분야. 분야 차례대로. */
+export function jarRegions(basket: ReadonlyArray<Pick<Fruit, "speciesId">>, byId: ReadonlyMap<string, Pick<Species, "region">>): string[] {
+  const kinds = new Map<string, Set<string>>();
+  for (const f of basket) {
+    const region = byId.get(f.speciesId)?.region;
+    if (!region || !JAR_STYLE[region]) continue;
+    kinds.set(region, (kinds.get(region) ?? new Set()).add(f.speciesId));
+  }
+  return REGION_ORDER.filter((r) => (kinds.get(r)?.size ?? 0) >= JAR_FRUITS);
+}
+
+/** 처음 만든 분야 병의 선물 — 그 분야의 대표 씨앗 하나(없으면 아무 분야의 대표). 같은 정원·분야면 같은 씨앗. */
+export function jarFirstSeed(region: string, catalog: readonly Species[], seed: string): Species | null {
+  const flag = catalog.filter((s) => s.tier === "flagship");
+  const pool = flag.filter((s) => s.region === region);
+  const list = pool.length ? pool : flag;
+  return list.length ? list[hash(`jar:${seed}:${region}`) % list.length] : null;
 }
 
 /** 원본 광택은 하루 다섯 번까지. 게임이 근거 열람 지표를 부풀리지 않게. */

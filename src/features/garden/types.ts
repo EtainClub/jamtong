@@ -69,6 +69,8 @@ export interface Plant {
   harvests: number;
   /** 비료를 준 수확 차례(harvests 값). 같으면 이번 차례에는 이미 줬다. */
   fed?: number;
+  /** 돌려짓기(docs/garden-farm-v2.md §4) — 심을 때 그 칸의 기록과 견줘 정한 잼 가감(−0.3 연작, +0.1 돌려짓기). 없으면 0. */
+  rot?: number;
 }
 
 export interface Fruit {
@@ -77,6 +79,8 @@ export interface Fruit {
   noteId: string;
   mutations: Mutation[];
   harvestedAt: number;
+  /** 돌려짓기 가감 — 포기(Plant.rot)에서 옮겨 온다. 없으면 0. */
+  rot?: number;
 }
 
 export type PlazaLevel = "clean" | "normal" | "overgrown";

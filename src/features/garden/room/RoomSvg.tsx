@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { PlantArt } from "../GardenArt";
 import { RaidTrophyArt } from "../RaidWeedArt";
 import { isRaidKind } from "../raid/rules";
-import { HOUR, isMeteor, isRaining } from "../rules";
+import { HOUR, isMeteor, isRaining, JAR_STYLE } from "../rules";
 import type { Mutation, Species } from "../types";
 import { BOOK_PALETTES } from "./books";
 import { FURNITURE_BY_ID } from "./catalog";
@@ -177,6 +177,7 @@ export function ShownArt({ shown, byId, w, h, rainbow }: { shown: Shown; byId: R
       </g>
     );
   }
+  if (shown.kind === "jar") return <JarArt region={shown.species ?? ""} mut={shown.mut} w={w} h={h} rainbow={rainbow} />;
   if (shown.kind === "trophy") {
     // 악초 박제. 종류표에 없는 값(남의 공개 문서)이면 빈 받침만.
     if (!isRaidKind(shown.species)) return <rect x="8" y={h - 10} width={w - 16} height="10" fill={C.greyD} stroke={C.ink} strokeWidth="2" />;
@@ -203,6 +204,33 @@ export function ShownArt({ shown, byId, w, h, rainbow }: { shown: Shown; byId: R
         <rect x={x - 2} y={h - potH} width={potW + 4} height="4" fill={potColor(shown.mut, rainbow)} stroke={C.ink} strokeWidth="2" />
         <path d={`M${x} ${h - potH + 4}H${x + potW}L${x + potW - 3} ${h}H${x + 3}Z`} fill={potColor(shown.mut, rainbow)} stroke={C.ink} strokeWidth="2" />
       </g>
+    </g>
+  );
+}
+
+/**
+ * 분야 잼 병(잼 공방, docs/garden-farm-v2.md §5). 유리병에 분야 색 잼, 앞에 분야 표식.
+ * 재료 열매의 변이가 병으로 옮겨 온다 — 황금은 금빛 뚜껑, 무지개는 무지개 띠, 반짝은 별, 촉촉은 물방울.
+ */
+export function JarArt({ region, mut, w, h, rainbow }: { region: string; mut?: readonly Mutation[]; w: number; h: number; rainbow: string }) {
+  const style = JAR_STYLE[region] ?? { jam: "#c96b3d", icon: "🍯" };
+  const m = new Set(mut ?? []);
+  const jw = 22;
+  const x = (w - jw) / 2;
+  const top = h - 30;
+  return (
+    <g>
+      <g shapeRendering="crispEdges">
+        <rect x={x - 1} y={top} width={jw + 2} height="6" fill={m.has("golden") ? "#ffd24a" : C.red} stroke={C.ink} strokeWidth="2" />
+        <rect x={x} y={top + 6} width={jw} height="24" fill="#eaf6ff" stroke={C.ink} strokeWidth="2" />
+        <rect x={x + 2} y={top + 11} width={jw - 4} height="17" fill={style.jam} />
+        {m.has("rainbow") && <rect x={x} y={top + 6} width={jw} height="3" fill={rainbow} />}
+        <rect x={x + 3} y={top + 13} width="3" height="10" fill="#ffffff" opacity=".45" />
+        <rect x={x + 4} y={top + 16} width={jw - 8} height="9" fill={C.paper} stroke={C.ink} strokeWidth="1" />
+      </g>
+      <text x={w / 2} y={top + 24} fontSize="7" textAnchor="middle">{style.icon}</text>
+      {m.has("sparkle") && <text x={x + jw + 1} y={top + 4} fontSize="8">✨</text>}
+      {m.has("moist") && <text x={x - 7} y={top + 12} fontSize="7">💧</text>}
     </g>
   );
 }
