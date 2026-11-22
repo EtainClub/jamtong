@@ -623,6 +623,12 @@
 .game :global(.garden-inventory) { position: fixed; inset: auto 0 0 0; z-index: 45; max-width: 560px; max-height: 44vh; margin: 0 auto; overflow-y: auto; padding: 12px 14px calc(14px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; background: #fff; border-top: 2px dashed var(--d-line); box-shadow: 0 -8px 30px #2b3a4a26; }
 .game :global(.garden-chips) { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
 .game :global(.garden-chips::-webkit-scrollbar) { display: none; }
+/* 데스크톱 마우스: 넘칠 수 있다는 것이 보이게 얇은 스크롤바를 둔다(휠·끌기는 chipScroll.ts). */
+@media (hover: hover) and (pointer: fine) {
+  .game :global(.garden-chips) { scrollbar-width: thin; scrollbar-color: #c9c2b4 transparent; padding-bottom: 4px; }
+  .game :global(.garden-chips::-webkit-scrollbar) { display: block; height: 6px; }
+  .game :global(.garden-chips::-webkit-scrollbar-thumb) { background: #c9c2b4; border-radius: 3px; }
+}
 .game :global(.garden-chip-btn) { flex-shrink: 0; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--d-line); background: #fff; font-size: 13px; font-weight: 800; color: #5d6a74; }
 .game :global(.garden-chip-btn[aria-pressed=true]) { background: var(--d-sky); border-color: #237fb5; color: #fff; }
 .game :global(.garden-inventory-grid) { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
