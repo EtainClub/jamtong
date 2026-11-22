@@ -11,6 +11,7 @@ import { isRaidKind } from "../raid/rules";
 import type { Fruit, Mutation, Species } from "../types";
 import { DEFAULT_FLOOR, DEFAULT_MOOD, DEFAULT_WALL, FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS, ROOM_SIZES, type Furniture } from "./catalog";
 import { avatarAtOk, avatarFromPublic, freshAvatar, normalizeAvatar, packAvatar, type AvatarData } from "../avatar/rules";
+import { holds } from "./iso";
 import { facingDir, footprint, isoFromSlots, isoProblem, isoProblemAt, isoSpecOf, isWallPos, packPos, posShape, slotToPos, spotNear, unpackPos, WALL_H, type IsoPos, type SlotPlaced } from "./isoPlace";
 import { freshKeys, KEYBOARD_ID, KEY_VER_MAX, recSlots, keysFromPublic, normalizeKeys, publicKeys, packKeyboard, unpackKeyboard, type RoomKey } from "./keyboard";
 
@@ -509,10 +510,13 @@ export function firstOpenSpot(room: RoomData, it: string): IsoPos | null {
     (["R", "L"] as const).flatMap((wall) => [50, 10, 80].flatMap((z) => Array.from({ length: n * 2 + 1 }, (_, a) => ({ wall, a, z: Math.min(z, WALL_H - spec.h) }))));
   if (spec.layer === "wall") return walls().find((pos) => canPlace(room, it, pos)) ?? null;
   // 올려 두는 것은 책상·탁자 위가 먼저 — 바닥 안쪽 구석에 놓으면 큰 가구 뒤에 가려 보이지 않았다(잼 병, 2026-11-22).
+  // 애완동물은 방석이 먼저다.
   if (spec.layer === "small") {
-    for (const [on, base] of room.placed.entries()) {
+    const bases = [...room.placed.entries()].sort(([, a], [, b]) =>
+      spec.pet ? Number(!!isoSpecOf(b.it, room.shown)?.petSeat) - Number(!!isoSpecOf(a.it, room.shown)?.petSeat) : 0);
+    for (const [on, base] of bases) {
       const bs = isoSpecOf(base.it, room.shown);
-      if (isWallPos(base.pos) || base.pos.on !== undefined || !bs?.surface) continue;
+      if (isWallPos(base.pos) || base.pos.on !== undefined || !bs || !holds(bs, spec)) continue;
       const fp = footprint(bs, base.pos);
       for (let x = fp.u * 2; x < (fp.u + fp.w) * 2; x++) {
         for (let y = fp.v * 2; y < (fp.v + fp.d) * 2; y++) {

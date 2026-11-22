@@ -26,6 +26,16 @@ export interface IsoSpec {
   seatZ?: number;
   /** small 층이지만 벽에도 걸 수 있다(박제·기념품 — 지금 방에서 벽·바닥 어디에나 놓이던 것). */
   wallOk?: boolean;
+  /** 애완동물(바비 미니어처). 방석 위에 올라갈 수 있다. */
+  pet?: boolean;
+  /** 올림면이 애완동물 자리다 — 방석. 애완동물만 올린다(방석에 라디오는 놓지 않는다). */
+  petSeat?: boolean;
+}
+
+/** base 위에 item을 올릴 수 있는가 — 올림면이 있고, 애완동물 자리면 애완동물만. */
+export function holds(base: IsoSpec | null | undefined, item: IsoSpec | null | undefined): boolean {
+  if (!base?.surface || !item) return false;
+  return !base.petSeat || !!item.pet;
 }
 
 export const ISO_TILE = 40;
@@ -71,7 +81,7 @@ export const ISO: Readonly<Record<string, IsoSpec>> = {
   chair: furn(1, 1, 40, { seatZ: 20 }),
   table: furn(1, 1, 24, { surface: 24 }),
   lamp: furn(0.5, 0.5, 60),
-  cushion: furn(1, 1, 6, { seatZ: 6 }),
+  cushion: furn(1, 1, 6, { seatZ: 6, surface: 6, petSeat: true }),
   mailbox: furn(0.5, 0.5, 40),
   keyboard: furn(2, 1, 32, { seatZ: 0 }),
   piano: furn(2, 1, 48, { seatZ: 0 }),
@@ -85,7 +95,7 @@ export const ISO: Readonly<Record<string, IsoSpec>> = {
   "souvenir-case": furn(1, 0.5, 70),
   "lamp-reading": furn(0.5, 0.5, 64),
   "shelf-complete": furn(2, 0.5, 80),
-  "babi-bed": furn(1, 1, 10),
+  "babi-bed": furn(1, 1, 10, { surface: 6, petSeat: true }),
   "go-board": furn(1, 1, 18, { surface: 18 }),
   "gukbap-table": furn(1, 1, 18, { surface: 18 }),
   "trout-aquarium": furn(2, 1, 40),
@@ -97,7 +107,7 @@ export const ISO: Readonly<Record<string, IsoSpec>> = {
   can: small(16),
   picnic: small(18),
   fishbowl: small(24),
-  "babi-mini": small(20),
+  "babi-mini": { ...small(20), pet: true },
   "hiking-pack": small(28),
   "hiking-boots": small(16),
   "reading-books": small(20),

@@ -8,6 +8,7 @@ import { gardenFeedback } from "../feedback";
 import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
 import { FURNITURE, FURNITURE_BY_ID } from "./catalog";
+import { holds } from "./iso";
 import { footprint, isoSpecOf, isWallPos, WALL_H, type IsoPos } from "./isoPlace";
 import { isoGeom } from "./IsoRoom";
 import { avatarAtFor, avatarBlocked, avatarPoint } from "../avatar/rules";
@@ -94,7 +95,7 @@ function dragPos(room: RoomData, index: number, pt: { x: number; y: number }, du
     const on = room.placed.findIndex((b, j) => {
       if (j === index || isWallPos(b.pos) || b.pos.on !== undefined) return false;
       const bs = isoSpecOf(b.it, room.shown);
-      if (!bs?.surface) return false;
+      if (!bs || !holds(bs, spec)) return false;
       const bf = footprint(bs, b.pos);
       return cu >= bf.u && cu <= bf.u + bf.w && cv >= bf.v && cv <= bf.v + bf.d;
     });

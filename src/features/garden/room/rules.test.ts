@@ -907,3 +907,15 @@ test("방향 맞추기: 오른쪽 벽 쪽은 오른쪽 벽을, 왼쪽 벽 쪽은
   const left = R.firstOpenSpot({ ...owning({ sofa: 1, wardrobe: 3 }), placed: [0, 2, 4].map((x) => ({ it: "wardrobe", pos: { x, y: 0, dir: 0 as const } })) }, "sofa");
   assert.ok(left && !isWallPos(left));
 });
+
+test("바비 미니어처는 책상보다 방석 위가 먼저", async () => {
+  const { place: put } = await import("./rules");
+  let room = owning({ desk: 1, cushion: 1, "babi-mini": 1, radio: 1 });
+  room = put(room, "desk", { x: 0, y: 0, dir: 0 }) ?? room;
+  room = put(room, "cushion", { x: 6, y: 6, dir: 0 }) ?? room;
+  const cushionAt = room.placed.findIndex((p) => p.it === "cushion");
+  assert.ok(cushionAt >= 0);
+  assert.deepEqual(firstOpenSpot(room, "babi-mini"), { x: 6, y: 6, dir: 0, on: cushionAt });
+  const radio = firstOpenSpot(room, "radio") as { on?: number };
+  assert.notEqual(radio.on, cushionAt, "라디오는 방석에 올리지 않는다");
+});
