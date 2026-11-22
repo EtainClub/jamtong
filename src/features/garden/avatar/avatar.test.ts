@@ -94,7 +94,7 @@ test("기본 꼬마는 같은 seed면 같고 무료 옷만 입는다", () => {
 test("공개 문자열은 되돌아오고, 가장 긴 조합도 규칙에 맞는다", () => {
   const longest = (part: Wear["part"]) => WEAR.filter((w) => w.part === part).sort((a, b) => b.id.length - a.id.length)[0].id;
   const av: AvatarData = {
-    on: true, at: "19~19", roam: true, owned: WEAR.map((w) => w.id),
+    on: true, at: "19~7", roam: true, owned: WEAR.map((w) => w.id),
     look: {
       skin: 7, hairColor: 9, hair: longest("hair"), eyes: longest("eyes"), top: longest("top"), bottom: longest("bottom"), shoes: longest("shoes"),
       hat: longest("hat"), face: longest("face"), held: longest("held"), bubble: longest("bubble"), tint: { top: 11, bottom: 11, shoes: 11 },
@@ -103,7 +103,7 @@ test("공개 문자열은 되돌아오고, 가장 긴 조합도 규칙에 맞는
   const packed = packAvatar(av, 10);
   assert.ok(packed && packed.length <= AVATAR_PUBLIC_MAX && AVATAR_PUBLIC_RE.test(packed), packed ?? "null");
   const back = avatarFromPublic(packed)!;
-  assert.equal(back.at, "19~19");
+  assert.equal(back.at, "19~7");
   assert.equal(packed.split(";")[0], "2", "판 2");
   assert.equal(back.roam, true);
   for (const k of ["hair", "eyes", "top", "bottom", "shoes", "hat", "face", "held", "bubble", "skin", "hairColor"] as const) assert.equal(back.look[k], av.look[k], k);
@@ -124,6 +124,8 @@ test("가지지 않은 옷은 공개하기 전에 기본으로, 끈 꼬마·방 
   assert.deepEqual(ownedLook({ ...fake, owned: ["straw"] }).hat, "straw");
   assert.equal(packAvatar({ ...av, on: false }, 6), null);
   assert.equal(packAvatar({ ...av, at: "13~1" }, 6), null, "6×6 방 밖");
+  assert.equal(packAvatar({ ...av, at: "11~5" }, 6), null, "틀이 자른 방 앞쪽(타일 5+2+2 > 8)");
+  assert.ok(packAvatar({ ...av, at: "11~1" }, 6), "오른쪽 끝 안쪽은 된다");
   assert.equal(packAvatar({ ...av, at: "2~1" }, 6), null, "타일 한가운데(홀수)만");
 });
 
@@ -230,9 +232,9 @@ test("firestore.rules의 publicRoom()이 같은 길이·정규식을 본다", ()
 });
 
 test("규칙의 정규식은 지금 싣는 판 2와 옛 화면의 판 1을 모두 받는다", () => {
-  const av = { ...freshAvatar("rule"), at: "19~19", roam: true };
+  const av = { ...freshAvatar("rule"), at: "19~7", roam: true };
   const v2 = packAvatar(av, 10)!;
-  assert.ok(AVATAR_RULE_RE.test(v2) && v2.startsWith("2;19~19;"));
+  assert.ok(AVATAR_RULE_RE.test(v2) && v2.startsWith("2;19~7;"));
   assert.equal(AVATAR_PUBLIC_RE, AVATAR_RULE_RE, "읽는 모양 = 규칙");
   const rest = v2.split(";").slice(2).join(";");
   for (const at of ["1;f9", "1;b0", "2;0~0", "2;19~20", "2;s0", "2;s79"]) assert.ok(AVATAR_RULE_RE.test(`${at};${rest}`), at);

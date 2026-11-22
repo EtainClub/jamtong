@@ -12,7 +12,7 @@ import { footprint, isoSpecOf, isWallPos, WALL_H, type IsoPos } from "./isoPlace
 import { isoGeom } from "./IsoRoom";
 import { avatarAtFor, avatarBlocked, avatarPoint } from "../avatar/rules";
 import { FurnitureIcon, itemName, posLabel, RoomScene, ShownIcon, type SceneEdit } from "./RoomArt";
-import { applySurface, firstOpenSpot, hasSurface, isShownId, move, movedIndex, place, recordingCleanup, stow, stowedCount, turn, type RoomData } from "./rules";
+import { applySurface, facingDir, firstOpenSpot, hasSurface, isShownId, move, movedIndex, place, recordingCleanup, stow, stowedCount, turn, type RoomData } from "./rules";
 
 /**
  * 꾸미기 (docs/garden-miniroom-iso.md §7). 손가락 기준이다.
@@ -82,7 +82,9 @@ function dragPos(room: RoomData, index: number, pt: { x: number; y: number }, du
       z: Math.max(0, Math.min(WALL_H - spec.h, Math.round(z - spec.h / 2))),
     };
   }
-  const dir = item.pos && !isWallPos(item.pos) ? item.pos.dir : 0;
+  // 끄는 자리에 맞춰 방향을 정한다 — 왼쪽 벽 쪽이면 왼쪽 벽을 등지게(rules.ts의 facingDir).
+  const was = item.pos && !isWallPos(item.pos) ? item.pos.dir : 0;
+  const dir = facingDir(spec, Math.round((uv.u - du) * 2), Math.round((uv.v - dv) * 2), was);
   const f = footprint(spec, { x: 0, y: 0, dir });
   let x = Math.max(0, Math.min((n - f.w) * 2, Math.round((uv.u - du) * 2)));
   let y = Math.max(0, Math.min((n - f.d) * 2, Math.round((uv.v - dv) * 2)));
@@ -352,6 +354,28 @@ export function RoomEditor({
   const shown = preview?.room ?? draft;
   const focused = sel !== null ? draft.placed[sel] : undefined;
   const focusedSpec = focused && isoSpecOf(focused.it, draft.shown);
+  // 고른 물건 바로 위에 뜨는 막대 — 방 아래에 두었더니 보관함 판에 가려 돌리기를 찾지 못했다(2026-11-22).
+  const tools = focused && sel !== null && !preview ? (
+    <div className="garden-room-tools" role="group" aria-label={`${itemName(focused.it, draft, byId)} 돌리기와 넣기`}>
+      {focusedSpec?.layer !== "wall" && !isWallPos(focused.pos) &&
+        (["side", "back"] as const).map((how) => (
+          <button
+            key={how}
+            type="button"
+            aria-label={how === "side" ? "좌우로 돌리기" : "뒤돌리기 — 등이 보이게"}
+            onClick={() => {
+              const next = turn(draft, sel, how);
+              if (next) { commit(next, sel); gardenFeedback("tap"); }
+              else say("돌리면 다른 물건과 부딪쳐요");
+            }}
+          >
+            {how === "side" ? "↔ 돌리기" : "↻ 뒤로"}
+          </button>
+        ))}
+      <button type="button" onClick={() => { commit(stow(draft, sel), null); gardenFeedback("tap"); }}>넣기</button>
+      <button type="button" aria-label="고르기 끝" onClick={() => setSel(null)}>✕</button>
+    </div>
+  ) : null;
   const shownLeft = draft.shown.filter((s) => stowedCount(draft, s.id) > 0);
   const furnitureLeft = FURNITURE.filter((f) => isoSpecOf(f.id, draft.shown) && stowedCount(draft, f.id) > 0);
   const surfaces = FURNITURE.filter((f) => (f.kind === "wallpaper" || f.kind === "flooring") && hasSurface(draft, f.id, f.kind));
@@ -402,41 +426,8 @@ export function RoomEditor({
       )}
 
       <div className="mt-2">
-        <RoomScene room={shown} byId={byId} now={now} label="꾸미는 중인 내 방" edit={edit} />
+        <RoomScene room={shown} byId={byId} now={now} label="꾸미는 중인 내 방" edit={{ ...edit, toolbar: tools }} />
       </div>
-
-      {focused && sel !== null && (
-        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={`${itemName(focused.it, draft, byId)} 돌리기와 넣기`}>
-          {focusedSpec?.layer !== "wall" && !isWallPos(focused.pos) &&
-            (["side", "back"] as const).map((how) => (
-              <button
-                key={how}
-                type="button"
-                className="garden-diary-btn"
-                onClick={() => {
-                  const next = turn(draft, sel, how);
-                  if (next) { commit(next, sel); gardenFeedback("tap"); }
-                  else say("돌리면 다른 물건과 부딪쳐요");
-                }}
-              >
-                {how === "side" ? "↔ 돌리기" : "↻ 뒤돌리기"}
-              </button>
-            ))}
-          <button
-            type="button"
-            className="garden-diary-btn is-quiet"
-            onClick={() => {
-              commit(stow(draft, sel), null);
-              gardenFeedback("tap");
-            }}
-          >
-            보관함에 넣기
-          </button>
-          <button type="button" className="garden-diary-btn is-quiet" onClick={() => setSel(null)}>
-            다 골랐어요
-          </button>
-        </div>
-      )}
 
       {/* 보관함 판이 방을 가리지 않게 아래에 자리를 비워 둔다. */}
       <div aria-hidden="true" className="h-[46vh]" />

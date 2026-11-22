@@ -6,7 +6,7 @@ import { avatarAtOk, avatarPoint, faceFor, furnitureAt, poseAt } from "../avatar
 import { FURNITURE_BY_ID } from "./catalog";
 import type { IsoSpec } from "./iso";
 import isoArt from "./isoArt.json";
-import { footprint, isoSpecOf, isWallPos, WALL_H, type FloorPos, type Rect, type WallPos } from "./isoPlace";
+import { floorReach, footprint, isoSpecOf, isWallPos, WALL_H, type FloorPos, type Rect, type WallPos } from "./isoPlace";
 import { keyboardKeys, roomWidth, type Placed, type RoomData } from "./rules";
 import { activityOf } from "./activities";
 import { KeyFace } from "./KeyArt";
@@ -27,8 +27,8 @@ import { ART_H, CELL, ItemArt, ROOM_COLORS as C, Surface, weatherAt, type Avatar
 
 export const TILE_W = 40;
 export const TILE_H = 20;
-const PAD = 14;
-const BASE = 10;
+/** 틀 위 변과 안쪽 꼭짓점 벽 꼭대기 사이. */
+const TOP = 6;
 const SLOPE = TILE_H / TILE_W;
 
 export interface IsoGeom {
@@ -42,14 +42,19 @@ export interface IsoGeom {
   toUV: (x: number, y: number) => { u: number; v: number };
 }
 
+/**
+ * 방 틀 — 싸이월드 미니룸처럼(2026-11-22). 왼쪽·오른쪽 벽의 끝이 틀의 양 끝, 안쪽 꼭짓점 벽 꼭대기가 틀 위,
+ * 틀 아래 변이 방 앞 꼭짓점을 자른다(isoPlace.ts의 floorReach). 벽은 틀 위까지, 바닥은 틀 아래 끝까지 채워 빈 모서리가 없다.
+ * 처음에는 마름모 방 전체를 그려서 위아래 모서리가 비고 방이 작아 보였다.
+ */
 export function isoGeom(size: number): IsoGeom {
   const n = roomWidth(size);
-  const ox = PAD + (n * TILE_W) / 2;
-  const oy = PAD + WALL_H;
+  const ox = (n * TILE_W) / 2;
+  const oy = TOP + WALL_H;
   return {
     n,
-    W: n * TILE_W + PAD * 2,
-    H: oy + n * TILE_H + BASE + PAD,
+    W: n * TILE_W,
+    H: oy + (floorReach(size) * TILE_H) / 2,
     ox,
     oy,
     P: (u, v, z = 0) => [ox + ((u - v) * TILE_W) / 2, oy + ((u + v) * TILE_H) / 2 - z],
@@ -167,6 +172,7 @@ export function IsoRoomSvg({
   ghost,
   selected,
   bad,
+  bounds,
   pulses,
   avatar,
 }: {
@@ -181,6 +187,8 @@ export function IsoRoomSvg({
   selected?: number | null;
   /** 꾸미기: 놓을 수 없는 자리로 끄는 중인 물건의 순번. 빨갛게. */
   bad?: number | null;
+  /** 꾸미기: 놓을 수 있는 바닥의 테두리를 점선으로. */
+  bounds?: boolean;
   /** 누름 반응(activities) — 순번마다 몇 번째인지. */
   pulses?: Readonly<Record<number, number>>;
   avatar?: AvatarLive | null;
@@ -237,7 +245,7 @@ export function IsoRoomSvg({
     }
   }
   const P = g.P;
-  const floorPts: Array<[number, number]> = [P(0, 0), P(n, 0), P(n, n), P(0, n)];
+  const reach = floorReach(room.size);
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} className="garden-room-art">
       <defs>
@@ -250,15 +258,18 @@ export function IsoRoomSvg({
         </linearGradient>
       </defs>
       <g stroke={C.ink} strokeWidth="1.5" strokeLinejoin="round">
-        <polygon points={pts([P(0, 0), P(n, 0), P(n, 0, WALL_H), P(0, 0, WALL_H)])} fill={`url(#${uid}-wall-r)`} />
-        <polygon points={pts([P(0, 0), P(0, n), P(0, n, WALL_H), P(0, 0, WALL_H)])} fill={`url(#${uid}-wall-l)`} />
-        <polygon points={pts([P(0, 0), P(0, n), P(0, n, WALL_H), P(0, 0, WALL_H)])} fill="#000" fillOpacity=".06" />
+        {/* 벽은 틀 위 변까지, 바닥은 틀 아래 변까지 — 방이 틀을 가득 채운다. */}
+        <polygon points={pts([P(0, 0), P(n, 0), [W, 0], [g.ox, 0]])} fill={`url(#${uid}-wall-r)`} />
+        <polygon points={pts([P(0, n), P(0, 0), [g.ox, 0], [0, 0]])} fill={`url(#${uid}-wall-l)`} />
+        <polygon points={pts([P(0, n), P(0, 0), [g.ox, 0], [0, 0]])} fill="#000" fillOpacity=".06" />
+        <polygon points={pts([P(0, 0), P(n, 0), [W, H], [0, H], P(0, n)])} fill={`url(#${uid}-floor)`} />
         <polygon points={pts([P(0, 0), P(n, 0), P(n, 0, 8), P(0, 0, 8)])} fill={C.woodD} />
         <polygon points={pts([P(0, 0), P(0, n), P(0, n, 8), P(0, 0, 8)])} fill={C.woodD} />
-        <polygon points={pts([P(n, 0, -BASE), P(n, n, -BASE), P(n, n), P(n, 0)])} fill={C.woodD} />
-        <polygon points={pts([P(0, n, -BASE), P(n, n, -BASE), P(n, n), P(0, n)])} fill={C.wood} />
-        <polygon points={pts(floorPts)} fill={`url(#${uid}-floor)`} />
       </g>
+      {bounds && (
+        // 꾸미기: 놓을 수 있는 바닥 — 방 안이고 틀 아래로 잘리지 않는 곳.
+        <polygon points={pts([P(0, 0), P(n, 0), P(n, reach - n), P(reach - n, n), P(0, n)])} fill="none" stroke={C.ink} strokeOpacity=".35" strokeWidth="1.5" strokeDasharray="6 4" pointerEvents="none" />
+      )}
       {walls}
       {rugs}
       {depthSort(nodes).map((x) => x.draw)}

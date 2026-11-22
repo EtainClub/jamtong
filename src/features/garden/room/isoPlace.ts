@@ -13,8 +13,27 @@ import type { Shown } from "./rules";
  * ★ rules.ts를 런타임에 import하지 않는다(3단계에서 rules.ts가 이 파일을 쓴다 — 순환을 만들지 않는다).
  */
 
-/** 벽 높이(px, 타일 40). */
-export const WALL_H = 120;
+/**
+ * 벽 높이(px, 타일 40). 120 → 96(2026-11-22) — 싸이월드 미니룸처럼 넓고 낮은 방으로. 벽걸이는 높이 10·50에 두 단이 걸린다.
+ */
+export const WALL_H = 96;
+/**
+ * 방 앞쪽 끝 — 바닥 타일의 u + v가 이것을 넘으면 화면 틀 아래로 잘려 보이지 않는다(싸이월드처럼 방 앞 꼭짓점을 틀이 자른다).
+ * 방 한 변의 1.4배: 6 → 8, 8 → 11, 10 → 14. 그 너머에는 놓지 않는다.
+ */
+export function floorReach(size: number): number {
+  return reachFor(floorTiles(size));
+}
+
+/** 벽걸이가 닿을 수 있는 높이 — 벽 가로 a(반 타일)에서. 화면 틀의 위 변이 수평이라 안쪽 꼭짓점(a = 0)에서 WALL_H, 한 타일 바깥마다 10px 더. */
+export function wallTop(a: number): number {
+  return WALL_H + (a / 2) * 10;
+}
+
+/** 한 변 n 타일 방의 앞쪽 끝. */
+export function reachFor(n: number): number {
+  return Math.round(n * 1.4);
+}
 
 export type Dir = 0 | 1 | 2 | 3;
 export interface FloorPos { x: number; y: number; dir: Dir; on?: number }
@@ -73,7 +92,8 @@ export function isoProblemAt(items: readonly IsoItem[], i: number, shown: readon
     const { a, z, wall } = me.pos;
     if (spec.layer !== "wall" && !spec.wallOk) return "layer";
     if ((wall !== "L" && wall !== "R") || !halfInt(a) || !Number.isInteger(z)) return "bounds";
-    if (a / 2 + spec.w > n || z < 0 || z + spec.h > WALL_H) return "bounds";
+    // 벽은 틀 위까지 그려진다 — 안쪽 꼭짓점의 높이가 WALL_H이고, 바깥으로 갈수록 바닥선이 내려가 그만큼 높이 걸 수 있다.
+    if (a / 2 + spec.w > n || z < 0 || z + spec.h > wallTop(a)) return "bounds";
     for (let j = 0; j < items.length; j++) {
       const o = items[j];
       if (j === i || !isWallPos(o.pos) || o.pos.wall !== wall) continue;
@@ -90,7 +110,7 @@ export function isoProblemAt(items: readonly IsoItem[], i: number, shown: readon
   if (spec.layer === "wall") return "layer";
   if (!halfInt(pos.x) || !halfInt(pos.y) || ![0, 1, 2, 3].includes(pos.dir)) return "bounds";
   const fp = footprint(spec, pos);
-  if (fp.u + fp.w > n || fp.v + fp.d > n) return "bounds";
+  if (fp.u + fp.w > n || fp.v + fp.d > n || fp.u + fp.w + fp.v + fp.d > floorReach(size)) return "bounds";
 
   if (pos.on !== undefined) {
     const base = items[pos.on];
@@ -153,12 +173,28 @@ export function isoFromSlots(placed: readonly SlotPlaced[], shown: readonly Show
   return { items, stowed };
 }
 
+/**
+ * 놓이는 자리에 맞는 방향 — 오른쪽 벽 쪽(u ≥ v)이면 오른쪽 벽을, 왼쪽 벽 쪽이면 왼쪽 벽을 등진다(0 ↔ 1).
+ * 뒤돌림(2·3)은 그대로 둔다. 깔개는 돌리지 않는다(바닥 상자가 바뀌어 끄는 동안 출렁인다).
+ * 그림이 오른쪽 벽 기준 한 장이라 왼쪽 벽에 붙이면 벽을 향해 보였다(2026-11-22).
+ */
+export function facingDir(spec: { layer: string; w: number; d: number }, x: number, y: number, dir: number): 0 | 1 | 2 | 3 {
+  if (spec.layer === "rug") return dir as 0 | 1 | 2 | 3;
+  const back = dir & 2;
+  // 방향 0일 때의 바닥 상자 한가운데로 본다.
+  const cu = x / 2 + spec.w / 2;
+  const cv = y / 2 + spec.d / 2;
+  return (back | (cu < cv ? 1 : 0)) as 0 | 1 | 2 | 3;
+}
+
+
 /** 옛 칸 하나의 첫 자리 — 위 표 그대로. 칸 모양이 틀리면 null. 벽 칸이라도 벽에 걸 수 없는 물건이면 바닥 뒤쪽. */
 export function slotToPos(at: string, spec: IsoSpec, n: number): IsoPos | null {
   const slot = /^([wbf])(\d{1,2})$/.exec(at);
   if (!slot) return null;
   const i = Math.min(Number(slot[2]), n - 1);
   if (slot[1] === "w" && (spec.layer === "wall" || spec.wallOk)) return { wall: "R", a: i * 2, z: Math.min(WALL_Z, WALL_H - spec.h) };
+  // 옛 줄은 오른쪽 벽과 나란하다 — 방향 0 그대로 둔다. 자리마다 돌리면 두 칸 가구의 바닥 상자가 바뀌어 옛 배치가 흐트러진다.
   return { x: i * 2, y: slot[1] === "f" ? n : 0, dir: 0 };
 }
 
@@ -183,7 +219,7 @@ function candidates(first: IsoPos, n: number): IsoPos[] {
   if (isWallPos(first)) {
     const out: WallPos[] = [];
     for (const wall of ["R", "L"] as const)
-      for (const z of [first.z, 10, 80])
+      for (const z of [first.z, 10, 50])
         for (let a = 0; a <= n * 2; a++) out.push({ wall, a, z });
     return out.sort((p, q) => (p.wall === q.wall ? 0 : p.wall === "R" ? -1 : 1) || Math.abs(p.a - first.a) - Math.abs(q.a - first.a));
   }

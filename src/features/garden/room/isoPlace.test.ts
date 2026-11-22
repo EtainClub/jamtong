@@ -38,6 +38,13 @@ test("받침: 올림면이 있는 가구 위, 그 바닥 상자 안에만 올린
   assert.equal(isoProblemAt([desk, floor("radio", 5, 1, { on: 0 }), floor("chair", 6, 2)], 2, NONE, 0), null, "책상 앞 의자는 책상 위 라디오와 부딪치지 않는다");
 });
 
+test("방 앞쪽: 틀이 자르는 바닥(u + v > 1.4n)에는 놓지 않고, 벽은 바깥으로 갈수록 높이 건다", () => {
+  assert.equal(isoProblemAt([floor("chair", 6, 8)], 0, NONE, 0), "bounds", "6×6 방: 타일 (3,4)는 3+4+2 > 8");
+  assert.equal(isoProblemAt([floor("chair", 6, 2)], 0, NONE, 0), null);
+  assert.equal(isoProblemAt([wall("painting", "R", 0, 70)], 0, NONE, 0), "bounds", "안쪽 꼭짓점은 96px까지");
+  assert.equal(isoProblemAt([wall("painting", "R", 8, 70)], 0, NONE, 0), null, "네 타일 바깥은 136px까지");
+});
+
 test("방 밖·층이 맞지 않는 자리는 받지 않는다", () => {
   assert.equal(isoProblemAt([floor("bed", 10, 0)], 0, NONE, 0), "bounds", "6×6 방에서 u 5..7");
   assert.equal(isoProblemAt([floor("bed", 10, 0)], 0, NONE, 2), null, "10×10 방에서는 들어간다");
@@ -51,7 +58,7 @@ test("방 밖·층이 맞지 않는 자리는 받지 않는다", () => {
 test("벽걸이: 같은 벽에서 겹치면 막고, 다른 벽·다른 높이는 괜찮다. 박제·기념품은 벽에도 건다", () => {
   assert.equal(isoProblemAt([wall("painting", "L", 0, 40), wall("clock", "L", 1, 50)], 1, NONE, 0), "overlap");
   assert.equal(isoProblemAt([wall("painting", "L", 0, 40), wall("clock", "R", 0, 40)], 1, NONE, 0), null);
-  assert.equal(isoProblemAt([wall("painting", "L", 0, 10), wall("clock", "L", 0, 70)], 1, NONE, 0), null);
+  assert.equal(isoProblemAt([wall("painting", "L", 0, 10), wall("clock", "L", 0, 60)], 1, NONE, 0), null);
   const shown: Shown[] = [{ id: "v:1", kind: "trophy", species: "x" }, { id: "p:1", kind: "pot", species: "y" }];
   assert.equal(isoProblemAt([wall("v:1", "R", 4, 30)], 0, shown, 0), null);
   assert.equal(isoProblemAt([wall("p:1", "R", 4, 30)], 0, shown, 0), "layer", "화분은 벽에 걸지 않는다");

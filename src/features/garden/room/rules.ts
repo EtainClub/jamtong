@@ -11,7 +11,7 @@ import { isRaidKind } from "../raid/rules";
 import type { Fruit, Mutation, Species } from "../types";
 import { DEFAULT_FLOOR, DEFAULT_MOOD, DEFAULT_WALL, FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS, ROOM_SIZES, type Furniture } from "./catalog";
 import { avatarAtOk, avatarFromPublic, freshAvatar, normalizeAvatar, packAvatar, type AvatarData } from "../avatar/rules";
-import { footprint, isoFromSlots, isoProblem, isoProblemAt, isoSpecOf, isWallPos, packPos, posShape, slotToPos, spotNear, unpackPos, WALL_H, type IsoPos, type SlotPlaced } from "./isoPlace";
+import { facingDir, footprint, isoFromSlots, isoProblem, isoProblemAt, isoSpecOf, isWallPos, packPos, posShape, slotToPos, spotNear, unpackPos, WALL_H, type IsoPos, type SlotPlaced } from "./isoPlace";
 import { freshKeys, KEYBOARD_ID, KEY_VER_MAX, recSlots, keysFromPublic, normalizeKeys, publicKeys, packKeyboard, unpackKeyboard, type RoomKey } from "./keyboard";
 
 /**
@@ -101,6 +101,8 @@ export interface RoomBookData {
 }
 
 export type Row = "w" | "b" | "f";
+
+export { facingDir };
 
 // 방 넓히기 표(ROOM_SIZES)는 catalog.ts에 둔다 — ilchon/rules.ts가 이 파일을 거치지 않고 읽게(순환 import를 끊는다).
 export { ROOM_SIZES };
@@ -505,7 +507,8 @@ export function firstOpenSpot(room: RoomData, it: string): IsoPos | null {
   if (spec.layer === "wall") return walls().find((pos) => canPlace(room, it, pos)) ?? null;
   for (let sum = 0; sum <= n * 4; sum++) {
     for (let x = Math.max(0, sum - n * 2); x <= Math.min(sum, n * 2); x++) {
-      const pos: IsoPos = { x, y: sum - x, dir: 0 };
+      // 왼쪽 벽 쪽이면 왼쪽 벽을 등지게(facingDir).
+      const pos: IsoPos = { x, y: sum - x, dir: facingDir(spec, x, sum - x, 0) };
       if (canPlace(room, it, pos)) return pos;
     }
   }
@@ -528,6 +531,7 @@ export function firstOpenSpot(room: RoomData, it: string): IsoPos | null {
 
 /**
  * 장부를 바로잡는다 — 모양이 맞고, 앞의 것들과 부딪치지 않는 것만 차례로 남긴다. 받침이 빠지면 올린 것도 빠진다(보관함으로).
+ * 방 밖이 된 것(벽을 낮추고 방 앞쪽을 틀이 자르면서 — 2026-11-22)은 가까운 빈자리로 옮기고, 끝내 없으면 보관함으로.
  */
 export function cleanPlaced(raw: readonly Placed[], shown: readonly Shown[], size: number): Placed[] {
   const map = new Map<number, number>();
@@ -539,8 +543,13 @@ export function cleanPlaced(raw: readonly Placed[], shown: readonly Shown[], siz
       if (on === undefined) return;
       pos = { ...pos, on };
     }
-    const item = { ...p, pos };
-    if (isoProblemAt([...out, item], out.length, shown, size) !== null) return;
+    let item = { ...p, pos };
+    const problem = isoProblemAt([...out, item], out.length, shown, size);
+    if (problem === "bounds" && (isWallPos(pos) || pos.on === undefined)) {
+      const near = spotNear(out, p.it, pos, shown, size);
+      if (!near) return;
+      item = { ...p, pos: near };
+    } else if (problem !== null) return;
     map.set(i, out.length);
     out.push(item);
   });

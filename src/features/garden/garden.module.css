@@ -724,3 +724,12 @@
 .game :global(.garden-room.is-editing .garden-room-item) { cursor: grab; touch-action: none; }
 .game :global(.garden-room-bg) { position: absolute; inset: 0; }
 .game :global(.garden-room-bad) { opacity: .5; }
+/* 고른 물건 위에 뜨는 막대(돌리기·넣기). 아래 보관함 판에 가리지 않게 방 그림 안에 띄운다. */
+.game :global(.garden-room-tools-at) { position: absolute; z-index: 3; transform: translate(-50%, calc(-100% - 6px)); pointer-events: none; }
+.game :global(.garden-room-tools-at.is-below) { transform: translate(-50%, 6px); }
+.game :global(.garden-room-tools-at.is-left) { left: 4px; transform: translate(0, calc(-100% - 6px)); }
+.game :global(.garden-room-tools-at.is-right) { right: 4px; transform: translate(0, calc(-100% - 6px)); }
+.game :global(.garden-room-tools-at.is-left.is-below), .game :global(.garden-room-tools-at.is-right.is-below) { transform: translate(0, 6px); }
+.game :global(.garden-room-tools) { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #fff; border: 2px solid var(--d-ink, #3a2f2a); box-shadow: 0 2px 0 #0002; pointer-events: auto; white-space: nowrap; }
+.game :global(.garden-room-tools button) { min-height: 36px; min-width: 36px; padding: 0 8px; border-radius: 8px; background: #fff4ea; font-size: 12px; font-weight: 800; color: #3a2f2a; }
+.game :global(.garden-room-tools button:focus-visible) { outline: 2px solid var(--d-orange); }

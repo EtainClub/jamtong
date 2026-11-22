@@ -61,6 +61,8 @@ export interface SceneEdit {
   onAvatarKey: (e: KeyboardEvent<HTMLButtonElement>) => void;
   /** 꼬마를 골랐다(누른 채). */
   avatarPicked: boolean;
+  /** 고른 물건 바로 위(위가 좁으면 아래)에 띄우는 막대 — 돌리기·넣기. */
+  toolbar?: ReactNode;
   /** 방 그림 상자 — 화면 좌표를 방 좌표로 바꿀 때. */
   stageRef: RefObject<HTMLDivElement | null>;
 }
@@ -191,7 +193,7 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, ghost,
     <div>
     <div className="garden-room-scroll">
       <div ref={edit?.stageRef} className={`garden-room ${editing ? "is-editing" : ""}`} style={{ aspectRatio: `${W} / ${H}` }}>
-        <IsoRoomSvg room={room} byId={byId} now={now} label={label} uid={uid} ghost={ghost} selected={edit?.selected} bad={edit?.bad} pulses={editing ? undefined : pulses} avatar={editing ? null : live} />
+        <IsoRoomSvg room={room} byId={byId} now={now} label={label} uid={uid} ghost={ghost} selected={edit?.selected} bad={edit?.bad} bounds={editing} pulses={editing ? undefined : pulses} avatar={editing ? null : live} />
 
         {edit && <div className="garden-room-bg" onPointerDown={() => edit.onBackground()} aria-hidden="true" />}
 
@@ -208,6 +210,22 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, ghost,
             style={pct(box)}
           />
         ))}
+        {edit?.toolbar && edit.selected !== null && room.placed[edit.selected] && (() => {
+          const b = itemBox(room, room.placed[edit.selected!]);
+          if (!b) return null;
+          const below = b.y < 44;
+          // 막대는 방 그림 폭 안에 — 물건이 왼쪽이면 왼쪽 끝에, 오른쪽이면 오른쪽 끝에 붙이고, 가운데면 물건 위 가운데.
+          const cx = (b.x + b.w / 2) / W;
+          const side = cx < 0.36 ? "is-left" : cx > 0.64 ? "is-right" : "";
+          return (
+            <div
+              className={`garden-room-tools-at ${below ? "is-below" : ""} ${side}`}
+              style={{ left: side ? undefined : `${cx * 100}%`, top: `${((below ? b.y + b.h : b.y) / H) * 100}%` }}
+            >
+              {edit.toolbar}
+            </div>
+          );
+        })()}
         {edit && av && (() => {
           const p = avatarScreen(room, av.at);
           return (
