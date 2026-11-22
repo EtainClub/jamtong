@@ -66,17 +66,17 @@ export function EsDeJp() {
 export function EsTrillion() {
   const x0 = 30;
   const full = 260;
-  const done = full * 0.93;
+  const last = full * (7093 / 10000);
   return (
     <svg viewBox="0 0 320 240" className="h-full w-full" role="img"
-         aria-label="1조 달러 막대 가운데 9,300억 달러가 찼고 700억 달러가 남음">
-      <rect x={x0} y={100} width={full} height={40} rx={10} fill="none" stroke="var(--pending)" strokeWidth={2} strokeDasharray="6 5" />
-      <rect x={x0} y={100} width={done} height={40} rx={10} fill="var(--navy)" />
+         aria-label="2026년 누적 수출이 1조 달러 막대를 다 채움. 2025년 한 해 수출 7,093억 달러 자리에 눈금">
+      <rect x={x0} y={100} width={full} height={40} rx={10} fill="var(--navy)" />
+      <line x1={x0 + last} x2={x0 + last} y1={92} y2={148} stroke="var(--canvas)" strokeWidth={2} strokeDasharray="4 3" />
       <line x1={x0 + full} x2={x0 + full} y1={78} y2={162} stroke="var(--ink)" strokeWidth={2} />
-      <text x={x0 + full} y={70} textAnchor="end" fontSize={14} {...LABEL} fill="var(--ink)">1조 달러</text>
-      <text x={x0 + 12} y={126} fontSize={15} {...LABEL} fill="var(--canvas)" style={NUM}>9,300억</text>
-      <text x={x0 + full} y={184} textAnchor="end" fontSize={13} {...LABEL} fill="var(--pending)" style={NUM}>남은 700억</text>
-      <text x={160} y={220} textAnchor="middle" fontSize={12} fill="var(--ash)">1~10월 누적 · 11월 중 달성 예상</text>
+      <text x={x0 + full} y={70} textAnchor="end" fontSize={14} {...LABEL} fill="var(--ink)">1조 달러 돌파</text>
+      <text x={x0 + 12} y={126} fontSize={15} {...LABEL} fill="var(--canvas)" style={NUM}>2026년</text>
+      <text x={x0 + last} y={184} textAnchor="middle" fontSize={13} {...LABEL} fill="var(--ash)" style={NUM}>작년 한 해 7,093억</text>
+      <text x={160} y={220} textAnchor="middle" fontSize={12} fill="var(--ash)">2026.11.19 오후 2시 9분 · 잠정 집계</text>
     </svg>
   );
 }

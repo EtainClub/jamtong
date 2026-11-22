@@ -1,7 +1,7 @@
 ---
 title: 발표된 것과 일어난 것
 kind: concept
-updated: 2026-09-27
+updated: 2026-11-22
 ---
 
 # 발표된 것과 일어난 것
@@ -22,6 +22,7 @@ updated: 2026-09-27
 | 자사주 소각 의무화(상법) ^[stock-market#claim-buyback] | 2026-03-06 | [[source/stock-market]] |
 | 석유 최고가격제 ^[oil-supply#claim-cap] | 2026-03-13 | [[source/oil-supply]] |
 | KTX·SRT 통합 운행 ^[rail-merger#claim-merge] | 2026-09-01 | [[source/rail-merger]] |
+| 연 수출 1조 달러(잠정 집계) — 11월 1일 「확실시」 발표가 일어난 일이 됐다 ^[export-surplus#es-1t] | 2026-11-19 | [[source/export-surplus]] |
 
 ## 정해졌지만 아직 오지 않았다
 
