@@ -24,6 +24,8 @@ export function LineComposer({
   submitLabel,
   onClose,
   onSubmit,
+  phrases = PHRASES,
+  locked,
 }: {
   title: string;
   label: string;
@@ -31,9 +33,13 @@ export function LineComposer({
   onClose: () => void;
   /** 보낸다. 실패하면 던진다 — 시트가 까닭을 적는다. */
   onSubmit: (line: Line) => Promise<void>;
+  /** 고를 문구. 기본은 방명록 문구, 사진첩 댓글은 album/rules.ts의 COMMENT_PHRASES. */
+  phrases?: readonly string[];
+  /** 아직 고를 수 없는 문구 번호와 그 까닭(예: 근거를 열어야 "근거 봤어요"). */
+  locked?: ReadonlyMap<number, string>;
 }) {
   const [mode, setMode] = useState<"preset" | "free">("preset");
-  const [phrase, setPhrase] = useState(0);
+  const [phrase, setPhrase] = useState(() => phrases.findIndex((_, i) => !locked?.has(i)));
   const [text, setText] = useState("");
   const [sticker, setSticker] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -43,7 +49,7 @@ export function LineComposer({
   const problem = mode === "free" ? lineProblem(clean) : null;
 
   const submit = async () => {
-    if (busy || problem) return;
+    if (busy || problem || (mode === "preset" && (phrase < 0 || locked?.has(phrase)))) return;
     setBusy(true);
     setError(null);
     try {
@@ -69,10 +75,18 @@ export function LineComposer({
 
       {mode === "preset" ? (
         <ul className="garden-phrase-list mt-3" aria-label="문구">
-          {PHRASES.map((p, i) => (
+          {phrases.map((p, i) => (
             <li key={p}>
-              <button type="button" aria-pressed={phrase === i} onClick={() => setPhrase(i)} className="garden-phrase">
+              <button
+                type="button"
+                aria-pressed={phrase === i}
+                disabled={locked?.has(i)}
+                title={locked?.get(i)}
+                onClick={() => setPhrase(i)}
+                className="garden-phrase"
+              >
                 {p}
+                {locked?.has(i) && <span className="ml-1 text-[11px] text-smoke">· {locked.get(i)}</span>}
               </button>
             </li>
           ))}
@@ -182,8 +196,11 @@ export function LineRow({
   onReport,
   onBlock,
   onHide,
+  phrases = PHRASES,
 }: {
-  line: LineDoc;
+  line: Pick<LineDoc, "uid" | "g" | "n" | "p" | "x" | "k" | "at" | "hidden"> & { tag?: number };
+  /** 문구 표 — 사진첩 댓글이면 COMMENT_PHRASES. */
+  phrases?: readonly string[];
   /** 방 주인이 보는 화면인가(지우기·차단). */
   owner: boolean;
   /** 내가 지울 수 있는가(주인이거나 쓴 사람). */
@@ -196,7 +213,7 @@ export function LineRow({
   onHide?: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const parsed = readLine(line);
+  const parsed = readLine(line, phrases);
   if (!parsed) return null;
   const sticker = STICKERS[parsed.k];
   const who = line.n || "이웃";
@@ -207,7 +224,7 @@ export function LineRow({
         <span aria-label={sticker.label} className="text-[20px] leading-none">{sticker.icon}</span>
         <div className="min-w-0 flex-1">
           <p className={`break-words text-[13.5px] ${line.hidden ? "text-smoke line-through" : ""}`}>
-            {line.hidden ? "운영자가 가린 글이에요" : `“${lineText(parsed)}”`}
+            {line.hidden ? "운영자가 가린 글이에요" : `“${lineText(parsed, phrases)}”`}
           </p>
           <p className="mt-0.5 text-[12px] text-smoke">
             —{" "}

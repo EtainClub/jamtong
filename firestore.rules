@@ -467,6 +467,69 @@ service cloud.firestore {
           && (request.auth.uid == uid || isGardenOwner(gid) || isAdmin());
       }
 
+      /*
+       * 사진첩 2(docs/garden-album-review.md, features/garden/album/rules.ts).
+       *   photos         주인이 장부의 사진을 옮겨 싣는다. 사진은 콘텐츠 앵커이고, 사람의 글은 한 줄(x, 60자)뿐.
+       *                  운영자는 hidden만 바꾼다(한 줄 가리기). 주인은 hidden을 풀지 못한다.
+       *   photoComments  댓글 = 방명록과 같은 한 줄. 한 사람이 한 사진에 하루 하나(id = uid_사진_오늘).
+       *                  받기는 방명록 설정을 따른다(주인은 언제나). 사진이 있고 댓글을 끄지 않았을 때만.
+       *   photoScraps    퍼감 표식. 남의 열린 방의 사진에 한 번(id = uid_사진). 내 정원의 순간(m:)은 퍼가지 못한다.
+       */
+      match /photos/{pid} {
+        allow read: if roomVisible(gid) || isGardenOwner(gid) || isAdmin();
+        allow create: if isGardenOwner(gid)
+          && pid.matches('^[a-z0-9]{6,20}$')
+          && photoOk(request.resource.data)
+          && !('hidden' in request.resource.data);
+        allow update: if (isGardenOwner(gid)
+            && photoOk(request.resource.data)
+            && request.resource.data.a == resource.data.a
+            && request.resource.data.get('hidden', false) == resource.data.get('hidden', false))
+          || (isAdmin()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden'])
+            && request.resource.data.hidden is bool);
+        allow delete: if isGardenOwner(gid) || isAdmin();
+      }
+
+      match /photoComments/{cid} {
+        allow read: if roomVisible(gid) || isGardenOwner(gid) || isAdmin();
+        allow create: if request.auth != null
+          && request.resource.data.keys().hasOnly(['ph', 'g', 'n', 'p', 'x', 'k', 'at'])
+          && request.resource.data.ph is string
+          && request.resource.data.ph.matches('^[a-z0-9]{6,20}$')
+          && cid == request.auth.uid + '_' + request.resource.data.ph + '_' + string(int(kstDayNumber()))
+          && request.resource.data.at == request.time
+          && nickOk(request.resource.data.n)
+          && lineOk(request.resource.data)
+          && authorRoomOk(request.resource.data.g)
+          && photoTakesComments(gid, request.resource.data.ph)
+          && (isGardenOwner(gid)
+            || (roomOpenToMe(gid) && guestbookOpen(gid) && !exists(blockPath(gid, request.auth.uid))));
+        allow update: if isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden'])
+          && request.resource.data.hidden is bool;
+        allow delete: if request.auth != null
+          && (cid.split('_')[0] == request.auth.uid || isGardenOwner(gid) || isAdmin());
+      }
+
+      match /photoScraps/{sid} {
+        allow read: if roomVisible(gid) || isGardenOwner(gid) || isAdmin();
+        allow create: if request.auth != null
+          && request.resource.data.keys().hasOnly(['ph', 'g', 'n', 'at'])
+          && request.resource.data.ph is string
+          && request.resource.data.ph.matches('^[a-z0-9]{6,20}$')
+          && sid == request.auth.uid + '_' + request.resource.data.ph
+          && request.resource.data.at == request.time
+          && nickOk(request.resource.data.n)
+          && authorRoomOk(request.resource.data.g)
+          && roomOpenToMe(gid)
+          && !exists(blockPath(gid, request.auth.uid))
+          && exists(photoPath(gid, request.resource.data.ph))
+          && !get(photoPath(gid, request.resource.data.ph)).data.a.matches('^m:.*$');
+        allow delete: if request.auth != null
+          && (sid.split('_')[0] == request.auth.uid || isGardenOwner(gid) || isAdmin());
+      }
+
       match /visits/{uid} {
         allow read: if request.auth != null
           && (request.auth.uid == uid || isGardenOwner(gid));
@@ -578,6 +641,41 @@ service cloud.firestore {
     function authorRoomOk(g) {
       return g is string
         && (g == '' || (g.matches('^g[0-9a-z]{8,12}$') && gardenOwner(g) == request.auth.uid));
+    }
+
+    function photoPath(gid, pid) {
+      return /databases/$(database)/documents/gardens/$(gid)/photos/$(pid);
+    }
+
+    // 사진의 앵커(album/rules.ts의 ANCHOR_RE와 같다).
+    function anchorOk(a) {
+      return a is string && a.size() <= 120
+        && a.matches('^(a:[a-z0-9-]{1,60}(/[a-z0-9-]{1,40})?|w:[a-z0-9-]{1,60}(#[a-z0-9-]{1,40})?|p:[a-z0-9-]{1,60}#[a-z0-9-]{1,40}|b:[a-z0-9-]{1,40}/[a-z0-9-]{1,40}|m:(species|golden|rainbow|raid|souvenir|book))$');
+    }
+
+    // 사진 한 장(album/rules.ts의 photoDoc). 문구 p(REASONS), 스티커 k, 폴더 f, 한 줄 x(60자),
+    // 순간의 내용 md(m: 앵커일 때만, 그때는 반드시), 퍼 온 출처 fg·fp·fn, 대표 cv, 댓글 끄기 nc.
+    function photoOk(d) {
+      return d.keys().hasOnly(['a', 'p', 'k', 'f', 'x', 'at', 'md', 'fg', 'fp', 'fn', 'cv', 'nc', 'hidden'])
+        && anchorOk(d.a)
+        && d.p is int && d.p >= 0 && d.p < 16
+        && d.k is int && d.k >= 0 && d.k < 12
+        && d.f is int && d.f >= 0 && d.f < 8
+        && d.x is string && d.x.size() <= 60
+        && d.at is int
+        && (d.a.matches('^m:.*$') == ('md' in d))
+        && (!('md' in d) || (d.md is map
+          && d.md.keys().hasOnly(['s', 'v'])
+          && (!('s' in d.md) || (d.md.s is string && d.md.s.matches('^[a-z0-9:-]{1,64}$')))
+          && (!('v' in d.md) || d.md.v is int)))
+        && (!('fg' in d) || (d.fg is string && d.fg.matches('^g[0-9a-z]{8,12}$')
+          && d.fp is string && d.fp.matches('^[a-z0-9]{6,20}$') && nickOk(d.fn)))
+        && (!('cv' in d) || d.cv is bool)
+        && (!('nc' in d) || d.nc is bool);
+    }
+
+    function photoTakesComments(gid, pid) {
+      return exists(photoPath(gid, pid)) && get(photoPath(gid, pid)).data.get('nc', false) != true;
     }
 
     function guestbookOpen(gid) {

@@ -159,17 +159,17 @@ export interface Line {
 }
 
 /** 저장된 한 줄을 읽는다. 모양이 틀렸으면 null — 공개 문서처럼 아무 값이나 담길 수 있다. */
-export function readLine(raw: { p?: unknown; x?: unknown; k?: unknown }): Line | null {
+export function readLine(raw: { p?: unknown; x?: unknown; k?: unknown }, phrases: readonly string[] = PHRASES): Line | null {
   const { p, x, k } = raw;
   if (typeof p !== "number" || typeof x !== "string" || typeof k !== "number") return null;
   if (!Number.isInteger(k) || k < 0 || k >= STICKERS.length) return null;
   if (p === -1) return x.length >= 1 && x.length <= TEXT_MAX ? { p, x, k } : null;
-  return Number.isInteger(p) && p >= 0 && p < PHRASES.length && x === "" ? { p, x, k } : null;
+  return Number.isInteger(p) && p >= 0 && p < phrases.length && x === "" ? { p, x, k } : null;
 }
 
 /** 한 줄의 글. 문구면 표에서, 아니면 직접 쓴 글 그대로(그리는 쪽은 글로만 그린다). */
-export function lineText(line: Line): string {
-  return line.p >= 0 ? PHRASES[line.p] : line.x;
+export function lineText(line: Line, phrases: readonly string[] = PHRASES): string {
+  return line.p >= 0 ? phrases[line.p] : line.x;
 }
 
 /** 방명록 문서 id. 한 사람이 한 방에 하루 한 번 — 규칙이 id를 본다. */

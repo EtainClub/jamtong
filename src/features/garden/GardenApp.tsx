@@ -37,6 +37,9 @@ import { useKeyCleanup } from "./room/keyCleanup";
 import { useShare } from "./share";
 import { Shop } from "./shop/Shop";
 import { VisitView } from "./VisitView";
+import { ANCHOR_RE } from "./album/rules";
+import { usePhotoSync } from "./album/useAlbumRemote";
+import { CLIP_EVENT } from "./album/ClipLink";
 import { BASKET_MAX, useGarden, type GardenData } from "./store";
 import type { Leaf, Species } from "./types";
 import { Neighbors } from "./Neighbors";
@@ -168,6 +171,28 @@ export function GardenApp({
     return () => clearInterval(id);
   }, []);
 
+  // 사이트 페이지의 "📷 사진첩에 담기"(/garden?tab=album&clip=<앵커>)로 왔으면 사진첩의 담기 시트를 연다.
+  // 첫 렌더는 "여는 중"만 그리므로 서버 렌더와 어긋나지 않는다. 주소에서는 아래 정원 열기에서 지운다.
+  const [clip, setClip] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const a = new URL(window.location.href).searchParams.get("clip");
+    return a && ANCHOR_RE.test(a) && !a.startsWith("m:") ? a : null;
+  });
+  const clipDone = useCallback(() => setClip(null), []);
+  // 정원 안(카툰 시트)에서 담기 — 사진첩 칸으로 옮겨 담기 시트를 연다.
+  useEffect(() => {
+    const on = (e: Event) => {
+      const a = (e as CustomEvent<string>).detail;
+      if (typeof a !== "string" || !ANCHOR_RE.test(a)) return;
+      if (visit) leaveVisit();
+      setNav(navOf("album"));
+      setClip(a);
+      window.scrollTo({ top: 0 });
+    };
+    window.addEventListener(CLIP_EVENT, on);
+    return () => window.removeEventListener(CLIP_EVENT, on);
+  }, [visit, leaveVisit]);
+
   // 정원을 연다. 원본 페이지의 "씨앗 받기"로 왔으면 그 품종을 기억해 둔다.
   const gift = useRef<string | null>(null);
   const inviteIn = useRef<string | null>(null);
@@ -178,8 +203,9 @@ export function GardenApp({
     if (invited) inviteIn.current = invited;
     const url = new URL(window.location.href);
     // 탭은 처음 한 번만 따른다. 주소에 남기면 새로고침해도 그 탭으로 돌아간다.
-    if (url.searchParams.has("tab")) {
+    if (url.searchParams.has("tab") || url.searchParams.has("clip")) {
       url.searchParams.delete("tab");
+      url.searchParams.delete("clip");
       window.history.replaceState(null, "", url.pathname + url.search);
     }
     const id = url.searchParams.get("gift");
@@ -290,6 +316,7 @@ export function GardenApp({
   }, [levels, syncing, say]);
 
   useShare(uid, !syncing, now, say);
+  usePhotoSync(uid, !syncing, say);
   useKeyCleanup(uid, !syncing, say);
   useInvite(uid, hasData && !syncing, inviteIn, catalog, say);
 
@@ -442,6 +469,8 @@ export function GardenApp({
               uid={uid}
               lines={myGid ? myLines : null}
               onVisit={visitRoom}
+              clip={seg === "album" ? clip : null}
+              onClipDone={clipDone}
             />
           )}
 

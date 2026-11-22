@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { Statement } from "@/content/words/schema";
 import { CardCarousel } from "@/features/carousel/CardCarousel";
+import { ClipLink } from "@/features/garden/album/ClipLink";
 import { WORD_ART } from "./art";
 import { SpeechVideo } from "./SpeechVideo";
 import { youtubeVideoId } from "./youtube";
@@ -73,6 +74,8 @@ export function StatementView({ statement }: { statement: Statement }) {
         <FullView statement={statement} />
       )}
       {!videoFirst && statement.media.length > 0 && <MediaList statement={statement} />}
+      {/* 잼통 정원의 사진첩에 이 언행 한 편을 담는다. 장면 하나는 쉽게 보기 카드 안에서. */}
+      <ClipLink anchor={`w:${statement.slug}`} label="이 언행 사진첩에 담기" className="mt-5" />
     </>
   );
 }
@@ -196,6 +199,7 @@ function EasyView({
                     {point.quote}
                   </blockquote>
                 </details>
+                <ClipLink anchor={`w:${statement.slug}#${point.id}`} label="이 장면 사진첩에 담기" className="mt-1" />
               </>
             );
           }}

@@ -129,6 +129,15 @@ export type AnalyticsEvent =
   | "souvenir_tap"
   | "album_add"
   | "album_open"
+  /**
+   * 사진첩 2(docs/garden-album-review.md). album_add(kind a|w|p|b|m, line), album_edit(line), album_scrap(kind) — 손님이 퍼 왔다,
+   * album_comment(preset, owner), album_source(kind) — 사진의 근거·원문 링크를 열었다, album_clip(kind) — 사이트의 "사진첩에 담기".
+   */
+  | "album_edit"
+  | "album_scrap"
+  | "album_comment"
+  | "album_source"
+  | "album_clip"
   | "photo_go"
   /** 잡초 O/X 퀴즈에 답했다(slug, answer=맞혔는지). 뜬 수는 plaza_pull과 견준다. */
   | "weed_quiz"

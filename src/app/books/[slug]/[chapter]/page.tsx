@@ -9,6 +9,7 @@ import { BottomNav } from "@/features/app/BottomNav";
 import { ShareLinkButton } from "@/features/app/ShareLinkButton";
 import { ActionList } from "@/features/books/ActionList";
 import { ChapterView } from "@/features/books/ChapterView";
+import { ClipLink } from "@/features/garden/album/ClipLink";
 import { LanguageLinks } from "@/features/books/LanguageLinks";
 import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 
@@ -178,6 +179,7 @@ export default async function ChapterPage({
             }}
           />
         </div>
+        <ClipLink anchor={`b:${book.slug}/${current.slug}`} label="이 장 잼통 정원 사진첩에 담기" className="mt-2" />
       </main>
 
       <BottomNav />

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+
+import { requestClip } from "../album/ClipLink";
 import { useEffect, useState } from "react";
 
 import { track } from "@/lib/analytics";
@@ -84,6 +86,18 @@ export function CartoonView({ entry, from }: { entry: MemorialEntry; from: "memo
             </button>
           </div>
           <p className="mt-1 text-center text-[11px] text-smoke">{paused ? "멈췄어요 — 그림을 누르면 이어서 봐요" : "그림을 누르면 멈춰요"}</p>
+          <p className="text-center">
+            <button
+              type="button"
+              className="min-h-[36px] text-[12px] font-semibold underline underline-offset-2"
+              onClick={() => {
+                track("album_clip", { kind: "a", from });
+                requestClip(`${entry.speciesId}/${panel.id}`);
+              }}
+            >
+              📷 이 칸 사진첩에 담기
+            </button>
+          </p>
           <PanelSource entry={entry} index={at} key={`src${panel.id}`} />
         </div>
       ) : (
