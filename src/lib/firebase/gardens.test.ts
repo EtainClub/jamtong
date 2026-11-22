@@ -16,7 +16,7 @@ function decorated(): RoomData {
   let r: RoomData = { ...freshRoom("visit"), owned: { piano: 2, keyboard: 2, chair: 1 }, motto: "놀러 오세요" };
   r = place(r, "chair", "b0")!;
   r = place(r, "piano", "f0")!;
-  r = place(r, "piano", "f3")!;
+  r = place(r, "piano", "f2")!;
   r = place(r, "keyboard", "b2")!;
   r = place(r, "keyboard", "b4")!;
   const second = freshKeys().map((k, i) => ({ ...k, face: String(i + 1).repeat(144) }));

@@ -110,7 +110,8 @@ test("벽 물건은 벽 줄에만, 바닥 물건은 바닥 두 줄에만", () =>
   assert.ok(canPlace(room, "clock", "w0"));
   assert.ok(!canPlace(room, "clock", "b0"));
   assert.ok(canPlace(room, "chair", "b0"));
-  assert.ok(canPlace(room, "chair", "f5"));
+  assert.ok(canPlace(room, "chair", "f2"));
+  assert.ok(!canPlace(room, "chair", "f5"), "앞줄 오른쪽 끝은 틀이 자르는 방 앞쪽");
   assert.ok(!canPlace(room, "chair", "w0"));
   assert.ok(!canPlace(room, "chair", "f6"), "작은 방은 6칸");
   assert.ok(canPlace(room, FRAME_BLANK, "w0"), "빈 액자틀도 벽에 걸 수 있다");
@@ -707,6 +708,11 @@ async function fullRoom(fill: (i: number) => string, own: Record<string, number>
   let room = owning(own);
   let i = 0;
   for (let y = 0; y < 12; y += 2) for (let x = 0; x + w * 2 <= 12; x += w * 2) room = put(room, fill(i++), { x, y, dir: 0 }) ?? room;
+  // 방 앞쪽 끝(틀이 자르는 선)을 따라 남은 반 타일 틈은 특별한 책(독서대, 진열장이 비키게 하지 않는 것)으로 메운다.
+  for (let k = 0, spot = firstOpenSpot(room, SOUVENIR_CASE); spot && k < 40; k++, spot = firstOpenSpot(room, SOUVENIR_CASE)) {
+    const book = BOOK_FURNITURE[k % BOOK_FURNITURE.length].id;
+    room = put({ ...room, owned: { ...room.owned, [book]: (room.owned[book] ?? 0) + 1 } }, book, { ...(spot as { x: number; y: number }), dir: 0 }) ?? room;
+  }
   assert.equal(firstOpenSpot(room, SOUVENIR_CASE), null, "꽉 찬 방");
   return room;
 }
@@ -890,4 +896,14 @@ test("돌리기: 좌우로는 보는 사람을 향한 두 방향(0 ↔ 1)만, �
   room = R.turn(room, 0, "back")!;
   assert.equal(dir(room), 2);
   assert.equal(dir(R.turn(room, 0)!), 3, "뒤돌린 채 좌우로");
+});
+
+test("방향 맞추기: 오른쪽 벽 쪽은 오른쪽 벽을, 왼쪽 벽 쪽은 왼쪽 벽을 등지고, 뒤돌림과 깔개는 그대로", () => {
+  assert.equal(R.facingDir(ISO.sofa, 6, 0, 0), 0, "오른쪽 벽 앞");
+  assert.equal(R.facingDir(ISO.sofa, 0, 6, 0), 1, "왼쪽 벽 앞");
+  assert.equal(R.facingDir(ISO.sofa, 0, 6, 2), 3, "뒤돌린 채 왼쪽 벽 쪽으로");
+  assert.equal(R.facingDir(ISO.rug, 0, 6, 0), 0, "깔개는 돌지 않는다");
+  // 처음 빈자리도 그 자리에 맞는 방향으로.
+  const left = R.firstOpenSpot({ ...owning({ sofa: 1, wardrobe: 3 }), placed: [0, 2, 4].map((x) => ({ it: "wardrobe", pos: { x, y: 0, dir: 0 as const } })) }, "sofa");
+  assert.ok(left && !isWallPos(left));
 });

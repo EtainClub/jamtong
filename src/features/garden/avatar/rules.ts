@@ -1,6 +1,6 @@
 import { hash, rng } from "../rules";
 import { FURNITURE_BY_ID } from "../room/catalog";
-import { floorTiles, footprint, isoSpecOf, isWallPos, type IsoPos } from "../room/isoPlace";
+import { floorTiles, footprint, isoSpecOf, isWallPos, reachFor, type IsoPos } from "../room/isoPlace";
 import type { Shown } from "../room/rules";
 import { FREE, isFree, PARTS, WEAR, WEAR_BY_ID, wearOf, type Part, type Reward, type Wear } from "./catalog";
 import type { Face, Look } from "./compose";
@@ -152,13 +152,18 @@ export function ownedLook(avatar: AvatarData): Look {
   return look;
 }
 
+/** 타일 (tx, ty)에 꼬마가 설 수 있는가 — 방 안, 그리고 틀이 자르는 앞쪽 끝(isoPlace.ts의 reachFor) 안. */
+function tileOk(tx: number, ty: number, width: number): boolean {
+  return tx >= 0 && ty >= 0 && tx < width && ty < width && tx + ty + 2 <= reachFor(width);
+}
+
 /** 방(한 변 width 타일) 안의 바닥 자리인가 — 타일 한가운데(홀수)만. */
 export function avatarAtOk(at: string, width: number): boolean {
   const m = POINT_RE.exec(at);
   if (!m) return false;
   const x = Number(m[1]);
   const y = Number(m[2]);
-  return x % 2 === 1 && y % 2 === 1 && x < width * 2 && y < width * 2;
+  return x % 2 === 1 && y % 2 === 1 && tileOk((x - 1) / 2, (y - 1) / 2, width);
 }
 
 // ── 공개 ─────────────────────────────────────────────────────────────
@@ -262,7 +267,14 @@ export function avatarPoint(at: string, size: number): { u: number; v: number } 
 export function avatarAtFor(u: number, v: number, size: number): string {
   const n = floorTiles(size);
   const tile = (t: number) => Math.max(0, Math.min(n - 1, Math.floor(t)));
-  return `${tile(u) * 2 + 1}~${tile(v) * 2 + 1}`;
+  let tx = tile(u);
+  let ty = tile(v);
+  // 틀 아래로 잘린 앞쪽이면 안쪽으로 당긴다.
+  while (!tileOk(tx, ty, n)) {
+    if (tx >= ty) tx--;
+    else ty--;
+  }
+  return `${tx * 2 + 1}~${ty * 2 + 1}`;
 }
 
 /** 꼬마가 설 수 없는 자리인가 — 자세가 없는 가구(옷장·책장…)가 덮었다. 자세 가구(의자·침대·피아노)는 앉고 눕는 자리다. */
@@ -276,7 +288,7 @@ export function avatarFree(room: AvatarRoom, at: string): string | null {
   const n = floorTiles(room.size);
   const here = avatarPoint(at, room.size);
   const spots: Array<{ at: string; d: number }> = [];
-  for (let x = 0; x < n; x++) for (let y = 0; y < n; y++) spots.push({ at: `${x * 2 + 1}~${y * 2 + 1}`, d: Math.abs(x + 0.5 - here.u) + Math.abs(y + 0.5 - here.v) });
+  for (let x = 0; x < n; x++) for (let y = 0; y < n; y++) if (tileOk(x, y, n)) spots.push({ at: `${x * 2 + 1}~${y * 2 + 1}`, d: Math.abs(x + 0.5 - here.u) + Math.abs(y + 0.5 - here.v) });
   spots.sort((a, b) => a.d - b.d);
   return spots.find((s) => !avatarBlocked(room, s.at))?.at ?? null;
 }
@@ -321,7 +333,7 @@ export function roamNext(cur: string, room: AvatarRoom, seed: string): string {
   const x = Number(m[1]);
   const y = Number(m[2]);
   const near = [[x - 2, y], [x + 2, y], [x, y - 2], [x, y + 2]]
-    .filter(([a, b]) => a > 0 && b > 0 && a < n * 2 && b < n * 2)
+    .filter(([a, b]) => a > 0 && b > 0 && tileOk((a - 1) / 2, (b - 1) / 2, n))
     .map(([a, b]) => `${a}~${b}`);
   const open = near.filter((at) => !avatarBlocked(room, at));
   const pool = open.length ? open : near;
