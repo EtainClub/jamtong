@@ -27,3 +27,13 @@ export const CLIP_EVENT = "garden:clip";
 export function requestClip(anchor: string): void {
   window.dispatchEvent(new CustomEvent<string>(CLIP_EVENT, { detail: anchor }));
 }
+
+/**
+ * 스냅샷 찍기 — 내 방·내 텃밭의 「📸 찍기」가 부른다. GardenApp이 그 순간의 배치를 찍어(album/snap.ts의 takeSnap)
+ * 사진첩 칸으로 옮겨 담기 시트를 연다.
+ */
+export const SNAP_EVENT = "garden:snap";
+
+export function requestSnap(kind: "room" | "yard"): void {
+  window.dispatchEvent(new CustomEvent<string>(SNAP_EVENT, { detail: kind }));
+}

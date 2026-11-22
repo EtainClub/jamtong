@@ -39,7 +39,8 @@ import { Shop } from "./shop/Shop";
 import { VisitView } from "./VisitView";
 import { ANCHOR_RE } from "./album/rules";
 import { usePhotoSync } from "./album/useAlbumRemote";
-import { CLIP_EVENT } from "./album/ClipLink";
+import { CLIP_EVENT, SNAP_EVENT } from "./album/ClipLink";
+import { takeSnap, type SnapClip } from "./album/snap";
 import { BASKET_MAX, useGarden, type GardenData } from "./store";
 import type { Leaf, Species } from "./types";
 import { Neighbors } from "./Neighbors";
@@ -173,7 +174,7 @@ export function GardenApp({
 
   // 사이트 페이지의 "📷 사진첩에 담기"(/garden?tab=album&clip=<앵커>)로 왔으면 사진첩의 담기 시트를 연다.
   // 첫 렌더는 "여는 중"만 그리므로 서버 렌더와 어긋나지 않는다. 주소에서는 아래 정원 열기에서 지운다.
-  const [clip, setClip] = useState<string | null>(() => {
+  const [clip, setClip] = useState<string | SnapClip | null>(() => {
     if (typeof window === "undefined") return null;
     const a = new URL(window.location.href).searchParams.get("clip");
     return a && ANCHOR_RE.test(a) && !a.startsWith("m:") ? a : null;
@@ -189,8 +190,23 @@ export function GardenApp({
       setClip(a);
       window.scrollTo({ top: 0 });
     };
+    // 내 방·내 텃밭의 「📸 찍기」 — 누른 그 순간의 배치를 찍는다(album/snap.ts).
+    const onSnap = (e: Event) => {
+      const kind = (e as CustomEvent<string>).detail;
+      const d = useGarden.getState().data;
+      if ((kind !== "room" && kind !== "yard") || !d) return;
+      const shot = takeSnap(kind, d, Date.now());
+      if (visit) leaveVisit();
+      setNav(navOf("album"));
+      setClip(shot);
+      window.scrollTo({ top: 0 });
+    };
     window.addEventListener(CLIP_EVENT, on);
-    return () => window.removeEventListener(CLIP_EVENT, on);
+    window.addEventListener(SNAP_EVENT, onSnap);
+    return () => {
+      window.removeEventListener(CLIP_EVENT, on);
+      window.removeEventListener(SNAP_EVENT, onSnap);
+    };
   }, [visit, leaveVisit]);
 
   // 정원을 연다. 원본 페이지의 "씨앗 받기"로 왔으면 그 품종을 기억해 둔다.

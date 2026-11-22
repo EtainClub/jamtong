@@ -14,7 +14,7 @@ import { kstDayNumber } from "../rules";
 import { useGarden } from "../store";
 import type { Species } from "../types";
 import { PhotoBody } from "./PhotoBody";
-import { COMMENT_PHRASES, COMMENT_SAW_SOURCE, COMMENTS_PEEK, FOLDERS, REASONS, type Photo } from "./rules";
+import { COMMENT_PHRASES, COMMENT_SAW_SOURCE, COMMENTS_PEEK, FOLDERS, reasonText, type Photo } from "./rules";
 
 /**
  * 사진 한 장 — 사실 칸(PhotoBody) · 주인의 말풍선 · 댓글과 퍼감(docs/garden-album-review.md §5·§6).
@@ -89,6 +89,7 @@ export function PhotoView({
       <PhotoBody
         a={photo.a}
         md={photo.md}
+        sn={photo.sn}
         entries={entries}
         byId={byId}
         onSource={() => {
@@ -101,9 +102,9 @@ export function PhotoView({
       <div className="garden-album-bubble mt-2">
         <p className="text-[13.5px] leading-snug">
           <span aria-label={sticker.label} className="mr-1">{sticker.icon}</span>
-          <b>{REASONS[photo.p]}</b>
+          {reasonText(photo.p) ? <b>{reasonText(photo.p)}</b> : photo.x && !photo.hidden ? <b className="break-words">“{photo.x}”</b> : <b>{photo.hidden ? "운영자가 가린 글이에요" : ""}</b>}
         </p>
-        {photo.x && (
+        {photo.x && reasonText(photo.p) && (
           <p className={`mt-0.5 break-words text-[13px] ${photo.hidden ? "text-smoke line-through" : ""}`}>
             {photo.hidden ? "운영자가 가린 글이에요" : `“${photo.x}”`}
           </p>
