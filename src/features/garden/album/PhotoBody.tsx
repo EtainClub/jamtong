@@ -1,17 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import { PlantArt } from "../GardenArt";
+import { IsoYard } from "../IsoYard";
 import { PhotoCard } from "../memorial/PhotoCard";
 import { entryOf } from "../memorial/useMemorial";
 import type { MemorialEntry } from "../memorial/types";
 import { ROOM_BOOKS } from "../room/books";
+import { MOODS } from "../room/catalog";
+import { IsoRoomSvg } from "../room/IsoRoom";
+import { weatherAt } from "../room/RoomSvg";
+import { roomFromPublic } from "../room/rules";
 import { josa, RAID_KINDS } from "../rules";
 import type { Species } from "../types";
 import { loadClip, type BookClip, type Clip, type PolicyClip, type WordsClip } from "./clips";
 import { parseAnchor, type Anchor, type MomentData } from "./rules";
+import { snapMood, snapYard, snapYardAvatar, snapYardPlots, yardFacts, type RoomSnap, type Snap, type YardSnap } from "./snap";
 
 /**
  * 사진의 "사실 칸" — 콘텐츠와 정원 기록에서만 그린다(docs/garden-album-review.md §3).
@@ -23,12 +29,15 @@ import { parseAnchor, type Anchor, type MomentData } from "./rules";
 export function PhotoBody({
   a,
   md,
+  sn,
   entries,
   byId,
   onSource,
 }: {
   a: string;
   md?: MomentData;
+  /** 방·텃밭 스냅샷의 찍은 배치(album/snap.ts). */
+  sn?: Snap;
   entries: readonly MemorialEntry[] | null | undefined;
   byId: ReadonlyMap<string, Species>;
   onSource?: () => void;
@@ -40,12 +49,12 @@ export function PhotoBody({
         if ((e.target as HTMLElement).closest("a")) onSource?.();
       }}
     >
-      {!anchor ? <Missing /> : <Body anchor={anchor} md={md} entries={entries} byId={byId} />}
+      {!anchor ? <Missing /> : <Body anchor={anchor} md={md} sn={sn} entries={entries} byId={byId} />}
     </div>
   );
 }
 
-function Body({ anchor, md, entries, byId }: { anchor: Anchor; md?: MomentData; entries: readonly MemorialEntry[] | null | undefined; byId: ReadonlyMap<string, Species> }) {
+function Body({ anchor, md, sn, entries, byId }: { anchor: Anchor; md?: MomentData; sn?: Snap; entries: readonly MemorialEntry[] | null | undefined; byId: ReadonlyMap<string, Species> }) {
   if (anchor.kind === "achievement") {
     const entry = entryOf(entries, `a:${anchor.slug}`);
     if (entries === undefined) return <Loading />;
@@ -70,6 +79,11 @@ function Body({ anchor, md, entries, byId }: { anchor: Anchor; md?: MomentData; 
         <Go href={entry.href}>업적 자세히 보기 — 근거와 출처 →</Go>
       </Frame>
     );
+  }
+  if (anchor.kind === "moment" && (anchor.moment === "room" || anchor.moment === "yard")) {
+    if (!sn || md?.v === undefined) return <Missing />;
+    const at = md.v * 60_000;
+    return anchor.moment === "room" ? <RoomSnapBody sn={sn as RoomSnap} at={at} byId={byId} /> : <YardSnapBody sn={sn as YardSnap} at={at} byId={byId} />;
   }
   if (anchor.kind === "moment") return <MomentBody t={anchor.moment} md={md} entries={entries} byId={byId} />;
   return <ClipBody anchor={anchor} />;
@@ -209,6 +223,72 @@ function MomentBody({ t, md, entries, byId }: { t: string; md?: MomentData; entr
           )}
         </p>
       </div>
+    </Frame>
+  );
+}
+
+// ── 스냅샷 ───────────────────────────────────────────────────────────
+
+const WEATHER_TEXT = { day: "", night: "밤", rain: "단비 오던 때", meteor: "별똥별 뜬 밤" } as const;
+
+function snapWhen(at: number): string {
+  return new Date(at).toLocaleString("ko-KR", { year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Seoul" });
+}
+
+/**
+ * 내 방 스냅샷 — 찍은 배치를 방 그림(IsoRoomSvg)으로 다시 그린다. 창밖 날씨·낮밤도 찍은 시각 그대로.
+ * 남의 사진에는 아무 값이나 담길 수 있다 — roomFromPublic이 표에 있는 것만 되살린다.
+ */
+function RoomSnapBody({ sn, at, byId }: { sn: RoomSnap; at: number; byId: ReadonlyMap<string, Species> }) {
+  const uid = useId().replace(/:/g, "");
+  const room = useMemo(() => roomFromPublic({ ...sn }, byId), [sn, byId]);
+  const mood = MOODS.find((m) => m.id === room.mood);
+  const weather = WEATHER_TEXT[weatherAt(at)];
+  const items = room.placed.length;
+  return (
+    <Frame tag="📸 방 사진" title={`${snapWhen(at)}의 방`}>
+      <div className="overflow-hidden rounded-xl bg-[var(--g-panel)]">
+        <IsoRoomSvg room={room} byId={byId} now={at} label={`${snapWhen(at)}에 찍은 방`} uid={`snap${uid}`} />
+      </div>
+      <p className="mt-1.5 flex flex-wrap gap-1 text-[11px] text-smoke">
+        {mood && <span className="rounded-full border border-stone px-1.5">{mood.icon} 기분 {mood.label}</span>}
+        <span className="rounded-full border border-stone px-1.5">놓인 것 {items}개</span>
+        {weather && <span className="rounded-full border border-stone px-1.5">{weather}</span>}
+      </p>
+      <p className="mt-1 text-[10.5px] text-smoke">찍은 그때의 방이에요. 방을 바꿔도 이 사진은 그대로 남아요.</p>
+    </Frame>
+  );
+}
+
+/** 내 텃밭 스냅샷 — 찍은 밭(품종·자란 정도)과 마당 소품을 마당 그림(IsoYard)으로 다시 그린다. */
+function YardSnapBody({ sn, at, byId }: { sn: YardSnap; at: number; byId: ReadonlyMap<string, Species> }) {
+  const plots = useMemo(() => snapYardPlots(sn, byId), [sn, byId]);
+  const f = yardFacts(sn, byId);
+  const weather = WEATHER_TEXT[weatherAt(at)];
+  return (
+    <Frame tag="📸 텃밭 사진" title={`${snapWhen(at)}의 텃밭`}>
+      <div className="overflow-hidden rounded-xl bg-[var(--g-panel)]">
+        <IsoYard
+          still
+          label={`${snapWhen(at)}에 찍은 텃밭`}
+          plots={plots}
+          now={at}
+          selected={null}
+          avatar={snapYardAvatar(sn)}
+          mood={snapMood(sn.m)}
+          avatarAt={null}
+          harvested={{}}
+          yard={snapYard(sn)}
+        />
+      </div>
+      <p className="mt-1.5 flex flex-wrap gap-1 text-[11px] text-smoke">
+        <span className="rounded-full border border-stone px-1.5">밭 {f.plots}칸 중 {f.planted}칸</span>
+        {f.kinds > 0 && <span className="rounded-full border border-stone px-1.5">{f.kinds}가지 품종</span>}
+        {f.ripe > 0 && <span className="rounded-full border border-stone px-1.5">다 자란 것 {f.ripe}칸</span>}
+        {f.deco > 0 && <span className="rounded-full border border-stone px-1.5">마당 소품 {f.deco}개</span>}
+        {weather && <span className="rounded-full border border-stone px-1.5">{weather}</span>}
+      </p>
+      <p className="mt-1 text-[10.5px] text-smoke">찍은 그때의 텃밭이에요. 거두고 새로 심어도 이 사진은 그대로 남아요.</p>
     </Frame>
   );
 }

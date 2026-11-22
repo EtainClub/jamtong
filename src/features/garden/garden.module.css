@@ -670,7 +670,8 @@
 .game :global(.garden-line-more) { flex-shrink: 0; min-width: 44px; min-height: 44px; margin: -8px -6px 0 0; border-radius: 10px; font-size: 16px; color: #8a949c; }
 .game :global(.garden-phrase-list) { display: flex; flex-wrap: wrap; gap: 6px; max-height: 36vh; overflow-y: auto; }
 .game :global(.garden-phrase) { min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--d-line); background: #fff; font-size: 13px; font-weight: 700; color: #3b4652; }
-.game :global(.garden-phrase[aria-pressed=true]) { border: 2px solid var(--d-orange); background: #fff4ea; color: #8a3f0c; }
+/* 고른 것도 테두리 굵기(1px)는 같다 — 굵기가 바뀌면 너비가 2px 늘어 줄바꿈이 바뀌고 단추가 줄을 오간다. 굵게 보이는 것은 안쪽 그림자. */
+.game :global(.garden-phrase[aria-pressed=true]) { border-color: var(--d-orange); box-shadow: inset 0 0 0 1px var(--d-orange); background: #fff4ea; color: #8a3f0c; }
 .game :global(.garden-line-input) { display: block; width: 100%; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--d-line); background: #fff; font-size: 16px; }
 .game :global(.garden-line-input:focus) { outline: 2px solid var(--d-sky); outline-offset: 1px; }
 /* 사진첩 2 — 사진 한 장과 주인의 말풍선. 말풍선은 사실 칸과 모양·색을 달리한다(docs/garden-album-review.md §3). */
@@ -679,7 +680,7 @@
 .game :global(.garden-album-bubble)::before { content: ""; position: absolute; left: 18px; top: -7px; width: 12px; height: 12px; background: #fffbe8; border-left: 1px solid var(--d-line); border-top: 1px solid var(--d-line); transform: rotate(45deg); }
 .game :global(.garden-phrase:disabled) { opacity: 0.5; }
 .game :global(.garden-sticker) { display: grid; place-items: center; width: 100%; min-height: 44px; border-radius: 10px; border: 1px solid var(--d-line); background: #fff; font-size: 22px; }
-.game :global(.garden-sticker[aria-pressed=true]) { border: 2px solid var(--d-orange); background: #fff4ea; }
+.game :global(.garden-sticker[aria-pressed=true]) { border-color: var(--d-orange); box-shadow: inset 0 0 0 1px var(--d-orange); background: #fff4ea; }
 .game :global(.garden-switch-row) { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 0; border-bottom: 1px dotted var(--d-line); cursor: pointer; }
 .game :global(.garden-switch) { flex-shrink: 0; width: 22px; height: 22px; accent-color: var(--d-orange); }
 .game :global(.garden-friend-row) { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dotted var(--d-line); }

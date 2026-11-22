@@ -9,6 +9,7 @@ import { PlantArt } from "./GardenArt";
 import { IsoYard } from "./IsoYard";
 import { YardSheet } from "./YardSheet";
 import { normalizeYard } from "./yard";
+import { requestSnap } from "./album/ClipLink";
 import { gardenFeedback } from "./feedback";
 import { BASKET_WARN_AT } from "./nav";
 import { MutationChips, NoteCard } from "./parts";
@@ -116,6 +117,16 @@ export function Beds({
         >
           {yardEdit ? "✓ 다 꾸몄어요" : "🏡 마당 꾸미기"}
         </button>
+        {!yardEdit && (
+          <button
+            type="button"
+            onClick={() => { gardenFeedback("tap"); requestSnap("yard"); }}
+            aria-label="지금 내 텃밭을 찍어 사진첩에 남기기"
+            className="mr-2 rounded-full border border-[var(--g-leaf)] px-3 py-1.5 text-[12.5px] font-semibold text-[var(--g-leaf)]"
+          >
+            📸
+          </button>
+        )}
         {!yardEdit && ripe.length > 1 && (
           <button
             type="button"

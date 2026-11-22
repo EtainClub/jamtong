@@ -6,6 +6,8 @@ import type { LineDoc } from "@/lib/firebase/ilchon";
 
 import { Dex } from "../Dex";
 import { AlbumView } from "../album/AlbumView";
+import { requestSnap } from "../album/ClipLink";
+import type { SnapClip } from "../album/snap";
 import { MemorialView } from "../memorial/MemorialView";
 import { gardenFeedback, gardenTrack, setGardenTrack } from "../feedback";
 import { canUseTrack } from "../musicTracks";
@@ -80,10 +82,12 @@ export function GardenHome({
   /** 방명록의 이름을 누르면 그 사람 방으로(마실). */
   onVisit: (gid: string) => void;
   /** 사이트 페이지의 "사진첩에 담기"로 왔다(앵커, album/rules.ts). 사진첩 칸이 담기 시트를 연다. */
-  clip?: string | null;
+  clip?: string | SnapClip | null;
   onClipDone?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
+  /** 꾸미기를 막 마쳤다 — 「📸 꾸민 방 찍기」를 한 번 권한다. */
+  const [justDecorated, setJustDecorated] = useState(false);
   const [moodOpen, setMoodOpen] = useState(false);
   const [musicOpen, setMusicOpen] = useState(false);
   const [mottoOpen, setMottoOpen] = useState(false);
@@ -169,7 +173,7 @@ export function GardenHome({
         </div>
       ) : editing ? (
         <div className="mt-4">
-          <RoomEditor data={data} byId={byId} now={now} onDone={() => setEditing(false)} say={say} />
+          <RoomEditor data={data} byId={byId} now={now} onDone={() => { setEditing(false); setJustDecorated(true); }} say={say} />
         </div>
       ) : (
         <>
@@ -220,11 +224,25 @@ export function GardenHome({
                 <button type="button" onClick={() => { gardenFeedback("tap"); setWardrobeOpen(true); }} className="garden-diary-btn is-quiet" aria-label={`${AVATAR_NAME} 옷 갈아입기`}>
                   👕 {AVATAR_NAME}
                 </button>
-                <button type="button" onClick={() => { gardenFeedback("tap"); setEditing(true); }} className="garden-diary-btn">
+                <button type="button" onClick={() => { gardenFeedback("tap"); requestSnap("room"); }} className="garden-diary-btn is-quiet" aria-label="지금 내 방을 찍어 사진첩에 남기기">
+                  📸 찍기
+                </button>
+                <button type="button" onClick={() => { gardenFeedback("tap"); setJustDecorated(false); setEditing(true); }} className="garden-diary-btn">
                   ✏️ 꾸미기
                 </button>
               </span>
             </div>
+            {justDecorated && (
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-dashed border-[var(--g-leaf)] bg-white px-3 py-2 text-[12.5px]">
+                <span className="min-w-0 flex-1">✨ 새로 꾸민 방을 사진으로 남겨 둘까요? 나중에 바꿔도 오늘의 방이 사진첩에 그대로 남아요.</span>
+                <button type="button" className="garden-diary-btn shrink-0" onClick={() => { gardenFeedback("tap"); setJustDecorated(false); requestSnap("room"); }}>
+                  📸 찍기
+                </button>
+                <button type="button" className="shrink-0 px-1 text-smoke" aria-label="닫기" onClick={() => setJustDecorated(false)}>
+                  ✕
+                </button>
+              </div>
+            )}
             {data.room.isoMoved !== undefined && (
               <div className="mt-2 rounded-xl border border-dashed border-[var(--g-leaf)] bg-white px-3 py-2 text-[12.5px] leading-relaxed">
                 🏠 방이 입체로 바뀌었어요. 물건을 그대로 옮겨 놓았어요

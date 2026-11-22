@@ -10,6 +10,7 @@
  */
 
 import { TEXT_MAX } from "../ilchon/rules";
+import { cleanSnap, isSnapAnchor, SNAP_MAX, snapKindOf, type Snap } from "./snap";
 
 /** 사진 장수. 폴더가 생기므로 예전 24장보다 넉넉히. firestore.rules는 장수를 세지 못한다 — 화면이 지킨다. */
 export const PHOTO_MAX = 60;
@@ -18,7 +19,10 @@ export const MOMENT_KEEP = 20;
 /** 한 줄 길이 — 방명록과 같다. */
 export const LINE_MAX = TEXT_MAX;
 
-/** 왜 담았나. 사실을 평가하는 문구("거짓이에요"·"최고예요")는 두지 않는다. firestore.rules: p < 16. */
+/**
+ * 왜 담았나. 사실을 평가하는 문구("거짓이에요"·"최고예요")는 두지 않는다. firestore.rules: p < 32.
+ * 화면은 다 보이지 않는다 — 사진 종류에 맞는 몇 개만(reasonsFor). 번호는 저장된 값이라 순서를 바꾸지 않는다.
+ */
 export const REASONS = [
   "처음 알았어요",
   "주변에 알려 주고 싶어요",
@@ -33,10 +37,27 @@ export const REASONS = [
   "같이 읽어요",
   "소문을 확인했어요",
   "퍼 온 사진이에요",
+  "오늘의 모습을 남겨요",
+  "꾸민 걸 보여 주고 싶어요",
+  "놀러 오세요",
 ] as const;
 export const REASON_SCRAP = 12;
+/** 방·텃밭 스냅샷의 처음 문구. */
+export const REASON_SNAP = 13;
+/** 문구 없이 내 말(한 줄)로만 — "✏️ 직접 쓰기". 그때는 한 줄이 꼭 있어야 한다. firestore.rules: p < 32. */
+export const REASON_OWN = 31;
 
-/** 폴더. 이름을 짓지 않고 고른다. firestore.rules: f < 8. */
+/** 이 번호가 문구인가(직접 쓰기 포함). */
+export function reasonOk(p: number): boolean {
+  return Number.isInteger(p) && ((p >= 0 && p < REASONS.length) || p === REASON_OWN);
+}
+
+/** 말풍선에 적을 문구. 직접 쓰기면 없다(한 줄만 보인다). */
+export function reasonText(p: number): string | null {
+  return p === REASON_OWN ? null : (REASONS[p] ?? null);
+}
+
+/** 폴더. 이름을 짓지 않고 고른다. firestore.rules: f < 16. 번호는 저장된 값이라 뒤에만 더한다. */
 export const FOLDERS = [
   { icon: "📣", label: "알려 주고 싶은 것" },
   { icon: "📚", label: "공부 중" },
@@ -46,7 +67,11 @@ export const FOLDERS = [
   { icon: "💬", label: "언행 모음" },
   { icon: "🏛", label: "기념품" },
   { icon: "💛", label: "그냥 좋은 것" },
+  { icon: "🏠", label: "미니룸" },
+  { icon: "🌾", label: "텃밭" },
 ] as const;
+export const FOLDER_ROOM = 8;
+export const FOLDER_YARD = 9;
 
 /** 사진 댓글의 문구. firestore.rules의 lineOk(p < 30)를 그대로 쓴다. */
 export const COMMENT_PHRASES = [
@@ -82,7 +107,8 @@ export const COMMENTS_PEEK = 2;
 
 const ID = "[a-z0-9-]{1,60}";
 const SUB = "[a-z0-9-]{1,40}";
-export const MOMENT_KINDS = ["species", "golden", "rainbow", "raid", "souvenir", "book"] as const;
+/** room·yard는 스냅샷 — 기록에서 떠오르는 순간이 아니라 사용자가 찍는다(album/snap.ts). */
+export const MOMENT_KINDS = ["species", "golden", "rainbow", "raid", "souvenir", "book", "room", "yard"] as const;
 export type MomentKind = (typeof MOMENT_KINDS)[number];
 
 /**
@@ -93,6 +119,7 @@ export type MomentKind = (typeof MOMENT_KINDS)[number];
  *   p:<정책>#<claim>     정책 팩트 한 줄
  *   b:<책>/<장>          책 한 장
  *   m:<순간 종류>        내 정원의 순간 — 무엇인지는 md(s·v)에
+ *   m:room · m:yard      내 방·내 텃밭 스냅샷 — 찍은 배치는 sn에, 찍은 때(분)는 md.v에
  * firestore.rules의 anchorOk()와 같다.
  */
 export const ANCHOR_RE = new RegExp(
@@ -140,7 +167,7 @@ export function speciesOf(a: Anchor): string | null {
 
 /** 이 앵커가 맨 처음 들어갈 폴더. 사용자가 바꿀 수 있다. */
 export function defaultFolder(a: Anchor): number {
-  if (a.kind === "moment") return 2;
+  if (a.kind === "moment") return a.moment === "room" ? FOLDER_ROOM : a.moment === "yard" ? FOLDER_YARD : 2;
   if (a.kind === "book") return 3;
   if (a.kind === "policy") return 4;
   if (a.kind === "words") return 5;
@@ -148,10 +175,34 @@ export function defaultFolder(a: Anchor): number {
 }
 
 export function defaultReason(a: Anchor): number {
-  if (a.kind === "moment") return 8;
+  if (a.kind === "moment") return isSnapAnchor(`m:${a.moment}`) ? REASON_SNAP : 8;
   if (a.kind === "policy") return 11;
   if (a.kind === "book") return 10;
   return 0;
+}
+
+/**
+ * 이 사진에 보일 문구(REASONS 번호) — 종류에 맞는 몇 개만. 고치는 사진의 옛 문구가 목록에 없으면 앞에 붙인다.
+ * 퍼 온 사진은 "퍼 온 사진이에요"가 맨 앞.
+ */
+export function reasonsFor(a: Anchor, opts: { scrap?: boolean; keep?: number } = {}): number[] {
+  const base =
+    a.kind === "moment"
+      ? a.moment === "room"
+        ? [13, 14, 15, 7]
+        : a.moment === "yard"
+          ? [13, 14, 9, 7]
+          : [8, 9, 7]
+      : a.kind === "policy"
+        ? [11, 0, 1, 2, 6]
+        : a.kind === "words"
+          ? [0, 1, 2, 3, 7]
+          : a.kind === "book"
+            ? [10, 7, 0, 6]
+            : [0, 1, 4, 2, 3];
+  const list = opts.scrap ? [REASON_SCRAP, ...base] : base;
+  const keep = opts.keep;
+  return keep !== undefined && keep !== REASON_OWN && reasonOk(keep) && !list.includes(keep) ? [keep, ...list] : list;
 }
 
 /** 담기 전에 거둔 업적인지 볼 앵커인가(업적·카툰 칸). 언행·정책·책은 조건 없이 담는다(결정, 2026-11-22). */
@@ -220,6 +271,8 @@ export interface Photo {
   cv?: boolean;
   /** 댓글 받지 않기. */
   nc?: boolean;
+  /** 스냅샷(m:room·m:yard)의 찍은 배치. 그 앵커일 때만, 그때는 반드시. */
+  sn?: Snap;
 }
 
 export interface AlbumLedger {
@@ -240,6 +293,10 @@ function int(v: unknown, max: number, fallback: number): number {
   return typeof v === "number" && Number.isInteger(v) && v >= 0 && v < max ? v : fallback;
 }
 
+function lineOf(x: unknown): string {
+  return typeof x === "string" && x.length <= LINE_MAX ? x : "";
+}
+
 /** 저장된(또는 공개 문서에서 읽은) 사진 하나를 바로잡는다. 모양이 틀리면 null. */
 export function cleanPhoto(raw: unknown): Photo | null {
   if (!raw || typeof raw !== "object") return null;
@@ -250,6 +307,9 @@ export function cleanPhoto(raw: unknown): Photo | null {
   if (!anchor) return null;
   const md = cleanMd(r.md);
   if (anchor.kind === "moment" && !md) return null;
+  const kind = snapKindOf(r.a);
+  const sn = kind ? cleanSnap(kind, r.sn) : null;
+  if (kind && !sn) return null;
   const from =
     r.from && typeof r.from === "object" &&
     typeof (r.from as PhotoFrom).g === "string" && PUBLIC_ID.test((r.from as PhotoFrom).g) &&
@@ -261,14 +321,15 @@ export function cleanPhoto(raw: unknown): Photo | null {
     id: r.id,
     a: r.a,
     ...(md && anchor.kind === "moment" ? { md } : {}),
-    p: int(r.p, REASONS.length, defaultReason(anchor)),
+    p: typeof r.p === "number" && reasonOk(r.p) && !(r.p === REASON_OWN && !lineOf(r.x)) ? r.p : defaultReason(anchor),
     k: int(r.k, 12, 0),
     f: int(r.f, FOLDERS.length, defaultFolder(anchor)),
-    x: typeof r.x === "string" && r.x.length <= LINE_MAX ? r.x : "",
+    x: lineOf(r.x),
     at: typeof r.at === "number" && Number.isFinite(r.at) ? r.at : 0,
     ...(from ? { from } : {}),
     ...(r.cv === true ? { cv: true } : {}),
     ...(r.nc === true ? { nc: true } : {}),
+    ...(sn ? { sn } : {}),
   };
 }
 
@@ -331,9 +392,15 @@ export interface PhotoInput {
   from?: PhotoFrom;
   cv?: boolean;
   nc?: boolean;
+  sn?: Snap;
 }
 
-export type AddRefusal = "full" | "have" | "bad";
+export type AddRefusal = "full" | "have" | "bad" | "snaps";
+
+/** 방·텃밭 스냅샷 수. */
+export function snapCount(photos: readonly Pick<Photo, "a">[]): number {
+  return photos.filter((p) => isSnapAnchor(p.a)).length;
+}
 
 /** 사진을 담는다(맨 앞에). 대표로 고르면 다른 사진의 대표를 내린다. */
 export function addPhoto(album: AlbumLedger, input: PhotoInput, id: string, now: number): { album: AlbumLedger; photo: Photo } | AddRefusal {
@@ -341,6 +408,7 @@ export function addPhoto(album: AlbumLedger, input: PhotoInput, id: string, now:
   if (!photo || (input.x && input.x.length > LINE_MAX)) return "bad";
   if (album.photos.some((p) => photoKey(p) === photoKey(photo))) return "have";
   if (album.photos.length >= PHOTO_MAX) return "full";
+  if (isSnapAnchor(photo.a) && snapCount(album.photos) >= SNAP_MAX) return "snaps";
   const rest = photo.cv ? album.photos.map(dropCover) : album.photos;
   return { album: { ...album, photos: [photo, ...rest] }, photo };
 }
@@ -398,6 +466,7 @@ export interface PhotoDoc {
   fn?: string;
   cv?: boolean;
   nc?: boolean;
+  sn?: Snap;
 }
 
 export function photoDoc(p: Photo): PhotoDoc {
@@ -412,6 +481,7 @@ export function photoDoc(p: Photo): PhotoDoc {
     ...(p.from ? { fg: p.from.g, fp: p.from.p, fn: p.from.n } : {}),
     ...(p.cv ? { cv: true } : {}),
     ...(p.nc ? { nc: true } : {}),
+    ...(p.sn ? { sn: p.sn } : {}),
   };
 }
 

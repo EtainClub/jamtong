@@ -650,17 +650,17 @@ service cloud.firestore {
     // 사진의 앵커(album/rules.ts의 ANCHOR_RE와 같다).
     function anchorOk(a) {
       return a is string && a.size() <= 120
-        && a.matches('^(a:[a-z0-9-]{1,60}(/[a-z0-9-]{1,40})?|w:[a-z0-9-]{1,60}(#[a-z0-9-]{1,40})?|p:[a-z0-9-]{1,60}#[a-z0-9-]{1,40}|b:[a-z0-9-]{1,40}/[a-z0-9-]{1,40}|m:(species|golden|rainbow|raid|souvenir|book))$');
+        && a.matches('^(a:[a-z0-9-]{1,60}(/[a-z0-9-]{1,40})?|w:[a-z0-9-]{1,60}(#[a-z0-9-]{1,40})?|p:[a-z0-9-]{1,60}#[a-z0-9-]{1,40}|b:[a-z0-9-]{1,40}/[a-z0-9-]{1,40}|m:(species|golden|rainbow|raid|souvenir|book|room|yard))$');
     }
 
-    // 사진 한 장(album/rules.ts의 photoDoc). 문구 p(REASONS), 스티커 k, 폴더 f, 한 줄 x(60자),
+    // 사진 한 장(album/rules.ts의 photoDoc). 문구 p(REASONS, 31은 직접 쓰기), 스티커 k, 폴더 f(FOLDERS), 한 줄 x(60자),
     // 순간의 내용 md(m: 앵커일 때만, 그때는 반드시), 퍼 온 출처 fg·fp·fn, 대표 cv, 댓글 끄기 nc.
     function photoOk(d) {
-      return d.keys().hasOnly(['a', 'p', 'k', 'f', 'x', 'at', 'md', 'fg', 'fp', 'fn', 'cv', 'nc', 'hidden'])
+      return d.keys().hasOnly(['a', 'p', 'k', 'f', 'x', 'at', 'md', 'fg', 'fp', 'fn', 'cv', 'nc', 'sn', 'hidden'])
         && anchorOk(d.a)
-        && d.p is int && d.p >= 0 && d.p < 16
+        && d.p is int && d.p >= 0 && d.p < 32
         && d.k is int && d.k >= 0 && d.k < 12
-        && d.f is int && d.f >= 0 && d.f < 8
+        && d.f is int && d.f >= 0 && d.f < 16
         && d.x is string && d.x.size() <= 60
         && d.at is int
         && (d.a.matches('^m:.*$') == ('md' in d))
@@ -671,7 +671,37 @@ service cloud.firestore {
         && (!('fg' in d) || (d.fg is string && d.fg.matches('^g[0-9a-z]{8,12}$')
           && d.fp is string && d.fp.matches('^[a-z0-9]{6,20}$') && nickOk(d.fn)))
         && (!('cv' in d) || d.cv is bool)
-        && (!('nc' in d) || d.nc is bool);
+        && (!('nc' in d) || d.nc is bool)
+        // 스냅샷(album/snap.ts) — m:room·m:yard일 때만, 그때는 반드시. 찍은 배치뿐이고 글이 들어갈 자리가 없다.
+        && ((d.a == 'm:room' || d.a == 'm:yard') == ('sn' in d))
+        && (!('sn' in d) || (d.a == 'm:room' ? roomSnapOk(d.sn) : yardSnapOk(d.sn)));
+    }
+
+    // 방 스냅샷 — 공개 방(publicRoom)에서 방 한마디·음악·사진첩·추가 키보드를 뺀 모양. 목록 안은 화면이 표로 거른다.
+    // 값은 src/features/garden/room/rules.ts의 PUBLIC_PLACED_MAX·PUBLIC_ID_MAX와 같다(album/rules.test.ts가 본다).
+    function roomSnapOk(r) {
+      return r is map
+        && r.keys().hasOnly(['size', 'wall', 'floor', 'mood', 'placed', 'keys', 'avatar'])
+        && r.size is int && r.size >= 0 && r.size <= 2
+        && r.wall is string && r.wall.size() <= 40
+        && r.floor is string && r.floor.size() <= 40
+        && r.mood is string && r.mood.size() <= 40
+        && r.placed is list && r.placed.size() <= 80
+        && (!('keys' in r) || publicKeys(r.keys))
+        && (!('avatar' in r) || (r.avatar is string && r.avatar.size() <= 160
+              && r.avatar.matches('^(1;[bf][0-9]|2;([0-9]{1,2}~[0-9]{1,2}|s[0-9]{1,2}));[01];[0-9];[0-9];[a-z0-9.;-]{0,140}$')));
+    }
+
+    // 텃밭 스냅샷 — b=밭(품종 id·자란 정도) 12칸까지, y=마당 꾸밈 자리 5칸, m=기분, av·z=꼬마. 값은 album/snap.ts와 같다.
+    function yardSnapOk(r) {
+      return r is map
+        && r.keys().hasOnly(['b', 'y', 'm', 'av', 'z'])
+        && r.b is list && r.b.size() <= 12
+        && r.y is list && r.y.size() <= 5
+        && r.m is string && r.m.size() <= 40
+        && (!('z' in r) || (r.z is int && r.z >= 0 && r.z <= 2))
+        && (!('av' in r) || (r.av is string && r.av.size() <= 160 && 'z' in r
+              && r.av.matches('^(1;[bf][0-9]|2;([0-9]{1,2}~[0-9]{1,2}|s[0-9]{1,2}));[01];[0-9];[0-9];[a-z0-9.;-]{0,140}$')));
     }
 
     function photoTakesComments(gid, pid) {

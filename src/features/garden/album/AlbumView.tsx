@@ -26,11 +26,13 @@ import {
   PHOTO_MAX,
   photoKey,
   REASON_SCRAP,
+  snapCount,
   type Moment,
   type MomentData,
   type Photo,
   type PhotoFrom,
 } from "./rules";
+import { SNAP_MAX, takeSnap, type Snap, type SnapClip } from "./snap";
 import { useAlbumRemote } from "./useAlbumRemote";
 
 /**
@@ -65,8 +67,8 @@ export function AlbumView({
   canComment?: boolean;
   /** 사진첩 2 전에 올린 남의 방의 옛 사진첩(업적 품종 id). 공개 사진이 없을 때만 그린다. */
   legacy?: readonly string[];
-  /** 사이트 페이지의 "사진첩에 담기"로 왔다(앵커). */
-  clip?: string | null;
+  /** 사이트 페이지의 "사진첩에 담기"로 왔다(앵커). 내 방·텃밭의 「📸 찍기」로 왔으면 찍은 것(album/snap.ts). */
+  clip?: string | SnapClip | null;
   onClipDone?: () => void;
   onVisit?: (gid: string) => void;
   say: (text: string) => void;
@@ -77,7 +79,7 @@ export function AlbumView({
   const remote = useAlbumRemote(roomId, !mine);
   const [folder, setFolder] = useState<number | null>(null);
   const [picking, setPicking] = useState(false);
-  const [compose, setCompose] = useState<{ a: string; md?: MomentData; from?: PhotoFrom; edit?: Photo } | null>(null);
+  const [compose, setCompose] = useState<Compose | null>(null);
   const [scrapped, setScrapped] = useState<Set<string>>(new Set());
   const myPhotos = useGarden((s) => s.data?.album?.photos);
 
@@ -99,7 +101,7 @@ export function AlbumView({
   const scrapsOf = (id: string) => (remote.scraps ?? []).filter((s) => s.ph === id);
 
   // 사이트에서 "담기"로 왔으면 담기 시트부터(닫으면 부모가 clip을 지운다).
-  const sheet = compose ?? (clip && mine ? { a: clip } : null);
+  const sheet: Compose | null = compose ?? (clip && mine ? (typeof clip === "string" ? { a: clip } : clip) : null);
 
   const close = () => {
     setCompose(null);
@@ -117,11 +119,12 @@ export function AlbumView({
       close();
       return null;
     }
-    const got = store.clipPhoto({ a: sheet.a, md: sheet.md, from: sheet.from, p: v.p, k: v.k, f: v.f, x: v.x, cv: v.cv, nc: v.nc }, byId);
+    const got = store.clipPhoto({ a: sheet.a, md: sheet.md, sn: sheet.sn, from: sheet.from, p: v.p, k: v.k, f: v.f, x: v.x, cv: v.cv, nc: v.nc }, byId);
     if (typeof got === "string") {
       return {
         full: `사진첩은 ${PHOTO_MAX}장까지예요. 한 장을 내리고 담아 주세요`,
         have: "이미 담은 사진이에요",
+        snaps: `방·텃밭 사진은 ${SNAP_MAX}장까지예요. 옛 사진을 한 장 내리고 찍어 주세요`,
         bad: "담을 수 없는 사진이에요",
         unknown: "더 이상 없는 자료예요",
         unharvested: "거둔 업적만 담을 수 있어요. 업적 씨앗을 심고 거둬 보세요",
@@ -129,7 +132,7 @@ export function AlbumView({
     }
     gardenFeedback("reward");
     track(sheet.from ? "album_scrap" : "album_add", { kind: sheet.a.slice(0, 1), line: Boolean(v.x) });
-    say(sheet.from ? `📌 ${sheet.from.n}의 사진을 퍼 왔어요` : "📷 사진첩에 담았어요");
+    say(sheet.from ? `📌 ${sheet.from.n}의 사진을 퍼 왔어요` : sheet.sn ? "📸 오늘의 모습을 사진첩에 남겼어요" : "📷 사진첩에 담았어요");
     close();
     return null;
   };
@@ -167,7 +170,7 @@ export function AlbumView({
       {mine && (
         <>
           <p className="mt-1 text-[12.5px] leading-relaxed text-smoke">
-            업적·카툰 한 칸·언행·정책 팩트·책 한 장, 그리고 내 정원의 순간을 담아요. 왜 담았는지 고르고 한 줄을 더하면 손님이 댓글을 달고 퍼 갈 수 있어요.
+            업적·카툰 한 칸·언행·정책 팩트·책 한 장, 내 정원의 순간, 그리고 지금 내 방·텃밭을 찍어 담아요. 왜 담았는지 고르거나 직접 쓰면 손님이 댓글을 달고 퍼 갈 수 있어요.
           </p>
           {!data!.share.on && <p className="mt-1 text-[12px] text-smoke">방을 열면 손님이 사진첩을 보고 댓글을 남길 수 있어요.</p>}
           <button
@@ -222,7 +225,7 @@ export function AlbumView({
                 canComment={canComment}
                 scrapped={myScraps.has(p.id) || haveKeys.has(photoKey(p))}
                 onScrap={!mine && !legacyOnly && uid && canScrap(p) ? () => scrap(p) : undefined}
-                onEdit={mine ? () => setCompose({ a: p.a, md: p.md, edit: p }) : undefined}
+                onEdit={mine ? () => setCompose({ a: p.a, md: p.md, sn: p.sn, edit: p }) : undefined}
                 onRemove={
                   mine
                     ? () => {
@@ -246,18 +249,19 @@ export function AlbumView({
           entries={entries}
           byId={byId}
           onClose={() => setPicking(false)}
-          onPick={(a, md) => {
+          onPick={(a, md, sn) => {
             setPicking(false);
-            setCompose({ a, md });
+            setCompose({ a, md, sn });
           }}
         />
       )}
 
       {sheet && (
         <PhotoComposer
-          title={sheet.edit ? "사진 고치기" : sheet.from ? "📌 퍼 오기" : "📷 사진첩에 담기"}
+          title={sheet.edit ? "사진 고치기" : sheet.from ? "📌 퍼 오기" : sheet.sn ? "📸 찰칵! 사진첩에 남기기" : "📷 사진첩에 담기"}
           a={sheet.a}
           md={sheet.md}
+          sn={sheet.sn}
           entries={entries}
           byId={byId}
           initial={initialOf(sheet)}
@@ -274,13 +278,21 @@ export function AlbumView({
   );
 }
 
+interface Compose {
+  a: string;
+  md?: MomentData;
+  sn?: Snap;
+  from?: PhotoFrom;
+  edit?: Photo;
+}
+
 function initialOf(c: { a: string; edit?: Photo; from?: PhotoFrom }): ComposeValue {
   if (c.edit) return { p: c.edit.p, k: c.edit.k, f: c.edit.f, x: c.edit.x, cv: Boolean(c.edit.cv), nc: Boolean(c.edit.nc) };
   const anchor = parseAnchor(c.a);
   return { p: c.from ? REASON_SCRAP : anchor ? defaultReason(anchor) : 0, k: 0, f: anchor ? defaultFolder(anchor) : 0, x: "", cv: false, nc: false };
 }
 
-/** 담을 것 고르기 — 내 정원의 순간·거둔 업적·카툰 한 칸. 언행·정책·책은 그 페이지에서 담는다. */
+/** 담을 것 고르기 — 지금 찍기(방·텃밭)·내 정원의 순간·거둔 업적·카툰 한 칸. 언행·정책·책은 그 페이지에서 담는다. */
 function PickSheet({
   data,
   entries,
@@ -292,10 +304,11 @@ function PickSheet({
   entries: ReturnType<typeof useMemorial>;
   byId: Map<string, Species>;
   onClose: () => void;
-  onPick: (a: string, md?: MomentData) => void;
+  onPick: (a: string, md?: MomentData, sn?: Snap) => void;
 }) {
   const [cutsOf, setCutsOf] = useState<string | null>(null);
   const have = new Set((data.album?.photos ?? []).map(photoKey));
+  const snaps = snapCount(data.album?.photos ?? []);
   const moments = (data.album?.moments ?? []).filter((m) => !have.has(photoKey({ a: `m:${m.t}`, md: mdOf(m) })));
   const harvested = (entries ?? []).filter((e) => data.dex[e.speciesId]);
   const cards = harvested.filter((e) => !have.has(photoKey({ a: e.speciesId })));
@@ -303,7 +316,31 @@ function PickSheet({
 
   return (
     <Sheet label="사진첩에 담을 것 고르기" title="📷 사진 담기" onClose={onClose}>
-      <h3 className="mt-3 text-[13px] font-bold">🌱 내 정원의 순간</h3>
+      <h3 className="mt-3 text-[13px] font-bold">📸 지금 찍기</h3>
+      <p className="mt-1 text-[12.5px] leading-relaxed text-smoke">
+        지금의 방과 텃밭을 그대로 남겨요. 나중에 방을 바꾸고 작물을 거둬도 사진 속 그날은 그대로예요. ({snaps}/{SNAP_MAX}장)
+      </p>
+      <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+        {(["room", "yard"] as const).map((kind) => (
+          <button
+            key={kind}
+            type="button"
+            disabled={snaps >= SNAP_MAX}
+            onClick={() => {
+              gardenFeedback("tap");
+              const shot = takeSnap(kind, data, Date.now());
+              onPick(shot.a, shot.md, shot.sn);
+            }}
+            className="flex min-h-[56px] items-center justify-center gap-1.5 rounded-xl border border-stone bg-white px-2 text-[13px] font-semibold disabled:opacity-50"
+          >
+            <span className="text-[22px]" aria-hidden="true">{kind === "room" ? "🏠" : "🌾"}</span>
+            {kind === "room" ? "내 방 찍기" : "내 텃밭 찍기"}
+          </button>
+        ))}
+      </div>
+      {snaps >= SNAP_MAX && <p className="mt-1 text-[12px] text-smoke">방·텃밭 사진이 {SNAP_MAX}장 다 찼어요. 옛 사진을 내리면 다시 찍을 수 있어요.</p>}
+
+      <h3 className="mt-4 text-[13px] font-bold">🌱 내 정원의 순간</h3>
       {moments.length === 0 ? (
         <p className="mt-1 text-[12.5px] text-smoke">새 품종·황금 열매·거대 잡초·기념품·완독 같은 순간이 생기면 여기에 떠요.</p>
       ) : (
@@ -386,7 +423,7 @@ function PickRow({ icon, title, sub, onClick }: { icon: string; title: string; s
   );
 }
 
-const MOMENT_ICON: Record<Moment["t"], string> = { species: "🌱", golden: "✨", rainbow: "🌈", raid: "🌿", souvenir: "🏛", book: "🔖" };
+const MOMENT_ICON: Record<Moment["t"], string> = { species: "🌱", golden: "✨", rainbow: "🌈", raid: "🌿", souvenir: "🏛", book: "🔖", room: "🏠", yard: "🌾" };
 
 function mdOf(m: Moment): MomentData {
   return { ...(m.s !== undefined ? { s: m.s } : {}), ...(m.v !== undefined ? { v: m.v } : {}) };
@@ -399,5 +436,7 @@ function momentLabel(m: Moment, byId: Map<string, Species>): string {
   if (m.t === "rainbow") return `무지개 열매 「${title ?? "?"}」`;
   if (m.t === "souvenir") return `기념품 「${title ?? "?"}」`;
   if (m.t === "raid") return "거대 잡초를 쓰러뜨린 날";
+  if (m.t === "room") return "내 방 사진";
+  if (m.t === "yard") return "내 텃밭 사진";
   return "책 한 권 완독";
 }
