@@ -255,6 +255,39 @@ body {
 }
 
 /*
+ * 둘러보기 해설 — 닿지 못한 쪽이 한 번 흔들린다.
+ *
+ * "가리킬 자료가 없으면 화면에 오지 못한다"는 이 앱에서 가장 중요한 규칙이고,
+ * 그 단계에서 실제로 무언가 실패해야 규칙이 사건으로 읽힌다. 한 번만 돌고
+ * 멈춘다 — 계속 떠는 그림은 경고가 아니라 잡음이다.
+ */
+@keyframes guide-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  22% {
+    transform: translateX(-2.5px);
+  }
+  48% {
+    transform: translateX(2.5px);
+  }
+  74% {
+    transform: translateX(-1px);
+  }
+}
+
+/* 자료에 닿는 순간 테두리가 한 번 번지고 사라진다. */
+@keyframes guide-land {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/*
  * prefers-reduced-motion 존중.
  * 모션 씬은 정적 요약으로 폴백하고, 장식 애니메이션은 전부 끈다.
  */
