@@ -101,6 +101,7 @@ export const ISO: Readonly<Record<string, IsoSpec>> = {
   "trout-aquarium": furn(2, 1, 40),
   "voice-tv": furn(2, 1, 44),
   "voice-mic": furn(0.5, 0.5, 48),
+  "speech-screen": furn(2, 1, 52),
 
   // ── 올려 두는 것
   radio: small(13),

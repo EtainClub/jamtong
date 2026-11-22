@@ -8,6 +8,8 @@ export interface RoomActivity {
   message: string;
   sound?: RoomSound;
   clips?: readonly VoiceClipId[];
+  /** 언행에 실린 연설 영상을 골라 보는 상영관(speeches.ts). */
+  speeches?: boolean;
 }
 
 /** 재밍 채널 원본(2022-03-03). 영상/자동 자막에서 구간 확인, 파일 재배포 없이 원본 플레이어로 재생. */
@@ -40,6 +42,7 @@ const ACTIVITIES: Readonly<Record<string, RoomActivity>> = {
   "play-musicbox": { motion: "spin", sound: "musicbox", message: "또르르, 잼통의 짧은 오르골 멜로디." },
   "play-chime": { motion: "sway", sound: "chime", message: "딩동, 바람종이 흔들려요." },
   "voice-tv": { motion: "glow", clips: ["love", "tears"], message: "2006 감성을 읽는 실제 목소리를 들어요." },
+  "speech-screen": { motion: "glow", speeches: true, message: "언행에 실린 연설 영상을 골라 봐요." },
   "voice-mic": { motion: "hop", clips: ["courage"], message: "보란 듯이 성공하자! 짧은 응원을 들어요." },
 };
 export const activityOf = (id: string): RoomActivity | undefined => ACTIVITIES[id];
@@ -49,5 +52,6 @@ export const PLAY_FURNITURE: Furniture[] = [
   { id: "play-musicbox", label: "빙글빙글 오르골", kind: "floor", size: 1, price: 260, art: "play-musicbox", hint: "누르면 빙글 돌며 짧은 오르골 멜로디를 들려줘요.", newUntil: "2026-12-14" },
   { id: "play-chime", label: "딩동 바람종", kind: "wall", size: 1, price: 150, art: "play-chime", hint: "누르면 살랑 흔들리며 맑은 종소리가 나요.", newUntil: "2026-12-14" },
   { id: "voice-tv", label: "감성 음성 TV", kind: "floor", size: 2, price: 380, art: "voice-tv", hint: "누르면 2022년 당시의 실제 목소리로 사랑·눈물 감성 글을 듣는 영상이 열려요.", newUntil: "2026-12-14" },
+  { id: "speech-screen", label: "연설 상영관", kind: "floor", size: 2, price: 10000, art: "speech-screen", hint: "누르면 ‘언행’에 실린 대통령의 연설 영상을 골라 원본 그대로 봐요.", newUntil: "2026-12-22" },
   { id: "voice-mic", label: "할 수 있어 응원 마이크", kind: "floor", size: 1, price: 240, art: "voice-mic", hint: "누르면 ‘보란 듯이 성공하자’ 구간을 실제 영상으로 들어요. 2022년 선거 영상에서 가져온 짧은 응원이에요.", newUntil: "2026-12-14" },
 ];

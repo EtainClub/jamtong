@@ -16,6 +16,7 @@ import { FURNITURE_BY_ID } from "./catalog";
 import { FurnitureStory } from "./FurnitureStory";
 import { activityOf } from "./activities";
 import { RoomVoicePlayer } from "./RoomVoicePlayer";
+import { SpeechPlayer } from "./SpeechPlayer";
 import { playActivitySound } from "./activitySound";
 import { BookSheet } from "./BookSheet";
 import { roomBookOf } from "./library";
@@ -74,7 +75,7 @@ export function RoomItemSheet({
       <Sheet label={`${furniture.label} 자세히 보기`} title={furniture.label} onClose={onClose}>
         <div className="mt-3 flex justify-center"><FurnitureIcon id={furniture.id} size={96} /></div>
         <p className="mt-2 text-[13px] text-smoke">{furniture.hint}</p>
-        {activity?.clips ? <RoomVoicePlayer clips={activity.clips} /> : activity?.sound ? <button type="button" className="garden-diary-btn mt-3" onClick={() => { if (activity.sound) playActivitySound(activity.sound); }}>♪ 소리 다시 듣기</button> : null}
+        {activity?.speeches ? <SpeechPlayer /> : activity?.clips ? <RoomVoicePlayer clips={activity.clips} /> : activity?.sound ? <button type="button" className="garden-diary-btn mt-3" onClick={() => { if (activity.sound) playActivitySound(activity.sound); }}>♪ 소리 다시 듣기</button> : null}
         {furniture.reading && <Link href={furniture.reading.href} className="garden-diary-btn mt-3 inline-flex min-h-[44px] items-center">{furniture.reading.label} →</Link>}
         {furniture.story && <FurnitureStory story={furniture.story} />}
       </Sheet>
