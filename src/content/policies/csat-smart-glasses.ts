@@ -62,7 +62,7 @@ export const CSAT_SMART_GLASSES: PolicyInput = {
   ],
   gaps: [
     "스마트안경을 가려낼 장비 도입 등 감독 매뉴얼의 구체적 내용은 확인하지 못했다.",
-    "형사 처벌(업무방해 등) 적용 여부에 대한 교육부 방침은 찾지 못했다.",
+    "형사 처벌 방침은 11월 17일 정부 대책에서 나왔다 — 위계에 의한 공무집행방해로 수사 의뢰(policy:csat-ai-cheating-2027).",
   ],
   sources: [
     {
