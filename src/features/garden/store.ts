@@ -85,7 +85,7 @@ import {
 } from "./room/library";
 import { initialCoach, normalizeCoach, type CoachData, type CoachMark, type TipTab } from "./coach";
 import * as room from "./room/rules";
-import { avatarSlotOk, buyWear as buyWearRule, grantRewards, normalizeAvatar, unownedWear, type AvatarData, type WearRefusal } from "./avatar/rules";
+import { avatarAtOk, avatarFree, buyWear as buyWearRule, grantRewards, normalizeAvatar, unownedWear, type AvatarData, type WearRefusal } from "./avatar/rules";
 import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_ILCHON, type IlchonData, type NewsEntry } from "./ilchon/rules";
 import { MOODS, type Furniture } from "./room/catalog";
 import { pickGift } from "./memorial/ox";
@@ -556,6 +556,8 @@ interface GardenState {
   earnSouvenir: (speciesId: string, catalog: Map<string, Species>) => { where: "case" | "stowed"; moved: string | null } | false;
   /** 진열장을 놓느라 보관함에 넣은 물건의 알림을 읽었다. */
   clearCaseMoved: () => void;
+  /** 옛 칸 방을 아이소 방으로 옮겼다는 알림을 봤다(room/rules.ts의 isoMoved). */
+  clearIsoMoved: () => void;
   /** 사진첩에 거둔 업적 하나를 올린다. 거둔 적 없는 업적·가득 찬 사진첩·이미 올린 것은 받지 않는다(이유를 돌려준다). */
   addToAlbum: (speciesId: string, catalog: Map<string, Species>) => true | "unharvested" | "full" | "have" | "unknown";
   /** 사진첩에서 한 장을 내린다. */
@@ -1294,8 +1296,8 @@ export const useGarden = create<GardenState>((set, get) => {
       const d = get().data;
       if (!d || !d.room.avatar) return false;
       const cur = d.room.avatar;
-      const draft = normalizeAvatar({ ...next, owned: cur.owned });
-      if (!avatarSlotOk(draft.at, room.roomWidth(d.room.size)) || unownedWear(cur, draft.look).length) return false;
+      const draft = normalizeAvatar({ ...next, owned: cur.owned }, "", d.room.size);
+      if (!avatarAtOk(draft.at, room.roomWidth(d.room.size)) || unownedWear(cur, draft.look).length) return false;
       commit({ ...d, room: { ...d.room, avatar: draft } });
       return true;
     },
@@ -1325,6 +1327,11 @@ export const useGarden = create<GardenState>((set, get) => {
       // 꾸미는 동안 산 것·전시한 것이 있을 수 있다. 장부(owned·shown·size)는 지금 것을 쓰고, 배치만 받는다.
       const next = d && { ...d.room, wall: draft.wall, floor: draft.floor, placed: draft.placed, keyboards: { ...draft.keyboards, ...d.room.keyboards } };
       if (!d || !next || !room.validRoom(next)) return false;
+      // 꼬마 자리(꾸미기에서 끌어 옮긴다). 가구를 옮기다 꼬마 자리를 옷장 같은 것이 덮었으면 가까운 빈 바닥으로 비킨다.
+      if (next.avatar) {
+        const at = draft.avatar && avatarAtOk(draft.avatar.at, room.roomWidth(next.size)) ? draft.avatar.at : next.avatar.at;
+        next.avatar = { ...next.avatar, at: avatarFree(next, at) ?? at };
+      }
       commit({ ...d, room: next });
       return true;
     },
@@ -1379,6 +1386,14 @@ export const useGarden = create<GardenState>((set, get) => {
       if (!got) return false;
       commit({ ...d, room: got.room, news: pushNews(d.news, newsEntry("souvenir", speciesId, Date.now())) });
       return { where: got.where, moved: got.moved };
+    },
+
+    clearIsoMoved: () => {
+      const d = get().data;
+      if (d?.room.isoMoved === undefined) return;
+      const { isoMoved: _seen, ...rest } = d.room;
+      void _seen;
+      commit({ ...d, room: rest });
     },
 
     clearCaseMoved: () => {

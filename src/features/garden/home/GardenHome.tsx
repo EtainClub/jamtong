@@ -220,6 +220,16 @@ export function GardenHome({
                 </button>
               </span>
             </div>
+            {data.room.isoMoved !== undefined && (
+              <div className="mt-2 rounded-xl border border-dashed border-[var(--g-leaf)] bg-white px-3 py-2 text-[12.5px] leading-relaxed">
+                🏠 방이 입체로 바뀌었어요. 물건을 그대로 옮겨 놓았어요
+                {data.room.isoMoved > 0 ? ` — 자리가 모자란 ${data.room.isoMoved}개는 보관함에 넣었어요` : ""}. 이제 꾸미기에서 물건을 끌어 옮기고,
+                책상·탁자 위에 소품을 올릴 수 있어요.{" "}
+                <button type="button" className="min-h-[36px] font-semibold underline underline-offset-2" onClick={() => useGarden.getState().clearIsoMoved()}>
+                  알겠어요
+                </button>
+              </div>
+            )}
             {data.room.caseMoved && (
               <div className="mt-2 rounded-xl border border-dashed border-[var(--g-leaf)] bg-white px-3 py-2 text-[12.5px] leading-relaxed">
                 🏛️ 기념품 진열장을 방에 놓았어요. 자리가 모자라서 「{itemName(data.room.caseMoved, data.room, byId)}」{josa(itemName(data.room.caseMoved, data.room, byId), "을를").slice(itemName(data.room.caseMoved, data.room, byId).length)} 보관함에 넣었어요 — 꾸미기에서 다시 놓을 수

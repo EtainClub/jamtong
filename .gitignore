@@ -37,3 +37,6 @@ next-env.d.ts
 # 여기서 뽑아낸 것은 '무엇을 찾아볼지'의 목록이고, 인용은 1차 자료로만 한다.
 /refs/
 .refs-preview/
+
+# 아이소 방 가구 그림을 만드는 작업 폴더(scripts/room-iso-gen.ts)
+.room-iso-work/

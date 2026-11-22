@@ -12,11 +12,12 @@ import { FIXED } from "./palette";
 import { FREE, PARTS, WEAR, WEAR_BY_ID, type Wear } from "./catalog";
 import { avatarDiffRects, avatarGrid, avatarRects, colorPaths, HI_H, type Look } from "./compose";
 import {
-  AVATAR_PUBLIC_MAX, AVATAR_PUBLIC_RE, avatarFromPublic, buyWear, faceFor, freshAvatar, grantRewards, moodFace,
+  AVATAR_PUBLIC_MAX, AVATAR_PUBLIC_RE, AVATAR_RULE_RE, avatarAtFor, avatarBlocked, avatarFree, avatarFromPublic, buyWear, faceFor, freshAvatar, grantRewards, moodFace,
   normalizeAvatar, ownedLook, packAvatar, poseAt, roamNext, unownedWear, type AvatarData,
 } from "./rules";
 import { GRID_H, GRID_W, HEAD, POSES, type Pose, type Sprite } from "./sprites";
 import { MOODS } from "../room/catalog";
+import { at } from "../room/slotTest";
 
 const SLOT_LETTERS = new Set(["s", "S", "h", "H", "a", "A", "b", "B", "f", "F", "c", "C", "."]);
 const POSE_LIST = Object.keys(POSES) as Pose[];
@@ -93,7 +94,7 @@ test("기본 꼬마는 같은 seed면 같고 무료 옷만 입는다", () => {
 test("공개 문자열은 되돌아오고, 가장 긴 조합도 규칙에 맞는다", () => {
   const longest = (part: Wear["part"]) => WEAR.filter((w) => w.part === part).sort((a, b) => b.id.length - a.id.length)[0].id;
   const av: AvatarData = {
-    on: true, at: "b9", roam: true, owned: WEAR.map((w) => w.id),
+    on: true, at: "19~19", roam: true, owned: WEAR.map((w) => w.id),
     look: {
       skin: 7, hairColor: 9, hair: longest("hair"), eyes: longest("eyes"), top: longest("top"), bottom: longest("bottom"), shoes: longest("shoes"),
       hat: longest("hat"), face: longest("face"), held: longest("held"), bubble: longest("bubble"), tint: { top: 11, bottom: 11, shoes: 11 },
@@ -102,7 +103,8 @@ test("공개 문자열은 되돌아오고, 가장 긴 조합도 규칙에 맞는
   const packed = packAvatar(av, 10);
   assert.ok(packed && packed.length <= AVATAR_PUBLIC_MAX && AVATAR_PUBLIC_RE.test(packed), packed ?? "null");
   const back = avatarFromPublic(packed)!;
-  assert.equal(back.at, "b9");
+  assert.equal(back.at, "19~19");
+  assert.equal(packed.split(";")[0], "2", "판 2");
   assert.equal(back.roam, true);
   for (const k of ["hair", "eyes", "top", "bottom", "shoes", "hat", "face", "held", "bubble", "skin", "hairColor"] as const) assert.equal(back.look[k], av.look[k], k);
 });
@@ -121,11 +123,15 @@ test("가지지 않은 옷은 공개하기 전에 기본으로, 끈 꼬마·방 
   assert.equal(f[13], "basic");
   assert.deepEqual(ownedLook({ ...fake, owned: ["straw"] }).hat, "straw");
   assert.equal(packAvatar({ ...av, on: false }, 6), null);
-  assert.equal(packAvatar({ ...av, at: "f7" }, 6), null);
+  assert.equal(packAvatar({ ...av, at: "13~1" }, 6), null, "6×6 방 밖");
+  assert.equal(packAvatar({ ...av, at: "2~1" }, 6), null, "타일 한가운데(홀수)만");
 });
 
 test("공개 문자열 거르기 — 모르는 id는 기본, 모양이 틀리면 없음", () => {
   assert.equal(avatarFromPublic("2;b1;0;0;0;short;dot;tee;pants;sneaker;;;;basic"), null);
+  assert.equal(avatarFromPublic("2;s3;0;0;0;short;dot;tee;pants;sneaker;;;;basic"), null, "받침 순번은 싣지 않는 모양");
+  assert.equal(avatarFromPublic("2;3~5;0;0;0;short;dot;tee;pants;sneaker;;;;basic")?.at, "3~5");
+  assert.equal(avatarFromPublic("1;f2;0;0;0;short;dot;tee;pants;sneaker;;;;basic", 1)?.at, "5~9", "판 1의 칸은 그 방(8×8)의 바닥 자리로");
   assert.equal(avatarFromPublic("1;w1;0;0;0;short;dot;tee;pants;sneaker;;;;basic"), null);
   assert.equal(avatarFromPublic("1;b1;0;0;0;Short;dot;tee;pants;sneaker;;;;basic"), null);
   assert.equal(avatarFromPublic(42), null);
@@ -151,6 +157,7 @@ test("방의 공개·되돌리기에 꼬마가 실린다", () => {
 test("옛 장부는 seed로 기본 꼬마를 받고, 장부의 모양을 바로잡는다", () => {
   const old = normalizeRoom({ size: 0, wall: "wp-cream", floor: "fl-wood" } as never, "닉");
   assert.deepEqual(old.avatar, freshAvatar("닉"));
+  assert.equal(normalizeAvatar({ at: "b4" }, "s", 0).at, "9~1", "옛 칸은 바닥 자리로");
   const bad = normalizeAvatar({ on: "yes" as never, at: "z9", roam: 1 as never, owned: ["straw", "nope", "straw"], look: { skin: 99 } as never }, "s");
   assert.equal(bad.on, true);
   assert.equal(bad.at, freshAvatar("s").at);
@@ -159,8 +166,8 @@ test("옛 장부는 seed로 기본 꼬마를 받고, 장부의 모양을 바로�
   assert.equal(bad.look.skin, freshAvatar("s").look.skin);
 });
 
-test("가구가 자세를 정한다 — 2칸 가구는 오른쪽 칸도", () => {
-  const placed = [{ at: "f0", it: "sofa" }, { at: "b2", it: "bed" }, { at: "f3", it: "piano" }, { at: "f5", it: "lamp" }];
+test("가구가 자세를 정한다 — 꼬마 칸의 바닥 자리를 덮은 가구(2칸 가구는 오른쪽 칸도)", () => {
+  const placed = { placed: [at("sofa", "f0"), at("bed", "b2"), at("piano", "f3"), at("lamp", "f5")], shown: [], size: 0 };
   assert.equal(poseAt(placed, "f0"), "sit");
   assert.equal(poseAt(placed, "f1"), "sit");
   assert.equal(poseAt(placed, "b3"), "sleep");
@@ -170,14 +177,29 @@ test("가구가 자세를 정한다 — 2칸 가구는 오른쪽 칸도", () => 
   for (const id of ["chair", "sofa", "cushion", "rocker", "bench"]) assert.equal(FURNITURE_BY_ID.get(id)?.pose, "sit", id);
 });
 
-test("돌아다니기는 같은 줄의 옆 칸으로 — 가구가 양옆을 막아도 지나간다", () => {
-  assert.equal(roamNext("f0", 6, "x"), "f1");
-  assert.equal(roamNext("f5", 6, "x"), "f4");
-  assert.ok(["f2", "f4"].includes(roamNext("f3", 6, "y")));
-  assert.equal(roamNext("b0", 1, "z"), "b0");
-  // 예전에는 양옆이 가구(자세 없음)면 멈춰 있었다.
-  const seen = new Set(Array.from({ length: 20 }, (_, n) => roamNext("f1", 6, String(n))));
-  assert.deepEqual([...seen].sort(), ["f0", "f2"]);
+test("돌아다니기는 앞뒤좌우 옆 타일로 — 옷장 같은 가구는 피하고, 사방이 막히면 지나간다", () => {
+  const empty = { placed: [], shown: [], size: 0 };
+  const go = (cur: string, room: typeof empty | { placed: ReturnType<typeof at>[]; shown: never[]; size: number }) =>
+    [...new Set(Array.from({ length: 30 }, (_, n) => roamNext(cur, room, String(n))))].sort();
+  assert.deepEqual(go("1~1", empty), ["1~3", "3~1"], "모서리에서는 두 방향");
+  assert.deepEqual(go("5~5", empty), ["3~5", "5~3", "5~7", "7~5"]);
+  assert.equal(roamNext("x", empty, "z"), "x");
+  const one = { placed: [{ it: "wardrobe", pos: { x: 2, y: 0, dir: 0 as const } }], shown: [] as never[], size: 0 };
+  assert.deepEqual(go("1~1", one), ["1~3"], "옷장이 있는 타일은 피한다");
+  const both = { placed: [...one.placed, { it: "wardrobe", pos: { x: 0, y: 2, dir: 0 as const } }], shown: [] as never[], size: 0 };
+  assert.deepEqual(go("1~1", both), ["1~3", "3~1"], "사방이 막히면 지나간다 — 꾸민 방에서 꼼짝하지 않던 것(2026-11-15)");
+  const chair = { placed: [{ it: "chair", pos: { x: 2, y: 0, dir: 0 as const } }, ...both.placed.slice(1)], shown: [] as never[], size: 0 };
+  assert.deepEqual(go("1~1", chair), ["3~1"], "의자는 앉는 자리라 간다");
+});
+
+test("꼬마 자리: 막힌 자리면 가장 가까운 빈 바닥, 바닥 점은 타일 한가운데로", () => {
+  const room = { placed: [{ it: "wardrobe", pos: { x: 2, y: 2, dir: 0 as const } }], shown: [] as never[], size: 0 };
+  assert.equal(avatarBlocked(room, "3~3"), true);
+  assert.equal(avatarBlocked({ ...room, placed: [{ it: "chair", pos: { x: 2, y: 2, dir: 0 as const } }] }, "3~3"), false);
+  assert.ok(["1~3", "3~1", "5~3", "3~5"].includes(avatarFree(room, "3~3")!));
+  assert.equal(avatarFree(room, "1~1"), "1~1");
+  assert.equal(avatarAtFor(2.9, 0.2, 0), "5~1");
+  assert.equal(avatarAtFor(-3, 99, 0), "1~11", "방 안으로");
 });
 
 test("옷 사기 — 잼·뿌리 조각, 받는 옷·무료 옷은 팔지 않는다", () => {
@@ -204,5 +226,15 @@ test("firestore.rules의 publicRoom()이 같은 길이·정규식을 본다", ()
   const rules = readFileSync("firestore.rules", "utf8");
   assert.match(rules, /'avatar'(, 'album')?\]\)/);
   assert.ok(rules.includes(`r.avatar.size() <= ${AVATAR_PUBLIC_MAX}`));
-  assert.ok(rules.includes(`r.avatar.matches('${AVATAR_PUBLIC_RE.source}')`));
+  assert.ok(rules.includes(`r.avatar.matches('${AVATAR_RULE_RE.source}')`));
+});
+
+test("규칙의 정규식은 지금 싣는 판 2와 옛 화면의 판 1을 모두 받는다", () => {
+  const av = { ...freshAvatar("rule"), at: "19~19", roam: true };
+  const v2 = packAvatar(av, 10)!;
+  assert.ok(AVATAR_RULE_RE.test(v2) && v2.startsWith("2;19~19;"));
+  assert.equal(AVATAR_PUBLIC_RE, AVATAR_RULE_RE, "읽는 모양 = 규칙");
+  const rest = v2.split(";").slice(2).join(";");
+  for (const at of ["1;f9", "1;b0", "2;0~0", "2;19~20", "2;s0", "2;s79"]) assert.ok(AVATAR_RULE_RE.test(`${at};${rest}`), at);
+  for (const bad of ["2;b3", "2;1~2~3", "2;s", "3;0~0", "2;x~1", "1;w1"]) assert.ok(!AVATAR_RULE_RE.test(`${bad};${rest}`), bad);
 });

@@ -608,8 +608,6 @@
 .game :global(.garden-wear-lock) { display: inline-flex; align-items: center; gap: 2px; margin-top: auto; padding: 2px 8px; border-radius: 999px; background: #fff4e0; font-size: 11px; line-height: 1.4; color: #8a6d4b; white-space: nowrap; }
 .game :global(.garden-avatar-swatch) { width: 36px; height: 36px; border-radius: 999px; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--d-line); }
 .game :global(.garden-avatar-swatch[aria-pressed=true]) { box-shadow: 0 0 0 3px var(--d-orange); }
-.game :global(.garden-avatar-slot) { min-height: 44px; border-radius: 8px; border: 1px dashed var(--d-line); background: #fffdf6; font-size: 18px; }
-.game :global(.garden-avatar-slot[aria-pressed=true]) { border: 2px solid var(--d-orange); background: #fff4ea; }
 .game :global(.garden-avatar-bubble-chip) { display: grid; place-items: center; width: 44px; height: 36px; border: 2px solid #3a2f2a; border-radius: 10px; background: #fff; font-size: 18px; }
 .game :global(.garden-avatar-bubble-chip.is-dots) { border-style: dashed; border-radius: 4px; }
 .game :global(.garden-avatar-bubble-chip.is-cloud) { border-radius: 999px; background: #f3fbff; }
@@ -720,3 +718,9 @@
   .game :global(.garden-keycap.is-pick) { animation: none; }
   .game :global(.garden-meter span) { transition: none; }
 }
+
+/* 아이소 방 꾸미기(docs/garden-miniroom-iso.md §7). 방 그림이 페이지 스크롤을 잡지 않게 해 끌기와 부딪치지 않는다. */
+.game :global(.garden-room.is-editing) { touch-action: none; user-select: none; -webkit-user-select: none; }
+.game :global(.garden-room.is-editing .garden-room-item) { cursor: grab; touch-action: none; }
+.game :global(.garden-room-bg) { position: absolute; inset: 0; }
+.game :global(.garden-room-bad) { opacity: .5; }

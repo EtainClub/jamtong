@@ -60,11 +60,11 @@ export interface PublicGarden {
 }
 
 /**
- * 방에 놓인 것 하나. a=칸. 가구는 i(가구 id), 전시품은 k(종류)·s(품종 id)·m(변이)·n(쪽지 id).
+ * 방에 놓인 것 하나. a=칸, p=아이소 방의 자리(room/isoPlace.ts의 packPos — 옛 화면은 a만 읽는다). 가구는 i(가구 id), 전시품은 k(종류)·s(품종 id)·m(변이)·n(쪽지 id).
  * 글은 싣지 않는다 — 액자의 글은 보는 화면이 품종표에서 읽는다.
  * 피아노는 pn=건반 음 여덟 개, ps=15초 연주(누른 시각과 음 번호만).
  */
-export type PublicPlaced = { a: string; i: string; kb?: number; pn?: number[]; ps?: Array<{ t: number; n: number }>; bm?: string[]; bd?: number; sv?: string } | { a: string; k: string; s: string; m?: string[]; n?: string };
+export type PublicPlaced = { a: string; p?: string; i: string; kb?: number; pn?: number[]; ps?: Array<{ t: number; n: number }>; bm?: string[]; bd?: number; sv?: string } | { a: string; p?: string; k: string; s: string; m?: string[]; n?: string };
 
 export interface PublicRoom {
   /** 추가 키보드의 키 넷을 압축한 그림·소리·판 문자열. */
@@ -232,9 +232,12 @@ export function toRoom(raw: unknown): PublicRoom | undefined {
     if (!item || typeof item !== "object") continue;
     const p = item as Record<string, unknown>;
     if (typeof p.a !== "string") continue;
+    // 아이소 방의 자리 — 모양은 보는 쪽(room/isoPlace.ts의 unpackPos)이 다시 본다.
+    const pos = typeof p.p === "string" && p.p.length <= 12 ? { p: p.p } : {};
     if (typeof p.i === "string") {
       placed.push({
         a: p.a,
+        ...pos,
         i: p.i,
         ...(typeof p.kb === "number" ? { kb: p.kb } : {}),
         ...(Array.isArray(p.pn) ? { pn: p.pn.filter((n): n is number => typeof n === "number") } : {}),
@@ -248,11 +251,14 @@ export function toRoom(raw: unknown): PublicRoom | undefined {
         // 특별한 책(room/library.ts) — 펼쳐 둔 문장 id와 들인 날.
         ...(Array.isArray(p.bm) ? { bm: p.bm.filter((x): x is string => typeof x === "string").slice(0, 3) } : {}),
         ...(typeof p.bd === "number" ? { bd: p.bd } : {}),
+        // 기념품 진열장에 담긴 기념품(업적 품종 id를 쉼표로). 2026-11-21까지 여기서 떨어져 손님에게 진열장이 비어 보였다.
+        ...(typeof p.sv === "string" ? { sv: p.sv } : {}),
       });
     }
     else if (typeof p.k === "string" && typeof p.s === "string") {
       placed.push({
         a: p.a,
+        ...pos,
         k: p.k,
         s: p.s,
         m: Array.isArray(p.m) ? p.m.filter((m): m is string => typeof m === "string") : undefined,
@@ -274,6 +280,8 @@ export function toRoom(raw: unknown): PublicRoom | undefined {
     ...(keys ? { keys } : {}),
     ...(keyboards && Object.keys(keyboards).length ? { keyboards } : {}),
     ...(typeof r.avatar === "string" ? { avatar: r.avatar } : {}),
+    // 사진첩. 2026-11-21까지 여기서 떨어져 손님에게 사진첩이 보이지 않았다.
+    ...(typeof r.album === "string" ? { album: r.album } : {}),
   };
 }
 

@@ -101,7 +101,7 @@ export const spriteHref = (art: string) => `/images/room/${art}.png`;
 
 /** SVG 문자열 안의 가구 그림 주소를 data URI로 — 공유 카드가 SVG를 이미지로 그릴 때 바깥 파일을 읽지 못한다. */
 export async function spriteDataUris(svg: string, read: (publicPath: string) => Promise<string>): Promise<string> {
-  const paths = [...new Set(svg.match(/\/images\/room\/[a-z0-9-]+\.png/g) ?? [])];
+  const paths = [...new Set(svg.match(/\/images\/room(?:-iso)?\/[a-z0-9-]+\.png/g) ?? [])];
   const uris = await Promise.all(paths.map((p) => read(`public${p}`)));
   return paths.reduce((s, p, i) => s.split(`"${p}"`).join(`"${uris[i]}"`), svg);
 }

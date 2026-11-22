@@ -8,17 +8,18 @@ import type { Mutation, Species } from "../types";
 import { BOOK_PALETTES } from "./books";
 import { FURNITURE_BY_ID } from "./catalog";
 import { FURNITURE_SPRITES, spriteHref } from "./furnitureSprites";
-import { activityOf } from "./activities";
 import { KeyFace } from "./KeyArt";
 import { freshKeys, type RoomKey } from "./keyboard";
-import { keyboardKeys, parseSlot, placement, roomWidth, SOUVENIR_CASE, type Placed, type RoomData, type Shown } from "./rules";
-import { AVATAR_H, AvatarFigure } from "../avatar/AvatarArt";
-import { avatarSlotOk, faceFor, poseAt } from "../avatar/rules";
+import { SOUVENIR_CASE, type Shown } from "./rules";
 
+/**
+ * 물건 하나의 그림(정면) — 아이소 방(IsoRoom.tsx)·상점·보관함이 쓴다. 아이소 그림(public/images/room-iso)이 아직 없는
+ * 물건은 아이소 방에서도 이 정면 그림이 선 채로(싸이월드식) 그려진다(docs/garden-miniroom-iso.md §9).
+ * 그림 한 칸의 너비. 정면 그림은 칸 너비 × 46px 상자에 그려진다 — 꼬마(40×48)와 같은 배율.
+ */
 export const CELL = 40;
-export const HEIGHT = 170;
-/** 칸 줄마다의 그림 상자(위 y, 높이). 바닥 두 줄은 아래 변이 바닥선이다. */
-export const ROWS = { w: { y: 12, h: 46 }, b: { y: 76, h: 46 }, f: { y: 124, h: 46 } } as const;
+/** 정면 그림 상자의 높이. */
+export const ART_H = 46;
 export const ROOM_COLORS = {
   ink: "#3a2f2a",
   paper: "#fffdf6",
@@ -61,97 +62,6 @@ export interface AvatarLive {
   walking: boolean;
   /** act가 다시 일어날 때마다 오른다(같은 CSS 애니메이션을 다시 튼다). */
   nonce: number;
-}
-
-/**
- * 꼬마 — 자기 줄 가구 바로 앞에 그린다. b줄 꼬마는 f줄 가구에 가려질 수 있다(그게 깊이다).
- * 칸을 차지하지 않는다. 그 칸의 가구가 자세를 정한다(docs/garden-avatar.md §4·§5).
- */
-function AvatarInRoom({ room, live }: { room: RoomData; live?: AvatarLive | null }) {
-  const av = room.avatar;
-  if (!av?.on) return null;
-  const at = live?.at ?? av.at;
-  const slot = parseSlot(at);
-  if (!slot || !avatarSlotOk(at, roomWidth(room.size))) return null;
-  const seated = poseAt(room.placed, at);
-  const pose = live?.act === "wave" && seated === "stand" ? "wave" : live?.walking ? "walk" : seated;
-  const bottom = ROWS[slot.row].y + ROWS[slot.row].h;
-  const motion = live?.walking ? "garden-avatar-walk" : live?.act ? `garden-avatar-${live.act}` : undefined;
-  return (
-    // 움직이는 방(live)은 CSS transform이라 칸 사이를 미끄러진다. 공유 카드는 속성 transform(CSS가 없다).
-    <g
-      transform={live ? undefined : `translate(${slot.i * CELL} ${bottom - AVATAR_H})`}
-      style={live ? { transform: `translate(${slot.i * CELL}px, ${bottom - AVATAR_H}px)` } : undefined}
-      className="garden-avatar"
-    >
-      <g key={live?.nonce ?? 0} className={motion}>
-        <AvatarFigure look={av.look} pose={pose} face={faceFor(pose, room.mood)} blink />
-      </g>
-    </g>
-  );
-}
-
-/** Shared room drawing for the live room and server-rendered share card. */
-export function RoomSvg({ room, byId, now, label, uid = "room", ghost, selected, pulses, avatar }: {
-  room: RoomData;
-  byId: ReadonlyMap<string, Species>;
-  now: number;
-  label: string;
-  uid?: string;
-  ghost?: Placed | null;
-  selected?: string | null;
-  pulses?: Readonly<Record<string, number>>;
-  avatar?: AvatarLive | null;
-}) {
-  const width = roomWidth(room.size);
-  const W = width * CELL;
-  const weather = weatherAt(now);
-  const items = [...room.placed, ...(ghost ? [ghost] : [])]
-    .map((p) => ({ p, spec: placement(p.it, room.shown), slot: parseSlot(p.at) }))
-    .filter((x): x is { p: Placed; spec: NonNullable<typeof x.spec>; slot: NonNullable<typeof x.slot> } => Boolean(x.spec && x.slot))
-    .sort((a, b) => "wbf".indexOf(a.slot.row) - "wbf".indexOf(b.slot.row));
-  // 꼬마를 그릴 자리: 자기 줄(b·f)의 마지막 가구 뒤. 그 줄과 앞줄에 가구가 없으면 맨 앞(prev=null)에서.
-  const avRow = room.avatar?.on ? (avatar?.at ?? room.avatar.at)[0] : null;
-  const order = (r: string | null | undefined) => (r ? "wbf".indexOf(r) : -1);
-  const avatarAfter = (prev: string | null, next: string | undefined) =>
-    avRow !== null && order(prev) <= order(avRow) && (next === undefined || order(next) > order(avRow));
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={W} height={HEIGHT} viewBox={`0 0 ${W} ${HEIGHT}`} role="img" aria-label={label} className="garden-room-art">
-      <defs>
-        <Surface id={`${uid}-wall`} art={room.wall} />
-        <Surface id={`${uid}-floor`} art={room.floor} />
-        <linearGradient id={`${uid}-rainbow`} x1="0" x2="1">
-          {[C.red, C.orange, C.yellow, C.green, C.skyD, C.purple].map((c, i) => <stop key={c} offset={i / 5} stopColor={c} />)}
-        </linearGradient>
-      </defs>
-      <g shapeRendering="crispEdges">
-        <rect x="0" y="0" width={W} height="92" fill={`url(#${uid}-wall)`} />
-        <rect x="0" y="92" width={W} height={HEIGHT - 92} fill={`url(#${uid}-floor)`} />
-        <rect x="0" y="88" width={W} height="6" fill={C.woodD} stroke={C.ink} strokeWidth="2" />
-        <rect x="1" y="1" width={W - 2} height={HEIGHT - 2} fill="none" stroke={C.ink} strokeWidth="3" />
-      </g>
-      {avatarAfter(null, items[0]?.slot.row) && <AvatarInRoom room={room} live={avatar} />}
-      {items.flatMap(({ p, spec, slot }, n) => {
-        const w = spec.size * CELL;
-        const h = ROWS[slot.row].h;
-        const isGhost = ghost === p;
-        const art = (
-          <g
-            key={`${p.at}-${p.it}${isGhost ? "-ghost" : ""}`}
-            transform={`translate(${slot.i * CELL} ${ROWS[slot.row].y})`}
-            opacity={isGhost ? 0.6 : 1}
-            className={selected === p.at ? "garden-room-picked" : undefined}
-          >
-            <g key={pulses?.[p.at] ?? 0} className={pulses?.[p.at] && !isGhost ? `garden-room-react garden-room-react-${activityOf(p.it)?.motion}` : undefined}>
-              <ItemArt it={p.it} shown={room.shown} keys={keyboardKeys(room, p.kb)} byId={byId} w={w} h={h} weather={weather} rainbow={`url(#${uid}-rainbow)`} />
-            </g>
-          </g>
-        );
-        const next = items[n + 1];
-        return avatarAfter(slot.row, next?.slot.row) ? [art, <AvatarInRoom key="avatar" room={room} live={avatar} />] : [art];
-      })}
-    </svg>
-  );
 }
 
 export function ItemArt({
@@ -299,9 +209,10 @@ export function ShownArt({ shown, byId, w, h, rainbow }: { shown: Shown; byId: R
 
 // ── 벽지·바닥재 ──────────────────────────────────────────────────────
 
-export function Surface({ id, art }: { id: string; art: string }) {
+/** 벽지·바닥재 무늬. transform은 아이소 벽·바닥 면에 무늬를 눕히는 patternTransform. */
+export function Surface({ id, art, transform }: { id: string; art: string; transform?: string }) {
   const pattern = (size: number, children: ReactNode, w = size) => (
-    <pattern id={id} width={w} height={size} patternUnits="userSpaceOnUse">
+    <pattern id={id} width={w} height={size} patternUnits="userSpaceOnUse" patternTransform={transform}>
       {children}
     </pattern>
   );

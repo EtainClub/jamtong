@@ -10,14 +10,16 @@ import { cleanLine, lineProblem, type LineProblem } from "../ilchon/text";
 import { isRaidKind } from "../raid/rules";
 import type { Fruit, Mutation, Species } from "../types";
 import { DEFAULT_FLOOR, DEFAULT_MOOD, DEFAULT_WALL, FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS, ROOM_SIZES, type Furniture } from "./catalog";
-import { avatarFromPublic, avatarSlotOk, freshAvatar, normalizeAvatar, packAvatar, type AvatarData } from "../avatar/rules";
+import { avatarAtOk, avatarFromPublic, freshAvatar, normalizeAvatar, packAvatar, type AvatarData } from "../avatar/rules";
+import { footprint, isoFromSlots, isoProblem, isoProblemAt, isoSpecOf, isWallPos, packPos, posShape, slotToPos, spotNear, unpackPos, WALL_H, type IsoPos, type SlotPlaced } from "./isoPlace";
 import { freshKeys, KEYBOARD_ID, KEY_VER_MAX, recSlots, keysFromPublic, normalizeKeys, publicKeys, packKeyboard, unpackKeyboard, type RoomKey } from "./keyboard";
 
 /**
- * 내 방의 규칙 — 순수 함수만 둔다. 설계는 docs/garden-miniroom.md §4.
+ * 내 방의 규칙 — 순수 함수만 둔다. 설계는 docs/garden-miniroom.md §4, 아이소 방은 docs/garden-miniroom-iso.md.
  *
- * ★ 칸에 놓는다. 벽 한 줄(w), 바닥 뒷줄(b)·앞줄(f). 칸 이름은 "w3"·"b0"·"f5".
- *   가구는 1칸 또는 2칸을 차지하고, 2칸은 오른쪽 칸까지 쓴다.
+ * ★ 좌표에 놓는다(room/isoPlace.ts). 바닥은 반 타일 단위 x·y와 방향·받침, 벽은 L·R 벽의 가로·높이.
+ *   층과 크기는 room/iso.ts. 놓인 것은 목록의 순번으로 가리킨다 — 작은 물건은 같은 자리에 겹칠 수 있어 자리로는 못 가린다.
+ *   옛 칸 장부("w3"·"b0"·"f5")는 normalizeRoom이 한 번 옮긴다(2026-11-21).
  * ★ 놓인 것(placed)이 산 것(owned)·전시품(shown)을 가리킨다. 보관함은 따로 적지 않는다 —
  *   가진 것에서 놓인 것을 뺀 나머지다. 장부가 둘이면 서로 어긋난다.
  * ★ 전시품 id에는 ":"가 있다(p:<열매id>, f:<쪽지id>, t:<악초 종류>, s:<업적 품종 id>). 가구 id에는 없다.
@@ -37,10 +39,10 @@ export interface Shown {
 }
 
 export interface Placed {
-  /** 칸. "w3" | "b2" | "f5". 2칸짜리는 왼쪽 칸. */
-  at: string;
   /** 가구 id 또는 전시품 id. */
   it: string;
+  /** 자리(room/isoPlace.ts의 IsoPos). 받침(on)은 이 목록의 순번이고 늘 자기보다 앞이다. */
+  pos: IsoPos;
   /** 키보드·피아노 개체 번호(각 종류별 0–8). 옮겨도 유지한다. */
   kb?: number;
 }
@@ -89,6 +91,8 @@ export interface RoomData {
   caseAuto?: boolean;
   /** 진열장을 놓느라 보관함에 넣은 물건 id. 방 화면이 한 번 알리고 지운다. */
   caseMoved?: string;
+  /** 옛 칸 방을 아이소 방으로 옮겼다 — 값은 자리가 없어 보관함에 넣은 수. 방 화면이 한 번 알리고 지운다. */
+  isoMoved?: number;
 }
 
 export interface RoomBookData {
@@ -105,8 +109,11 @@ export { ROOM_SIZES };
 export const SHOWN_MAX = 200;
 /** 가구 한 가지를 가질 수 있는 수. */
 export const OWN_MAX = 9;
-/** 공개 문서에 싣는 놓인 것의 수. firestore.rules의 publicRoom()과 같다. */
-export const PUBLIC_PLACED_MAX = 40;
+/**
+ * 공개 문서에 싣는 놓인 것의 수. firestore.rules의 publicRoom()과 같다.
+ * 아이소 방(docs/garden-miniroom-iso.md §8)에서 40 → 80. 칸 방은 30칸뿐이라 지금은 80에 닿지 않는다.
+ */
+export const PUBLIC_PLACED_MAX = 80;
 /** 공개 문서의 짧은 글(id)의 길이. firestore.rules의 publicRoom()과 같다. */
 export const PUBLIC_ID_MAX = 40;
 /** 방 한마디의 길이. firestore.rules의 publicRoom()과 같다. */
@@ -153,27 +160,28 @@ function movable(it: string): boolean {
 }
 
 /**
- * 기념품 진열장을 방에 놓는다 — 한 번만(caseAuto). 빈 바닥 칸이 있으면 거기에.
- * 꽉 찼으면 물건 하나를 보관함에 넣고 그 자리에 놓는다. 고르는 차례:
+ * 기념품 진열장을 방에 놓는다 — 한 번만(caseAuto). 빈 바닥 자리가 있으면 거기에.
+ * 꽉 찼으면 물건 하나를 보관함에 넣고 빈자리에 놓는다. 고르는 차례:
  *   1. 바닥에 따로 놓은 기념품(진열장 안에 이미 있다 — 잃는 것이 없다)
- *   2. 바닥의 한 칸짜리 가구, 값이 싼 것부터
- *   3. 바닥의 두 칸짜리 가구, 값이 싼 것부터
+ *   2. 바닥의 가구, 바닥 상자가 작은 것부터, 같으면 값이 싼 것부터
  * 넣은 물건 id를 caseMoved에 적는다(방 화면이 알린다). 이미 놓였거나, 진열장이 없거나, 이미 한 번 놓았으면 그대로.
  */
 export function autoPlaceCase(room: RoomData): { room: RoomData; moved: string | null } | null {
   if (room.caseAuto || !(room.owned[SOUVENIR_CASE] ?? 0) || room.placed.some((p) => p.it === SOUVENIR_CASE)) return null;
-  const open = firstOpenSlot(room, SOUVENIR_CASE);
+  const open = firstOpenSpot(room, SOUVENIR_CASE);
   if (open) {
     const placed = place(room, SOUVENIR_CASE, open);
     return placed ? { room: { ...placed, caseAuto: true }, moved: null } : null;
   }
   const price = (it: string) => FURNITURE_BY_ID.get(it)?.price ?? 0;
-  const floorItems = room.placed.filter((p) => parseSlot(p.at)?.row !== "w" && movable(p.it));
-  const souvenirs = floorItems.filter((p) => room.shown.some((s) => s.id === p.it && s.kind === "souvenir"));
-  const size = (p: Placed) => placement(p.it, room.shown)?.size ?? 1;
-  const furniture = floorItems.filter((p) => !isShownId(p.it)).sort((a, b) => size(a) - size(b) || price(a.it) - price(b.it));
-  for (const p of [...souvenirs, ...furniture]) {
-    const placed = place(stow(room, p.at), SOUVENIR_CASE, p.at);
+  const area = (it: string) => { const s = isoSpecOf(it, room.shown); return s ? s.w * s.d : 0; };
+  const floorItems = [...room.placed.entries()].filter(([, p]) => !isWallPos(p.pos) && p.pos.on === undefined && movable(p.it));
+  const souvenirs = floorItems.filter(([, p]) => room.shown.some((s) => s.id === p.it && s.kind === "souvenir"));
+  const furniture = floorItems.filter(([, p]) => !isShownId(p.it)).sort(([, a], [, b]) => area(a.it) - area(b.it) || price(a.it) - price(b.it));
+  for (const [i, p] of [...souvenirs, ...furniture]) {
+    const emptied = stow(room, i);
+    const spot = firstOpenSpot(emptied, SOUVENIR_CASE);
+    const placed = spot && place(emptied, SOUVENIR_CASE, spot);
     if (placed) return { room: { ...placed, caseAuto: true, caseMoved: p.it }, moved: p.it };
   }
   return null;
@@ -247,7 +255,7 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined, seed = ""): Ro
     mood: typeof raw.mood === "string" ? raw.mood : base.mood,
     bgm: canUseTrack(raw.bgm, ownedMusic(raw.music)) ? raw.bgm : base.bgm,
     music: ownedMusic(raw.music),
-    placed: Array.isArray(raw.placed) ? raw.placed.filter((p) => p && typeof p.at === "string" && typeof p.it === "string") : [],
+    placed: [],
     owned: raw.owned && typeof raw.owned === "object" ? raw.owned : {},
     shown: Array.isArray(raw.shown) ? raw.shown.filter((s) => s && typeof s.id === "string") : [],
     keys: normalizeKeys(raw.keys),
@@ -255,12 +263,33 @@ export function normalizeRoom(raw: Partial<RoomData> | undefined, seed = ""): Ro
     pianos: Object.fromEntries(Object.entries(raw.pianos ?? {}).filter(([id]) => /^[0-8]$/.test(id)).map(([id, notes]) => [id, pianoNotes(notes)])),
     keyboards: Object.fromEntries(Object.entries(raw.keyboards ?? {}).filter(([id]) => /^[1-8]$/.test(id)).map(([id, keys]) => [id, normalizeKeys(keys)])),
     motto: typeof raw.motto === "string" ? cleanMotto(raw.motto) : "",
-    avatar: normalizeAvatar(raw.avatar, seed),
+    avatar: normalizeAvatar(raw.avatar, seed, size),
     books: normalizeRoomBooks(raw.books),
     album: cleanAlbum(raw.album),
     ...(raw.caseAuto === true ? { caseAuto: true } : {}),
     ...(typeof raw.caseMoved === "string" && raw.caseMoved.length <= 80 ? { caseMoved: raw.caseMoved } : {}),
+    ...(Number.isInteger(raw.isoMoved) && raw.isoMoved! >= 0 ? { isoMoved: raw.isoMoved } : {}),
   };
+  // 자리. 옛 칸 장부는 한 번 아이소 방으로 옮긴다(isoFromSlots — 자리가 없는 것은 보관함으로, 그 수를 isoMoved에).
+  // 그 뒤로는 모양을 보고, 앞의 것과 부딪치는 것을 뺀다(cleanPlaced).
+  const iso: Placed[] = [];
+  const legacy: SlotPlaced[] = [];
+  for (const x of (Array.isArray(raw.placed) ? raw.placed : []) as unknown[]) {
+    if (!x || typeof x !== "object") continue;
+    const r = x as { it?: unknown; pos?: unknown; at?: unknown; kb?: unknown };
+    if (typeof r.it !== "string") continue;
+    const kb = Number.isInteger(r.kb) ? { kb: r.kb as number } : {};
+    const pos = posShape(r.pos);
+    if (pos) iso.push({ it: r.it, pos, ...kb });
+    else if (typeof r.at === "string") legacy.push({ at: r.at, it: r.it, ...kb });
+  }
+  if (legacy.length && !iso.length) {
+    const moved = isoFromSlots(legacy, room.shown, size);
+    room.placed = moved.items;
+    room.isoMoved = moved.stowed.length;
+  } else {
+    room.placed = cleanPlaced(iso, room.shown, size);
+  }
   // 옛 방의 여러 키보드는 같은 키를 보였다. 각각 복사해서 독립시킨다.
   const used = new Set<number>();
   room.placed = room.placed.map((p) => {
@@ -328,10 +357,12 @@ export function hasKeyboard(room: Pick<RoomData, "placed">): boolean {
   return room.placed.some((p) => p.it === KEYBOARD_ID);
 }
 
+/** 방 한 변의 타일 수 — 6·8·10. */
 export function roomWidth(size: number): number {
   return ROOM_SIZES[size]?.width ?? ROOM_SIZES[0].width;
 }
 
+/** 옛 칸 이름. 옛 공개 문서(a)와 꼬마 자리(4단계 전까지 칸)에만 쓴다. */
 export function parseSlot(at: string): { row: Row; i: number } | null {
   const m = /^([wbf])(\d{1,2})$/.exec(at);
   return m ? { row: m[1] as Row, i: Number(m[2]) } : null;
@@ -341,59 +372,26 @@ export function isShownId(it: string): boolean {
   return it.includes(":");
 }
 
-/** 놓는 곳과 크기. 놓을 수 없는 것(벽지·연출·모르는 id)은 null. 박제는 벽에도 바닥에도(any). */
-export function placement(it: string, shown: readonly Shown[]): { on: "wall" | "floor" | "any"; size: 1 | 2 } | null {
-  if (isShownId(it)) {
-    const s = shown.find((x) => x.id === it);
-    if (!s) return null;
-    return { on: s.kind === "frame" ? "wall" : s.kind === "trophy" || s.kind === "souvenir" ? "any" : "floor", size: 1 };
-  }
-  const f = FURNITURE_BY_ID.get(it);
-  if (!f) return null;
-  if (f.kind === "wall" || f.kind === "window" || f.kind === "frame-blank") return { on: "wall", size: f.size };
-  if (f.kind === "floor") return { on: "floor", size: f.size };
-  return null;
+/** 옛 칸 하나에 해당하는 자리(isoPlace.ts의 slotToPos). 모르는 물건·틀린 칸은 null. */
+export function slotPos(room: Pick<RoomData, "size" | "shown">, it: string, at: string): IsoPos | null {
+  const spec = isoSpecOf(it, room.shown);
+  return spec ? slotToPos(at, spec, roomWidth(room.size)) : null;
 }
 
-/** 이 물건이 at에 놓이면 차지하는 칸들. 방을 벗어나면 null. */
-export function slotsOf(at: string, size: 1 | 2, width: number): string[] | null {
-  const p = parseSlot(at);
-  if (!p || p.i + size > width) return null;
-  return Array.from({ length: size }, (_, k) => `${p.row}${p.i + k}`);
+/**
+ * 자리 → 옛 칸 이름. 공개 문서의 a로 싣는다 — 옛 화면은 a만 읽어 정면 방에 그린다(겹치는 칸은 옛 화면이 뺀다).
+ * 벽은 가로, 바닥은 앞뒤 반으로 b·f.
+ */
+export function posSlot(pos: IsoPos, size: number): string {
+  const n = roomWidth(size);
+  if (isWallPos(pos)) return `w${Math.min(n - 1, Math.floor(pos.a / 2))}`;
+  return `${pos.y < n ? "b" : "f"}${Math.min(n - 1, Math.floor(pos.x / 2))}`;
 }
 
-/** 이미 차 있는 칸. except는 옮기는 중인 물건의 칸(그 자리는 비었다고 본다). */
-function taken(room: RoomData, except?: string): Set<string> {
-  const width = roomWidth(room.size);
-  const out = new Set<string>();
-  for (const p of room.placed) {
-    if (p.at === except) continue;
-    const spec = placement(p.it, room.shown);
-    for (const s of (spec && slotsOf(p.at, spec.size, width)) ?? []) out.add(s);
-  }
-  return out;
-}
-
-function fits(on: "wall" | "floor" | "any", row: Row): boolean {
-  return on === "any" || (on === "wall") === (row === "w");
-}
-
-export function canPlace(room: RoomData, it: string, at: string, except?: string): boolean {
-  const spec = placement(it, room.shown);
-  const slot = parseSlot(at);
-  if (!spec || !slot) return false;
-  if (!fits(spec.on, slot.row)) return false;
-  const cells = slotsOf(at, spec.size, roomWidth(room.size));
-  if (!cells) return false;
-  const busy = taken(room, except);
-  return cells.every((c) => !busy.has(c));
-}
-
-/** 이 물건을 놓을 수 있는 모든 칸. 꾸미기 화면이 빛낼 칸이다. */
-export function openSlots(room: RoomData, it: string, except?: string): string[] {
-  const width = roomWidth(room.size);
-  const rows: Row[] = ["w", "b", "f"];
-  return rows.flatMap((row) => Array.from({ length: width }, (_, i) => `${row}${i}`)).filter((at) => canPlace(room, it, at, except));
+/** 이 물건을 pos에 놓을 수 있는가. except는 옮기는 물건의 순번(그 물건이 pos로 간다고 본다). */
+export function canPlace(room: RoomData, it: string, pos: IsoPos, except?: number): boolean {
+  const items: Placed[] = except === undefined ? [...room.placed, { it, pos }] : room.placed.map((p, i) => (i === except ? { ...p, pos } : p));
+  return isoProblemAt(items, except ?? items.length - 1, room.shown, room.size) === null;
 }
 
 /** 보관함에 남은 수. 가구는 가진 수에서 놓인 수를 뺀다. 전시품은 놓이지 않았으면 1. */
@@ -403,49 +401,159 @@ export function stowedCount(room: RoomData, it: string): number {
   return Math.max(0, (room.owned[it] ?? 0) - placed);
 }
 
-/** 보관함 → 칸. 남은 것이 없거나 칸이 맞지 않으면 null. */
-export function place(room: RoomData, it: string, at: string): RoomData | null {
-  if (stowedCount(room, it) <= 0 || !canPlace(room, it, at)) return null;
+/** 보관함 → 방. 남은 것이 없거나 자리가 맞지 않으면 null. */
+export function place(room: RoomData, it: string, pos: IsoPos): RoomData | null {
+  if (stowedCount(room, it) <= 0 || !canPlace(room, it, pos)) return null;
   if (it === "piano") {
     const used = new Set(room.placed.filter((p) => p.it === "piano").map((p) => p.kb ?? 0));
     const kb = Array.from({ length: OWN_MAX }, (_, i) => i).find((i) => !used.has(i));
     if (kb === undefined) return null;
-    return { ...room, placed: [...room.placed, { at, it, kb }] };
+    return { ...room, placed: [...room.placed, { it, pos, kb }] };
   }
   if (it === KEYBOARD_ID) {
     const used = new Set(room.placed.filter((p) => p.it === KEYBOARD_ID).map((p) => p.kb ?? 0));
     const kb = Array.from({ length: OWN_MAX }, (_, i) => i).find((i) => !used.has(i));
     if (kb === undefined) return null;
     const next = kb > 0 && !room.keyboards?.[kb] ? withKeyboardKeys(room, kb, freshKeys()) : room;
-    return { ...next, placed: [...next.placed, { at, it, kb }] };
+    return { ...next, placed: [...next.placed, { it, pos, kb }] };
   }
-  return { ...room, placed: [...room.placed, { at, it }] };
+  return { ...room, placed: [...room.placed, { it, pos }] };
 }
 
-export function move(room: RoomData, from: string, to: string): RoomData | null {
-  const item = room.placed.find((p) => p.at === from);
-  if (!item || from === to || !canPlace(room, item.it, to, from)) return null;
-  return { ...room, placed: room.placed.map((p) => (p.at === from ? { ...p, at: to } : p)) };
+/** 순번 index의 물건이 이 받침 위에 올린 것들의 순번. */
+function childrenOf(placed: readonly Placed[], index: number): number[] {
+  return placed.flatMap((p, j) => (!isWallPos(p.pos) && p.pos.on === index ? [j] : []));
 }
 
-/** 칸 → 보관함. 치워도 사라지지 않는다. */
-export function stow(room: RoomData, at: string): RoomData {
-  return { ...room, placed: room.placed.filter((p) => p.at !== at) };
+/**
+ * 옮기기. 받침을 옮기면 위에 올린 것도 함께 간다 — 돌렸으면 새 바닥 상자 안으로 당겨 넣는다.
+ * 자기보다 뒤 순번의 받침 위로 올리면 그 물건은 목록 끝으로 간다(movedIndex로 새 순번을 안다).
+ * 옮긴 뒤 방 전체가 맞아야 한다. 아니면 null.
+ */
+export function move(room: RoomData, index: number, pos: IsoPos): RoomData | null {
+  const cur = room.placed[index];
+  if (!cur) return null;
+  // 뒤에 있는 받침 위로 올리면 목록 끝으로 옮긴다 — 받침은 늘 올린 것보다 앞이다. (올려 두는 것은 받침이 못 되니 딸린 것이 없다.)
+  if (!isWallPos(pos) && pos.on !== undefined && pos.on > index) {
+    const rest = removeAt(room.placed, new Set([index]));
+    const moved = [...rest, { ...cur, pos: { ...pos, on: pos.on - 1 } }];
+    return isoProblem(moved, room.shown, room.size) === null ? { ...room, placed: moved } : null;
+  }
+  const placed = room.placed.slice();
+  placed[index] = { ...cur, pos };
+  if (!isWallPos(cur.pos) && !isWallPos(pos)) {
+    const spec = isoSpecOf(cur.it, room.shown);
+    const fp = spec && footprint(spec, pos);
+    for (const j of childrenOf(room.placed, index)) {
+      const child = room.placed[j];
+      const cs = isoSpecOf(child.it, room.shown);
+      if (isWallPos(child.pos) || !fp || !cs) continue;
+      const cf = footprint(cs, child.pos);
+      const shifted = { x: child.pos.x + pos.x - cur.pos.x, y: child.pos.y + pos.y - cur.pos.y };
+      const x = Math.max(fp.u * 2, Math.min(shifted.x, (fp.u + fp.w - cf.w) * 2));
+      const y = Math.max(fp.v * 2, Math.min(shifted.y, (fp.v + fp.d - cf.d) * 2));
+      placed[j] = { ...child, pos: { ...child.pos, x, y } };
+    }
+  }
+  return isoProblem(placed, room.shown, room.size) === null ? { ...room, placed } : null;
 }
 
-/** 첫 빈 칸(바닥은 뒷줄부터). 없으면 null. 전시하자마자 방에 보이게 할 때 쓴다. */
-export function firstOpenSlot(room: RoomData, it: string): string | null {
-  return openSlots(room, it)[0] ?? null;
+/** move 뒤 그 물건의 순번. */
+export function movedIndex(room: RoomData, index: number, pos: IsoPos): number {
+  return !isWallPos(pos) && pos.on !== undefined && pos.on > index ? room.placed.length - 1 : index;
+}
+
+/**
+ * 돌리기. side = 좌우로(0 ↔ 1, 2 ↔ 3) — 보는 사람을 향한 채 왼쪽·오른쪽 벽을 등진다. back = 뒤돌리기(0 ↔ 2, 1 ↔ 3) — 등이 보인다.
+ * 한 단추로 네 방향을 돌게 했더니 두 번에 한 번은 소파·의자가 등을 보였다(2026-11-22). 책상 앞 의자처럼 등이 필요할 때만 뒤돌린다.
+ * 벽걸이는 돌리지 않는다. 자리가 맞지 않으면 null.
+ */
+export function turn(room: RoomData, index: number, how: "side" | "back" = "side"): RoomData | null {
+  const cur = room.placed[index];
+  if (!cur || isWallPos(cur.pos)) return null;
+  return move(room, index, { ...cur.pos, dir: (cur.pos.dir ^ (how === "side" ? 1 : 2)) as 0 | 1 | 2 | 3 });
+}
+
+/** 순번들을 빼고, 남은 것의 받침 순번을 다시 매긴다. */
+function removeAt(placed: readonly Placed[], drop: ReadonlySet<number>): Placed[] {
+  const map = new Map<number, number>();
+  const kept: Placed[] = [];
+  placed.forEach((p, i) => {
+    if (drop.has(i)) return;
+    map.set(i, kept.length);
+    kept.push(p);
+  });
+  return kept.map((p) => (!isWallPos(p.pos) && p.pos.on !== undefined ? { ...p, pos: { ...p.pos, on: map.get(p.pos.on)! } } : p));
+}
+
+/** 방 → 보관함. 받침이면 위에 올린 것도 함께 넣는다. 치워도 사라지지 않는다. */
+export function stow(room: RoomData, index: number): RoomData {
+  if (!room.placed[index]) return room;
+  return { ...room, placed: removeAt(room.placed, new Set([index, ...childrenOf(room.placed, index)])) };
+}
+
+/**
+ * 처음 빈자리. 벽걸이는 오른쪽 벽 → 왼쪽 벽(높이 50 → 10 → 80), 바닥 것은 안쪽 꼭짓점에서 가까운 차례로,
+ * 바닥이 꽉 찼으면 올려 두는 것은 받침 위로, 벽에도 거는 것(박제·기념품)은 벽으로. 없으면 null.
+ */
+export function firstOpenSpot(room: RoomData, it: string): IsoPos | null {
+  const spec = isoSpecOf(it, room.shown);
+  if (!spec) return null;
+  const n = roomWidth(room.size);
+  const walls = (): IsoPos[] =>
+    (["R", "L"] as const).flatMap((wall) => [50, 10, 80].flatMap((z) => Array.from({ length: n * 2 + 1 }, (_, a) => ({ wall, a, z: Math.min(z, WALL_H - spec.h) }))));
+  if (spec.layer === "wall") return walls().find((pos) => canPlace(room, it, pos)) ?? null;
+  for (let sum = 0; sum <= n * 4; sum++) {
+    for (let x = Math.max(0, sum - n * 2); x <= Math.min(sum, n * 2); x++) {
+      const pos: IsoPos = { x, y: sum - x, dir: 0 };
+      if (canPlace(room, it, pos)) return pos;
+    }
+  }
+  if (spec.layer === "small") {
+    for (const [on, base] of room.placed.entries()) {
+      const bs = isoSpecOf(base.it, room.shown);
+      if (isWallPos(base.pos) || base.pos.on !== undefined || !bs?.surface) continue;
+      const fp = footprint(bs, base.pos);
+      for (let x = fp.u * 2; x < (fp.u + fp.w) * 2; x++) {
+        for (let y = fp.v * 2; y < (fp.v + fp.d) * 2; y++) {
+          const pos: IsoPos = { x, y, dir: 0, on };
+          if (canPlace(room, it, pos)) return pos;
+        }
+      }
+    }
+  }
+  if (spec.wallOk) return walls().find((pos) => canPlace(room, it, pos)) ?? null;
+  return null;
+}
+
+/**
+ * 장부를 바로잡는다 — 모양이 맞고, 앞의 것들과 부딪치지 않는 것만 차례로 남긴다. 받침이 빠지면 올린 것도 빠진다(보관함으로).
+ */
+export function cleanPlaced(raw: readonly Placed[], shown: readonly Shown[], size: number): Placed[] {
+  const map = new Map<number, number>();
+  const out: Placed[] = [];
+  raw.forEach((p, i) => {
+    let pos = p.pos;
+    if (!isWallPos(pos) && pos.on !== undefined) {
+      const on = map.get(pos.on);
+      if (on === undefined) return;
+      pos = { ...pos, on };
+    }
+    const item = { ...p, pos };
+    if (isoProblemAt([...out, item], out.length, shown, size) !== null) return;
+    map.set(i, out.length);
+    out.push(item);
+  });
+  return out;
 }
 
 /**
  * 저장할 방이 맞는가. 꾸미기를 마칠 때 본다 — 화면의 초안이 어긋나 있으면 받지 않는다.
- * 모든 놓인 것이 제 칸에 맞고, 겹치지 않고, 가진 수를 넘지 않는다. 벽지·바닥재는 가진 것이다.
+ * 모든 놓인 것이 제자리에 맞고(isoProblem), 가진 수를 넘지 않는다. 벽지·바닥재는 가진 것이다.
  */
 export function validRoom(room: RoomData): boolean {
   if (!hasSurface(room, room.wall, "wallpaper") || !hasSurface(room, room.floor, "flooring")) return false;
-  const width = roomWidth(room.size);
-  const busy = new Set<string>();
+  if (isoProblem(room.placed, room.shown, room.size)) return false;
   const counts = new Map<string, number>();
   const keyboards = new Set<number>();
   const pianos = new Set<number>();
@@ -456,12 +564,6 @@ export function validRoom(room: RoomData): boolean {
       if (!Number.isInteger(id) || id < 0 || id >= OWN_MAX || bank.has(id)) return false;
       bank.add(id);
     }
-    const spec = placement(p.it, room.shown);
-    const slot = parseSlot(p.at);
-    if (!spec || !slot || !fits(spec.on, slot.row)) return false;
-    const cells = slotsOf(p.at, spec.size, width);
-    if (!cells || cells.some((c) => busy.has(c))) return false;
-    cells.forEach((c) => busy.add(c));
     counts.set(p.it, (counts.get(p.it) ?? 0) + 1);
   }
   for (const [it, n] of counts) {
@@ -589,7 +691,7 @@ export function nextRoomSize(room: RoomData): (typeof ROOM_SIZES)[number] | null
   return ROOM_SIZES[room.size + 1] ?? null;
 }
 
-/** 방 넓히기. 놓인 것은 그대로 — 칸은 오른쪽으로만 늘어난다. */
+/** 방 넓히기. 놓인 것은 그대로 — 방은 안쪽 꼭짓점에서 바깥으로만 늘어난다. */
 export function upgradeRoom(room: RoomData, jam: number): { room: RoomData; jam: number } | null {
   const next = nextRoomSize(room);
   if (!next || jam < next.price) return null;
@@ -608,12 +710,12 @@ export function shownFromFruit(fruit: Fruit, species: Species): Shown {
   };
 }
 
-/** 전시품을 더하고, 빈 칸이 있으면 바로 놓는다. 상한에 닿았으면 null. */
+/** 전시품을 더하고, 빈자리가 있으면 바로 놓는다. at은 놓인 자리(packPos), 보관함이면 null. 상한에 닿았으면 null. */
 export function addShown(room: RoomData, shown: Shown): { room: RoomData; at: string | null } | null {
   if (room.shown.length >= SHOWN_MAX || room.shown.some((s) => s.id === shown.id)) return null;
   const next = { ...room, shown: [...room.shown, shown] };
-  const at = firstOpenSlot(next, shown.id);
-  return { room: at ? { ...next, placed: [...next.placed, { at, it: shown.id }] } : next, at };
+  const pos = firstOpenSpot(next, shown.id);
+  return { room: pos ? { ...next, placed: [...next.placed, { it: shown.id, pos }] } : next, at: pos ? packPos(pos) : null };
 }
 
 /** 이 쪽지가 이미 걸렸는가. 쪽지 하나에 액자 하나. */
@@ -639,17 +741,19 @@ export function frameNote(
   const owned: Record<string, number> = { ...room.owned, [FRAME_BLANK]: have - (bought ? 0 : 1) };
   if (owned[FRAME_BLANK] <= 0) delete owned[FRAME_BLANK];
   // 보관함의 틀부터 쓴다. 남은 틀이 모두 벽에 걸렸다면 그 자리에서 쪽지를 채운다.
-  const usedAt = !bought && stowedCount(room, FRAME_BLANK) === 0
-    ? room.placed.find((p) => p.it === FRAME_BLANK)?.at
-    : undefined;
-  const base = usedAt ? stow(room, usedAt) : room;
+  const used = !bought && stowedCount(room, FRAME_BLANK) === 0 ? room.placed.findIndex((p) => p.it === FRAME_BLANK) : -1;
+  const usedPos = used >= 0 ? room.placed[used].pos : undefined;
+  const base = used >= 0 ? stow(room, used) : room;
   const id = `f:${noteId}`;
   const added = addShown({ ...base, owned }, { id, kind: "frame", species: speciesId, note: noteId });
   if (!added) return null;
-  const next = usedAt
-    ? { ...added.room, placed: [...added.room.placed.filter((p) => p.it !== id), { at: usedAt, it: id }] }
-    : added.room;
-  return { room: next, jam: bought ? jam - blank.price : jam, at: usedAt ?? added.at, bought };
+  let next = added.room;
+  if (usedPos) {
+    const auto = next.placed.findIndex((p) => p.it === id);
+    const cleared = auto >= 0 ? stow(next, auto) : next;
+    next = { ...cleared, placed: [...cleared.placed, { it: id, pos: usedPos }] };
+  }
+  return { room: next, jam: bought ? jam - blank.price : jam, at: usedPos ? packPos(usedPos) : added.at, bought };
 }
 
 // ── 공개 ─────────────────────────────────────────────────────────────
@@ -658,17 +762,24 @@ export function frameNote(
  * 공개 문서에 싣는 방. 글은 싣지 않는다 — 액자는 쪽지 id와 품종 id만.
  * 보는 화면이 품종표에서 글을 읽으므로 사람이 지은 글이 액자에 들어갈 길이 없다.
  * 너무 긴 id나 넘치는 것은 버린다(규칙이 받지 않는다).
+ * 자리는 p(아이소 좌표, 받침 순번은 실리는 목록의 순번)와 a(옛 칸 — 옛 화면이 읽는다)를 함께 싣는다.
  */
 export function publicRoom(room: RoomData): PublicRoom {
   const short = (s: string | undefined) => s !== undefined && s.length <= PUBLIC_ID_MAX;
   const placed: PublicPlaced[] = [];
-  for (const p of room.placed) {
+  /** 장부 순번 → 실린 순번. 받침이 실리지 않았으면 올린 것도 싣지 않는다. */
+  const sent = new Map<number, number>();
+  for (const [index, p] of room.placed.entries()) {
     if (placed.length >= PUBLIC_PLACED_MAX) break;
+    const on = !isWallPos(p.pos) && p.pos.on !== undefined ? sent.get(p.pos.on) : undefined;
+    if (!isWallPos(p.pos) && p.pos.on !== undefined && on === undefined) continue;
+    const where = { a: posSlot(p.pos, room.size), p: packPos(!isWallPos(p.pos) && on !== undefined ? { ...p.pos, on } : p.pos) };
+    const before = placed.length;
     if (!isShownId(p.it)) {
       const book = roomBookOf(p.it);
       const bookData = book ? room.books?.[book.slug] : undefined;
       if (short(p.it)) placed.push({
-        a: p.at,
+        ...where,
         i: p.it,
         // 기념품 진열장 — 담긴 기념품(업적 품종 id)을 쉼표로 이은 글자 하나. 손님 화면이 품종표에 있는 것만 꺼낸다.
         ...(p.it === SOUVENIR_CASE && souvenirIds(room).length ? { sv: souvenirIds(room).slice(0, CASE_MAX).join(",") } : {}),
@@ -677,18 +788,20 @@ export function publicRoom(room: RoomData): PublicRoom {
         ...(bookData?.marks.length ? { bm: cleanMarks(bookData.marks) } : {}),
         ...(bookData?.since !== undefined ? { bd: bookData.since } : {}),
       });
-      continue;
-    }
-    const s = room.shown.find((x) => x.id === p.it);
-    if (!s || !short(s.species)) continue;
-    if (s.kind === "trophy" || s.kind === "souvenir") {
-      // 박제는 악초 종류 id만, 기념품은 업적 품종 id만. 보는 화면이 표에서 이름·그림을 읽는다.
-      placed.push({ a: p.at, k: s.kind, s: s.species! });
-    } else if (s.kind === "frame") {
-      if (s.note && s.note.length <= 120) placed.push({ a: p.at, k: "frame", s: s.species!, n: s.note });
     } else {
-      placed.push({ a: p.at, k: s.kind, s: s.species!, m: s.mut ?? [] });
+      const s = room.shown.find((x) => x.id === p.it);
+      if (s && short(s.species)) {
+        if (s.kind === "trophy" || s.kind === "souvenir") {
+          // 박제는 악초 종류 id만, 기념품은 업적 품종 id만. 보는 화면이 표에서 이름·그림을 읽는다.
+          placed.push({ ...where, k: s.kind, s: s.species! });
+        } else if (s.kind === "frame") {
+          if (s.note && s.note.length <= 120) placed.push({ ...where, k: "frame", s: s.species!, n: s.note });
+        } else {
+          placed.push({ ...where, k: s.kind, s: s.species!, m: s.mut ?? [] });
+        }
+      }
     }
+    if (placed.length > before) sent.set(index, before);
   }
   // 키보드는 방에 놓였을 때만 싣는다 — 그림·소리 id·녹음 판 번호뿐이다(keyboard.ts의 publicKeys).
   const keys = placed.some((p) => "i" in p && p.i === KEYBOARD_ID && (p.kb ?? 0) === 0) ? { keys: publicKeys(room.keys) } : {};
@@ -705,7 +818,8 @@ export function publicRoom(room: RoomData): PublicRoom {
 
 /**
  * 남의 방을 그릴 방으로 되돌린다. 표에 있는 것만 — 모르는 가구, 품종표에 없는 품종,
- * 그 품종에 없는 쪽지, 칸이 맞지 않거나 겹치는 것은 뺀다. 공개 문서에는 아무 값이나 담길 수 있다.
+ * 그 품종에 없는 쪽지, 자리가 맞지 않거나 겹치는 것은 뺀다. 공개 문서에는 아무 값이나 담길 수 있다.
+ * 자리는 p를 먼저 본다. p가 없으면(옛 화면이 실은 문서) a(칸)에서 가까운 빈자리로 옮긴다.
  */
 export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Species>): RoomData {
   const size = pub.size === 1 || pub.size === 2 ? pub.size : 0;
@@ -714,15 +828,34 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
   const mood = MOODS.some((m) => m.id === pub.mood) ? pub.mood : DEFAULT_MOOD;
   const bgm = isGardenTrack(pub.bgm) ? pub.bgm : DEFAULT_TRACK;
   // 키는 모양을 다시 본다 — 어긋난 그림은 빈 그림, 모르는 소리는 소리 없음(keyboard.ts의 keysFromPublic).
-  const avatar = avatarFromPublic(pub.avatar);
+  const avatar = avatarFromPublic(pub.avatar, size);
   // 사진첩은 품종표에 있는 업적 품종만(남의 공개 문서에는 아무 값이나 담길 수 있다).
   const album = unpackAlbum(pub.album).filter((id) => byId.has(id));
-  let room: RoomData = { size, wall, floor, mood, bgm, placed: [], owned: {}, shown: [], keys: keysFromPublic(pub.keys), motto: typeof pub.motto === "string" ? cleanMotto(pub.motto) : "", ...(avatar && avatarSlotOk(avatar.at, roomWidth(size)) ? { avatar } : {}), ...(album.length ? { album } : {}) };
+  let room: RoomData = { size, wall, floor, mood, bgm, placed: [], owned: {}, shown: [], keys: keysFromPublic(pub.keys), motto: typeof pub.motto === "string" ? cleanMotto(pub.motto) : "", ...(avatar && avatarAtOk(avatar.at, roomWidth(size)) ? { avatar } : {}), ...(album.length ? { album } : {}) };
+  /** 실린 순번 → 그린 방의 순번(받침 찾기). */
+  const got = new Map<number, number>();
+  /** 실린 자리. p가 있으면 그것(받침은 그린 방의 순번으로), 없으면 a에서 가까운 빈자리. */
+  const spot = (r: RoomData, it: string, q: PublicPlaced): IsoPos | null => {
+    if (q.p !== undefined) {
+      const pos = unpackPos(q.p);
+      if (!pos || isWallPos(pos) || pos.on === undefined) return pos;
+      const on = got.get(pos.on);
+      return on === undefined ? null : { ...pos, on };
+    }
+    const first = slotPos(r, it, q.a);
+    return first && spotNear(r.placed, it, first, r.shown, r.size);
+  };
+  const put = (r: RoomData, it: string, q: PublicPlaced, n: number): RoomData | null => {
+    const pos = spot(r, it, q);
+    const next = pos && place(r, it, pos);
+    if (next) got.set(n, next.placed.length - 1);
+    return next;
+  };
   pub.placed.slice(0, PUBLIC_PLACED_MAX).forEach((p, n) => {
     if ("i" in p) {
       // 남의 방은 가진 수를 모른다. 놓인 만큼 가졌다고 본다.
       const owned = { ...room.owned, [p.i]: (room.owned[p.i] ?? 0) + 1 };
-      const next = place({ ...room, owned }, p.i, p.a);
+      const next = put({ ...room, owned }, p.i, p, n);
       if (next) {
         room = next;
         const book = roomBookOf(p.i);
@@ -749,7 +882,7 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
     if (p.k === "trophy") {
       if (!isRaidKind(p.s)) return;
       const shown: Shown = { id: `v:${n}`, kind: "trophy", species: p.s };
-      const next = place({ ...room, shown: [...room.shown, shown] }, shown.id, p.a);
+      const next = put({ ...room, shown: [...room.shown, shown] }, shown.id, p, n);
       if (next) room = next;
       return;
     }
@@ -757,7 +890,7 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
       // 기념품은 품종표에 있는 업적 품종만.
       if (!p.s.startsWith("a:") || !byId.has(p.s)) return;
       const shown: Shown = { id: `v:${n}`, kind: "souvenir", species: p.s };
-      const next = place({ ...room, shown: [...room.shown, shown] }, shown.id, p.a);
+      const next = put({ ...room, shown: [...room.shown, shown] }, shown.id, p, n);
       if (next) room = next;
       return;
     }
@@ -768,7 +901,7 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
       p.k === "frame"
         ? { id: `v:${n}`, kind: "frame", species: p.s, note: p.n }
         : { id: `v:${n}`, kind: p.k, species: p.s, mut: (p.m ?? []).filter((m): m is Mutation => MUTATION_ORDER.includes(m as Mutation)) };
-    const next = place({ ...room, shown: [...room.shown, shown] }, shown.id, p.a);
+    const next = put({ ...room, shown: [...room.shown, shown] }, shown.id, p, n);
     if (next) room = next;
   });
   return room;
