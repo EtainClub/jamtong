@@ -1,48 +1,51 @@
 import { achievementSchema, type AchievementInput } from "@/content/schema";
 
 /**
- * 경상수지 세계 2위와 수출 1조 달러 (2026).
+ * 수출 1조 달러와 경상수지 세계 2위 (2026).
  *
- * 2026년 2분기 경상수지 흑자(IMF 통계, 한국은행 경제통계시스템 수록)와
- * 1~10월 누적 수출(산업통상부 10월 수출입 동향)을 한 업적으로 묶는다.
- * 둘 다 같은 흐름 — 반도체 수출 급증 — 에서 나온 숫자다.
+ * 연간 누적 수출 1조 달러 돌파(산업통상부 2026-11-19 참고자료, 잠정 집계),
+ * 2026년 2분기 경상수지 흑자(IMF 통계, 한국은행 경제통계시스템 수록),
+ * 9월 경상수지(한국은행 9월 국제수지 잠정)를 한 업적으로 묶는다.
+ * 모두 같은 흐름 — 반도체 수출 급증 — 에서 나온 숫자다.
  *
- * ★ 연 수출 1조 달러는 아직 달성 전이다. 2026-11-01 산업통상부가 "11월 중
- *   달성이 확실시된다"고 밝힌 단계다. 제목과 그림 모두 "눈앞"으로 적는다.
+ * ★ 1조 달러는 2026-11-19 14:09:38 기준 산업통상부의 **잠정 집계**다. 연간 확정치가 아니다.
+ * ★ "세계 네 번째 1조 달러 국가"와 "세계 4위 수출국"은 다른 말이다. 수출액 순위는
+ *   보도마다 5위·6위로 다르게 적고, 연말 4위는 전망이다. 섞지 않는다.
  * ★ 주된 배경은 반도체 가격 급등과 AI 투자다. 정부 정책의 기여를 따로 잰
  *   자료는 확인하지 못했다. 정부가 직접 한 일로 확인된 것은 대미 관세 협상뿐이고,
  *   그 효과도 계량되지 않았다. 반론에 그대로 적는다.
- * ★ 반도체 쏠림(10월 수출의 약 49%)과 대미 흑자에 따른 통상 압박을 함께 싣는다.
- * ★ 2026-11-02 처음 작성. claim마다 인용한 보도자료·기사 본문과 대조했다.
- *   수출 수치는 산업통상부 보도자료와 맞췄다. 경상수지 국가 비교는 IMF 통계를
- *   인용한 두 보도(조선비즈·재경일보)가 일치하는 것을 확인했고, 한국은행
- *   경제통계시스템의 원통계와는 아직 대조하지 않았다.
+ * ★ 반도체 쏠림(1~10월 수출의 42.7%), 낙수효과 한계, 대미 흑자에 따른 통상 압박을 함께 싣는다.
+ * ★ 2026-11-02 처음 작성, 2026-11-22 1조 달러 돌파와 9월 경상수지를 반영했다.
+ *   claim마다 인용한 보도자료·기사 본문과 대조했다. 경상수지 국가 비교는 IMF 통계를
+ *   인용한 두 보도가 일치하는 것을, 9월 경상수지는 한국은행 잠정 통계를 인용한 두 보도가
+ *   일치하는 것을 확인했고, 한국은행 원자료와는 아직 대조하지 않았다.
  */
 const raw: AchievementInput = {
   id: "export-surplus",
   slug: "export-surplus",
-  title: "경상수지 세계 2위·수출 1조 달러",
-  subtitle: "2분기 경상흑자는 중국 다음, 연 수출은 1조 달러 눈앞",
+  title: "수출 1조 달러·경상수지 세계 2위",
+  subtitle: "세계 네 번째로 연 수출 1조 달러, 2분기 경상흑자는 중국 다음",
   kicker: "재정·경제 · 수출",
   categories: ["economy"],
   summary:
-    "2026년 2분기 한국의 경상수지 흑자는 1,166억 달러로 1년 전의 4.1배였고, 통계가 확인되는 36개국 가운데 중국 다음 2위였다. " +
-    "1~10월 누적 수출은 9,300억 달러로 처음 9,000억 달러를 넘었고, 산업통상부는 11월 중 연 수출 1조 달러 달성이 확실시된다고 밝혔다. " +
-    "반도체가 10월 수출의 약 49%를 차지해, 쏠림과 대미 통상 압박이 함께 과제로 꼽힌다.",
+    "2026년 한국의 누적 수출이 11월 19일 1조 달러를 넘었다(산업통상부 잠정 집계). 독일·미국·중국에 이어 세계 네 번째다. " +
+    "2분기 경상수지 흑자는 1,166억 달러로 통계가 확인되는 36개국 가운데 중국 다음 2위였고, 9월 한 달 흑자는 614억 달러로 월간 역대 최대였다. " +
+    "1~10월 수출의 42.7%가 반도체여서, 쏠림과 대미 통상 압박이 함께 과제로 꼽힌다.",
   type: "event",
   publishStatus: "published",
   featured: true,
-  lifeQuestion: "한국 경상수지가 세계 2위라는데, 수출 1조 달러는 사실인가요?",
+  lifeQuestion: "수출 1조 달러를 넘었다는데, 무슨 뜻인가요?",
   sourceNote:
-    "2026년 11월 2일 기준입니다. 수출 수치는 산업통상부 「2026년 10월 수출입 동향」과 대조했습니다. " +
-    "경상수지 국가 비교는 IMF 통계를 인용한 보도 두 건이 일치하는 것을 확인했고, 원통계와는 아직 대조하지 않았습니다. " +
-    "연 수출 1조 달러는 기준일 현재 달성 전입니다. 정부 정책이 흑자에 얼마나 기여했는지 잰 자료는 찾지 못했습니다.",
-  headlineKeyNumberId: "es-q2-surplus",
+    "2026년 11월 22일 기준입니다. 1조 달러 돌파는 산업통상부 참고자료(11월 19일)의 잠정 집계이고, 연간 확정치가 아닙니다. " +
+    "경상수지 국가 비교는 IMF 통계를 인용한 보도 두 건, 9월 경상수지는 한국은행 잠정 통계를 인용한 보도 두 건이 일치하는 것을 확인했고, 원자료와는 아직 대조하지 않았습니다. " +
+    "정부 정책이 흑자에 얼마나 기여했는지 잰 자료는 찾지 못했습니다.",
+  headlineKeyNumberId: "es-1t",
   keyNumbers: [
+    { id: "es-1t", label: "연간 누적 수출", value: "1", unit: "조 달러", caption: "2026.11.19 잠정 집계 · 세계 네 번째", claimId: "es-1t" },
     { id: "es-q2-surplus", label: "2분기 경상수지 흑자", value: "1,166", unit: "억 달러", caption: "1년 전 284억 달러의 4.1배 · IMF 통계 인용 보도", claimId: "es-q2" },
     { id: "es-q2-rank", label: "2분기 경상흑자 순위", value: "2", unit: "위", caption: "36개국 중 · 1위 중국 1,937억 달러", claimId: "es-q2-rank" },
-    { id: "es-cum", label: "1~10월 누적 수출", value: "9,300", unit: "억 달러", caption: "전년 대비 60.6% · 산업통상부", claimId: "es-cum" },
-    { id: "es-chip", label: "10월 반도체 수출", value: "564.4", unit: "억 달러", caption: "전년 대비 259.4% · 10월 수출의 약 49%", claimId: "es-chip-oct" },
+    { id: "es-sep", label: "9월 경상수지 흑자", value: "614.6", unit: "억 달러", caption: "월간 역대 최대 · 한국은행 잠정", claimId: "es-sep" },
+    { id: "es-chip", label: "1~10월 반도체 수출", value: "3,968", unit: "억 달러", caption: "전년 대비 193.1% · 전체 수출의 42.7%", claimId: "es-chip-cum" },
   ],
   timeline: [
     { id: "es-t-tariff", date: "2025-04", datePrecision: "month", title: "미국, 한국에 상호관세 25% 예고", summary: "이후 정부가 3,500억 달러 대미투자를 약속하고 관세를 15%로 낮췄다.", claimIds: ["es-tariff"] },
@@ -50,7 +53,10 @@ const raw: AchievementInput = {
     { id: "es-t-julaug", date: "2026-08", datePrecision: "month", displayDate: "2026.7~8", title: "7~8월 경상흑자 881.9억 달러", summary: "독일·일본 합계(808.2억 달러)를 다시 넘었다.", claimIds: ["es-julaug"] },
     { id: "es-t-imf", date: "2026-10", datePrecision: "month", title: "IMF, 올해 한국 경상흑자 세계 2위 전망", summary: "4,219억 달러, 190개 국가·지역 중 중국 다음.", claimIds: ["es-imf"] },
     { id: "es-t-cmp", date: "2026-10-25", datePrecision: "day", title: "국가별 2분기 경상수지 비교 보도", summary: "IMF 통계로 독일·일본 합계 추월이 1996년 이후 처음으로 확인됐다.", claimIds: ["es-q2-dejp"] },
-    { id: "es-t-oct", date: "2026-11-01", datePrecision: "day", title: "1~10월 누적 수출 9,300억 달러", summary: "처음으로 9,000억 달러를 넘었다. 11월 중 연 1조 달러가 확실시된다.", claimIds: ["es-cum", "es-trillion"] },
+    { id: "es-t-oct", date: "2026-11-01", datePrecision: "day", title: "1~10월 누적 수출 9,300억 달러", summary: "처음으로 9,000억 달러를 넘었다. 산업통상부는 11월 중 1조 달러가 확실시된다고 밝혔다.", claimIds: ["es-cum", "es-trillion"] },
+    { id: "es-t-sep", date: "2026-11-05", datePrecision: "day", title: "9월 경상흑자 614.6억 달러, 월간 역대 최대", summary: "한국은행 잠정 통계. 1~9월 누적 흑자는 3,406.6억 달러로 1년 전의 약 4배다.", claimIds: ["es-sep"] },
+    { id: "es-t-1t", date: "2026-11-19", datePrecision: "day", title: "연 수출 1조 달러 돌파", summary: "오후 2시 9분 38초 기준 잠정 집계. 독일·미국·중국에 이어 세계 네 번째다. 대통령은 이 성과를 지속적인 성장으로 이어가야 한다고 밝혔다.", claimIds: ["es-1t", "es-fourth", "es-president"] },
+    { id: "es-t-6org", date: "2026-11-20", datePrecision: "day", title: "산업통상부·경제 6단체 간담회", summary: "장관은 1조 달러가 끝이 아닌 새 출발선이라며 성과 확산과 새 수출동력 육성을 과제로 꼽았다.", claimIds: ["es-minister"] },
   ],
   eli5: {
     intro: "나라 밖과 물건·서비스를 사고팔아 남긴 돈과, 수출이 어디까지 왔는지 봐요.",
@@ -71,9 +77,9 @@ const raw: AchievementInput = {
         art: "es-dejp", claimIds: ["es-q2-dejp"],
       },
       {
-        id: "es-e-trillion", title: "수출 1조 달러, 문턱 앞이에요",
-        say: "1월부터 10월까지 수출이 9,300억 달러예요. 700억 달러만 더하면 1조 달러라, 정부는 11월 안에 넘을 것으로 봐요.",
-        art: "es-trillion", fact: { value: "9,300억 달러", tone: "warm" }, claimIds: ["es-cum", "es-trillion"],
+        id: "es-e-trillion", title: "수출 1조 달러를 넘었어요",
+        say: "11월 19일 오후 2시 9분, 올해 수출이 1조 달러를 넘었어요. 작년 한 해 수출은 7,093억 달러였어요. 1조 달러를 넘은 나라는 독일·미국·중국 다음으로 한국이 네 번째예요.",
+        art: "es-trillion", fact: { value: "세계 4번째", tone: "warm" }, claimIds: ["es-1t", "es-history", "es-fourth"],
       },
       {
         id: "es-e-chip", title: "반도체가 절반을 끌었어요",
@@ -82,13 +88,13 @@ const raw: AchievementInput = {
       },
     ],
     caveat: {
-      text: "연 수출 1조 달러는 아직 ‘확실시’ 단계예요. 흑자가 늘어난 큰 이유는 반도체 값이 오른 것이라, 반도체가 꺾이면 흑자도 흔들릴 수 있어요.",
-      claimIds: ["es-trillion", "es-driver"],
+      text: "1조 달러는 정부가 잠정으로 센 숫자예요. 흑자와 수출이 늘어난 큰 이유는 반도체 값이 오른 것이라, 반도체가 꺾이면 흔들릴 수 있어요.",
+      claimIds: ["es-1t", "es-driver"],
     },
   },
   scenes: [{
-    id: "es-explainer", kind: "explainer", heading: "숫자로 보는 흑자와 수출", lede: "순위, 남은 거리, 무엇이 끌어올렸는지를 차례로 봅니다.",
-    claimIds: ["es-q2-rank", "es-q2-dejp", "es-cum", "es-trillion", "es-chip-oct"],
+    id: "es-explainer", kind: "explainer", heading: "숫자로 보는 흑자와 수출", lede: "순위, 1조 달러까지 온 길, 무엇이 끌어올렸는지를 차례로 봅니다.",
+    claimIds: ["es-q2-rank", "es-q2-dejp", "es-history", "es-1t", "es-forecast", "es-chip-oct"],
     explainer: {
       chapters: [
         {
@@ -112,21 +118,23 @@ const raw: AchievementInput = {
           takeaway: "2분기 한국의 경상흑자는 중국 다음으로 컸고, 독일·일본 합계보다 많았다.", claimId: "es-q2-dejp",
         },
         {
-          id: "es-ch-trillion", question: "수출 1조 달러는 달성했나요?", heading: "9,300억 달러까지 왔다",
+          id: "es-ch-trillion", question: "수출 1조 달러는 언제 넘었나요?", heading: "11월 19일, 세계 네 번째",
           steps: [
             { id: "es-step-1995", label: "1995년", caption: "한국 수출은 1995년 연 1,000억 달러를 처음 넘었다." },
-            { id: "es-step-9000", label: "10월까지", caption: "2026년 1~10월 누적 수출은 9,300억 달러로, 처음 9,000억 달러를 넘었다." },
-            { id: "es-step-1t", label: "1조 달러", caption: "산업통상부는 11월 중 연 1조 달러 달성이 확실시된다고 밝혔다. 기준일 현재 달성 전이다." },
+            { id: "es-step-2025", label: "2025년", caption: "2025년 한 해 수출은 7,093억 달러였다." },
+            { id: "es-step-1t", label: "2026.11.19", caption: "오후 2시 9분 38초 기준 연간 누적 수출이 1조 달러를 넘었다. 산업통상부 잠정 집계다." },
+            { id: "es-step-forecast", label: "연말 전망", caption: "산업통상부는 올해 연간 수출을 1조 1,700억 달러로 내다봤다. 아직 전망이다." },
           ],
           visual: {
-            kind: "stage-gates", asOfLabel: "2026.11.1 발표 기준", pendingLabel: "아직 달성 전",
+            kind: "stage-gates", asOfLabel: "2026.11.19 잠정 집계 기준", pendingLabel: "연말까지는 전망",
             stages: [
               { id: "es-gate-1995", label: "1,000억 달러", note: "1995", status: "done" },
-              { id: "es-gate-9000", label: "9,000억 달러", note: "26.1~10월", status: "done" },
-              { id: "es-gate-1t", label: "1조 달러", note: "11월 예상", status: "pending" },
+              { id: "es-gate-7000", label: "7,000억 달러", note: "2025", status: "done" },
+              { id: "es-gate-1t", label: "1조 달러", note: "26.11.19", status: "done" },
+              { id: "es-gate-forecast", label: "1조 1,700억 달러", note: "연간 전망", status: "pending" },
             ],
           },
-          takeaway: "1조 달러까지 700억 달러가 남았다. 달성은 아직 예상이다.", claimId: "es-trillion",
+          takeaway: "1년 만에 7,000억 달러대에서 1조 달러로 올라섰다. 독일·미국·중국에 이어 네 번째다.", claimId: "es-1t",
         },
         {
           id: "es-ch-chip", question: "무엇이 수출을 끌어올렸나요?", heading: "10월 수출의 절반이 반도체",
@@ -170,24 +178,135 @@ const raw: AchievementInput = {
     },
     {
       id: "es-cp-done",
-      question: "수출 1조 달러를 이미 넘었나요?",
-      response: "아직 아니다. 11월 1일 발표 기준 1~10월 누적은 9,300억 달러이고, 산업통상부는 11월 중 달성이 확실시된다고 밝혔다. 넘으면 미국·중국·독일에 이어 네 번째라고 보도됐다.",
-      claimIds: ["es-cum", "es-trillion", "es-fourth"],
+      question: "세계 4위 수출국이 됐다는 뜻인가요?",
+      response: "같은 말이 아니다. 연 수출 1조 달러를 넘은 나라로는 독일·미국(2006년)과 중국(2007년)에 이어 네 번째라는 뜻이다. 수출액 순위는 보도마다 현재 5위 또는 6위로 적고, 연말에 4위로 오를 것이라는 전망이 있다. 1조 달러 자체도 11월 19일 기준 잠정 집계다.",
+      claimIds: ["es-1t", "es-fourth", "es-rank-outlook"],
     },
     {
       id: "es-cp-chip",
       question: "반도체 하나에 기대는 것 아닌가요?",
-      response: "그렇다는 지적이 있다. 반도체는 8월 47.5%, 9월 49.9%, 10월 약 49%로 수출의 절반 가까이를 차지했고, 중국 CXMT 등의 추격도 위협 요인으로 꼽힌다. AI 투자가 둔화하면 흑자도 흔들릴 수 있다는 보도가 있다. 다만 10월에는 20대 품목 중 18개가 함께 늘었다.",
-      claimIds: ["es-chip-trend", "es-driver", "es-broad"],
+      response: "그렇다는 지적이 있다. 1~10월 반도체 수출은 3,968억 달러로 전체의 42.7%였고, 월별로는 8월 47.5%, 9월 49.9%, 10월 49.0%였다. 중국 CXMT 등의 추격도 위협 요인으로 꼽히고, AI 투자가 둔화하면 흑자도 흔들릴 수 있다는 보도가 있다. 다만 반도체를 뺀 수출도 1~10월 20% 늘었고, 20대 품목 중 16개가 함께 늘었다.",
+      claimIds: ["es-chip-cum", "es-chip-trend", "es-driver", "es-nonchip"],
+    },
+    {
+      id: "es-cp-life",
+      question: "내 살림과는 무슨 상관인가요?",
+      response: "서울신문은 수출 성과가 반도체에 쏠려 낙수효과가 제한적이고, 청년 고용 악화와 실질임금 정체가 이어진다고 지적했다. 산업통상부는 중소기업 수출이 1~10월 1,076억 달러로 역대 최대였고 화장품·농수산식품·의약품도 사상 최대였다고 밝혔다. 수출 증가가 가계 소득으로 얼마나 이어졌는지 잰 자료는 확인하지 못했다.",
+      claimIds: ["es-trickle", "es-sme"],
     },
     {
       id: "es-cp-us",
       question: "흑자가 크면 미국과 마찰이 생기지 않나요?",
-      response: "그 위험이 있다. 1~10월 대미 무역흑자는 1,023억 달러로 처음 연간 1,000억 달러를 넘었다. 미국은 2025년 한국의 흑자에 불만을 표하며 상호관세 25%를 예고한 적이 있고, 이후에도 알래스카 LNG 사업을 압박하며 관세 인상을 시사하고 있다.",
-      claimIds: ["es-us-surplus", "es-tariff"],
+      response: "그 위험이 있다. 1~10월 대미 무역흑자는 1,023억 달러로 처음 연간 1,000억 달러를 넘었다. 미국은 2025년 한국의 흑자에 불만을 표하며 상호관세 25%를 예고한 적이 있고, 이후에도 알래스카 LNG 사업을 압박하며 관세 인상을 시사하고 있다. 산업통상부도 미국·EU 보호무역주의 강화를 앞으로의 위험으로 꼽았다.",
+      claimIds: ["es-us-surplus", "es-tariff", "es-risk"],
     },
   ],
   claims: [
+    {
+      id: "es-1t",
+      text: "산업통상부는 2026년 11월 19일 14시 09분 38초 기준으로 잠정 집계한 결과 한국의 연간 누적 수출액이 1조 달러를 넘었다고 밝혔다. 연간 확정치가 아니다.",
+      assertionType: "FACT",
+      sourceIds: ["src-es-motir-1119", "src-es-fn-1119"],
+      verified: true,
+    },
+    {
+      id: "es-fourth",
+      text: "연 수출 1조 달러를 넘은 나라는 독일·미국(2006년), 중국(2007년)에 이어 한국이 네 번째다. 새 나라가 이름을 올린 것은 2007년 중국 이후 19년 만이다.",
+      assertionType: "FACT",
+      sourceIds: ["src-es-motir-1119", "src-es-fn-1119"],
+      verified: true,
+    },
+    {
+      id: "es-history",
+      text: "한국 수출은 1995년 연 1,000억 달러, 2011년 5,000억 달러, 2018년 6,000억 달러를 처음 넘었고, 2025년 한 해 수출은 7,093억 달러였다.",
+      assertionType: "FACT",
+      sourceIds: ["src-es-motir-1119", "src-es-seoul-1119"],
+      verified: true,
+    },
+    {
+      id: "es-forecast",
+      text: "산업통상부는 2026년 연간 수출을 1조 1,700억 달러로 전망했다. 전망치다.",
+      assertionType: "CLAIM",
+      assertedBy: "산업통상부",
+      sourceIds: ["src-es-motir-1119", "src-es-fn-1119"],
+      verified: true,
+    },
+    {
+      id: "es-rank-outlook",
+      text: "수출액 기준 세계 순위는 서울신문이 WTO 8월 발표 기준 5위, 파이낸셜뉴스가 6위로 적어 보도마다 다르다. 두 매체 모두 올해 4위로 오를 것으로 내다봤고, 서울신문은 네덜란드를 제칠 것으로 봤다. 전망이다.",
+      assertionType: "CLAIM",
+      assertedBy: "서울신문·파이낸셜뉴스",
+      sourceIds: ["src-es-seoul-1119", "src-es-fn-1119"],
+      verified: true,
+    },
+    {
+      id: "es-chip-cum",
+      text: "2026년 1~10월 반도체 수출은 3,968억 달러로 전년 같은 기간보다 193.1% 늘어 전체 수출의 42.7%를 차지했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-es-seoul-1119", "src-es-fn-1119"],
+      verified: true,
+    },
+    {
+      id: "es-nonchip",
+      text: "2026년 1~10월 반도체를 뺀 품목의 수출은 20% 늘었다. 20대 수출 품목 가운데 16개, 9대 주요 수출 지역 가운데 7개에서 수출이 늘었다.",
+      assertionType: "FACT",
+      sourceIds: ["src-es-motir-1119"],
+      verified: true,
+    },
+    {
+      id: "es-sme",
+      text: "2026년 1~10월 중소기업 수출은 1,076억 달러로 9.9% 늘어 역대 최대였고, 1~3분기 중견기업 수출도 1,037억 달러(+11.5%)로 역대 최대였다. 화장품은 10개월 만에 124억 달러로 전년 연간 최대(114억 달러)를 넘었고, 의약품·농수산식품도 사상 최대였다.",
+      assertionType: "FACT",
+      sourceIds: ["src-es-motir-1119"],
+      verified: true,
+    },
+    {
+      id: "es-risk",
+      text: "산업통상부는 반도체·석유제품 단가 변동성, 미국·EU의 보호무역주의 강화, 글로벌 공급과잉을 앞으로의 위험 요인으로 꼽았다.",
+      assertionType: "CLAIM",
+      assertedBy: "산업통상부",
+      sourceIds: ["src-es-motir-1119"],
+      verified: true,
+    },
+    {
+      id: "es-minister",
+      text: "김정관 산업통상부 장관은 1조 달러 돌파를 두고 “세계에서 단 4개국만이 달성한 역사적인 이정표”라고 했고, 11월 20일 경제 6단체 간담회에서 “1조 달러 달성은 끝이 아닌 새로운 출발선”이라며 수출 성과 확산과 반도체 다음 수출동력 육성을 과제로 꼽았다.",
+      assertionType: "CLAIM",
+      assertedBy: "김정관 산업통상부 장관",
+      sourceIds: ["src-es-motir-1119", "src-es-motir-1120"],
+      verified: true,
+    },
+    {
+      id: "es-president",
+      text: "이재명 대통령은 수출 1조 달러 돌파 소식에 X(옛 트위터)에 글을 올려 수출 1조 달러 시대가 열렸다고 알리며 “이 성과를 지속적인 성장으로 이어가야 한다”고 밝혔다.",
+      assertionType: "CLAIM",
+      assertedBy: "이재명 대통령",
+      sourceIds: ["src-es-seoul-1119"],
+      verified: true,
+    },
+    {
+      id: "es-trickle",
+      text: "서울신문은 수출 성과가 반도체에 쏠려 낙수효과가 제한적이고 청년 고용 악화와 실질임금 정체가 이어지고 있다고 지적했다. 강감찬 산업통상부 무역투자실장도 수출 양극화를 인정했다고 보도했다.",
+      assertionType: "INTERPRETATION",
+      assertedBy: "서울신문",
+      sourceIds: ["src-es-seoul-1119"],
+      verified: true,
+    },
+    {
+      id: "es-sep",
+      text: "한국은행 「2026년 9월 국제수지(잠정)」에 따르면 9월 경상수지 흑자는 614억 6,000만 달러로 월간 처음 600억 달러를 넘어 역대 최대였다. 종전 최대는 같은 해 6월 497억 3,000만 달러였다. 1~9월 누적 흑자는 3,406억 6,000만 달러로 전년 같은 기간(838억 9,000만 달러)의 약 4배다.",
+      assertionType: "FACT",
+      sourceIds: ["src-es-mt-1105", "src-es-tomato-1105"],
+      verified: true,
+    },
+    {
+      id: "es-bok-outlook",
+      text: "한국은행은 올해 연간 경상흑자 전망치를 4,500억 달러로 제시했고, 1~9월 누적 흑자는 그 75.7%다. 전망치다.",
+      assertionType: "CLAIM",
+      assertedBy: "한국은행",
+      sourceIds: ["src-es-mt-1105", "src-es-tomato-1105"],
+      verified: true,
+    },
     {
       id: "es-q2",
       text: "2026년 2분기 한국의 경상수지 흑자는 1,166억 3,000만 달러로, 전년 동기(283억 9,000만 달러)의 4.1배였다. IMF 통계(한국은행 경제통계시스템 수록)를 인용한 보도 수치다.",
@@ -262,17 +381,10 @@ const raw: AchievementInput = {
     },
     {
       id: "es-trillion",
-      text: "산업통상부는 2026년 11월 1일 11월 중 연 수출 1조 달러 달성이 확실시된다고 밝혔다. 남은 금액은 약 700억 달러다. 기준일(11월 2일) 현재 달성 전이다.",
+      text: "산업통상부는 2026년 11월 1일 11월 중 연 수출 1조 달러 달성이 확실시된다고 밝혔다. 당시 남은 금액은 약 700억 달러였고, 실제로 11월 19일 넘었다.",
       assertionType: "CLAIM",
       assertedBy: "산업통상부",
-      sourceIds: ["src-es-motir-1101", "src-es-khan-1101"],
-      verified: true,
-    },
-    {
-      id: "es-fourth",
-      text: "연 수출 1조 달러를 넘으면 미국·중국·독일에 이어 세계 네 번째라고 경향신문이 보도했다.",
-      assertionType: "FACT",
-      sourceIds: ["src-es-khan-1101"],
+      sourceIds: ["src-es-motir-1101", "src-es-khan-1101", "src-es-motir-1119"],
       verified: true,
     },
     {
@@ -309,6 +421,12 @@ const raw: AchievementInput = {
     { id: "src-es-jkn-1025", title: "2분기 경상흑자 1166억달러…독일·일본 합계 추월", publisher: "재경일보", url: "https://news.jkn.co.kr/post/1048892", publishedAt: "2026-10-25", type: "press", license: "link-only" },
     { id: "src-es-motir-1101", title: "2026년 10월 수출입 동향 (보도자료)", publisher: "산업통상부", url: "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/172360/view", publishedAt: "2026-11-01", type: "official", license: "public" },
     { id: "src-es-khan-1101", title: "세계 4번째…연 수출액 ‘1조달러’ 확실시", publisher: "경향신문", url: "https://v.daum.net/v/20261101204143348", publishedAt: "2026-11-01", type: "press", license: "link-only" },
+    { id: "src-es-mt-1105", title: "9월 경상흑자 614억불 '사상 최대'…반도체 수출 260% 급증", publisher: "머니투데이", url: "https://www.mt.co.kr/article/2026110509533881967", publishedAt: "2026-11-05", type: "press", license: "link-only" },
+    { id: "src-es-tomato-1105", title: "경상흑자 사상 첫 '600억달러'…'반도체 쏠림' 난제", publisher: "뉴스토마토", url: "https://www.newstomato.com/ReadNews.aspx?no=1319455", publishedAt: "2026-11-05", type: "press", license: "link-only" },
+    { id: "src-es-motir-1119", title: "(참고자료) 대한민국 수출 1조 달러 돌파, 기업이 뛰고 국민이 함께 이룬 성과", publisher: "산업통상부", url: "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/172422/view", publishedAt: "2026-11-19", type: "official", license: "public" },
+    { id: "src-es-fn-1119", title: "韓 수출 1조달러 시대 개막…세계 네 번째 대기록", publisher: "파이낸셜뉴스", url: "https://www.fnnews.com/news/202611190847109209", publishedAt: "2026-11-19", type: "press", license: "link-only" },
+    { id: "src-es-seoul-1119", title: "오징어 팔던 나라, 韓 78년 만에 ‘수출 1조 달러’ 금자탑", publisher: "서울신문", url: "https://www.seoul.co.kr/news/economy/2026/11/19/20261119500342", publishedAt: "2026-11-19", type: "press", license: "link-only" },
+    { id: "src-es-motir-1120", title: "(참고자료) 산업부·경제 6단체, 수출 1조 달러 넘어 ‘질적 성장’ 도약 다짐", publisher: "산업통상부", url: "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/172431/view", publishedAt: "2026-11-20", type: "official", license: "public" },
   ],
 };
 

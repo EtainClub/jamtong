@@ -100,9 +100,9 @@ const LAYOUTS: Record<string, LayoutConfig> = {
         {...props}
         copy={{
           timelineHeading: "숫자가 나온 순서",
-          timelineLede: "관세 협상부터 2분기 경상수지, 10월 수출 발표까지 시점을 함께 봅니다.",
+          timelineLede: "관세 협상부터 2분기 경상수지, 수출 1조 달러 돌파까지 시점을 함께 봅니다.",
           numbersHeading: "흑자와 수출의 숫자",
-          numbersLede: "수출은 산업통상부 발표, 경상수지 국가 비교는 IMF 통계를 인용한 보도입니다.",
+          numbersLede: "수출은 산업통상부 발표(1조 달러는 잠정 집계), 경상수지는 IMF·한국은행 통계를 인용한 보도입니다.",
           relationsHeading: "누가 흐름에 관여했나",
           relationsLede: "수출 기업, 정부, 미국, AI 투자를 하는 빅테크 사이에 무엇이 오갔는지 봅니다.",
           shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
@@ -110,10 +110,10 @@ const LAYOUTS: Record<string, LayoutConfig> = {
       />
     ),
     heroHighlights: [
+      { claimId: "es-fourth", label: "세계 네 번째 수출 1조 달러" },
       { claimId: "es-q2-rank", label: "2분기 경상흑자 세계 2위" },
-      { claimId: "es-cum", label: "1~10월 누적 수출" },
     ],
-    askSuggestions: ["경상수지 세계 2위는 어떤 기준인가요?", "수출 1조 달러를 넘었나요?", "정부가 한 일인가요?"],
+    askSuggestions: ["세계 4위 수출국이 됐다는 뜻인가요?", "경상수지 세계 2위는 어떤 기준인가요?", "정부가 한 일인가요?"],
   },
   "housing-stabilization": {
     Layout: (props) => (

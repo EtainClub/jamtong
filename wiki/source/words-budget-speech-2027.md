@@ -2,7 +2,7 @@
 title: 2027년 예산안 시정연설
 kind: source
 source: words:budget-speech-2027
-updated: 2026-11-03
+updated: 2026-11-22
 ---
 
 # 2027년 예산안 시정연설
@@ -15,7 +15,8 @@ updated: 2026-11-03
 
 - 경제가 V자로 회복하고 있고 연간 수출 1조 달러가 가시권이라고 했다.
   ^[words:budget-speech-2027#bs-recovery] 수출 수치는 [[source/export-surplus]]에서
-  산업통상부 자료로 따로 확인했다. 기준일 현재 1조 달러는 달성 전이다. ^[export-surplus#es-trillion]
+  산업통상부 자료로 따로 확인했다. 연설 당시엔 달성 전이었고, 2026년 11월 19일
+  넘었다(잠정 집계). ^[export-surplus#es-trillion] ^[export-surplus#es-1t]
 - 외환위기 공적자금은 **내년에** 모두 상환된다고 했다. 끝난 일이 아니다.
   ^[words:budget-speech-2027#bs-imf]
 - 5040 클럽 진입은 **전망**으로 말했다. ^[words:budget-speech-2027]

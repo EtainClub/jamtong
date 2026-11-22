@@ -37,14 +37,14 @@
   },
   "export-surplus": {
     "gif": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/jamtong.firebasestorage.app/o/cartoons%2Fexport-surplus%2Fcartoon-a7e80cfd7bd0.gif?alt=media&token=8b5058fa-8a12-4532-a05f-c10a30017829",
-      "bytes": 561775,
-      "sha256": "a7e80cfd7bd01d017404d78df18d9ee73686d55a34792eec1ddab1b75b84d85f"
+      "url": "https://firebasestorage.googleapis.com/v0/b/jamtong.firebasestorage.app/o/cartoons%2Fexport-surplus%2Fcartoon-39818965133a.gif?alt=media&token=0b639a8e-b865-4766-b749-439d3949b68d",
+      "bytes": 568277,
+      "sha256": "39818965133a4e4877cb93da0900a6b4e3b76f42d0486053f885bfd57c2bb64b"
     },
     "mp4": {
-      "url": "https://firebasestorage.googleapis.com/v0/b/jamtong.firebasestorage.app/o/cartoons%2Fexport-surplus%2Fcartoon-502d579175a4.mp4?alt=media&token=0dedf903-61a6-45a8-b932-69d4b26587d1",
-      "bytes": 911861,
-      "sha256": "502d579175a4b686f49307543dc4f274d70e724f5d669b49216a39ddfa8c7ea6"
+      "url": "https://firebasestorage.googleapis.com/v0/b/jamtong.firebasestorage.app/o/cartoons%2Fexport-surplus%2Fcartoon-4406a547fb0c.mp4?alt=media&token=c344b701-7e16-4b1e-9cf0-46db3675054d",
+      "bytes": 919747,
+      "sha256": "4406a547fb0ccce6506779d975b3bf6375650d8049eb264e867fbba2f664a261"
     }
   },
   "gyeonggi-basic-income": {
