@@ -10,6 +10,7 @@ import { Sheet } from "../Sheet";
 import { useGarden } from "../store";
 import type { Species } from "../types";
 import { itemName } from "../room/RoomArt";
+import { EntryStory } from "./EntryStory";
 import { PhotoCard } from "./PhotoCard";
 import type { MemorialEntry } from "./types";
 
@@ -78,7 +79,7 @@ export function QuizSheet({
       <div className="mt-3 space-y-3">
         {step === "learn" && (
           <>
-            <PhotoCard entry={entry} from="memorial" />
+            <EntryStory entry={entry} from="memorial" />
             <button type="button" className="garden-diary-btn min-h-[44px] w-full justify-center" onClick={() => { gardenFeedback("tap"); setStep("quiz"); }}>
               🧩 다 읽었어요 — 문제 풀고 기념품 받기
             </button>

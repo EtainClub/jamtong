@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 
@@ -119,4 +119,40 @@ test("선물 가구: 늘 파는 방 가구만, 같은 확률, 가진 수 상한�
   const one = { ...full, owned: { ...full.owned, [pool[3].id]: OWN_MAX - 1 } };
   assert.equal(pickGift(one, () => 0.99)?.id, pool[3].id, "상한에 닿지 않은 것만 고른다");
   assert.equal(giftItem(room, pool[0].id)!.owned[pool[0].id], 1);
+});
+
+// ── 업적 카툰 (docs/garden-cartoon-review.md) ─────────────────────────
+
+test("카툰: 모든 장면에 그림이 있을 때만 열리고, 칸마다 그 업적의 claim을 가리킨다", () => {
+  for (const e of entries) {
+    const a = achievements.get(e.slug)!;
+    const scenes = a.eli5?.scenes ?? [];
+    const drawn = scenes.filter((s) => existsSync(join(process.cwd(), "public", "cartoons", e.slug, `${s.id}.webp`)));
+    if (!e.cartoon) {
+      assert.ok(scenes.length === 0 || drawn.length < scenes.length, `${e.slug}: 다 그렸는데 카툰이 없다`);
+      continue;
+    }
+    assert.equal(e.cartoon.panels.length, scenes.length, `${e.slug}: 반쯤 그린 카툰`);
+    e.cartoon.panels.forEach((p, i) => {
+      assert.equal(p.id, scenes[i].id);
+      assert.equal(p.say, scenes[i].say, "말풍선은 쉬운 설명 문장 그대로");
+      assert.ok(existsSync(join(process.cwd(), "public", p.image)), p.image);
+      for (const anchor of p.anchors) {
+        const [slug, claimId] = anchor.split("#");
+        assert.ok(slug === e.slug && a.claims.some((c) => c.id === claimId), anchor);
+      }
+    });
+    // 공유 파일은 Storage에 있다 — 저장소에 두지 않는다.
+    for (const f of [e.cartoon.gif, e.cartoon.mp4]) if (f) assert.match(f, /^https:\/\/firebasestorage\.googleapis\.com\/.+\/cartoons%2F/, f);
+    for (const name of ["cartoon.gif", "cartoon.mp4"]) assert.ok(!existsSync(join(process.cwd(), "public", "cartoons", e.slug, name)), `${e.slug}/${name}: 공유 파일이 저장소에 있다`);
+  }
+});
+
+test("카툰 그림마다 만든 기록(prompts.json)이 있다", () => {
+  for (const e of entries.filter((x) => x.cartoon)) {
+    const log = join(process.cwd(), "public", "cartoons", e.slug, "prompts.json");
+    assert.ok(existsSync(log), `${e.slug}: prompts.json`);
+    const records = JSON.parse(readFileSync(log, "utf8")) as Record<string, { tool: string; prompt: string }>;
+    for (const p of e.cartoon!.panels) assert.ok(records[p.id]?.prompt, `${e.slug}/${p.id}: 프롬프트 기록`);
+  }
 });

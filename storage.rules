@@ -86,6 +86,15 @@ service firebase.storage {
       allow write: if false;
     }
 
+    /*
+     * 업적 카툰의 공유 파일(GIF·MP4) — 운영자가 scripts/cartoon-upload.ts(관리자 SDK)로만 올린다.
+     * 누구나 받는다. 주소는 src/content/cartoons/media.json.
+     */
+    match /cartoons/{slug}/{fileId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // 그 밖의 모든 것은 닫는다.
     match /{allPaths=**} {
       allow read, write: if false;

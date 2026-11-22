@@ -40,6 +40,30 @@ export interface MemorialQuizOption {
   href: string;
 }
 
+/** 카툰 한 칸. 그림은 AI 삽화(글자 없음), 글은 쉬운 설명 장면에서 — 근거 앵커가 붙는다. */
+export interface CartoonPanel {
+  id: string;
+  /** /cartoons/<slug>/<장면id>.webp */
+  image: string;
+  /** 칸 위 해설 상자. */
+  title: string;
+  /** 잼통이의 말풍선. */
+  say: string;
+  /** 칸 구석의 숫자 딱지. */
+  fact?: string;
+  /** 근거 앵커 `<업적slug>#<claimId>`. */
+  anchors: string[];
+}
+
+export interface MemorialCartoon {
+  panels: CartoonPanel[];
+  /** 쉬운 설명의 주의(caveat). 마지막에 따로 붙인다. */
+  caveat?: string;
+  /** 공유용 파일 — Firebase Storage의 주소(pnpm cartoon:render → cartoon:upload). 있을 때만. */
+  gif?: string;
+  mp4?: string;
+}
+
 export interface MemorialEntry {
   slug: string;
   /** 품종 id(a:<slug>). */
@@ -61,6 +85,8 @@ export interface MemorialEntry {
   facts: MemorialFact[];
   /** 반론이 있으면 첫 물음 하나와 그 자리. 사진첩 카드에 같은 크기로 붙인다. */
   counter?: { text: string; href: string };
+  /** 카툰(docs/garden-cartoon-review.md) — 쉬운 설명 장면마다 한 칸. 모든 장면에 그림이 있을 때만. */
+  cartoon?: MemorialCartoon;
   quiz: {
     question: string;
     options: MemorialQuizOption[];

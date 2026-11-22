@@ -1,0 +1,14 @@
+{
+  "ys-e-save": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-21",
+    "reference": "jamtongi character sheet",
+    "prompt": "Use your built-in image generation tool to create ONE image, then copy the generated PNG into the current directory as ys-e-save.png. Do not write any code other than the copy command. Scene: one panel of an explainer comic about the Korean public achievement \"청년미래적금\". This panel explains (Korean): \"내가 저축하면 정부가 보태요 — 3년 동안 저축하는 상품이에요. 가입 유형에 따라 정부 기여금이 붙고 이자소득세가 면제돼요.\". Show this situation visually with ordinary people, places and objects, and with Jamtongi reacting to it as a friendly guide. Do not draw any numbers or words; convey amounts with simple visual metaphors (piles, lines, sizes). Draw Jamtongi EXACTLY as in the attached character sheet (round glass jam jar, amber jam, cream lid, green two-leaf sprout, dot eyes, stubby arms and legs, jam drip). Style: the same clean Korean educational comic (hakseup manhwa) line art with soft flat colors, thick friendly outlines, warm palette. Landscape 3:2 single comic panel, full-bleed, no panel border. People are ordinary, generic Korean citizens drawn simply — no politicians, no real or identifiable persons, no celebrities, no national leaders. Constraints: absolutely no text, no letters, no Korean or English writing, no numbers, no signs with words, no logos, no watermark."
+  },
+  "ys-e-apply": {
+    "tool": "codex exec · built-in image_gen (GPT)",
+    "created": "2026-11-21",
+    "reference": "jamtongi character sheet",
+    "prompt": "Use your built-in image generation tool to create ONE image, then copy the generated PNG into the current directory as ys-e-apply.png. Do not write any code other than the copy command. Scene: one panel of an explainer comic about the Korean public achievement \"청년미래적금\". This panel explains (Korean): \"신청한 뒤 심사를 거쳐요 — 신청했다고 바로 계좌가 생기지는 않아요. 가입요건을 심사한 뒤 통과한 사람이 계좌를 열어요.\". Show this situation visually with ordinary people, places and objects, and with Jamtongi reacting to it as a friendly guide. Do not draw any numbers or words; convey amounts with simple visual metaphors (piles, lines, sizes). Draw Jamtongi EXACTLY as in the attached character sheet (round glass jam jar, amber jam, cream lid, green two-leaf sprout, dot eyes, stubby arms and legs, jam drip). Style: the same clean Korean educational comic (hakseup manhwa) line art with soft flat colors, thick friendly outlines, warm palette. Landscape 3:2 single comic panel, full-bleed, no panel border. People are ordinary, generic Korean citizens drawn simply — no politicians, no real or identifiable persons, no celebrities, no national leaders. Constraints: absolutely no text, no letters, no Korean or English writing, no numbers, no signs with words, no logos, no watermark."
+  }
+}

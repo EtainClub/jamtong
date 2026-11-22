@@ -31,6 +31,9 @@
     "brand": "tsx scripts/build-brand.ts",
     "release": "tsx scripts/release.ts",
     "sources:archive": "tsx scripts/sources-archive.ts",
+    "cartoon:gen": "tsx scripts/cartoon-gen.ts",
+    "cartoon:render": "tsx scripts/cartoon-render.tsx",
+    "cartoon:upload": "tsx --env-file=.env.local scripts/cartoon-upload.ts",
     "room:iso-gen": "tsx scripts/room-iso-gen.ts"
   },
   "dependencies": {

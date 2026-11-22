@@ -132,6 +132,9 @@ export type AnalyticsEvent =
   | "photo_go"
   /** 잡초 O/X 퀴즈에 답했다(slug, answer=맞혔는지). 뜬 수는 plaza_pull과 견준다. */
   | "weed_quiz"
+  /** 업적 카툰을 열었다(slug, from memorial|room|album). cartoon_download: 공유 파일을 받았다(slug, kind gif|mp4). */
+  | "cartoon_open"
+  | "cartoon_download"
   | "room_show"
   | "room_edit"
   | "shop_buy"
