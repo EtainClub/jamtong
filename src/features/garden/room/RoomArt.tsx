@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from "react";
 
-import { RAID_KINDS } from "../rules";
+import { RAID_KINDS, REGION_LABEL } from "../rules";
 import type { Species } from "../types";
 import { FURNITURE_BY_ID, moodOf } from "./catalog";
 import { AVATAR_NAME } from "../avatar/catalog";
@@ -45,6 +45,7 @@ export function itemName(it: string, room: RoomData, byId: ReadonlyMap<string, S
   if (s.kind === "tree") return `나무${title ? ` · ${title}` : ""}`;
   if (s.kind === "trophy") return `박제 · ${RAID_KINDS.find((k) => k.id === s.species)?.name ?? "악초"}`;
   if (s.kind === "souvenir") return `기념품${title ? ` · ${title}` : ""}`;
+  if (s.kind === "jar") return `${REGION_LABEL[s.species ?? ""] ?? "분야"} 잼`;
   return `화분${title ? ` · ${title}` : ""}`;
 }
 

@@ -27,7 +27,8 @@ import { promisify } from "node:util";
 
 import { FURNITURE } from "../src/features/garden/room/catalog";
 import { FURNITURE_SPRITES } from "../src/features/garden/room/furnitureSprites";
-import { ISO, ISO_TILE, isoBox } from "../src/features/garden/room/iso";
+import { ISO, ISO_TILE, isoBox, type IsoSpec } from "../src/features/garden/room/iso";
+import { YARD_ITEMS } from "../src/features/garden/yard";
 
 const run = promisify(execFile);
 const ROOT = process.cwd();
@@ -48,6 +49,10 @@ interface Pilot {
   iso: string;
   view: "back" | "front" | "wall";
   what: string;
+  /** ISO 표에 없는 것(마당 소품)의 크기. */
+  spec?: IsoSpec;
+  /** 정면 그림이 없는 것 — 이미 그린 아이소 그림 하나를 그림체 참고로 붙인다(마당 소품). */
+  styleRef?: string;
 }
 
 /** 손으로 적은 설명(0단계 시범). 나머지는 가구표의 이름·설명과 정면 그림으로. */
@@ -92,6 +97,16 @@ const PILOTS: Pilot[] = TARGETS.flatMap((f) => {
   return jobs.map((j) => CUSTOM.find((c) => c.id === j.id) ?? j);
 });
 
+/**
+ * 마당 소품(yard.ts, docs/garden-farm-v2.md §6 4b) — 정면 그림이 없어 이미 그린 아이소 그림(광장 등불)을 그림체 참고로.
+ * 마당 바닥에 서는 1 × 1 크기. 파일 이름은 yard-<id>.
+ */
+PILOTS.push(...YARD_ITEMS.map((y): Pilot => ({
+  id: `yard-${y.id}`, ref: "", iso: "", view: "back", styleRef: "lantern",
+  spec: { layer: "furniture", w: 1, d: 1, h: y.h },
+  what: `${y.art}, an outdoor garden decoration (draw only the object — no grass, no ground patch under it)`,
+})));
+
 /** 다 그린 가구의 목록 — 방 그림이 읽는다. 한 방향이라도 빠진 가구는 넣지 않는다. */
 function writeManifest() {
   const out: Record<string, ReturnType<typeof names>> = {};
@@ -101,13 +116,16 @@ function writeManifest() {
     if (files.every((x) => existsSync(join(OUT, `${x}.png`)))) out[f.id] = n;
   }
   writeFileSync(join(ROOT, "src", "features", "garden", "room", "isoArt.json"), JSON.stringify(out, null, 2) + "\n");
+  // 마당 소품 — 다 그린 id만. 마당 그림(IsoYard.tsx)이 읽고, 없는 것은 글자로 세운다.
+  const yard = YARD_ITEMS.filter((y) => existsSync(join(OUT, `yard-${y.id}.png`))).map((y) => y.id);
+  writeFileSync(join(ROOT, "src", "features", "garden", "yardArt.json"), JSON.stringify(yard) + "\n");
   return Object.keys(out).length;
 }
 
 // ── 그림 상자와 기하 안내 ──────────────────────────────────────────────
 
 function specOf(p: Pilot) {
-  const spec = ISO[p.iso];
+  const spec = p.spec ?? ISO[p.iso];
   if (!spec) throw new Error(`${p.id}: room/iso.ts에 ${p.iso}가 없다`);
   return spec;
 }
@@ -165,7 +183,10 @@ function prompt(p: Pilot, file: string): string {
     `Subject: ${p.what}. ` +
     "Projection: classic 2:1 isometric pixel art (dimetric, floor edges rise 1 pixel for every 2 across), camera fixed from the front-right corner of a room looking down, exactly like the attached geometry guide (the SECOND attached image). " +
     `The object must fill the grey block in the guide: same angle, same footprint proportions and same height proportion. ${orient} ` +
-    "Style: match the FIRST attached image (the same object drawn front-on in this game) — cute, soft Korean cozy-room pixel art, chunky clean pixels, warm pastel palette, dark brown 1-pixel outline, light from the upper left (top face brightest, left face medium, right face darkest). " +
+    (p.styleRef
+      ? "Style: match the FIRST attached image exactly (another isometric object from this same game — same pixel size, outline and shading) — cute,"
+      : "Style: match the FIRST attached image (the same object drawn front-on in this game) — cute,") +
+    " soft Korean cozy-room pixel art, chunky clean pixels, warm pastel palette, dark brown 1-pixel outline, light from the upper left (top face brightest, left face medium, right face darkest). " +
     `Background: one flat solid pure magenta ${KEY} everywhere outside the object, no gradient, no floor, no shadow, no room, no other objects. ` +
     "Exactly one object, centered, fully inside the frame with margin. Absolutely no text, letters, numbers, logos or watermark."
   );
@@ -176,7 +197,7 @@ function prompt(p: Pilot, file: string): string {
 async function make(p: Pilot): Promise<boolean> {
   const raw = join(WORK, `${p.id}.png`);
   const guidePng = join(WORK, `${p.id}.guide.png`);
-  const ref = join(ROOT, "public", "images", "room", `${p.ref}.png`);
+  const ref = p.styleRef ? join(OUT, `${p.styleRef}.png`) : join(ROOT, "public", "images", "room", `${p.ref}.png`);
   const guide = guideMvg(p);
   const mvgPath = join(WORK, `${p.id}.guide.mvg`);
   writeFileSync(mvgPath, guide.mvg + "\n");

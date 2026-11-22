@@ -733,3 +733,38 @@
 .game :global(.garden-room-tools) { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #fff; border: 2px solid var(--d-ink, #3a2f2a); box-shadow: 0 2px 0 #0002; pointer-events: auto; white-space: nowrap; }
 .game :global(.garden-room-tools button) { min-height: 36px; min-width: 36px; padding: 0 8px; border-radius: 8px; background: #fff4ea; font-size: 12px; font-weight: 800; color: #3a2f2a; }
 .game :global(.garden-room-tools button:focus-visible) { outline: 2px solid var(--d-orange); }
+
+/* 돌려짓기 표시(docs/garden-farm-v2.md §4). 돌려짓기는 초록, 연작은 주황 — 글자로도 +/−를 쓴다. */
+.game :global(.garden-rot-chip) { display: inline-block; margin-top: 2px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+.game :global(.garden-rot-chip.is-up) { background: #e3f4d8; color: #2f6b22; }
+.game :global(.garden-rot-chip.is-down) { background: #fde6d5; color: #9a4512; }
+
+/* 잼 공방(docs/garden-farm-v2.md §5). */
+.game :global(.garden-jar-btn) { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 999px; background: #fff4ea; border: 1px solid #f6d7bb; font-size: 12.5px; font-weight: 800; color: #3a2f2a; }
+.game :global(.garden-jar-btn:disabled) { opacity: .55; }
+.game :global(.garden-jar-count) { font-weight: 600; color: #8a6a55; font-variant-numeric: tabular-nums; }
+.game :global(.garden-jar-first) { padding: 1px 6px; border-radius: 999px; background: #e3f4d8; color: #2f6b22; font-size: 11px; }
+.game :global(.garden-jar-fruit) { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; min-width: 44px; padding: 0 8px; border-radius: 12px; background: #fff; border: 2px solid transparent; font-size: 20px; }
+.game :global(.garden-jar-fruit[aria-pressed=true]) { border-color: var(--d-orange); background: #fff4ea; }
+
+/* 아이소 마당(docs/garden-farm-v2.md §6 4단계). 그림은 SVG, 밭 누르기는 그 위의 단추. */
+.game :global(.garden-yard) { position: relative; width: 100%; }
+.game :global(.garden-yard-art) { display: block; width: 100%; height: auto; }
+.game :global(.garden-yard-plot) { position: absolute; display: flex; align-items: flex-end; justify-content: center; border-radius: 10px; }
+.game :global(.garden-yard-plot:focus-visible) { outline: 3px solid var(--g-leaf); }
+.game :global(.garden-yard-tag) { margin-bottom: 4%; padding: 1px 7px; border-radius: 999px; background: #0000005c; color: #fff; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.game :global(.garden-yard-plot.is-ripe .garden-yard-tag) { background: var(--g-leaf); }
+.game :global(.garden-yard-avatar) { transition: transform .7s ease-in-out; }
+.game :global(.garden-yard-glow) { animation: yard-glow 1.6s ease-in-out infinite; }
+.game :global(.garden-yard-rain) { animation: yard-rain .6s linear infinite; }
+@keyframes yard-glow { 50% { opacity: .2; } }
+@keyframes yard-rain { from { transform: translateY(-8px); } to { transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) {
+  .game :global(.garden-yard-avatar) { transition: none; }
+  .game :global(.garden-yard-glow), .game :global(.garden-yard-rain) { animation: none; }
+}
+.game :global(.garden-yard-slot) { position: absolute; transform: translate(-50%, -70%); width: 40px; height: 40px; border-radius: 999px; border: 2px dashed #2f6b22; background: #ffffffcc; color: #2f6b22; font-size: 18px; font-weight: 900; }
+.game :global(.garden-yard-slot.is-full) { border-style: solid; background: #fff4ea; color: #9a4512; border-color: #e8711a; }
+.game :global(.garden-yard-item) { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: var(--g-panel); }
+.game :global(.garden-yard-thumb) { width: 48px; height: 48px; flex-shrink: 0; display: grid; place-items: center; font-size: 30px; }
+.game :global(.garden-yard-thumb img) { max-width: 48px; max-height: 48px; image-rendering: pixelated; }

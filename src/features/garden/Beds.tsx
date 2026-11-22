@@ -5,13 +5,17 @@ import { useState } from "react";
 
 import { track } from "@/lib/analytics";
 
-import { GroundDetails, PlantArt } from "./GardenArt";
+import { PlantArt } from "./GardenArt";
+import { IsoYard } from "./IsoYard";
+import { YardSheet } from "./YardSheet";
+import { normalizeYard } from "./yard";
 import { gardenFeedback } from "./feedback";
 import { BASKET_WARN_AT } from "./nav";
 import { MutationChips, NoteCard } from "./parts";
+import { JamWorkshop } from "./JamWorkshop";
 import { Sheet } from "./Sheet";
 import { googleCalendarLink } from "./alarm";
-import { ALARM_MIN_LEAD, alarmTime, nextRain, CARE, caresFor, formatClock, fruitIcon, fruitValue, formatLeft, growMinutes, HOUR, kstDay, MINUTE, SHINE_PER_DAY, TIER_LABEL, fertilizerCut, TOOL_ORDER, TOOLS, type ToolId } from "./rules";
+import { ALARM_MIN_LEAD, alarmTime, nextRain, CARE, caresFor, formatClock, fruitIcon, fruitValue, formatLeft, growMinutes, HOUR, josa, kstDay, MINUTE, REGION_LABEL, ROTATION, rotationLabel, rotationOf, SHINE_PER_DAY, TIER_LABEL, fertilizerCut, TOOL_ORDER, TOOLS, type ToolId } from "./rules";
 import { BASKET_MAX, useGarden, type GardenData } from "./store";
 import type { Plant, PlazaLevel, Species } from "./types";
 import type { CareOutcome } from "./useBlooms";
@@ -47,6 +51,11 @@ export function Beds({
   const [picking, setPicking] = useState<number | null>(null);
   const [harvested, setHarvested] = useState<Record<number, number>>({});
   const [selected, setSelected] = useState<number | null>(null);
+  /** 마당 꾸미기 중인가, 고른 꾸밈 자리(yard.ts). */
+  const [yardEdit, setYardEdit] = useState(false);
+  const [yardSlot, setYardSlot] = useState<number | null>(null);
+  /** 꼬마가 가 있는 밭 — 거두면 그 밭 앞으로 간다(아이소 마당). */
+  const [avatarAt, setAvatarAt] = useState<number | null>(null);
 
   const ripe = data.beds
     .map((p, i) => (p && p.ripeAt <= now ? i : -1))
@@ -63,9 +72,15 @@ export function Beds({
     if (fruit) {
       gardenFeedback("harvest");
       setHarvested((old) => ({ ...old, [i]: Date.now() }));
+      setAvatarAt(i);
       if (!fruit.mutations.length) say(`${fruitIcon(species)} 수확! 바구니에 담았어요`);
-      track("garden_harvest", { tier: species.tier, mutations: fruit.mutations.length });
+      track("garden_harvest", { tier: species.tier, mutations: fruit.mutations.length, rot: fruit.rot ?? 0 });
       if (fruit.mutations.length) say(`${fruitIcon(species)} 변이! ${fruit.mutations.length}개`);
+      if (fruit.gift) {
+        // 첫 수확 선물 — 텃밭이 방을 꾸민다는 것을 첫 수확에서 보인다(docs/garden-farm-v2.md §3).
+        track("garden_first_gift", { placed: fruit.gift.placed });
+        say(fruit.gift.placed ? "🎁 첫 수확 선물 — 물뿌리개를 내 방에 놓았어요. 방 탭에서 보세요" : "🎁 첫 수확 선물 — 물뿌리개를 보관함에 넣었어요");
+      }
       if (caresFor(species)) void tend(species, CARE.harvest);
     }
   };
@@ -93,7 +108,15 @@ export function Beds({
     <div>
       <div className="flex items-center justify-between">
         <h2 className="text-[15px] font-bold">내 텃밭</h2>
-        {ripe.length > 1 && (
+        <button
+          type="button"
+          aria-pressed={yardEdit}
+          onClick={() => { gardenFeedback("tap"); setYardEdit(!yardEdit); }}
+          className="ml-auto mr-2 rounded-full border border-[var(--g-leaf)] px-3 py-1.5 text-[12.5px] font-semibold text-[var(--g-leaf)]"
+        >
+          {yardEdit ? "✓ 다 꾸몄어요" : "🏡 마당 꾸미기"}
+        </button>
+        {!yardEdit && ripe.length > 1 && (
           <button
             type="button"
             onClick={() => ripe.forEach(onHarvest)}
@@ -105,62 +128,37 @@ export function Beds({
       </div>
 
       <div className="garden-field mt-3">
-        <GroundDetails />
-        <div className="garden-field-sign" aria-hidden="true">MY GARDEN <span>심고 · 키우고 · 수확해요</span></div>
-        <ul className="garden-plots grid grid-cols-3 gap-3">
-        {data.beds.map((p, i) => {
-          const species = p ? byId.get(p.speciesId) : undefined;
-          if (!p || !species) {
-            return (
-              <li key={i} className="relative">
-                <button
-                  type="button"
-                  onClick={() => { gardenFeedback("tap"); setPicking(i); }}
-                  className="garden-soil grid aspect-square w-full place-items-center rounded-2xl text-[13px] font-medium text-[var(--g-soil-ink)]"
-                >
-                  <span className="garden-empty-plot">
-                    <span className="block text-2xl leading-none">＋</span>
-                    씨앗 심기
-                  </span>
-                </button>
-                {harvested[i] && <span key={harvested[i]} className="garden-harvest-float" aria-hidden="true">✦ 수확!</span>}
-              </li>
-            );
-          }
-          const left = p.ripeAt - now;
-          const span = p.ripeAt - p.plantedAt;
-          const progress = Math.min(1, Math.max(0, 1 - left / span));
-          const isRipe = left <= 0;
-          return (
-            <li key={i} className="relative">
-              <button
-                type="button"
-                onClick={() => (isRipe ? onHarvest(i) : setSelected(selected === i ? null : i))}
-                aria-label={`${species.title} ${isRipe ? "수확하기" : `${formatLeft(left)} 남음`}`}
-                className={`garden-soil ${isRipe ? "garden-ripe" : ""} relative grid aspect-square w-full place-items-center overflow-hidden rounded-2xl ${
-                  selected === i ? "ring-2 ring-[var(--g-leaf)]" : ""
-                }`}
-              >
-                <span key={p.id} className={`garden-crop ${isRipe ? "garden-crop-ripe" : ""}`} style={{ width: `${65 + progress * 35}%` }}>
-                  <PlantArt species={species} progress={progress} />
-                </span>
-                <span className="absolute inset-x-1.5 bottom-1.5 truncate rounded-md bg-black/35 px-1 text-[10.5px] font-semibold text-white">
-                  {isRipe ? "수확!" : formatLeft(left)}
-                </span>
-                {!isRipe && (
-                  <span
-                    className="absolute left-0 top-0 h-1 bg-[var(--g-leaf)]"
-                    style={{ width: `${progress * 100}%` }}
-                  />
-                )}
-              </button>
-              {harvested[i] && <span key={harvested[i]} className="garden-harvest-float" aria-hidden="true">✦ 수확!</span>}
-            </li>
-          );
-        })}
-        </ul>
+        <IsoYard
+          plots={data.beds.map((p) => {
+            const species = p ? byId.get(p.speciesId) : undefined;
+            if (!p || !species) return { plant: null, progress: 0, ripe: false, left: 0 };
+            const left = p.ripeAt - now;
+            const span = p.ripeAt - p.plantedAt;
+            return { plant: p, species, progress: Math.min(1, Math.max(0, 1 - left / span)), ripe: left <= 0, left };
+          })}
+          now={now}
+          selected={selected}
+          avatar={data.room.avatar}
+          mood={data.room.mood}
+          avatarAt={avatarAt}
+          harvested={harvested}
+          yard={data.yard}
+          editing={yardEdit}
+          onSlot={(i) => { gardenFeedback("tap"); setYardSlot(i); }}
+          onPlot={(i) => {
+            const p = data.beds[i];
+            if (!p || !byId.get(p.speciesId)) { gardenFeedback("tap"); setPicking(i); return; }
+            if (p.ripeAt <= now) onHarvest(i);
+            else setSelected(selected === i ? null : i);
+          }}
+        />
         <p className="garden-field-hint">{ripe.length ? `✦ ${ripe.length}칸이 다 자랐어요! 열매를 눌러 수확하세요` : data.beds.some((bed) => bed === null) ? "빈 흙밭을 눌러 씨앗을 심어 보세요" : "쑥쑥 자라는 중 · 작물을 누르면 자세히 볼 수 있어요"}</p>
       </div>
+
+      {yardEdit && <p className="mt-2 text-[12.5px] text-smoke">점선 동그라미를 눌러 허수아비·꽃밭 같은 소품을 놓아요. 꾸밈일 뿐 작물에는 효과가 없어요.</p>}
+      {yardSlot !== null && (
+        <YardSheet slot={yardSlot} yard={normalizeYard(data.yard)} jam={data.jam} say={say} onClose={() => setYardSlot(null)} />
+      )}
 
       <RipeAlarm beds={data.beds} now={now} />
       <RainAlarm now={now} />
@@ -198,15 +196,21 @@ export function Beds({
         <SeedSheet
           seeds={seeds}
           onClose={() => setPicking(null)}
+          rot={(species) => rotationOf(data.plotLog?.[picking], species)}
+          last={data.plotLog?.[picking] ? byId.get(data.plotLog[picking]!.s) : undefined}
           onPick={(species) => {
+            const rot = rotationOf(data.plotLog?.[picking], species);
             plant(picking, species, plaza);
             gardenFeedback("plant");
-            say("🌱 씨앗을 심었어요. 쑥쑥 자라라!");
+            track("garden_plant", { tier: species.tier, rot });
+            say(rot ? `🌱 씨앗을 심었어요 · ${rotationLabel(rot)}` : "🌱 씨앗을 심었어요. 쑥쑥 자라라!");
             setPicking(null);
           }}
           empty={catalog.length === 0}
         />
       )}
+
+      <JamWorkshop data={data} byId={byId} bonus={bonus} say={say} />
 
       <section aria-labelledby="basket" className="mt-7">
         <div className="flex items-center justify-between">
@@ -233,7 +237,7 @@ export function Beds({
         </div>
         <p className="mt-1 text-[12px] text-smoke">
           열매마다 쪽지가 들어 있어요. 근거를 열면 원본 광택이 붙습니다 (오늘 {SHINE_PER_DAY - shineUsed}번 남음).
-          잼으로 졸이거나, 방에 전시하거나 — 둘 중 하나예요.
+          잼으로 졸이거나, 방에 전시하거나, 위의 잼 공방에서 분야 잼 병으로 만들어요.
         </p>
         {data.basket.length >= BASKET_WARN_AT && (
           <p role="status" className="garden-basket-warn mt-2 rounded-xl px-3 py-2 text-[12.5px] font-semibold">
@@ -263,6 +267,7 @@ export function Beds({
                       <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                         <span className="text-[11px] text-smoke">{TIER_LABEL[species.tier]}</span>
                         <MutationChips mutations={f.mutations} size="xs" />
+                        {f.rot ? <span className={`garden-rot-chip ${f.rot > 0 ? "is-up" : "is-down"}`}>{rotationLabel(f.rot)}</span> : null}
                       </div>
                     </div>
                     <div className="flex shrink-0 flex-col items-stretch gap-1.5">
@@ -368,6 +373,7 @@ function BedDetail({
           {TIER_LABEL[species.tier]}
           {species.tier === "perennial" ? ` · ${plant.harvests}번 수확함 · 다시 열립니다` : ""}
         </p>
+        {plant.rot ? <span className={`garden-rot-chip ${plant.rot > 0 ? "is-up" : "is-down"}`}>{rotationLabel(plant.rot)}</span> : null}
       </div>
     </div>
     <p className="mt-3 text-[12.5px] text-smoke">
@@ -420,19 +426,32 @@ function SeedSheet({
   onPick,
   onClose,
   empty,
+  rot,
+  last,
 }: {
   seeds: Array<{ species: Species; n: number }>;
   onPick: (species: Species) => void;
   onClose: () => void;
   empty: boolean;
+  /** 이 칸에 심으면 붙는 돌려짓기 가감(docs/garden-farm-v2.md §4). */
+  rot: (species: Species) => number;
+  /** 이 칸에서 마지막으로 거둔 품종. */
+  last?: Species;
 }) {
+  // 돌려짓기가 붙는 씨앗을 위로 — 연작은 아래로. 같으면 원래 차례.
+  const sorted = [...seeds].sort((a, b) => rot(b.species) - rot(a.species));
   return (
     <Sheet label="심을 씨앗 고르기" title="씨앗 주머니" onClose={onClose}>
+        <p className="mt-1 text-[12px] leading-relaxed text-smoke">
+          {last
+            ? `이 칸에서 지난번에 「${last.title}」${josa(last.title, "을를").slice(last.title.length)} 거뒀어요. 다른 분야를 심으면 돌려짓기 +${Math.round(ROTATION.other * 100)}%, 같은 품종을 또 심으면 연작 −${Math.round(-ROTATION.same * 100)}%예요.`
+            : `같은 칸에 다른 분야를 번갈아 심으면 잼이 +${Math.round(ROTATION.other * 100)}%, 같은 품종을 연달아 심으면 −${Math.round(-ROTATION.same * 100)}%예요.`}
+        </p>
         {seeds.length === 0 || empty ? (
           <p className="mt-4 text-[13px] text-smoke">씨앗이 없어요. 상점에서 사거나 광장 잡초에서 찾아보세요.</p>
         ) : (
           <ul className="mt-3 space-y-2">
-            {seeds.map(({ species, n }) => (
+            {sorted.map(({ species, n }) => (
               <li key={species.id}>
                 <button
                   type="button"
@@ -443,8 +462,11 @@ function SeedSheet({
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13.5px] font-semibold">{species.title}</span>
                     <span className="text-[11.5px] text-smoke">
-                      {TIER_LABEL[species.tier]} · 약 {formatLeft(growMinutes(species) * MINUTE)}
+                      {TIER_LABEL[species.tier]} · {REGION_LABEL[species.region] ?? species.region} · 약 {formatLeft(growMinutes(species) * MINUTE)}
                     </span>
+                    {rot(species) !== 0 && (
+                      <span className={`garden-rot-chip ${rot(species) > 0 ? "is-up" : "is-down"}`}>{rotationLabel(rot(species))}</span>
+                    )}
                   </span>
                   <span className="text-[13px] font-semibold text-smoke">×{n}</span>
                 </button>

@@ -115,12 +115,14 @@ export const ISO: Readonly<Record<string, IsoSpec>> = {
 };
 
 /** 전시품(rules.ts의 ShownKind)의 층과 크기. 화분은 탁자에 올릴 수 있게 small, 나무는 바닥에 선다. */
-export const SHOWN_ISO: Readonly<Record<"pot" | "tree" | "frame" | "trophy" | "souvenir", IsoSpec>> = {
+export const SHOWN_ISO: Readonly<Record<"pot" | "tree" | "frame" | "trophy" | "souvenir" | "jar", IsoSpec>> = {
   pot: small(26),
   tree: furn(1, 1, 64),
   frame: wall(1, 35),
   trophy: { ...small(30), wallOk: true },
   souvenir: { ...small(24), wallOk: true },
+  // 잼 병(잼 공방, docs/garden-farm-v2.md §5) — 책상·탁자 위에 올린다.
+  jar: small(20),
 };
 
 /** 그림 상자(px, 타일 40). 가로 (w+d)×20, 세로 (w+d)×10+h. 벽걸이는 가로 w×20, 세로 w×10+h. 기준점은 바닥의 앞 꼭짓점. */

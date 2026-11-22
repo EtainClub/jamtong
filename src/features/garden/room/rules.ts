@@ -5,7 +5,7 @@ import { bookIdOf, booksOwned, cleanMarks, LIBRARY_SETS, roomBookOf } from "./li
 
 import { DEFAULT_TRACK, isGardenTrack, type GardenTrackId } from "../musicTracks";
 import { canUseTrack, ownedMusic, purchasedTrack, type PurchasedTrackId } from "../musicTracks";
-import { hash, kstDayNumber, MUTATION_ORDER, rng } from "../rules";
+import { hash, JAR_STYLE, kstDayNumber, MUTATION_ORDER, rng } from "../rules";
 import { cleanLine, lineProblem, type LineProblem } from "../ilchon/text";
 import { isRaidKind } from "../raid/rules";
 import type { Fruit, Mutation, Species } from "../types";
@@ -26,13 +26,16 @@ import { freshKeys, KEYBOARD_ID, KEY_VER_MAX, recSlots, keysFromPublic, normaliz
  * ★ 업적 기념품(souvenir)은 업적 기념관에서 문제를 맞혀 받는다 — 잼으로 사지 않는다(docs/garden-achievement-strategy.md §3).
  */
 
-export type ShownKind = "pot" | "tree" | "frame" | "trophy" | "souvenir";
+export type ShownKind = "pot" | "tree" | "frame" | "trophy" | "souvenir" | "jar";
 
 /** 전시품. 거둔 것에서 나온다 — 상점에서 팔지 않는다. */
 export interface Shown {
   id: string;
   kind: ShownKind;
-  /** 품종 id. 박제(trophy)는 악초 종류 id(rules.ts의 RaidKindId), 기념품(souvenir)은 업적 품종 id(a:<slug>). */
+  /**
+   * 품종 id. 박제(trophy)는 악초 종류 id(rules.ts의 RaidKindId), 기념품(souvenir)은 업적 품종 id(a:<slug>),
+   * 잼 병(jar)은 분야 id(rules.ts의 REGION_ORDER — docs/garden-farm-v2.md §5).
+   */
   species?: string;
   mut?: Mutation[];
   note?: string;
@@ -495,8 +498,8 @@ export function stow(room: RoomData, index: number): RoomData {
 }
 
 /**
- * 처음 빈자리. 벽걸이는 오른쪽 벽 → 왼쪽 벽(높이 50 → 10 → 80), 바닥 것은 안쪽 꼭짓점에서 가까운 차례로,
- * 바닥이 꽉 찼으면 올려 두는 것은 받침 위로, 벽에도 거는 것(박제·기념품)은 벽으로. 없으면 null.
+ * 처음 빈자리. 벽걸이는 오른쪽 벽 → 왼쪽 벽(높이 50 → 10 → 80), 올려 두는 것은 책상·탁자 위 → 바닥,
+ * 바닥 것은 안쪽 꼭짓점에서 가까운 차례로, 벽에도 거는 것(박제·기념품)은 마지막에 벽으로. 없으면 null.
  */
 export function firstOpenSpot(room: RoomData, it: string): IsoPos | null {
   const spec = isoSpecOf(it, room.shown);
@@ -505,13 +508,7 @@ export function firstOpenSpot(room: RoomData, it: string): IsoPos | null {
   const walls = (): IsoPos[] =>
     (["R", "L"] as const).flatMap((wall) => [50, 10, 80].flatMap((z) => Array.from({ length: n * 2 + 1 }, (_, a) => ({ wall, a, z: Math.min(z, WALL_H - spec.h) }))));
   if (spec.layer === "wall") return walls().find((pos) => canPlace(room, it, pos)) ?? null;
-  for (let sum = 0; sum <= n * 4; sum++) {
-    for (let x = Math.max(0, sum - n * 2); x <= Math.min(sum, n * 2); x++) {
-      // 왼쪽 벽 쪽이면 왼쪽 벽을 등지게(facingDir).
-      const pos: IsoPos = { x, y: sum - x, dir: facingDir(spec, x, sum - x, 0) };
-      if (canPlace(room, it, pos)) return pos;
-    }
-  }
+  // 올려 두는 것은 책상·탁자 위가 먼저 — 바닥 안쪽 구석에 놓으면 큰 가구 뒤에 가려 보이지 않았다(잼 병, 2026-11-22).
   if (spec.layer === "small") {
     for (const [on, base] of room.placed.entries()) {
       const bs = isoSpecOf(base.it, room.shown);
@@ -523,6 +520,13 @@ export function firstOpenSpot(room: RoomData, it: string): IsoPos | null {
           if (canPlace(room, it, pos)) return pos;
         }
       }
+    }
+  }
+  for (let sum = 0; sum <= n * 4; sum++) {
+    for (let x = Math.max(0, sum - n * 2); x <= Math.min(sum, n * 2); x++) {
+      // 왼쪽 벽 쪽이면 왼쪽 벽을 등지게(facingDir).
+      const pos: IsoPos = { x, y: sum - x, dir: facingDir(spec, x, sum - x, 0) };
+      if (canPlace(room, it, pos)) return pos;
     }
   }
   if (spec.wallOk) return walls().find((pos) => canPlace(room, it, pos)) ?? null;
@@ -899,6 +903,14 @@ export function roomFromPublic(pub: PublicRoom, byId: ReadonlyMap<string, Specie
       // 기념품은 품종표에 있는 업적 품종만.
       if (!p.s.startsWith("a:") || !byId.has(p.s)) return;
       const shown: Shown = { id: `v:${n}`, kind: "souvenir", species: p.s };
+      const next = put({ ...room, shown: [...room.shown, shown] }, shown.id, p, n);
+      if (next) room = next;
+      return;
+    }
+    if (p.k === "jar") {
+      // 잼 병은 분야 표에 있는 분야만.
+      if (!JAR_STYLE[p.s]) return;
+      const shown: Shown = { id: `v:${n}`, kind: "jar", species: p.s, mut: (p.m ?? []).filter((m): m is Mutation => MUTATION_ORDER.includes(m as Mutation)) };
       const next = put({ ...room, shown: [...room.shown, shown] }, shown.id, p, n);
       if (next) room = next;
       return;

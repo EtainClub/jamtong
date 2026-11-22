@@ -59,8 +59,18 @@ export type AnalyticsEvent =
   | "dex_trail"
   /** 정원 첫 한 바퀴 코치의 단계에 닿았다. step, skipped(건너뛰었으면 true). 어디서 멈추는지 본다. */
   | "garden_coach"
-  /** 정원에서 열매를 거뒀다. tier, mutations(변이 수). */
+  /** 정원에서 열매를 거뒀다. tier, mutations(변이 수), rot(돌려짓기 가감 — docs/garden-farm-v2.md §4). */
   | "garden_harvest"
+  /** 씨앗을 심었다. tier, rot(이 칸의 돌려짓기 가감: 0.1 · 0 · −0.3). */
+  | "garden_plant"
+  /** 첫 수확 선물(방 소품)을 받았다. placed(방에 놓였는지). 다음에 방 탭을 여는지 본다. */
+  | "garden_first_gift"
+  /** 잼 공방에서 분야 잼 병을 만들었다. region, mutations(병에 옮겨 간 변이 수), first(처음 만든 분야). */
+  | "garden_jar"
+  /** 마당 소품을 샀다(docs/garden-farm-v2.md §6 4b). item, price. */
+  | "yard_buy"
+  /** 마당 꾸밈 자리에 소품을 놓았다. item, slot. */
+  | "yard_place"
   /** 광장 잡초를 뽑았다. stage. */
   | "plaza_pull"
   /** 시든 잎(출처 링크)이 열리는지 답했다. verdict: opens | fails | unsure. */

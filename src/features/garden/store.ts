@@ -46,6 +46,12 @@ import {
   type FinisherId,
   type ToolId,
   fruitValue,
+  FIRST_HARVEST_GIFT,
+  jarFirstSeed,
+  jarMutations,
+  jarRegion,
+  rotationOf,
+  type PlotRecord,
   LEAF_JAM,
   leafSlot,
   caseReward,
@@ -89,6 +95,7 @@ import { avatarAtOk, avatarFree, buyWear as buyWearRule, grantRewards, normalize
 import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_ILCHON, type IlchonData, type NewsEntry } from "./ilchon/rules";
 import { MOODS, type Furniture } from "./room/catalog";
 import { pickGift } from "./memorial/ox";
+import { buyYardItem, normalizeYard, setYardSlot as setYardSlotRule, type YardData, type YardRefusal } from "./yard";
 import { normalizeKeys, type RoomKey } from "./room/keyboard";
 import type { GardenTrackId } from "./musicTracks";
 import { canUseTrack } from "./musicTracks";
@@ -185,6 +192,14 @@ export interface GardenData {
   ilchon: IlchonData;
   /** 1촌 소식 — 공개 문서에 싣는 종류 번호(ilchon/rules.ts의 NewsEntry). 최근 것부터. */
   news: NewsEntry[];
+  /**
+   * 돌려짓기(docs/garden-farm-v2.md §4) — 칸마다 마지막으로 거둔 품종과 분야. 칸 순번 = beds 순번. 옛 장부에는 없다.
+   */
+  plotLog?: Array<PlotRecord | null>;
+  /** 잼 공방에서 병을 만든 분야(처음 만든 분야 병에만 씨앗 선물). 옛 장부에는 없다. */
+  jars?: string[];
+  /** 마당 꾸미기(yard.ts, docs/garden-farm-v2.md §6 4b) — 가진 소품과 자리마다 놓인 것. 옛 장부에는 없다. */
+  yard?: YardData;
   /**
    * 이 정원을 마지막으로 맞춘 계정. 없으면 아직 어느 계정과도 맞춘 적 없는
    * 이 기기만의 정원이다. updatedAt만으로 고르면 새 기기에서 갓 만든 빈 정원이
@@ -306,6 +321,11 @@ function normalize(data: GardenData): GardenData {
     room: withCase(room.grantSouvenirCase(room.grantLibrarySets(room.normalizeRoom(data.room, data.nick || String(data.updatedAt))))),
     ilchon: normalizeIlchon(data.ilchon),
     news: Array.isArray(data.news) ? data.news.slice(0, NEWS_MAX) : [],
+    plotLog: Array.isArray(data.plotLog)
+      ? data.plotLog.map((x) => (x && typeof x.s === "string" && typeof x.r === "string" ? { s: x.s, r: x.r } : null))
+      : [],
+    jars: Array.isArray(data.jars) ? data.jars.filter((r): r is string => typeof r === "string") : [],
+    yard: normalizeYard(data.yard),
   };
 }
 
@@ -408,7 +428,17 @@ interface GardenState {
    */
   link: (uid: string, remote: GardenData | null) => LinkResult;
   plant: (bed: number, species: Species, plaza: PlazaLevel) => void;
-  harvest: (bed: number, species: Species, plaza: PlazaLevel) => Fruit | null;
+  /** 거둔 열매. gift = 처음 거둬서 받은 방 소품(가구 id, docs/garden-farm-v2.md §3) — 방에 놓였으면 placed. */
+  harvest: (bed: number, species: Species, plaza: PlazaLevel) => (Fruit & { gift?: { id: string; placed: boolean } }) | null;
+  /**
+   * 잼 공방 — 같은 분야의 서로 다른 품종 열매 셋으로 분야 잼 병을 만든다(docs/garden-farm-v2.md §5).
+   * 병은 전시품이 되어 방에(빈자리가 있으면) 놓인다. 처음 만든 분야면 대표 씨앗 하나(seed). 못 만들면 null.
+   */
+  makeJar: (fruitIds: string[], catalog: Map<string, Species>) => { region: string; placed: boolean; seed: Species | null } | null;
+  /** 마당 소품을 잼으로 산다(yard.ts). 사면 true, 못 사면 그 까닭. */
+  buyYard: (id: string) => true | YardRefusal;
+  /** 마당 자리에 소품을 놓거나(id) 치운다(null). */
+  setYardSlot: (slot: number, id: string | null) => boolean;
   dig: (bed: number) => void;
   shine: (fruitId: string) => boolean;
   sell: (fruitIds: string[], catalog: Map<string, Species>, bonus: number) => number;
@@ -610,6 +640,8 @@ export const useGarden = create<GardenState>((set, get) => {
       const now = Date.now();
       const speed = PLAZA_SPEED[plaza];
       const beds = [...d.beds];
+      // 돌려짓기 — 이 칸에서 마지막으로 거둔 것과 견준다.
+      const rot = rotationOf(d.plotLog?.[bed], species);
       beds[bed] = {
         id: uid(),
         speciesId: species.id,
@@ -617,6 +649,7 @@ export const useGarden = create<GardenState>((set, get) => {
         ripeAt: ripeTime(now, growMinutes(species), speed),
         speed,
         harvests: 0,
+        ...(rot ? { rot } : {}),
       };
       commit({ ...d, beds, seeds: take(d.seeds, species.id) });
     },
@@ -634,7 +667,24 @@ export const useGarden = create<GardenState>((set, get) => {
         noteId: pickNote(fruitId, species),
         mutations: rollMutations(plant, plaza),
         harvestedAt: now,
+        ...(plant.rot ? { rot: plant.rot } : {}),
       };
+      // 이 칸의 기록 — 다음에 심을 때 돌려짓기를 본다.
+      const plotLog = [...(d.plotLog ?? [])];
+      while (plotLog.length < d.beds.length) plotLog.push(null);
+      plotLog[bed] = { s: species.id, r: species.region };
+      // 첫 수확 선물 — 도감이 비어 있으면(처음 거두는 그 한 번) 방 소품을 주고 방에 놓는다.
+      let roomNext = d.room;
+      let gift: { id: string; placed: boolean } | undefined;
+      if (Object.keys(d.dex).length === 0) {
+        const given = room.giftItem(d.room, FIRST_HARVEST_GIFT);
+        if (given) {
+          const pos = room.firstOpenSpot(given, FIRST_HARVEST_GIFT);
+          const placed = pos ? room.place(given, FIRST_HARVEST_GIFT, pos) : null;
+          roomNext = placed ?? given;
+          gift = { id: FIRST_HARVEST_GIFT, placed: Boolean(placed) };
+        }
+      }
 
       const beds = [...d.beds];
       // 다년생은 다시 연다. 나머지는 밭을 비운다.
@@ -652,13 +702,55 @@ export const useGarden = create<GardenState>((set, get) => {
       commit({
         ...d,
         beds,
+        plotLog,
+        room: roomNext,
         basket: [fruit, ...d.basket].slice(0, BASKET_MAX),
         dex: { ...d.dex, [species.id]: [...seen] },
         // 처음 거둔 품종은 1촌 소식이 된다.
         news: d.dex[species.id] ? d.news : pushNews(d.news, newsEntry("species", species.id, now)),
         notes: fruit.noteId && !d.notes.includes(fruit.noteId) ? [...d.notes, fruit.noteId] : d.notes,
       });
-      return fruit;
+      return gift ? { ...fruit, gift } : fruit;
+    },
+
+    buyYard: (id) => {
+      const d = get().data;
+      if (!d) return "unknown";
+      const out = buyYardItem(normalizeYard(d.yard), d.jam, id);
+      if (typeof out === "string") return out;
+      commit({ ...d, yard: out.yard, jam: out.jam });
+      return true;
+    },
+
+    setYardSlot: (slot, id) => {
+      const d = get().data;
+      if (!d) return false;
+      const next = setYardSlotRule(normalizeYard(d.yard), slot, id);
+      if (!next) return false;
+      commit({ ...d, yard: next });
+      return true;
+    },
+
+    makeJar: (fruitIds, catalog) => {
+      const d = get().data;
+      if (!d) return null;
+      const fruits = fruitIds.map((id) => d.basket.find((f) => f.id === id)).filter((f): f is Fruit => Boolean(f));
+      const region = fruits.length === fruitIds.length ? jarRegion(fruits, catalog) : null;
+      if (!region) return null;
+      const shown: room.Shown = { id: `j:${uid()}`, kind: "jar", species: region, mut: jarMutations(fruits) };
+      const added = room.addShown(d.room, shown);
+      if (!added) return null;
+      const made = d.jars ?? [];
+      const seed = made.includes(region) ? null : jarFirstSeed(region, [...catalog.values()], d.nick);
+      const ids = new Set(fruitIds);
+      commit({
+        ...d,
+        room: added.room,
+        basket: d.basket.filter((f) => !ids.has(f.id)),
+        jars: made.includes(region) ? made : [...made, region],
+        seeds: seed ? { ...d.seeds, [seed.id]: (d.seeds[seed.id] ?? 0) + 1 } : d.seeds,
+      });
+      return { region, placed: Boolean(added.at), seed };
     },
 
     dig: (bed) => {
