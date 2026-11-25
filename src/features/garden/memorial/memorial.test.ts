@@ -73,7 +73,29 @@ test("진행 상태는 이어진 성과 카드가 있을 때만 — 없으면 �
 
 // ── 잡초 O/X 퀴즈 ────────────────────────────────────────────────────
 
-test("O/X 퀴즈: O는 그 업적의 실제 숫자, X는 다른 업적의 실제 숫자 — 틀린 숫자를 지어내지 않는다", async () => {
+test("O/X 문항: 업적마다 O·X 둘씩, 근거 claim이 실재하고, 확인 전 claim으로 O를 만들지 않는다", async () => {
+  const { ACHIEVEMENT_OX } = await import("../../../content/quizzes/ox");
+  for (const e of entries) {
+    const items = ACHIEVEMENT_OX[e.slug];
+    assert.ok(items && items.length >= 4, `${e.slug}: 문항이 넷 이상`);
+    assert.equal(items.filter((q) => q.answer).length, items.filter((q) => !q.answer).length, `${e.slug}: O와 X가 같은 수`);
+    assert.equal(new Set(items.map((q) => q.id)).size, items.length, `${e.slug}: 문항 id가 겹치지 않는다`);
+    const a = achievements.get(e.slug)!;
+    for (const q of items) {
+      for (const id of q.claimIds) {
+        const claim = a.claims.find((c) => c.id === id);
+        assert.ok(claim, `${e.slug} ${q.id}: 없는 claim ${id}`);
+        if (q.answer) assert.ok(claim.verified, `${e.slug} ${q.id}: 확인 전 claim(${id})으로 O 문항을 만들지 않는다`);
+      }
+      // 숫자 맞히기가 아니다 — 문장의 대부분이 숫자면 안 된다.
+      assert.ok((q.statement.match(/[0-9]/g) ?? []).length <= 6, `${e.slug} ${q.id}: 숫자를 묻는 문항 같다 — ${q.statement}`);
+    }
+    assert.equal(e.ox.length, items.length, `${e.slug}: 기념관 자료에 문항이 모두 실린다`);
+  }
+  assert.deepEqual(Object.keys(ACHIEVEMENT_OX).filter((slug) => !achievements.has(slug)), [], "없는 업적의 문항이 없다");
+});
+
+test("O/X 퀴즈: 문항에서만 뽑고, 앵커가 실재하며, O·X가 고루 나온다", async () => {
   const { makeOx } = await import("./ox");
   let seed = 1;
   const rand = () => {
@@ -84,23 +106,16 @@ test("O/X 퀴즈: O는 그 업적의 실제 숫자, X는 다른 업적의 실제
   let no = 0;
   for (let i = 0; i < 400; i++) {
     const q = makeOx(entries, rand)!;
-    assert.ok(q, "업적이 넉넉하면 늘 만든다");
+    assert.ok(q, "문항이 있으면 늘 만든다");
     const e = entries.find((x) => x.slug === q.slug)!;
-    const value = /‘(.+)’/.exec(q.statement)![1];
-    const own = e.facts.map((f) => f.value);
-    if (q.answer) {
-      yes++;
-      assert.ok(own.includes(value), `${q.statement}: O인데 이 업적의 숫자가 아니다`);
-    } else {
-      no++;
-      assert.ok(!own.includes(value), `${q.statement}: X인데 이 업적의 숫자다`);
-      assert.ok(entries.some((x) => x.slug !== e.slug && x.facts[0].value === value), "X의 숫자는 다른 업적의 대표 숫자다");
-    }
+    assert.ok(e.ox.some((o) => o.statement === q.statement && o.answer === q.answer), `${q.statement}: 그 업적의 문항이다`);
+    if (q.answer) yes++;
+    else no++;
     const [slug, claimId] = q.anchor.split("#");
     assert.ok(achievements.get(slug)!.claims.some((c) => c.id === claimId), q.anchor);
   }
-  assert.ok(yes > 100 && no > 100, `O ${yes} · X ${no} — 반반쯤`);
-  assert.equal(makeOx(entries.slice(0, 1), rand), null);
+  assert.ok(yes > 120 && no > 120, `O ${yes} · X ${no} — 반반쯤`);
+  assert.equal(makeOx(entries.map((e) => ({ ...e, ox: [] })), rand), null, "문항이 없으면 내지 않는다");
 });
 
 test("선물 가구: 늘 파는 방 가구만, 같은 확률, 가진 수 상한을 넘지 않는다", async () => {

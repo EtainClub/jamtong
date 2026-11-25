@@ -506,9 +506,11 @@ export const WEED_REWARD_PER_DAY = 60;
 /**
  * 잡초 O/X 퀴즈 — 광장 잡초를 뽑으면 이 확률로 업적 O/X 퀴즈가 뜨고, 맞히면 상점 가구 하나를 받는다(memorial/ox.ts).
  * 확률과 하루 상한을 공개한다(docs/garden-game.md §1). 잼 보상이 남은 잡초(하루 WEED_REWARD_PER_DAY포기)에서만 뜬다.
+ * 2026-11-25 확률을 두 배로(0.08 → 0.16), 하루 상한은 20번으로(3 → 20). 상한은 확률이 아니라 하루에 뜰 수 있는 퀴즈 수의 끝이다.
+ * 잼 받는 잡초 60포기를 다 뽑으면 평균 9.6번 뜨므로, 20번 상한은 거의 막지 않는다.
  */
-export const WEED_QUIZ_ODDS = 0.08;
-export const WEED_QUIZ_PER_DAY = 3;
+export const WEED_QUIZ_ODDS = 0.16;
+export const WEED_QUIZ_PER_DAY = 20;
 
 /**
  * 뽑은 칸에 잡초가 다시 날 때까지(분).
