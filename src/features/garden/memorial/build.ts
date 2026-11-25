@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { getPublishedAchievements } from "@/content/achievements";
 import { ACHIEVEMENT_HEROES } from "@/content/achievements/heroes";
 import { CARTOON_MEDIA } from "@/content/cartoons";
+import { ACHIEVEMENT_OX } from "@/content/quizzes/ox";
 import { MILESTONES } from "@/content/milestones";
 import type { Achievement, AchievementCategory } from "@/content/schema";
 
@@ -184,6 +185,9 @@ export function buildMemorial(): MemorialEntry[] {
       facts,
       ...(counter ? { counter: { text: clip(counter.question, 90), href: `/achievement/${a.slug}#counterpoint` } } : {}),
       ...(cartoonOf(a) ? { cartoon: cartoonOf(a) } : {}),
+      ox: (ACHIEVEMENT_OX[a.slug] ?? [])
+        .filter((q) => q.claimIds.every((id) => a.claims.some((c) => c.id === id)))
+        .map((q) => ({ statement: q.statement, answer: q.answer, explain: q.explain, anchor: `${a.slug}#${q.claimIds[0]}` })),
       quiz: {
         question: `「${a.title}」에서 확인된 숫자는 무엇일까요?`,
         options,
