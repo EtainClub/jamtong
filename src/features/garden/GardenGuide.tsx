@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { ROOM_PITY, ROOM_SPIN_COST, SEED_PITY, SEED_SPIN_COST, SEED_TABLE, SLOT_SPINS_PER_DAY } from "./slot/rules";
 
 import { FRAME_BLANK, FURNITURE_BY_ID } from "./room/catalog";
 import { ROOM_SIZES } from "./room/rules";
@@ -298,6 +299,10 @@ export function GardenGuide({ section, onClose }: { section: string; onClose: ()
             <li>
               잡초를 뽑으면 {pct(WEED_QUIZ_ODDS)} 확률로 업적 O/X 퀴즈가 나와요(하루 {WEED_QUIZ_PER_DAY}번까지, 잼을 받는 잡초에서만). 맞히면 상점의 가구·소품·창문{" "}
               {giftPool().length}가지 가운데 하나를 같은 확률로 선물로 받아요. 퀴즈는 숫자가 아니라 업적의 내용(무엇을, 누구를 위해, 어디까지 왔는지, 누구의 주장인지)을 묻고, 풀이마다 근거가 붙어요.
+            </li>
+            <li>
+              🎰 슬롯머신 두 대 — 텃밭은 🍯{SEED_SPIN_COST}로 씨앗(희귀 씨앗 {pct(SEED_TABLE.filter((r) => r.outcome.kind === "rare").reduce((a, r) => a + r.p, 0))}, 천장 {SEED_PITY}번), 방은 🍯{ROOM_SPIN_COST}로 오늘의 진열(가구·벽지·바닥재·음원) 가운데 하나(천장 {ROOM_PITY}번).
+              각각 하루 {SLOT_SPINS_PER_DAY}번까지이고, 칸마다의 확률은 슬롯의 「확률 보기」에 있어요. 평균으로 받는 값은 내는 잼보다 적어요 — 놀이로 즐겨 주세요.
             </li>
             <li>
               광장 상태에 따라 새로 심는 작물이 빨리 자라요:{" "}

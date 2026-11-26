@@ -6,6 +6,8 @@ import { useState } from "react";
 import { track } from "@/lib/analytics";
 
 import { PlantArt } from "./GardenArt";
+import { parseRareKey, RARE_BY_ID, rareImage } from "./slot/rare";
+import { SeedSlot } from "./slot/SeedSlot";
 import { IsoYard } from "./IsoYard";
 import { YardSheet } from "./YardSheet";
 import { normalizeYard } from "./yard";
@@ -50,6 +52,7 @@ export function Beds({
 }) {
   const { plant, harvest, dig, sell, shine, feed, showFruit } = useGarden.getState();
   const [picking, setPicking] = useState<number | null>(null);
+  const [slotOpen, setSlotOpen] = useState(false);
   const [harvested, setHarvested] = useState<Record<number, number>>({});
   const [selected, setSelected] = useState<number | null>(null);
   /** 마당 꾸미기 중인가, 고른 꾸밈 자리(yard.ts). */
@@ -82,6 +85,15 @@ export function Beds({
         track("garden_first_gift", { placed: fruit.gift.placed });
         say(fruit.gift.placed ? "🎁 첫 수확 선물 — 물뿌리개를 내 방에 놓았어요. 방 탭에서 보세요" : "🎁 첫 수확 선물 — 물뿌리개를 보관함에 넣었어요");
       }
+      if (fruit.rare) {
+        const n = useGarden.getState().data?.rareDex?.length ?? 0;
+        track("rare_harvest", { kind: fruit.rare.kind, count: n });
+        say(
+          fruit.rare.done
+            ? "💎 희귀 씨앗 여섯 가지를 다 모았어요! 칭호 희귀종 수집가 ★★★ · 방 보관함에 「희귀 씨앗 유리병」"
+            : `💎 ${RARE_BY_ID.get(fruit.rare.kind)?.label ?? "희귀 씨앗"} 수확 · 희귀종 수집 ${n}/${RARE_BY_ID.size}`,
+        );
+      }
       if (caresFor(species)) void tend(species, CARE.harvest);
     }
   };
@@ -98,6 +110,14 @@ export function Beds({
   const seeds = Object.entries(data.seeds)
     .map(([id, n]) => ({ species: byId.get(id), n }))
     .filter((s): s is { species: Species; n: number } => Boolean(s.species));
+
+  const rare = Object.entries(data.rareSeeds ?? {})
+    .map(([key, n]) => {
+      const parsed = parseRareKey(key);
+      const species = parsed ? byId.get(parsed.speciesId) : undefined;
+      return parsed && species ? { key, n, species, kind: parsed.kind } : null;
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
 
   const shineUsed = data.shine.day === kstDay(now) ? data.shine.count : 0;
   const total = data.basket.reduce((sum, f) => {
@@ -117,6 +137,16 @@ export function Beds({
         >
           {yardEdit ? "✓ 다 꾸몄어요" : "🏡 마당 꾸미기"}
         </button>
+        {!yardEdit && (
+          <button
+            type="button"
+            onClick={() => { gardenFeedback("tap"); setSlotOpen(true); }}
+            aria-label="씨앗 슬롯머신"
+            className="mr-2 rounded-full border border-[var(--g-leaf)] px-3 py-1.5 text-[12.5px] font-semibold text-[var(--g-leaf)]"
+          >
+            🎰
+          </button>
+        )}
         {!yardEdit && (
           <button
             type="button"
@@ -206,6 +236,14 @@ export function Beds({
       {picking !== null && (
         <SeedSheet
           seeds={seeds}
+          rare={rare}
+          onPickRare={(key, species) => {
+            useGarden.getState().plantRare(picking, key, species, plaza);
+            gardenFeedback("plant");
+            track("garden_plant", { tier: species.tier, rare: parseRareKey(key)?.kind.id ?? "" });
+            say(`💎 ${parseRareKey(key)?.kind.label ?? "희귀 씨앗"}을 심었어요 · 「${species.title}」`);
+            setPicking(null);
+          }}
           onClose={() => setPicking(null)}
           rot={(species) => rotationOf(data.plotLog?.[picking], species)}
           last={data.plotLog?.[picking] ? byId.get(data.plotLog[picking]!.s) : undefined}
@@ -220,6 +258,8 @@ export function Beds({
           empty={catalog.length === 0}
         />
       )}
+
+      {slotOpen && <SeedSlot catalog={catalog} now={now} onClose={() => setSlotOpen(false)} say={say} />}
 
       <JamWorkshop data={data} byId={byId} bonus={bonus} say={say} />
 
@@ -385,6 +425,9 @@ function BedDetail({
           {species.tier === "perennial" ? ` · ${plant.harvests}번 수확함 · 다시 열립니다` : ""}
         </p>
         {plant.rot ? <span className={`garden-rot-chip ${plant.rot > 0 ? "is-up" : "is-down"}`}>{rotationLabel(plant.rot)}</span> : null}
+        {plant.rare && RARE_BY_ID.get(plant.rare) && (
+          <p className="mt-1 text-[12px] font-semibold">💎 {RARE_BY_ID.get(plant.rare)!.label} — {RARE_BY_ID.get(plant.rare)!.hint}</p>
+        )}
       </div>
     </div>
     <p className="mt-3 text-[12.5px] text-smoke">
@@ -439,8 +482,13 @@ function SeedSheet({
   empty,
   rot,
   last,
+  rare,
+  onPickRare,
 }: {
   seeds: Array<{ species: Species; n: number }>;
+  /** 희귀 씨앗 주머니(slot/rare.ts) — 맨 위에 둔다. */
+  rare: Array<{ key: string; n: number; species: Species; kind: { id: string; label: string; hint: string } }>;
+  onPickRare: (key: string, species: Species) => void;
   onPick: (species: Species) => void;
   onClose: () => void;
   empty: boolean;
@@ -458,7 +506,24 @@ function SeedSheet({
             ? `이 칸에서 지난번에 「${last.title}」${josa(last.title, "을를").slice(last.title.length)} 거뒀어요. 다른 분야를 심으면 돌려짓기 +${Math.round(ROTATION.other * 100)}%, 같은 품종을 또 심으면 연작 −${Math.round(-ROTATION.same * 100)}%예요.`
             : `같은 칸에 다른 분야를 번갈아 심으면 잼이 +${Math.round(ROTATION.other * 100)}%, 같은 품종을 연달아 심으면 −${Math.round(-ROTATION.same * 100)}%예요.`}
         </p>
-        {seeds.length === 0 || empty ? (
+        {rare.length > 0 && (
+          <ul className="mt-3 space-y-2" aria-label="희귀 씨앗">
+            {rare.map((r) => (
+              <li key={r.key}>
+                <button type="button" onClick={() => onPickRare(r.key, r.species)} className="garden-rare-seed flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-left">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={rareImage(r.kind.id)} alt="" width={48} height={48} className="shrink-0 rounded-xl" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13.5px] font-semibold">💎 {r.kind.label} · {r.species.title}</span>
+                    <span className="block text-[11.5px] text-smoke">{r.kind.hint}</span>
+                  </span>
+                  <span className="text-[13px] font-semibold text-smoke">×{r.n}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {(seeds.length === 0 || empty) && rare.length > 0 ? null : seeds.length === 0 || empty ? (
           <p className="mt-4 text-[13px] text-smoke">씨앗이 없어요. 상점에서 사거나 광장 잡초에서 찾아보세요.</p>
         ) : (
           <ul className="mt-3 space-y-2">

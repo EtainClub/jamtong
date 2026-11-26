@@ -44,7 +44,7 @@ export interface PublicGarden {
   golden: number;
   rainbow: number;
   /** 칭호 단계(0~3). 이름은 보는 쪽이 features/garden/rules.ts의 TITLES에서 읽는다. 옛 문서에는 없다. */
-  titles?: Partial<Record<"dex" | "storm" | "plaza" | "read" | "lib", number>>;
+  titles?: Partial<Record<"dex" | "storm" | "plaza" | "read" | "lib" | "rare", number>>;
   /** 내 방(docs/garden-miniroom.md §4.4). 옛 문서에는 없다. 안의 id는 보는 쪽이 표로 거른다. */
   room?: PublicRoom;
   /**
@@ -289,7 +289,7 @@ function toTitles(raw: unknown): PublicGarden["titles"] {
   if (!raw || typeof raw !== "object") return {};
   const t = raw as Record<string, unknown>;
   const out: NonNullable<PublicGarden["titles"]> = {};
-  for (const k of ["dex", "storm", "plaza", "read", "lib"] as const) {
+  for (const k of ["dex", "storm", "plaza", "read", "lib", "rare"] as const) {
     const v = t[k];
     if (typeof v === "number" && Number.isInteger(v) && v >= 1 && v <= 3) out[k] = v;
   }

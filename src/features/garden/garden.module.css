@@ -808,3 +808,69 @@
 .game :global(.garden-yard-item) { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: var(--g-panel); }
 .game :global(.garden-yard-thumb) { width: 48px; height: 48px; flex-shrink: 0; display: grid; place-items: center; font-size: 30px; }
 .game :global(.garden-yard-thumb img) { max-width: 48px; max-height: 48px; image-rendering: pixelated; }
+
+/*
+ * 슬롯머신(docs/garden-slots.md) — 잼병 모양 함 그림(public/garden/slot/cabinet.webp, 창은 투명) 뒤에 3×3 릴.
+ * 아담하게: 함은 폭 240px까지. 릴 움직임은 SlotMachine.tsx의 Web Animations, 나머지(레버·전구·반짝이)는 여기.
+ */
+.game :global(.garden-slot) { margin-top: 8px; }
+.game :global(.garden-slot-cabinet) { position: relative; width: min(240px, 66vw); aspect-ratio: 520 / 738; margin: 0 auto; }
+.game :global(.garden-slot-frame) { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; z-index: 2; }
+.game :global(.garden-slot-window) { position: absolute; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); overflow: hidden; border-radius: 10%; background: #fff6df; }
+.game :global(.garden-slot-reel) { position: relative; overflow: hidden; border-right: 1.5px solid rgba(140, 90, 40, .25); }
+.game :global(.garden-slot-reel:last-child) { border-right: 0; }
+.game :global(.garden-slot-strip) { display: flex; flex-direction: column; will-change: transform, filter; }
+.game :global(.garden-slot-cell) { display: flex; flex: 1; align-items: center; justify-content: center; min-height: 0; }
+.game :global(.garden-slot-cell > *) { width: 70%; height: 70%; object-fit: contain; display: flex; align-items: center; justify-content: center; font-size: clamp(18px, 6vw, 26px); }
+.game :global(.garden-slot-cell > img) { width: 92%; height: 92%; border-radius: 50%; mix-blend-mode: multiply; } /* 희귀 씨앗 그림의 크림색 네모 바탕을 둥글게 지우고 칸 색에 녹인다 */
+.game :global(.garden-slot-cell > .garden-slot-art) { width: 96%; height: 96%; }
+.game :global(.garden-slot-art svg) { width: 100%; height: 100%; }
+.game :global(.garden-slot-art.is-swatch svg) { width: 58%; height: 58%; border-radius: 4px; }
+.game :global(.garden-slot-cell.is-win > *) { animation: garden-slot-pop .55s ease-out 3; }
+.game :global(.garden-slot-payline) { position: absolute; left: 0; right: 0; top: 33.3%; height: 33.4%; background: linear-gradient(90deg, rgba(255, 214, 77, .28), rgba(255, 240, 170, .45), rgba(255, 214, 77, .28)); pointer-events: none; }
+/* 창 안쪽 그늘 — 릴이 둥근 통 안에서 도는 듯 */
+.game :global(.garden-slot-window)::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(90, 50, 20, .35), transparent 22%, transparent 78%, rgba(90, 50, 20, .35)); }
+/* 전구 — 도는 동안 깜박, 당첨이면 빠르게 */
+.game :global(.garden-slot-bulbs) { position: absolute; z-index: 3; border-radius: 14%; pointer-events: none; opacity: 0; }
+.game :global(.is-busy .garden-slot-bulbs) { opacity: 1; box-shadow: 0 0 0 2px rgba(255, 236, 150, .0), 0 0 14px 4px rgba(255, 220, 90, .55); animation: garden-slot-bulbs .45s steps(2) infinite; }
+.game :global(.is-win .garden-slot-bulbs) { opacity: 1; animation: garden-slot-bulbs .2s steps(2) 8; box-shadow: 0 0 18px 6px rgba(255, 220, 90, .8); }
+/* 레버 — 꽂힌 자리(아래 끝)를 축으로 앞으로 젖혀 내려갔다가 튕겨 올라온다 */
+.game :global(.garden-slot-lever) { position: absolute; z-index: 4; width: 9%; height: 30%; padding: 0; border: 0; background: none; transform: translate(-50%, -100%); transform-origin: 50% 100%; cursor: pointer; }
+.game :global(.garden-slot-lever img) { width: 100%; height: 100%; object-fit: contain; pointer-events: none; transform-origin: 50% 100%; }
+.game :global(.garden-slot-lever:disabled) { cursor: default; }
+.game :global(.garden-slot-lever:not(:disabled):hover img) { transform: rotate(-4deg); }
+.game :global(.garden-slot-lever img.is-pulled) { animation: garden-slot-pull .75s cubic-bezier(.4, 0, .2, 1); }
+/* 함 — 도는 동안 아주 살짝 떨리고, 당첨이면 들썩 */
+.game :global(.garden-slot-cabinet.is-busy) { animation: garden-slot-hum .12s linear infinite; }
+.game :global(.garden-slot-cabinet.is-win) { animation: garden-slot-jump .6s cubic-bezier(.3, 1.6, .5, 1); }
+.game :global(.garden-slot-sparks) { position: absolute; z-index: 5; left: 50%; top: 57%; width: 0; height: 0; pointer-events: none; }
+.game :global(.garden-slot-sparks i) { position: absolute; width: 9px; height: 9px; margin: -4.5px; border-radius: 2px; background: #ffd34d; box-shadow: 0 0 6px #fff3a8; transform: rotate(var(--a)) translateY(0) scale(.4); opacity: 0; animation: garden-slot-spark .9s ease-out forwards; }
+.game :global(.garden-slot-sparks i:nth-child(3n)) { background: #ff8fa3; }
+.game :global(.garden-slot-sparks i:nth-child(3n+1)) { background: #8bcf56; }
+.game :global(.garden-slot-controls) { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px; }
+.game :global(.garden-slot-go) { min-height: 40px; padding: 0 16px; border-radius: 999px; background: var(--d-orange); border: 1px solid #d9661a; box-shadow: 0 3px 0 #b55212; color: #fff; font-size: 13.5px; font-weight: 800; white-space: nowrap; }
+.game :global(.garden-slot-go:active:not(:disabled)) { transform: translateY(2px); box-shadow: 0 1px 0 #b55212; }
+.game :global(.garden-slot-go:disabled) { opacity: .45; }
+.game :global(.garden-slot-meta) { font-size: 11.5px; line-height: 1.35; color: var(--smoke, #6b6b6b); }
+.game :global(.garden-slot-result) { margin-top: 8px; padding: 8px 11px; border-radius: 14px; background: var(--g-panel); font-size: 13px; line-height: 1.5; animation: garden-slot-rise .35s ease-out; }
+.game :global(.garden-slot-result.is-win) { background: #fff4c2; box-shadow: 0 0 0 2px #ffd34d; }
+.game :global(.garden-slot-odds) { margin-top: 8px; padding: 6px 11px; border-radius: 14px; background: var(--g-panel); font-size: 12px; }
+.game :global(.garden-slot-odds summary) { cursor: pointer; font-weight: 700; }
+/* 퀴즈 찬스 — 꽝 아래에 붙는 한 번 더 */
+.game :global(.garden-slot-chance) { display: block; width: 100%; min-height: 40px; margin-top: 8px; border-radius: 14px; border: 1.5px dashed #e3a23a; background: #fff8e1; font-size: 13px; font-weight: 800; color: #8a4a17; }
+.game :global(.garden-slot-quiz) { margin-top: 8px; padding: 10px 12px; border-radius: 14px; background: #fff8e1; box-shadow: 0 0 0 1.5px #f0c060; animation: garden-slot-rise .3s ease-out; }
+.game :global(.garden-slot-ox) { min-height: 48px; border-radius: 14px; border: 2px solid var(--stone, #d8d2c4); background: #fff; font-size: 24px; }
+.game :global(.garden-slot-ox.is-right) { border-color: var(--g-leaf); box-shadow: 0 0 0 3px rgba(80, 160, 70, .25); }
+.game :global(.garden-slot-ox.is-wrong) { opacity: .7; }
+.game :global(.garden-rare-seed) { background: linear-gradient(90deg, #fff4c2, #f3e8ff); box-shadow: 0 0 0 1.5px #e8c35a; }
+@keyframes garden-slot-pull { 0% { transform: scaleY(1); } 32% { transform: scaleY(-.82); } 45% { transform: scaleY(-.86); } 78% { transform: scaleY(1.08); } 100% { transform: scaleY(1); } }
+@keyframes garden-slot-bulbs { 0% { filter: brightness(1); } 100% { filter: brightness(1.6); } }
+@keyframes garden-slot-hum { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(.6px); } }
+@keyframes garden-slot-jump { 0% { transform: translateY(0) scale(1); } 35% { transform: translateY(-8px) scale(1.03, .98); } 100% { transform: translateY(0) scale(1); } }
+@keyframes garden-slot-spark { 0% { opacity: 1; transform: rotate(var(--a)) translateY(0) scale(.4); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-95px) scale(1); } }
+@keyframes garden-slot-pop { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.18); } }
+@keyframes garden-slot-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .game :global(.garden-slot-cell.is-win > *), .game :global(.garden-slot-result), .game :global(.garden-slot-lever img.is-pulled),
+  .game :global(.garden-slot-cabinet.is-busy), .game :global(.garden-slot-cabinet.is-win), .game :global(.garden-slot-sparks i), .game :global(.garden-slot-bulbs) { animation: none; }
+}

@@ -319,9 +319,10 @@ export function GardenApp({
   const raids = data?.raids;
   const library = data?.library;
   const owned = data?.room.owned;
+  const rareDex = data?.rareDex;
   const levels = useMemo(
-    () => (dex && raids && library && owned ? titleLevels({ dex, raids, ...bookTitleInput(library, owned) }) : null),
-    [dex, raids, library, owned],
+    () => (dex && raids && library && owned ? titleLevels({ dex, raids, rareDex, ...bookTitleInput(library, owned) }) : null),
+    [dex, raids, library, owned, rareDex],
   );
   const seenLevels = useRef<Record<TitleId, number> | null>(null);
   useEffect(() => {

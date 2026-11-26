@@ -71,6 +71,8 @@ export interface Plant {
   fed?: number;
   /** 돌려짓기(docs/garden-farm-v2.md §4) — 심을 때 그 칸의 기록과 견줘 정한 잼 가감(−0.3 연작, +0.1 돌려짓기). 없으면 0. */
   rot?: number;
+  /** 희귀 씨앗(slot/rare.ts의 RARE_SEEDS id)으로 심었다 — 거둘 때 그 씨앗의 변이가 확정으로 붙는다. */
+  rare?: string;
 }
 
 export interface Fruit {

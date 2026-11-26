@@ -16,10 +16,10 @@ test("칭호는 도감과 받은 거대 잡초 상자에서 셈한다", () => {
     dex: { a: ["golden"], b: ["moist", "sparkle"], c: [], d: ["moist"] },
     raids: [1, 2],
   };
-  assert.deepEqual(titleCounts(d), { dex: 4, storm: 3, plaza: 2, read: 0, lib: 0 });
-  assert.deepEqual(titleLevels(d), { dex: 0, storm: 1, plaza: 1, read: 0, lib: 0 });
+  assert.deepEqual(titleCounts(d), { dex: 4, storm: 3, plaza: 2, read: 0, lib: 0, rare: 0 });
+  assert.deepEqual(titleLevels(d), { dex: 0, storm: 1, plaza: 1, read: 0, lib: 0, rare: 0 });
   // 특별한 책 — 다 읽은 책(애독가)과 가진 책(서재지기).
-  assert.deepEqual(titleLevels({ ...d, booksRead: 3, booksOwned: 7 }), { dex: 0, storm: 1, plaza: 1, read: 2, lib: 3 });
+  assert.deepEqual(titleLevels({ ...d, booksRead: 3, booksOwned: 7 }), { dex: 0, storm: 1, plaza: 1, read: 2, lib: 3, rare: 0 });
 });
 
 test("단계는 계단마다 하나씩, 셋에서 멈춘다", () => {

@@ -100,6 +100,8 @@ export const ISO: Readonly<Record<string, IsoSpec>> = {
   "gukbap-table": furn(1, 1, 18, { surface: 18 }),
   "trout-aquarium": furn(2, 1, 40),
   "voice-tv": furn(2, 1, 44),
+  gacha: furn(1, 1, 46),
+  "rare-jar": small(30),
   "voice-mic": furn(0.5, 0.5, 48),
   "speech-screen": furn(2, 1, 52),
 

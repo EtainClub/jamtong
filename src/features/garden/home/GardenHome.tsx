@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { loadGachaVisits } from "@/lib/firebase/slot";
+import { GACHA_ID } from "../slot/rules";
+import { kstDayNumber } from "../rules";
 
 import type { LineDoc } from "@/lib/firebase/ilchon";
 
 import { Dex } from "../Dex";
+import { RoomSlot } from "../slot/RoomSlot";
 import { AlbumView } from "../album/AlbumView";
 import { requestSnap } from "../album/ClipLink";
 import type { SnapClip } from "../album/snap";
@@ -93,6 +97,27 @@ export function GardenHome({
   const [mottoOpen, setMottoOpen] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState<number | null>(null);
   const [wardrobeOpen, setWardrobeOpen] = useState(false);
+  const [slotOpen, setSlotOpen] = useState(false);
+  // 뽑기 기계(docs/garden-slots.md) — 방을 열 때 오늘 돌려 보고 간 손님을 읽어 주인 몫 잼을 받는다(손님 한 명 10, 하루 50).
+  const hasGacha = data.room.placed.some((p) => p.it === GACHA_ID);
+  const hostGid = data.share.on ? data.share.id : null;
+  useEffect(() => {
+    const gid = hostGid;
+    if (!hasGacha || !gid || !uid) return;
+    let alive = true;
+    loadGachaVisits(gid, kstDayNumber(Date.now()))
+      .then((list) => {
+        if (!alive) return;
+        const got = useGarden.getState().claimGachaHost(list.filter((v) => v.uid !== uid).map((v) => v.uid));
+        if (!got) return;
+        const names = list.slice(0, 2).map((v) => v.nick).join(", ");
+        say(`🎰 ${names}${got.count > 2 ? ` 외 ${got.count - 2}명` : ""}님이 뽑기 기계를 돌려 보고 갔어요${got.jam ? ` · 잼 +${got.jam}` : ""}`);
+      })
+      .catch((e) => console.error("[gacha] 손님 표식을 읽지 못했다", e));
+    return () => {
+      alive = false;
+    };
+  }, [hasGacha, hostGid, uid, say]);
   const track = gardenTrack(data.room.bgm);
   const [opened, setOpened] = useState<Placed | null>(null);
   const mood = moodOf(data.room.mood);
@@ -203,7 +228,7 @@ export function GardenHome({
                     <button type="button" className="garden-diary-btn is-quiet" onClick={() => { gardenFeedback("tap"); setMoodOpen(true); }}>😊 기분 바꾸기</button>
                   </>
                 }
-                isItemActive={(p) => isShownId(p.it) || p.it === "piano" || p.it === SOUVENIR_CASE || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.shortcut || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
+                isItemActive={(p) => isShownId(p.it) || p.it === "piano" || p.it === SOUVENIR_CASE || p.it === GACHA_ID || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.shortcut || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
                 onItem={(p) => {
                   const s = FURNITURE_BY_ID.get(p.it)?.shortcut;
                   if (s) shortcut(s, p.kb ?? 0);
@@ -223,6 +248,9 @@ export function GardenHome({
               <span className="flex shrink-0 gap-1.5">
                 <button type="button" onClick={() => { gardenFeedback("tap"); setWardrobeOpen(true); }} className="garden-diary-btn is-quiet" aria-label={`${AVATAR_NAME} 옷 갈아입기`}>
                   👕 {AVATAR_NAME}
+                </button>
+                <button type="button" onClick={() => { gardenFeedback("tap"); setSlotOpen(true); }} className="garden-diary-btn is-quiet" aria-label="방 꾸미기 슬롯머신">
+                  🎰
                 </button>
                 <button type="button" onClick={() => { gardenFeedback("tap"); requestSnap("room"); }} className="garden-diary-btn is-quiet" aria-label="지금 내 방을 찍어 사진첩에 남기기">
                   📸 찍기
@@ -284,6 +312,7 @@ export function GardenHome({
         </>
       )}
 
+      {slotOpen && <RoomSlot now={now} onClose={() => setSlotOpen(false)} say={say} />}
       {wardrobeOpen && data.room.avatar && <Wardrobe data={data} levels={levels} onClose={() => setWardrobeOpen(false)} say={say} />}
       {mottoOpen && <MottoSheet current={data.room.motto} onClose={() => setMottoOpen(false)} say={say} />}
       {musicOpen && (
@@ -315,7 +344,7 @@ export function GardenHome({
           }}
         />
       )}
-      {opened && <RoomItemSheet room={data.room} placed={opened} byId={byId} reader={{ mode: "owner", ownerNick: data.nick, gid, uid }} onPianoSave={(song) => useGarden.getState().savePianoSong(opened.kb ?? 0, song)} onPianoNotes={(notes) => useGarden.getState().setPianoNotes(opened.kb ?? 0, notes)} onClose={() => setOpened(null)} />}
+      {opened && <RoomItemSheet room={data.room} placed={opened} byId={byId} reader={{ mode: "owner", ownerNick: data.nick, gid, uid }} say={say} onPianoSave={(song) => useGarden.getState().savePianoSong(opened.kb ?? 0, song)} onPianoNotes={(notes) => useGarden.getState().setPianoNotes(opened.kb ?? 0, notes)} onClose={() => setOpened(null)} />}
       {keyboardOpen !== null && (
         <KeyboardSheet keyboard={keyboardOpen} keys={keyboardKeys(data.room, keyboardOpen)} owner ownerUid={uid} gid={gid} uid={uid} nick={data.nick} say={say} onClose={() => setKeyboardOpen(null)} />
       )}
