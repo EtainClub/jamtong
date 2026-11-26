@@ -137,6 +137,14 @@ export type AnalyticsEvent =
   | "souvenir_quiz"
   | "souvenir_get"
   | "souvenir_tap"
+  /** 슬롯머신을 돌렸다(docs/garden-slots.md) — machine seed|room, outcome, 희귀면 rare·pity, 아이템이면 item·pity. */
+  | "slot_spin"
+  /** 슬롯 퀴즈 찬스(machine, correct), 잼 항아리를 받았다(jam), 손님이 뽑기 기계를 돌렸다, 희귀 씨앗을 거뒀다(kind, count). */
+  | "slot_chance"
+  | "slot_note"
+  | "slot_pot"
+  | "gacha_guest"
+  | "rare_harvest"
   | "album_add"
   | "album_open"
   /**

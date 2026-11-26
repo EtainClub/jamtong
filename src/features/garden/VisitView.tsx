@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GACHA_ID } from "./slot/rules";
 
 import { track } from "@/lib/analytics";
 import { firebaseConfigured } from "@/lib/firebase/client";
@@ -275,7 +276,7 @@ export function VisitView({
               now={now}
               label={`${garden.nick || "이름 없는"}의 방`}
               onAvatarTap={() => track("avatar_tap", { mine: false })}
-              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID || p.it === "piano" || p.it === SOUVENIR_CASE || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
+              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID || p.it === "piano" || p.it === SOUVENIR_CASE || p.it === GACHA_ID || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
               onItem={(p) => {
                 gardenFeedback("tap");
                 if (p.it === "piano") keyAudio();
@@ -315,6 +316,7 @@ export function VisitView({
               placed={opened}
               byId={byId}
               reader={{ mode: "guest", ownerNick: garden.nick || "이름 없는", gid: mine ? null : gid, uid }}
+              say={say}
               onClose={() => setOpened(null)}
             />
           )}

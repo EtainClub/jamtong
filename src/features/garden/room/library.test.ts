@@ -132,5 +132,5 @@ test("firestore.rules — 빌려 읽기 표식과 칭호", () => {
   assert.ok(rules.includes("match /reads/{uid}"));
   assert.ok(rules.includes("request.resource.data.keys().hasOnly(['day', 'at', 'nick', 'b'])"));
   assert.ok(rules.includes("&& !isGardenOwner(gid)"), "내 방 책은 빌려 읽을 수 없다");
-  assert.ok(rules.includes("t.keys().hasOnly(['dex', 'storm', 'plaza', 'read', 'lib'])"));
+  assert.ok(rules.includes("t.keys().hasOnly(['dex', 'storm', 'plaza', 'read', 'lib', 'rare'])"));
 });

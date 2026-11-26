@@ -244,6 +244,14 @@
     "back": "fountain",
     "front": "fountain"
   },
+  "rare-jar": {
+    "back": "rare-jar",
+    "front": "rare-jar"
+  },
+  "gacha": {
+    "back": "gacha",
+    "front": "gacha"
+  },
   "lamp-reading": {
     "back": "lamp-reading",
     "front": "lamp-reading"

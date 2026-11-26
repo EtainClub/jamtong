@@ -95,11 +95,14 @@ import { avatarAtOk, avatarFree, buyWear as buyWearRule, grantRewards, normalize
 import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_ILCHON, type IlchonData, type NewsEntry } from "./ilchon/rules";
 import { MOODS, type Furniture } from "./room/catalog";
 import { pickGift } from "./memorial/ox";
+import * as slot from "./slot/rules";
+import { parseRareKey, RARE_BY_ID, rareKey } from "./slot/rare";
+import { todaysRoomTable } from "./slot/roomPool";
 import { buyYardItem, normalizeYard, setYardSlot as setYardSlotRule, type YardData, type YardRefusal } from "./yard";
 import * as album from "./album/rules";
 import { normalizeKeys, type RoomKey } from "./room/keyboard";
 import type { GardenTrackId } from "./musicTracks";
-import { canUseTrack } from "./musicTracks";
+import { canUseTrack, ownedMusic, purchasedTrack } from "./musicTracks";
 import { lineProblem, type LineProblem } from "./ilchon/text";
 import type { Case, Fruit, Mutation, Plant, PlazaLevel, Species } from "./types";
 
@@ -199,6 +202,12 @@ export interface GardenData {
   plotLog?: Array<PlotRecord | null>;
   /** 잼 공방에서 병을 만든 분야(처음 만든 분야 병에만 씨앗 선물). 옛 장부에는 없다. */
   jars?: string[];
+  /** 슬롯머신 장부 — 오늘 돌린 수와 천장(slot/rules.ts). 옛 장부에는 없다. */
+  slots?: slot.SlotLedger;
+  /** 희귀 씨앗 주머니 — `희귀 씨앗 id|품종 id` → 개수(slot/rare.ts). 옛 장부에는 없다. */
+  rareSeeds?: Record<string, number>;
+  /** 심어 거둔 희귀 씨앗 종류 — 칭호 💎 희귀종 수집가, 여섯이면 방 소품 "희귀 씨앗 유리병". 옛 장부에는 없다. */
+  rareDex?: string[];
   /** 마당 꾸미기(yard.ts, docs/garden-farm-v2.md §6 4b) — 가진 소품과 자리마다 놓인 것. 옛 장부에는 없다. */
   yard?: YardData;
   /**
@@ -348,6 +357,11 @@ function normalize(data: GardenData): GardenData {
       ? data.plotLog.map((x) => (x && typeof x.s === "string" && typeof x.r === "string" ? { s: x.s, r: x.r } : null))
       : [],
     jars: Array.isArray(data.jars) ? data.jars.filter((r): r is string => typeof r === "string") : [],
+    slots: slot.normalizeSlots(data.slots),
+    rareDex: Array.isArray(data.rareDex) ? data.rareDex.filter((k) => RARE_BY_ID.has(k)) : [],
+    rareSeeds: Object.fromEntries(
+      Object.entries(data.rareSeeds ?? {}).filter(([k, n]) => parseRareKey(k) && typeof n === "number" && n > 0),
+    ),
     yard: normalizeYard(data.yard),
   };
 }
@@ -452,7 +466,11 @@ interface GardenState {
   link: (uid: string, remote: GardenData | null) => LinkResult;
   plant: (bed: number, species: Species, plaza: PlazaLevel) => void;
   /** 거둔 열매. gift = 처음 거둬서 받은 방 소품(가구 id, docs/garden-farm-v2.md §3) — 방에 놓였으면 placed. */
-  harvest: (bed: number, species: Species, plaza: PlazaLevel) => (Fruit & { gift?: { id: string; placed: boolean } }) | null;
+  harvest: (
+    bed: number,
+    species: Species,
+    plaza: PlazaLevel,
+  ) => (Fruit & { gift?: { id: string; placed: boolean }; rare?: { kind: string; done: boolean } }) | null;
   /**
    * 잼 공방 — 같은 분야의 서로 다른 품종 열매 셋으로 분야 잼 병을 만든다(docs/garden-farm-v2.md §5).
    * 병은 전시품이 되어 방에(빈자리가 있으면) 놓인다. 처음 만든 분야면 대표 씨앗 하나(seed). 못 만들면 null.
@@ -522,6 +540,28 @@ interface GardenState {
   setFx: (id: string | null) => void;
   /** 도구를 산다. 잼이 모자라거나 오늘 상한에 닿았으면 false. */
   buyTool: (id: ToolId) => boolean;
+  /**
+   * 텃밭 씨앗 슬롯을 한 번 돌린다(slot/rules.ts). 잼이 모자라거나 오늘 다 돌렸으면 그 까닭.
+   * 받은 것은 바로 주머니에 들어간다 — 화면은 돌려준 결과를 릴로 보일 뿐이다.
+   */
+  spinSeedSlot: (
+    catalog: Species[],
+    rand?: () => number,
+    /** paid=잼을 낸다, free=퀴즈 찬스로 받은 무료 한 번, guest=남의 방 뽑기 기계(그 방의 공개 id) — 하루 한 번 무료. */
+    mode?: "paid" | "free" | { guest: string },
+  ) => { spin: slot.SeedSpin; got: Array<{ species: Species; rare?: string }>; paid: number } | "jam" | "done" | "no-free" | "guest-done";
+  /** 미니룸 아이템 슬롯을 한 번 돌린다. 진열이 비었으면 "empty". */
+  spinRoomSlot: (rand?: () => number, mode?: "paid" | "free") => { spin: slot.RoomSpin; table: slot.RoomRow[]; paid: number } | "jam" | "done" | "empty" | "no-free";
+  /** 퀴즈 찬스를 하나 쓴다(문항을 여는 순간). 오늘 다 썼으면 false. */
+  takeSlotChance: () => boolean;
+  /** 퀴즈 찬스 문항을 맞혔다 — 그 슬롯의 무료 한 번. */
+  winSlotChance: (machine: "seed" | "room") => void;
+  /** 잼 항아리 몫을 받는다(물결마다 한 번). 받았으면 true. */
+  claimPot: (key: number, jam: number) => boolean;
+  /** 내 뽑기 기계를 돌려 본 손님(uid)에게서 주인 몫 잼을 받는다. 받은 잼과 처음 본 손님 수. */
+  claimGachaHost: (visitors: string[]) => { jam: number; count: number } | null;
+  /** 희귀 씨앗을 심는다(주머니 열쇠 key = `희귀 씨앗|품종`). */
+  plantRare: (bed: number, key: string, species: Species, plaza: PlazaLevel) => void;
   /** 필살기를 산다. 잼이 모자라거나 오늘 상한에 닿았으면 false. */
   buyFinisher: (id: FinisherId) => boolean;
   /** 필살기 하나를 꺼낸다(쓰기 직전). 없으면 false. 보내지 못했으면 refundFinisher로 되돌린다. */
@@ -743,8 +783,15 @@ export const useGarden = create<GardenState>((set, get) => {
       // 내 정원의 순간 — 사진첩에 담을 수 있게 기억해 둔다(album/rules.ts).
       if (!d.dex[species.id]) next = withMoment(next, { t: "species", s: species.id, v: Object.keys(next.dex).length, at: now });
       for (const m of ["golden", "rainbow"] as const) if (fruit.mutations.includes(m)) next = withMoment(next, { t: m, s: species.id, at: now });
+      // 희귀 씨앗 컬렉션(slot/rules.ts) — 처음 거둔 종류를 적고, 여섯을 다 모으면 방 소품 "희귀 씨앗 유리병".
+      let rareDone = false;
+      if (plant.rare && RARE_BY_ID.has(plant.rare) && !(d.rareDex ?? []).includes(plant.rare)) {
+        const rareDex = [...(d.rareDex ?? []), plant.rare];
+        rareDone = rareDex.length === RARE_BY_ID.size;
+        next = { ...next, rareDex, ...(rareDone ? { room: room.grantItem(next.room, slot.RARE_JAR_ID) } : {}) };
+      }
       commit(next);
-      return gift ? { ...fruit, gift } : fruit;
+      return { ...fruit, ...(gift ? { gift } : {}), ...(plant.rare ? { rare: { kind: plant.rare, done: rareDone } } : {}) };
     },
 
     buyYard: (id) => {
@@ -1161,6 +1208,157 @@ export const useGarden = create<GardenState>((set, get) => {
       const d = get().data;
       if (!d || d.loot.fx === id || (id !== null && !(d.room.owned[id] ?? 0))) return;
       commit({ ...d, loot: { ...d.loot, fx: id } });
+    },
+
+    spinSeedSlot: (catalog, rand = Math.random, mode = "paid") => {
+      const d = get().data;
+      if (!d) return "done";
+      const now = Date.now();
+      const today = kstDay(now);
+      const ledger = slot.ofToday(slot.normalizeSlots(d.slots), today);
+      if (mode === "paid") {
+        if (slot.spinsLeft(ledger, "seed", today) <= 0) return "done";
+        if (d.jam < slot.SEED_SPIN_COST) return "jam";
+      } else if (mode === "free") {
+        if (ledger.freeSeed <= 0) return "no-free";
+      } else if (slot.guestCanSpin(ledger, mode.guest, today) !== "ok") return "guest-done";
+      const spin = slot.spinSeed(ledger.seedPity, rand);
+      const of = (tier: Species["tier"]) => {
+        const list = catalog.filter((x) => x.tier === tier);
+        return list.length ? list[Math.floor(rand() * list.length)] : undefined;
+      };
+      const got: Array<{ species: Species; rare?: string }> = [];
+      let seeds = d.seeds;
+      let rare = { ...(d.rareSeeds ?? {}) };
+      const o = spin.outcome;
+      if (o.kind === "rare") {
+        const species = of(RARE_BY_ID.get(o.rare)!.tier);
+        if (species) {
+          const key = rareKey(o.rare, species.id);
+          rare = { ...rare, [key]: (rare[key] ?? 0) + 1 };
+          got.push({ species, rare: o.rare });
+        }
+      } else if (o.kind === "triple" || o.kind === "pair") {
+        const tier = o.kind === "pair" ? "sprout" : o.tier;
+        for (let i = 0; i < o.n; i++) {
+          const species = of(tier);
+          if (!species) continue;
+          seeds = give(seeds, species.id);
+          got.push({ species });
+        }
+      }
+      const paid = mode === "paid" ? slot.SEED_SPIN_COST : 0;
+      const counted =
+        mode === "paid"
+          ? { seed: ledger.seed + 1 }
+          : mode === "free"
+            ? { freeSeed: ledger.freeSeed - 1 }
+            : { guestRooms: [...ledger.guestRooms, mode.guest] };
+      commit({
+        ...d,
+        jam: d.jam - paid,
+        seeds,
+        rareSeeds: rare,
+        slots: { ...ledger, ...counted, seedPity: slot.nextSeedPity(ledger.seedPity, spin) },
+      });
+      return { spin, got, paid };
+    },
+
+    spinRoomSlot: (rand = Math.random, mode = "paid") => {
+      const d = get().data;
+      if (!d) return "done";
+      const now = Date.now();
+      const today = kstDay(now);
+      const ledger = slot.ofToday(slot.normalizeSlots(d.slots), today);
+      const table = todaysRoomTable(d.room, now);
+      if (table.length === 0) return "empty";
+      if (mode === "free") {
+        if (ledger.freeRoom <= 0) return "no-free";
+      } else {
+        if (slot.spinsLeft(ledger, "room", today) <= 0) return "done";
+        if (d.jam < slot.ROOM_SPIN_COST) return "jam";
+      }
+      const spin = slot.spinRoom(table, ledger.roomPity, rand);
+      let nextRoom = d.room;
+      const prize = spin.prize;
+      if (prize?.kind === "music") {
+        const t = purchasedTrack(prize.id);
+        if (t) nextRoom = { ...nextRoom, music: [...ownedMusic(nextRoom.music), t.id] };
+      }
+      else if (prize) nextRoom = room.giftItem(nextRoom, prize.id) ?? nextRoom;
+      const paid = mode === "paid" ? slot.ROOM_SPIN_COST : 0;
+      commit({
+        ...d,
+        jam: d.jam - paid,
+        room: nextRoom,
+        slots: {
+          ...ledger,
+          ...(mode === "paid" ? { room: ledger.room + 1 } : { freeRoom: ledger.freeRoom - 1 }),
+          roomPity: slot.nextRoomPity(ledger.roomPity, spin),
+        },
+      });
+      return { spin, table, paid };
+    },
+
+    takeSlotChance: () => {
+      const d = get().data;
+      if (!d) return false;
+      const today = kstDay(Date.now());
+      const ledger = slot.ofToday(slot.normalizeSlots(d.slots), today);
+      if (ledger.chance >= slot.SLOT_CHANCES_PER_DAY) return false;
+      commit({ ...d, slots: { ...ledger, chance: ledger.chance + 1 } });
+      return true;
+    },
+
+    winSlotChance: (machine) => {
+      const d = get().data;
+      if (!d) return;
+      const ledger = slot.normalizeSlots(d.slots);
+      const key = machine === "seed" ? "freeSeed" : "freeRoom";
+      commit({ ...d, slots: { ...ledger, [key]: Math.min(slot.SLOT_CHANCES_PER_DAY, ledger[key] + 1) } });
+    },
+
+    claimPot: (key, jam) => {
+      const d = get().data;
+      if (!d) return false;
+      const ledger = slot.normalizeSlots(d.slots);
+      if (ledger.pots.includes(key)) return false;
+      commit({ ...d, jam: d.jam + Math.max(0, Math.min(slot.POT_SHARE_MAX, Math.floor(jam))), slots: { ...ledger, pots: [...ledger.pots, key].slice(-60) } });
+      return true;
+    },
+
+    claimGachaHost: (visitors) => {
+      const d = get().data;
+      if (!d) return null;
+      const got = slot.hostJam(slot.normalizeSlots(d.slots), visitors, kstDay(Date.now()));
+      if (!got) return null;
+      commit({ ...d, jam: d.jam + got.jam, slots: got.ledger });
+      return { jam: got.jam, count: got.fresh.length };
+    },
+
+    plantRare: (bed, key, species, plaza) => {
+      const d = get().data;
+      const parsed = parseRareKey(key);
+      if (!d || d.beds[bed] || !parsed || parsed.speciesId !== species.id || !(d.rareSeeds?.[key] ?? 0)) return;
+      const now = Date.now();
+      const speed = PLAZA_SPEED[plaza];
+      const beds = [...d.beds];
+      const rot = rotationOf(d.plotLog?.[bed], species);
+      beds[bed] = {
+        id: uid(),
+        speciesId: species.id,
+        plantedAt: now,
+        ripeAt: ripeTime(now, growMinutes(species) * parsed.kind.grow, speed),
+        speed,
+        harvests: 0,
+        rare: parsed.kind.id,
+        ...(rot ? { rot } : {}),
+      };
+      const left = (d.rareSeeds?.[key] ?? 0) - 1;
+      const rareSeeds = { ...d.rareSeeds };
+      if (left > 0) rareSeeds[key] = left;
+      else delete rareSeeds[key];
+      commit({ ...d, beds, rareSeeds });
     },
 
     buyTool: (id) => {

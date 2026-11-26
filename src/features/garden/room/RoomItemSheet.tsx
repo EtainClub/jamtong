@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { SeedSlot } from "../slot/SeedSlot";
+import { RoomSlot } from "../slot/RoomSlot";
+import { GACHA_ID } from "../slot/rules";
 import { useEffect, useState } from "react";
 
 import { track } from "@/lib/analytics";
@@ -41,6 +44,7 @@ export function RoomItemSheet({
   onPianoNotes,
   onPianoSave,
   reader,
+  say = () => {},
 }: {
   room: RoomData;
   placed: Placed;
@@ -50,7 +54,11 @@ export function RoomItemSheet({
   onPianoSave?: (song: PianoEvent[]) => boolean;
   /** 특별한 책의 독서대(BookSheet)에 넘길 것. 없으면 예전처럼 요약 링크만. */
   reader?: { mode: "owner" | "guest"; ownerNick: string; gid: string | null; uid: string | null };
+  /** 알림(토스트). 뽑기 기계의 당첨 소식에 쓴다. */
+  say?: (text: string) => void;
 }) {
+  // 시트를 연 때 — 뽑기 기계가 오늘 날짜를 셈한다(렌더마다 시계를 읽지 않게).
+  const [openedAt] = useState(() => Date.now());
   const shown = room.shown.find((s) => s.id === placed.it);
   const species = shown?.species ? byId.get(shown.species) : undefined;
   const note = shown?.kind === "frame" ? species?.notes.find((n) => n.id === shown.note) : undefined;
@@ -65,6 +73,20 @@ export function RoomItemSheet({
   const book = roomBookOf(placed.it);
   if (book && reader) {
     return <BookSheet book={book} room={room} mode={reader.mode} ownerNick={reader.ownerNick} gid={reader.gid} uid={reader.uid} catalog={[...byId.values()]} onClose={onClose} />;
+  }
+  // 뽑기 기계(docs/garden-slots.md) — 주인은 방 꾸미기 슬롯, 손님은 하루 한 번 무료 씨앗 슬롯(받은 씨앗은 손님 주머니에).
+  if (placed.it === GACHA_ID) {
+    if (reader?.mode === "guest") {
+      if (!reader.gid || !reader.uid) {
+        return (
+          <Sheet label="뽑기 기계" title="🎰 뽑기 기계" onClose={onClose}>
+            <p className="mt-3 text-[13px]">정원을 연 뒤에 돌려 볼 수 있어요.</p>
+          </Sheet>
+        );
+      }
+      return <SeedSlot catalog={[...byId.values()]} now={openedAt} onClose={onClose} say={say} guest={{ gid: reader.gid, ownerNick: reader.ownerNick }} />;
+    }
+    return <RoomSlot now={openedAt} onClose={onClose} say={say} />;
   }
   if (placed.it === SOUVENIR_CASE) {
     return <CaseSheet ids={souvenirIds(room)} guest={reader?.mode === "guest"} ownerNick={reader?.ownerNick} onClose={onClose} />;

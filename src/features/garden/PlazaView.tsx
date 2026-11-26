@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { loadPot } from "@/lib/firebase/slot";
+import { normalizeSlots, potReward } from "./slot/rules";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { track } from "@/lib/analytics";
@@ -623,6 +625,7 @@ function RaidRewardCard({
           </div>
         )}
         {part && claimed && <p className="mt-1.5 text-[12px] font-semibold">보상을 받았어요.</p>}
+        {part && r.phase === "defeated" && <RaidPot id={r.id} raidKey={key} fighters={r.fighters} say={say} />}
         {!part && <p className="mt-1.5 text-[12px]">이번에는 함께하지 못했어요.</p>}
         {footer}
       </section>
@@ -840,5 +843,51 @@ function RaidCall({
     >
       {copied ? "링크를 복사했어요" : "📣 같이 잡자 — 친구 부르기"}
     </button>
+  );
+}
+
+/**
+ * 광장 잼 항아리(docs/garden-slots.md) — 슬롯머신에 낸 잼의 5%가 물결마다 모인다. 그 물결을 쓰러뜨렸으면
+ * 함께한 사람이 나눈다: 모인 잼 ÷ 함께한 사람 수(한 사람 POT_SHARE_MAX까지). 물결마다 한 번 받는다.
+ */
+function RaidPot({ id, raidKey: key, fighters, say }: { id: string; raidKey: number; fighters: number; say: (text: string) => void }) {
+  const [sum, setSum] = useState<number | null>(null);
+  const taken = useGarden((st) => normalizeSlots(st.data?.slots).pots.includes(key));
+  useEffect(() => {
+    let alive = true;
+    loadPot(id)
+      .then((n) => alive && setSum(n))
+      .catch((e) => {
+        console.error("[plaza] 잼 항아리를 읽지 못했다", e);
+        if (alive) setSum(0);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+  if (!sum) return null;
+  const share = potReward(sum, fighters);
+  return (
+    <div className="mt-2 rounded-xl bg-white/60 px-3 py-2 text-[12px]">
+      <p className="font-semibold">🍯 광장 잼 항아리 — 모인 잼 {sum.toLocaleString()} · 함께한 {fighters.toLocaleString()}명</p>
+      {taken ? (
+        <p className="mt-0.5">항아리 몫을 받았어요.</p>
+      ) : share > 0 ? (
+        <button
+          type="button"
+          className="mt-1.5 min-h-[40px] rounded-full bg-[var(--g-jam)] px-4 py-1.5 text-[13px] font-semibold text-white"
+          onClick={() => {
+            if (!useGarden.getState().claimPot(key, share)) return;
+            gardenFeedback("reward");
+            track("slot_pot", { jam: share });
+            say(`🍯 잼 항아리 몫 +${share}`);
+          }}
+        >
+          🍯 내 몫 {share} 받기
+        </button>
+      ) : (
+        <p className="mt-0.5">함께한 사람이 많아 이번 몫은 1잼이 안 돼요.</p>
+      )}
+    </div>
   );
 }

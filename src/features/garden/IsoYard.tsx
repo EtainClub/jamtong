@@ -296,6 +296,7 @@ export function IsoYard({
           <span className="garden-yard-tag">
             {/* 밭마다 글자를 달면 열두 칸이 글자로 덮인다 — 짧은 표시만. 뜻은 단추 이름과 아래 안내 줄에 있다. */}
             {!plot.plant || !plot.species ? "＋" : plot.ripe ? "✦" : formatLeft(plot.left)}
+            {plot.plant?.rare && <span aria-label="희귀 씨앗"> 💎</span>}
           </span>
           {harvested[i] && <span key={harvested[i]} className="garden-harvest-float" aria-hidden="true">✦ 수확!</span>}
         </button>

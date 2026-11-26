@@ -1,4 +1,5 @@
 import type { Fruit, Mutation, Plant, PlazaLevel, Species, Tier } from "./types";
+import { RARE_BY_ID } from "./slot/rare";
 
 /**
  * 정원의 규칙 — 순수 함수만 둔다. 설계는 docs/garden-game.md §3.
@@ -278,6 +279,8 @@ export function rollMutations(plant: Plant, plaza: PlazaLevel): Mutation[] {
   // 새 굴림은 맨 뒤에 붙인다. 앞에 끼우면 이미 심은 포기의 황금·촉촉·축복이 바뀐다.
   const sparkle = roll() < 0.05;
   if (sparkle && overlapsMeteor(plant.plantedAt, plant.ripeAt)) out.push("sparkle");
+  // 희귀 씨앗(slot/rare.ts) — 굴림과 관계없이 정해진 변이가 붙는다. 굴림 뒤에 더해 다른 포기의 결과는 그대로다.
+  for (const m of (plant.rare && RARE_BY_ID.get(plant.rare)?.mutations) || []) if (!out.includes(m)) out.push(m);
   return withRainbow(out);
 }
 
@@ -1451,9 +1454,9 @@ export function canAcceptInvite(
  * ★ 공개 정원에는 단계 숫자만 싣는다. 이름은 보는 쪽이 이 표에서 읽는다 — 사람이 지은 글이 아니다.
  * ★ 꽃밭의 "정원지기"(업적마다 가장 많이 가꾼 사람)와 겹치지 않게, 광장 칭호는 잡초 사냥꾼이다.
  */
-export type TitleId = "dex" | "storm" | "plaza" | "read" | "lib";
+export type TitleId = "dex" | "storm" | "plaza" | "read" | "lib" | "rare";
 
-export const TITLE_ORDER: TitleId[] = ["dex", "storm", "plaza", "read", "lib"];
+export const TITLE_ORDER: TitleId[] = ["dex", "storm", "plaza", "read", "lib", "rare"];
 
 export const TITLES: Record<TitleId, { icon: string; name: string; what: string; unit: string; steps: [number, number, number] }> = {
   dex: { icon: "📖", name: "품종학자", what: "도감에 모은 품종", unit: "종", steps: [10, 40, 100] },
@@ -1462,6 +1465,8 @@ export const TITLES: Record<TitleId, { icon: string; name: string; what: string;
   // 특별한 책(room/library.ts). 애독가 = 모든 장에 완독 도장을 찍은 책, 서재지기 = 가진 책.
   read: { icon: "🔖", name: "애독가", what: "완독 도장을 다 찍은 특별한 책", unit: "권", steps: [1, 3, 7] },
   lib: { icon: "📚", name: "서재지기", what: "모은 특별한 책", unit: "권", steps: [3, 5, 7] },
+  // 슬롯머신의 희귀 씨앗(slot/rare.ts) — 심어 거둔 종류. 여섯을 다 모으면 ★★★와 방 소품 "희귀 씨앗 유리병".
+  rare: { icon: "💎", name: "희귀종 수집가", what: "심어 거둔 희귀 씨앗 종류", unit: "종", steps: [2, 4, 6] },
 };
 
 export const TITLE_MAX = 3;
@@ -1470,7 +1475,14 @@ export const TITLE_MAX = 3;
  * 칭호마다 센 값. 도감(품종 → 본 변이), 받은 거대 잡초 상자, 특별한 책(다 읽은 책·가진 책)에서 나온다.
  * 책의 두 수는 부르는 쪽이 room/library.ts로 셈해 넘긴다(이 파일이 방 모듈을 끌어오지 않게).
  */
-export function titleCounts(d: { dex: Record<string, readonly string[]>; raids: readonly number[]; booksRead?: number; booksOwned?: number }): Record<TitleId, number> {
+export function titleCounts(d: {
+  dex: Record<string, readonly string[]>;
+  raids: readonly number[];
+  booksRead?: number;
+  booksOwned?: number;
+  /** 거둔 희귀 씨앗 종류(GardenData.rareDex). */
+  rareDex?: readonly string[];
+}): Record<TitleId, number> {
   const seen = Object.values(d.dex);
   return {
     dex: seen.length,
@@ -1478,6 +1490,7 @@ export function titleCounts(d: { dex: Record<string, readonly string[]>; raids: 
     plaza: d.raids.length,
     read: d.booksRead ?? 0,
     lib: d.booksOwned ?? 0,
+    rare: d.rareDex?.length ?? 0,
   };
 }
 
@@ -1488,7 +1501,7 @@ export function titleLevel(id: TitleId, count: number): number {
 
 export function titleLevels(d: Parameters<typeof titleCounts>[0]): Record<TitleId, number> {
   const c = titleCounts(d);
-  return { dex: titleLevel("dex", c.dex), storm: titleLevel("storm", c.storm), plaza: titleLevel("plaza", c.plaza), read: titleLevel("read", c.read), lib: titleLevel("lib", c.lib) };
+  return Object.fromEntries(TITLE_ORDER.map((id) => [id, titleLevel(id, c[id])])) as Record<TitleId, number>;
 }
 
 /** 다음 단계까지 남은 수. 다 올랐으면 null. */
