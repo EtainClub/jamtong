@@ -1,4 +1,5 @@
 import { BOOK_FURNITURE } from "./books";
+import { CARTEL_FURNITURE } from "./cartels";
 import { LIGHTSTICK_FURNITURE } from "./lightsticks";
 
 /**
@@ -125,6 +126,8 @@ export const ISO: Readonly<Record<string, IsoSpec>> = {
 
   // ── 특별한 책 — 금빛 독서대째로 바닥에 선다
   ...Object.fromEntries(BOOK_FURNITURE.map((f) => [f.id, furn(0.5, 0.5, 40)])),
+  // 카르텔 카드 — 받침대에 세운 카드. 책상·선반 위에 올리거나 벽에 건다(박제·기념품과 같다).
+  ...Object.fromEntries(CARTEL_FURNITURE.map((f) => [f.id, { ...small(30), wallOk: true }])),
 };
 
 /** 전시품(rules.ts의 ShownKind)의 층과 크기. 화분은 탁자에 올릴 수 있게 small, 나무는 바닥에 선다. */

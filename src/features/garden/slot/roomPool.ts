@@ -3,7 +3,8 @@ import { hash, kstDay, rng } from "../rules";
 import { FURNITURE } from "../room/catalog";
 import { roomBookOf } from "../room/library";
 import { OWN_MAX, type RoomData } from "../room/rules";
-import { roomLineup, roomTable, type RoomPrize, type RoomRow } from "./rules";
+import { missingCartelCards } from "../room/cartels";
+import { roomLineup, roomTable, withCartelRow, type RoomPrize, type RoomRow } from "./rules";
 
 /** 슬롯에 오르는 가구의 값 상한 — 특별한 책(100,000잼) 같은 큰 것은 상점에서만. */
 export const ROOM_PRIZE_PRICE_MAX = 3000;
@@ -28,7 +29,7 @@ export function roomPool(room: RoomData): RoomPrize[] {
   return out;
 }
 
-/** 오늘의 진열과 확률표. 같은 날 같은 방이면 같은 진열이다(받은 것이 빠지면 바뀐다). */
+/** 오늘의 진열과 확률표, 그리고 아직 다 모으지 않았으면 카르텔 카드 칸. 같은 날 같은 방이면 같은 진열이다(받은 것이 빠지면 바뀐다). */
 export function todaysRoomTable(room: RoomData, t: number): RoomRow[] {
-  return roomTable(roomLineup(roomPool(room), rng(hash(`room-slot:${kstDay(t)}`))));
+  return withCartelRow(roomTable(roomLineup(roomPool(room), rng(hash(`room-slot:${kstDay(t)}`)))), missingCartelCards(room.owned).length);
 }

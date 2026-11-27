@@ -19,6 +19,7 @@ import { RoomLineList } from "./ilchon/RoomLines";
 import { canSign, KNOCK_REFUSAL_TEXT, knockRefusal, tagLabel, WATER_CUT_ILCHON } from "./ilchon/rules";
 import { TitleChips } from "./parts";
 import { FURNITURE_BY_ID, moodOf } from "./room/catalog";
+import { cartelOf } from "./room/cartels";
 import { KeyboardSheet } from "./room/KeyboardSheet";
 import { blankKeys, KEYBOARD_ID } from "./room/keyboard";
 import { RoomItemSheet } from "./room/RoomItemSheet";
@@ -279,7 +280,7 @@ export function VisitView({
               now={now}
               label={`${garden.nick || "이름 없는"}의 방`}
               onAvatarTap={() => track("avatar_tap", { mine: false })}
-              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID || p.it === "piano" || p.it === SOUVENIR_CASE || p.it === GACHA_ID || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
+              isItemActive={(p) => isShownId(p.it) || p.it === KEYBOARD_ID || p.it === "piano" || p.it === SOUVENIR_CASE || p.it === GACHA_ID || Boolean(cartelOf(p.it) || activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
               onItem={(p) => {
                 gardenFeedback("tap");
                 if (p.it === "piano") keyAudio();

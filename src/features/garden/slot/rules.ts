@@ -245,10 +245,10 @@ export const ROOM_WIN_MAX = 0.35;
 export const ROOM_EV_MAX = 0.9;
 export const ROOM_REELS = 6;
 
-/** 진열 후보 하나 — 상점의 가구·벽지·바닥재 또는 음원. */
+/** 진열 후보 하나 — 상점의 가구·벽지·바닥재 또는 음원. cartel은 진열 밖의 「카르텔 카드」 칸(CARTEL_ROW). */
 export interface RoomPrize {
   id: string;
-  kind: "furniture" | "wallpaper" | "flooring" | "music";
+  kind: "furniture" | "wallpaper" | "flooring" | "music" | "cartel";
   label: string;
   price: number;
 }
@@ -296,6 +296,19 @@ export function roomTable(lineup: readonly RoomPrize[]): RoomRow[] {
   return lineup.map((x, i) => ({ ...x, p: (w * inv[i]) / sum }));
 }
 
+/**
+ * 카르텔 카드 칸 — 진열 여섯 옆에 따로 붙는 일곱째 칸. 상점에서 팔지 않는 카르텔 카드(room/cartels.ts)가 이 칸으로만 나온다.
+ * 아직 없는 카드 가운데 하나를 고르게 준다(부르는 쪽이 고른다). 다 모으면 칸이 없다.
+ * 확률은 진열과 따로 CARTEL_P — 진열의 당첨 합(ROOM_WIN_MAX)·기대값(상점 값이 없어 0으로 친다)과 섞지 않는다. 천장은 진열에서만 준다.
+ */
+export const CARTEL_ROW_ID = "cartel";
+export const CARTEL_P = 0.02;
+
+export function withCartelRow(table: readonly RoomRow[], missing: number): RoomRow[] {
+  if (table.length === 0 || missing <= 0) return [...table];
+  return [...table, { id: CARTEL_ROW_ID, kind: "cartel", label: "카르텔 카드", price: 0, p: CARTEL_P }];
+}
+
 export function roomEv(table: readonly RoomRow[]): number {
   return table.reduce((s, r) => s + r.p * r.price, 0);
 }
@@ -310,8 +323,10 @@ export interface RoomSpin {
 export function spinRoom(table: readonly RoomRow[], pity: number, rand: () => number): RoomSpin {
   if (table.length === 0) return { prize: null, reels: [0, 0, 0], pity: false };
   if (pity + 1 >= ROOM_PITY) {
-    const total = table.reduce((s, r) => s + r.p, 0);
-    const row = draw(table.map((r) => ({ ...r, p: r.p / total })), rand) ?? table[0];
+    // 천장은 진열 하나(카르텔 카드 칸은 빼고).
+    const shelf = table.filter((r) => r.kind !== "cartel");
+    const total = shelf.reduce((s, r) => s + r.p, 0);
+    const row = draw(shelf.map((r) => ({ ...r, p: r.p / total })), rand) ?? shelf[0];
     const at = table.indexOf(table.find((r) => r.id === row.id)!);
     const { p: _p, ...prize } = row;
     void _p;

@@ -18,6 +18,7 @@ import { canUseTrack } from "../musicTracks";
 import { SEGMENTS, type NewsItem, type Place, type Segment } from "../nav";
 import { TitleChips } from "../parts";
 import { FURNITURE_BY_ID, moodOf, type Shortcut } from "../room/catalog";
+import { cartelOf } from "../room/cartels";
 import { KeyboardSheet } from "../room/KeyboardSheet";
 import { RoomEditor } from "../room/RoomEditor";
 import { RoomItemSheet } from "../room/RoomItemSheet";
@@ -228,7 +229,7 @@ export function GardenHome({
                     <button type="button" className="garden-diary-btn is-quiet" onClick={() => { gardenFeedback("tap"); setMoodOpen(true); }}>😊 기분 바꾸기</button>
                   </>
                 }
-                isItemActive={(p) => isShownId(p.it) || p.it === "piano" || p.it === SOUVENIR_CASE || p.it === GACHA_ID || Boolean(activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.shortcut || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
+                isItemActive={(p) => isShownId(p.it) || p.it === "piano" || p.it === SOUVENIR_CASE || p.it === GACHA_ID || Boolean(cartelOf(p.it) || activityOf(p.it) || FURNITURE_BY_ID.get(p.it)?.shortcut || FURNITURE_BY_ID.get(p.it)?.story || FURNITURE_BY_ID.get(p.it)?.reading)}
                 onItem={(p) => {
                   const s = FURNITURE_BY_ID.get(p.it)?.shortcut;
                   if (s) shortcut(s, p.kb ?? 0);
