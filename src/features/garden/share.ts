@@ -47,6 +47,11 @@ export function gardenLink(id: string): string {
   return `${window.location.origin}/g/${id}`;
 }
 
+/** 사진첩 사진 한 장의 링크. /g/<id>/p/<사진>은 그 사진의 미리보기를 보여 주고 사람을 그 방의 그 사진으로 보낸다. */
+export function photoLink(id: string, photoId: string): string {
+  return `${window.location.origin}/g/${id}/p/${photoId}`;
+}
+
 /**
  * 정원 링크를 건넨다. 공유 시트가 있으면 그것을, 없으면 클립보드를 쓴다.
  * shared=시트로 보냈거나 사람이 시트를 닫았다, copied=복사했다, failed=둘 다 못 했다.
@@ -55,8 +60,8 @@ export async function sendGardenLink(
   url: string,
   title: string,
   text: string,
-  /** 어디서 보냈는지. raid=거대 잡초 "같이 잡자", book=특별한 책의 장 카드. 보낸 횟수에는 아무 보상도 없다(§1). */
-  from: "garden" | "raid" | "book" = "garden",
+  /** 어디서 보냈는지. raid=거대 잡초 "같이 잡자", book=특별한 책의 장 카드, photo=사진첩 사진 한 장. 보낸 횟수에는 아무 보상도 없다(§1). */
+  from: "garden" | "raid" | "book" | "photo" = "garden",
 ): Promise<"shared" | "copied" | "failed"> {
   track("share_create", { surface: "garden", from });
   if (navigator.share) {

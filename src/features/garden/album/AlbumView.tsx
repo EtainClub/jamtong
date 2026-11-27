@@ -7,8 +7,10 @@ import { track } from "@/lib/analytics";
 import { markScrap } from "@/lib/firebase/album";
 
 import { gardenFeedback } from "../feedback";
+import { withInvite } from "../invite";
 import { LINE_PROBLEM_TEXT } from "../ilchon/text";
 import { useMemorial } from "../memorial/useMemorial";
+import { photoLink, sendGardenLink } from "../share";
 import { Sheet } from "../Sheet";
 import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
@@ -40,6 +42,8 @@ import { useAlbumRemote } from "./useAlbumRemote";
  *
  * 내 방: 장부(GardenData.album)의 사진을 보이고, 담고·고치고·내린다. 방을 열었으면 손님의 댓글·퍼감이 붙는다.
  * 남의 방: 공개 방(gardens/{gid}/photos)에서 읽는다. 댓글(방명록 받기 설정을 따른다)과 퍼가기.
+ * 공유: 사진마다 그 한 장의 링크(/g/<공개id>/p/<사진id>)를 건넨다. 내 사진이든 남의 사진이든 열린 방이면.
+ *       그 링크로 오면 focus — 사진첩을 그 한 장으로 열고, "사진첩 전체 보기"로 넓힌다.
  *
  * ★ 사진 파일을 받지 않는다. 사진은 콘텐츠 앵커이거나 정원 기록이다. 사람의 글은 한 줄(60자)뿐이다.
  */
@@ -51,6 +55,7 @@ export function AlbumView({
   gid,
   canComment = true,
   legacy,
+  focus,
   clip,
   onClipDone,
   onVisit,
@@ -67,6 +72,8 @@ export function AlbumView({
   canComment?: boolean;
   /** 사진첩 2 전에 올린 남의 방의 옛 사진첩(업적 품종 id). 공개 사진이 없을 때만 그린다. */
   legacy?: readonly string[];
+  /** 사진 링크로 왔으면 그 사진 id — 그 한 장만 먼저 보인다. */
+  focus?: string | null;
   /** 사이트 페이지의 "사진첩에 담기"로 왔다(앵커). 내 방·텃밭의 「📸 찍기」로 왔으면 찍은 것(album/snap.ts). */
   clip?: string | SnapClip | null;
   onClipDone?: () => void;
@@ -81,6 +88,7 @@ export function AlbumView({
   const [picking, setPicking] = useState(false);
   const [compose, setCompose] = useState<Compose | null>(null);
   const [scrapped, setScrapped] = useState<Set<string>>(new Set());
+  const [focused, setFocused] = useState<string | null>(focus ?? null);
   const myPhotos = useGarden((s) => s.data?.album?.photos);
 
   useEffect(() => {
@@ -96,7 +104,8 @@ export function AlbumView({
   }, [mine, myPhotos, remote.photos, legacy]);
   const legacyOnly = !mine && (remote.photos?.length ?? 0) === 0 && Boolean(legacy?.length);
   const counts = folderCounts(photos);
-  const shown = folder === null ? photos : photos.filter((p) => p.f === folder);
+  const focusPhoto = focused ? photos.find((p) => p.id === focused) : undefined;
+  const shown = focusPhoto ? [focusPhoto] : folder === null ? photos : photos.filter((p) => p.f === folder);
   const commentsOf = (id: string) => (remote.comments ?? []).filter((c) => c.ph === id);
   const scrapsOf = (id: string) => (remote.scraps ?? []).filter((s) => s.ph === id);
 
@@ -135,6 +144,19 @@ export function AlbumView({
     say(sheet.from ? `📌 ${sheet.from.n}의 사진을 퍼 왔어요` : sheet.sn ? "📸 오늘의 모습을 사진첩에 남겼어요" : "📷 사진첩에 담았어요");
     close();
     return null;
+  };
+
+  // 사진 한 장의 링크. 방을 열어 공개된 사진만 — 닫힌 방의 사진은 링크를 받아도 열리지 않는다.
+  const share = async (p: Photo) => {
+    if (!roomId) return say("방을 열면 사진을 공유할 수 있어요 · 위쪽 「🔗 자랑하기」에서 열어요");
+    const result = await sendGardenLink(
+      withInvite(photoLink(roomId, p.id), "i"),
+      `${ownerNick}의 사진첩 · 잼통 정원`,
+      mine ? "내 사진첩의 한 장이에요 📷" : "이 사진 같이 봐요 📷",
+      "photo",
+    );
+    if (result === "copied") say("🔗 사진 링크를 복사했어요");
+    else if (result === "failed") say("링크를 복사하지 못했어요");
   };
 
   // 손님의 퍼가기 — 내 사진첩에 담고, 그 방에 퍼감 표식을 남긴다(주인이 잼을 받는다).
@@ -187,7 +209,16 @@ export function AlbumView({
         </>
       )}
 
-      {photos.length > 0 && (
+      {focused && remote.photos !== undefined && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-stone bg-white px-3 py-2 text-[12.5px]">
+          <span className="min-w-0 flex-1">{focusPhoto ? "🔗 링크로 받은 사진 한 장이에요" : "링크의 사진을 찾지 못했어요 · 주인이 내렸을 수 있어요"}</span>
+          <button type="button" className="garden-chip-btn" onClick={() => { gardenFeedback("tap"); setFocused(null); }}>
+            사진첩 전체 보기
+          </button>
+        </div>
+      )}
+
+      {photos.length > 0 && !focusPhoto && (
         <div role="group" aria-label="폴더" className="garden-chips mt-3">
           <button type="button" className="garden-chip-btn" aria-pressed={folder === null} onClick={() => setFolder(null)}>
             전체 {photos.length}
@@ -221,10 +252,11 @@ export function AlbumView({
                 entries={entries}
                 byId={byId}
                 comments={commentsOf(p.id)}
-                scrapCount={scrapsOf(p.id).length}
+                scraps={scrapsOf(p.id)}
                 canComment={canComment}
                 scrapped={myScraps.has(p.id) || haveKeys.has(photoKey(p))}
                 onScrap={!mine && !legacyOnly && uid && canScrap(p) ? () => scrap(p) : undefined}
+                onShare={legacyOnly || (!mine && !roomId) ? undefined : () => void share(p)}
                 onEdit={mine ? () => setCompose({ a: p.a, md: p.md, sn: p.sn, edit: p }) : undefined}
                 onRemove={
                   mine
