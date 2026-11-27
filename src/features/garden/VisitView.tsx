@@ -51,6 +51,7 @@ const counted = new Set<string>();
 
 export function VisitView({
   gid,
+  photo,
   uid,
   byId,
   now,
@@ -59,6 +60,8 @@ export function VisitView({
   onVisit,
 }: {
   gid: string;
+  /** 사진 링크로 왔으면 그 사진 id — 사진첩을 그 한 장으로 연다. */
+  photo?: string | null;
   uid: string | null;
   byId: Map<string, Species>;
   now: number;
@@ -70,7 +73,7 @@ export function VisitView({
   const [state, setState] = useState<{ gid: string; uid: string | null; loaded: Loaded | null | "error" } | null>(null);
   const [watering, setWatering] = useState(false);
   const [opened, setOpened] = useState<Placed | null>(null);
-  const [albumOpen, setAlbumOpen] = useState(false);
+  const [albumOpen, setAlbumOpen] = useState(Boolean(photo));
   const [counter, setCounter] = useState<{ gid: string; c: Counter } | null>(null);
   /** 내가 이 방 주인의 1촌인가. 규칙이 읽게 해 주는 내 1촌 문서로 확인한다. */
   const [friendOf, setFriendOf] = useState<{ gid: string; yes: boolean } | null>(null);
@@ -305,6 +308,7 @@ export function VisitView({
                 gid={gid}
                 canComment={Boolean(uid) && !mine && canSign(garden.guestbook ?? "all", isFriend)}
                 legacy={theirRoom.album}
+                focus={photo}
                 onVisit={(g) => { setAlbumOpen(false); onVisit(g); }}
                 say={say}
               />

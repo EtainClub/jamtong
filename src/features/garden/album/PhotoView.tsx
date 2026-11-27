@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { track } from "@/lib/analytics";
-import { addPhotoComment, deletePhotoComment, hidePhotoComment, hidePhotoLine, reportAlbum, type PhotoComment } from "@/lib/firebase/album";
+import { addPhotoComment, deletePhotoComment, hidePhotoComment, hidePhotoLine, reportAlbum, type PhotoComment, type PhotoScrap } from "@/lib/firebase/album";
 
 import { gardenFeedback } from "../feedback";
 import { blockPerson, useIlchonLive } from "../ilchon/live";
@@ -14,13 +14,15 @@ import { kstDayNumber } from "../rules";
 import { useGarden } from "../store";
 import type { Species } from "../types";
 import { PhotoBody } from "./PhotoBody";
-import { COMMENT_PHRASES, COMMENT_SAW_SOURCE, COMMENTS_PEEK, FOLDERS, reasonText, type Photo } from "./rules";
+import { canScrap, COMMENT_PHRASES, COMMENT_SAW_SOURCE, COMMENTS_PEEK, FOLDERS, reasonText, type Photo } from "./rules";
 
 /**
  * 사진 한 장 — 사실 칸(PhotoBody) · 주인의 말풍선 · 댓글과 퍼감(docs/garden-album-review.md §5·§6).
  *
  * ★ 말풍선은 "○○의 한 줄"로 사실 칸과 모양·자리를 달리한다. 글로만 그린다.
  * ★ 댓글은 방명록과 같은 한 줄이다. "근거 봤어요"는 이 사진의 근거·원문 링크를 연 뒤에만 고를 수 있다.
+ * ★ 퍼감 수는 퍼 갈 수 있는 사진에만 단다. 정원의 순간(방·텃밭 사진 포함)은 퍼 가지 못한다(firestore.rules).
+ *   주인은 퍼감 수를 눌러 누가 퍼 갔는지 보고 그 방으로 건너간다.
  */
 export function PhotoView({
   photo,
@@ -31,10 +33,11 @@ export function PhotoView({
   entries,
   byId,
   comments,
-  scrapCount,
+  scraps,
   canComment,
   scrapped,
   onScrap,
+  onShare,
   onEdit,
   onRemove,
   onChanged,
@@ -50,12 +53,15 @@ export function PhotoView({
   entries: readonly MemorialEntry[] | null | undefined;
   byId: ReadonlyMap<string, Species>;
   comments: PhotoComment[];
-  scrapCount: number;
+  /** 이 사진의 퍼감 표식(최근 것부터). */
+  scraps: PhotoScrap[];
   /** 손님이 댓글을 남길 수 있는가(방명록 받기 설정). 주인은 언제나. */
   canComment: boolean;
   /** 이미 퍼 갔는가(손님). */
   scrapped?: boolean;
   onScrap?: () => void;
+  /** 이 사진 한 장의 링크를 건넨다. 없으면(방을 닫았다·옛 사진첩) 공유 단추가 없다. */
+  onShare?: () => void;
   onEdit?: () => void;
   onRemove?: () => void;
   onChanged: () => void;
@@ -71,6 +77,7 @@ export function PhotoView({
   const [writing, setWriting] = useState(false);
   const [all, setAll] = useState(false);
   const [more, setMore] = useState(false);
+  const [whoScrapped, setWhoScrapped] = useState(false);
 
   const shown = comments.filter((c) => (!c.hidden || owner || admin) && !(owner && blocked?.some((b) => b.uid === c.uid)));
   const visible = all ? shown : shown.slice(0, COMMENTS_PEEK);
@@ -130,7 +137,19 @@ export function PhotoView({
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px]">
         {gid && (
           <span className="text-smoke">
-            💬 {shown.length} · 📌 퍼감 {scrapCount}
+            💬 {shown.length}
+            {canScrap(photo) && (
+              <>
+                {" · "}
+                {owner && scraps.length > 0 ? (
+                  <button type="button" className="underline underline-offset-2" aria-expanded={whoScrapped} onClick={() => setWhoScrapped(!whoScrapped)}>
+                    📌 퍼감 {scraps.length}
+                  </button>
+                ) : (
+                  <>📌 퍼감 {scraps.length}</>
+                )}
+              </>
+            )}
           </span>
         )}
         <span className="flex-1" />
@@ -144,6 +163,11 @@ export function PhotoView({
             {scrapped ? "퍼 갔어요" : "퍼가기"}
           </button>
         )}
+        {onShare && (
+          <button type="button" className="garden-chip-btn" aria-label="이 사진 공유하기" onClick={() => { gardenFeedback("tap"); onShare(); }}>
+            ↗ 공유
+          </button>
+        )}
         {owner && onEdit && (
           <button type="button" className="garden-chip-btn" onClick={onEdit}>
             고치기
@@ -155,6 +179,23 @@ export function PhotoView({
           </button>
         )}
       </div>
+      {whoScrapped && owner && scraps.length > 0 && (
+        <p className="mt-1.5 text-[12px] leading-relaxed text-smoke">
+          📌 퍼 간 사람{" "}
+          {scraps.map((s, i) => (
+            <span key={s.id}>
+              {i > 0 && ", "}
+              {onVisit && s.g ? (
+                <button type="button" className="font-semibold text-ink underline underline-offset-2" onClick={() => onVisit(s.g)}>
+                  {s.n}
+                </button>
+              ) : (
+                <b className="text-ink">{s.n}</b>
+              )}
+            </span>
+          ))}
+        </p>
+      )}
       {more && (
         <div className="mt-1.5 flex flex-wrap justify-end gap-1.5">
           {owner && onRemove && (

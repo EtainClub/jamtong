@@ -37,7 +37,7 @@ import { useKeyCleanup } from "./room/keyCleanup";
 import { useShare } from "./share";
 import { Shop } from "./shop/Shop";
 import { VisitView } from "./VisitView";
-import { ANCHOR_RE } from "./album/rules";
+import { ANCHOR_RE, PHOTO_ID } from "./album/rules";
 import { usePhotoSync } from "./album/useAlbumRemote";
 import { CLIP_EVENT, SNAP_EVENT } from "./album/ClipLink";
 import { takeSnap, type SnapClip } from "./album/snap";
@@ -101,15 +101,29 @@ export function GardenApp({
     const id = new URL(window.location.href).searchParams.get("visit");
     return id && PUBLIC_ID.test(id) ? id : null;
   });
+  // 사진 링크(/g/<공개id>/p/<사진id> → ?visit=…&photo=<사진id>)로 왔으면 그 방의 사진첩을 그 한 장으로 연다.
+  const [photo, setPhoto] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const id = new URL(window.location.href).searchParams.get("photo");
+    return id && PHOTO_ID.test(id) ? id : null;
+  });
   const leaveVisit = useCallback(() => {
     const url = new URL(window.location.href);
     url.searchParams.delete("visit");
+    url.searchParams.delete("photo");
     window.history.replaceState(null, "", url.pathname + url.search);
     setVisit(null);
+    setPhoto(null);
   }, []);
   /** 다른 방으로 간다(마실 — 1촌 목록·방명록 이름·아무 방이나·명패). */
   const visitRoom = useCallback((gid: string) => {
     if (!PUBLIC_ID.test(gid)) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("photo")) {
+      url.searchParams.delete("photo");
+      window.history.replaceState(null, "", url.pathname + url.search);
+    }
+    setPhoto(null);
     setVisit(gid);
     window.scrollTo({ top: 0 });
   }, []);
@@ -453,7 +467,7 @@ export function GardenApp({
 
       {visit ? (
         <div className="mt-4">
-          <VisitView gid={visit} uid={uid} byId={byId} now={now} say={say} onLeave={leaveVisit} onVisit={visitRoom} />
+          <VisitView gid={visit} photo={photo} uid={uid} byId={byId} now={now} say={say} onLeave={leaveVisit} onVisit={visitRoom} />
         </div>
       ) : (
         <div role="tabpanel" id={`garden-panel-${tab}`} aria-labelledby={`garden-tab-${tab}`} className={`garden-screen garden-screen-${seg} mt-3`}>

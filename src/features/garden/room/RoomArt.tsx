@@ -168,7 +168,8 @@ export function RoomScene({ room, byId, now, label, onItem, isItemActive, ghost,
     setPulses((prev) => ({ ...prev, [i]: (prev[i] ?? 0) + 1 }));
     const played = action.sound ? playActivitySound(action.sound) : true;
     setReacted({ index: i, it: p.it, message: played ? action.message : `${action.message} 이 브라우저에서는 소리를 재생할 수 없어요.` });
-    if (action.clips) onItem?.(p, i);
+    // 영상이 있는 물건(음성 TV·마이크·연설 상영관)은 반응 칸을 거치지 않고 바로 연다.
+    if (action.clips || action.speeches) onItem?.(p, i);
   }
   const { W, H } = isoGeom(room.size);
   const pct = (b: { x: number; y: number; w: number; h: number }) => {
