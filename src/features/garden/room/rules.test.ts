@@ -3,6 +3,8 @@ import { buyMusic } from "./rules";
 import { LIGHTSTICKS, LIGHTSTICK_FURNITURE } from "./lightsticks";
 import { BOOKS, hasChapters } from "@/content/books";
 import { BOOK_FURNITURE, BOOK_PALETTES } from "./books";
+import { CARTELS } from "@/content/cartels";
+import { CARTEL_FURNITURE, cartelCardImage, cartelOf, ROOM_CARTELS } from "./cartels";
 import { PIANO_DEFAULT, PIANO_DURATION, PIANO_EVENT_MAX, pianoNotes, pianoNoteLabel, pianoSong } from "./piano";
 /**
  * 내 방의 규칙 — `pnpm garden:test`.
@@ -648,9 +650,10 @@ test("그림 파일 가구 — 표의 그림은 모두 파일이 있고, 방마�
     assert.ok(arts.has(art), `가구표에 없는 그림 ${art}`);
     assert.ok(readFileSync(`public/images/room/${art}.png`).length > 0, `${art}.png`);
   }
-  // 도형으로 남기는 것: 벽지·바닥재·필살기, 쪽지 액자틀, 주인이 그린 키보드, 책마다 색이 다른 책, 담긴 기념품이 방마다 다른 진열장.
+  // 도형으로 남기는 것: 벽지·바닥재·필살기, 쪽지 액자틀, 주인이 그린 키보드, 책마다 색이 다른 책, 담긴 기념품이 방마다 다른 진열장,
+  // 카르텔마다 삽화와 색이 다른 카르텔 카드.
   const shape = (f: (typeof FURNITURE)[number]) =>
-    ["wallpaper", "flooring", "fx", "frame-blank"].includes(f.kind) || f.art === "keyboard" || f.art === "souvenir-case" || BOOK_PALETTES.has(f.art);
+    ["wallpaper", "flooring", "fx", "frame-blank"].includes(f.kind) || f.art === "keyboard" || f.art === "souvenir-case" || BOOK_PALETTES.has(f.art) || Boolean(cartelOf(f.art));
   assert.deepEqual(FURNITURE.filter((f) => !shape(f) && !FURNITURE_SPRITES[f.art]).map((f) => f.art), []);
 });
 
@@ -920,4 +923,21 @@ test("바비 미니어처는 책상보다 방석 위가 먼저", async () => {
   assert.deepEqual(firstOpenSpot(room, "babi-mini"), { x: 6, y: 6, dir: 0, on: cushionAt });
   const radio = firstOpenSpot(room, "radio") as { on?: number };
   assert.notEqual(radio.on, cushionAt, "라디오는 방석에 올리지 않는다");
+});
+
+test("카르텔 카드 열둘: 콘텐츠의 카르텔과 같고, 팔지 않으며(슬롯 전용), 그림 파일이 있다", () => {
+  assert.deepEqual(ROOM_CARTELS.map((c) => [c.slug, c.name]), CARTELS.map((c) => [c.slug, c.name]));
+  assert.equal(CARTEL_FURNITURE.length, 12);
+  assert.equal(new Set(ROOM_CARTELS.map((c) => c.color)).size, 12, "카드 색이 겹치지 않는다");
+  for (const f of CARTEL_FURNITURE) {
+    assert.equal(FURNITURE_BY_ID.get(f.id), f);
+    assert.equal(f.cur, "reward");
+    assert.equal(f.price, 0);
+    assert.ok(f.id.length <= R.PUBLIC_ID_MAX);
+    assert.ok(ISO[f.id]?.layer === "small" && ISO[f.id].wallOk);
+    const slug = cartelOf(f.id)!.slug;
+    assert.ok(readFileSync(`public${cartelCardImage(slug)}`).length > 0, slug);
+    // 공유 카드가 data URI로 바꿔 넣는 길(furnitureSprites.ts의 spriteDataUris)에 맞는다.
+    assert.match(cartelCardImage(slug), /^\/images\/room\/[a-z0-9-]+\.png$/);
+  }
 });

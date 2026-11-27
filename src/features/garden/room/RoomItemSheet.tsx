@@ -16,6 +16,8 @@ import { Sheet } from "../Sheet";
 import type { Species } from "../types";
 import { itemName, FurnitureIcon } from "./RoomArt";
 import { FURNITURE_BY_ID } from "./catalog";
+import { CartelCardSheet } from "./CartelCardSheet";
+import { cartelOf } from "./cartels";
 import { FurnitureStory } from "./FurnitureStory";
 import { activityOf } from "./activities";
 import { RoomVoicePlayer } from "./RoomVoicePlayer";
@@ -88,6 +90,8 @@ export function RoomItemSheet({
     }
     return <RoomSlot now={openedAt} onClose={onClose} say={say} />;
   }
+  const cartel = cartelOf(placed.it);
+  if (cartel) return <CartelCardSheet cartel={cartel} onClose={onClose} />;
   if (placed.it === SOUVENIR_CASE) {
     return <CaseSheet ids={souvenirIds(room)} guest={reader?.mode === "guest"} ownerNick={reader?.ownerNick} onClose={onClose} />;
   }

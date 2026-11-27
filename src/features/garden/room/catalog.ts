@@ -1,6 +1,7 @@
 import { STORY_FURNITURE, type FurnitureStory, type StoryCollection } from "./stories";
 import { PLAY_FURNITURE } from "./activities";
 import { BOOK_FURNITURE } from "./books";
+import { CARTEL_FURNITURE } from "./cartels";
 
 /**
  * 방에 놓는 산 것(가구)과 오늘의 기분. 설계는 docs/garden-miniroom.md §4.2.
@@ -56,6 +57,8 @@ export const FURNITURE: Furniture[] = [
   ...STORY_FURNITURE,
   ...PLAY_FURNITURE,
   ...BOOK_FURNITURE,
+  // 카르텔 카드 열둘 — 방 꾸미기 슬롯머신에서만(room/cartels.ts).
+  ...CARTEL_FURNITURE,
   // 벽지
   { id: "wp-cream", label: "크림 벽지", kind: "wallpaper", size: 1, price: 0, art: "wp-cream", hint: "처음 방의 벽지예요." },
   { id: "wp-stripe", label: "연두 줄무늬 벽지", kind: "wallpaper", size: 1, price: 150, art: "wp-stripe", hint: "텃밭 생각이 나는 연두 줄무늬." },

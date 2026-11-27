@@ -145,6 +145,9 @@ export type AnalyticsEvent =
   | "slot_pot"
   | "gacha_guest"
   | "rare_harvest"
+  /** 방의 카르텔 카드(슬롯 전용)를 눌렀다(slug), 카드에서 카르텔 페이지로 갔다(slug). */
+  | "cartel_card_open"
+  | "cartel_card_link"
   | "album_add"
   | "album_open"
   /**

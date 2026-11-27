@@ -102,7 +102,8 @@ test("아이템 슬롯: 진열은 상점의 가구·벽지·바닥재·음원, �
     const cheap = [...table].sort((a, b) => a.price - b.price);
     assert.ok(cheap[0].p >= cheap[cheap.length - 1].p, "싼 것이 더 자주");
   }
-  assert.ok(todaysRoomTable(room, Date.UTC(2026, 10, 26)).length === 6);
+  // 진열 여섯 + 카르텔 카드 칸(아직 하나도 없으니).
+  assert.ok(todaysRoomTable(room, Date.UTC(2026, 10, 26)).length === 7);
 });
 
 test("아이템 슬롯: 이미 가진 벽지·바닥재·음원과 가진 수 상한에 닿은 가구는 진열에 오르지 않는다", () => {
@@ -177,4 +178,33 @@ test("희귀종 수집가 칭호: 거둔 희귀 씨앗 종류 2·4·6", async ()
   assert.equal(titleLevels({ ...base, rareDex: ["rs-golden"] }).rare, 0);
   assert.equal(titleLevels({ ...base, rareDex: RARE_SEEDS.slice(0, 4).map((r) => r.id) }).rare, 2);
   assert.equal(titleLevels({ ...base, rareDex: RARE_SEEDS.map((r) => r.id) }).rare, 3);
+});
+
+test("카르텔 카드 칸: 아직 없는 카드가 있을 때만, 따로 2%, 천장에는 들지 않는다", async () => {
+  const { CARTEL_P, CARTEL_ROW_ID, withCartelRow } = await import("./rules");
+  const { CARTEL_FURNITURE, missingCartelCards } = await import("../room/cartels");
+  const base = freshRoom("x");
+  const all = Object.fromEntries(CARTEL_FURNITURE.map((f) => [f.id, 1]));
+  assert.equal(missingCartelCards(base.owned).length, 12);
+  assert.equal(missingCartelCards({ ...base.owned, ...all }).length, 0);
+  const t = Date.UTC(2026, 10, 27);
+  const full = todaysRoomTable({ ...base, owned: { ...base.owned, ...all } }, t);
+  assert.ok(!full.some((r) => r.kind === "cartel"), "다 모으면 칸이 없다");
+  const table = todaysRoomTable(base, t);
+  const row = table.find((r) => r.id === CARTEL_ROW_ID)!;
+  assert.equal(row.p, CARTEL_P);
+  assert.equal(row.price, 0);
+  // 진열의 당첨 합·기대값은 카르텔 칸과 따로 본다.
+  const shelf = table.filter((r) => r.kind !== "cartel");
+  assert.ok(shelf.reduce((s, r) => s + r.p, 0) <= ROOM_WIN_MAX + 1e-9);
+  assert.ok(roomEv(table) <= ROOM_SPIN_COST * ROOM_EV_MAX + 1e-6);
+  assert.deepEqual(withCartelRow([], 12), [], "진열이 없으면 칸도 없다");
+  const rand = rng(5);
+  for (let i = 0; i < 2000; i++) {
+    const forced = spinRoom(table, ROOM_PITY - 1, rand);
+    assert.ok(forced.prize && forced.prize.kind !== "cartel", "천장은 진열에서만");
+  }
+  let cartels = 0;
+  for (let i = 0; i < 50000; i++) if (spinRoom(table, 0, rand).prize?.kind === "cartel") cartels++;
+  assert.ok(Math.abs(cartels / 50000 - CARTEL_P) < 0.004, `카르텔 칸 ${cartels}`);
 });

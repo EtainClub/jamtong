@@ -93,7 +93,8 @@ import { initialCoach, normalizeCoach, type CoachData, type CoachMark, type TipT
 import * as room from "./room/rules";
 import { avatarAtOk, avatarFree, buyWear as buyWearRule, grantRewards, normalizeAvatar, unownedWear, type AvatarData, type WearRefusal } from "./avatar/rules";
 import { freshIlchon, newsEntry, normalizeIlchon, NEWS_MAX, pushNews, WATER_CUT_ILCHON, type IlchonData, type NewsEntry } from "./ilchon/rules";
-import { MOODS, type Furniture } from "./room/catalog";
+import { FURNITURE_BY_ID, MOODS, type Furniture } from "./room/catalog";
+import { missingCartelCards } from "./room/cartels";
 import { pickGift } from "./memorial/ox";
 import * as slot from "./slot/rules";
 import { parseRareKey, RARE_BY_ID, rareKey } from "./slot/rare";
@@ -1278,9 +1279,17 @@ export const useGarden = create<GardenState>((set, get) => {
         if (slot.spinsLeft(ledger, "room", today) <= 0) return "done";
         if (d.jam < slot.ROOM_SPIN_COST) return "jam";
       }
-      const spin = slot.spinRoom(table, ledger.roomPity, rand);
+      const rolled = slot.spinRoom(table, ledger.roomPity, rand);
       let nextRoom = d.room;
-      const prize = spin.prize;
+      let prize = rolled.prize;
+      if (prize?.kind === "cartel") {
+        // 카르텔 카드 칸 — 아직 없는 카드 가운데 하나를 고르게(room/cartels.ts).
+        const missing = missingCartelCards(d.room.owned);
+        const id = missing[Math.floor(rand() * missing.length)];
+        const f = FURNITURE_BY_ID.get(id);
+        prize = f ? { id, kind: "cartel", label: f.label, price: 0 } : null;
+      }
+      const spin = { ...rolled, prize };
       if (prize?.kind === "music") {
         const t = purchasedTrack(prize.id);
         if (t) nextRoom = { ...nextRoom, music: [...ownedMusic(nextRoom.music), t.id] };

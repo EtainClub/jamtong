@@ -6,6 +6,7 @@ import { isRaidKind } from "../raid/rules";
 import { HOUR, isMeteor, isRaining, JAR_STYLE } from "../rules";
 import type { Mutation, Species } from "../types";
 import { BOOK_PALETTES } from "./books";
+import { cartelCardImage, cartelOf } from "./cartels";
 import { FURNITURE_BY_ID } from "./catalog";
 import { FURNITURE_SPRITES, spriteHref } from "./furnitureSprites";
 import { KeyFace } from "./KeyArt";
@@ -339,6 +340,30 @@ export function CaseArt({ icons, w, h }: { icons: readonly string[]; w: number; 
   );
 }
 
+/**
+ * 카르텔 카드 — 나무 받침대에 세운 카드 한 장(room/cartels.ts). 카드 머리띠는 카르텔마다 색, 가운데는 카르텔 지도의 표적 삽화.
+ * 글자는 넣지 않는다(공유 카드는 그림 속 글자를 그릴 글꼴이 없다). 어느 카르텔인지는 누르면 나온다.
+ */
+export function CartelCardArt({ slug, color, w, h }: { slug: string; color: string; w: number; h: number }) {
+  const cx = w / 2;
+  const top = h - 43;
+  return (
+    <g>
+      <g shapeRendering="crispEdges">
+        <B x={cx - 14} y={h - 5} w={28} h={4} fill={C.woodD} />
+        <B x={cx - 9} y={h - 8} w={18} h={3} fill={C.wood} />
+        <B x={cx - 13} y={top} w={26} h={35} fill={color} />
+        <rect x={cx - 10} y={top + 3} width="20" height="20" fill="#fffdf6" />
+        <rect x={cx - 10} y={top + 26} width="20" height="2" fill="#fffdf6" opacity=".85" />
+        <rect x={cx - 10} y={top + 29} width="12" height="2" fill="#fffdf6" opacity=".6" />
+      </g>
+      <image href={cartelCardImage(slug)} x={cx - 10} y={top + 3} width="20" height="20" preserveAspectRatio="xMidYMid meet" />
+      {/* 슬롯에서만 나오는 카드의 반짝임 */}
+      <path d={`M${cx + 11} ${top - 3}l1.2 2.6 2.6 1.2-2.6 1.2-1.2 2.6-1.2-2.6-2.6-1.2 2.6-1.2z`} fill="#ffd24a" stroke={C.ink} strokeWidth=".6" />
+    </g>
+  );
+}
+
 export function FurnitureArt({ art, w, h, weather, keys }: { art: string; w: number; h: number; weather: Weather; keys?: readonly RoomKey[] }) {
   const sprite = FURNITURE_SPRITES[art];
   if (sprite) {
@@ -365,6 +390,8 @@ export function FurnitureArt({ art, w, h, weather, keys }: { art: string; w: num
     );
   }
   if (art === SOUVENIR_CASE) return <CaseArt icons={[]} w={w} h={h} />;
+  const cartel = cartelOf(art);
+  if (cartel) return <CartelCardArt slug={cartel.slug} color={cartel.color} w={w} h={h} />;
   const base = h; // 바닥 물건은 아래 변에 선다
   const cx = w / 2;
   const book = BOOK_PALETTES.get(art);
