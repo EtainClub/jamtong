@@ -157,19 +157,52 @@ test("잼 항아리: 한 번에 4·7(firestore.rules와 같다), 몫은 나누�
   assert.equal(potReward(10, 0), 10, "함께한 사람 0이면 1로 나눈다");
 });
 
-test("뽑기 기계: 손님은 한 방에 하루 한 번·하루 다섯 방, 주인은 손님마다 10·하루 50", async () => {
-  const { guestCanSpin, hostJam, GUEST_SPINS_PER_DAY, HOST_JAM_DAY } = await import("./rules");
-  const day = "2026-11-26";
-  const l = { ...freshSlots(), day, guestRooms: ["gaaaaaaaa1"] };
-  assert.equal(guestCanSpin(l, "gaaaaaaaa1", day), "done-here");
-  assert.equal(guestCanSpin(l, "gbbbbbbbb1", day), "ok");
-  assert.equal(guestCanSpin({ ...l, guestRooms: Array.from({ length: GUEST_SPINS_PER_DAY }, (_, i) => `g${i}xxxxxxx1`) }, "gzzzzzzzz1", day), "done-today");
-  assert.equal(guestCanSpin(l, "gaaaaaaaa1", "2026-11-27"), "ok", "날이 바뀌면 다시");
-  const a = hostJam(freshSlots(), ["u1", "u2", "u2"], day)!;
-  assert.equal(a.jam, 20);
-  const b = hostJam(a.ledger, ["u1", "u3", "u4", "u5", "u6", "u7"], day)!;
-  assert.equal(a.jam + b.jam, HOST_JAM_DAY, "하루 50까지");
-  assert.equal(hostJam(b.ledger, ["u3"], day), null, "본 손님은 다시 세지 않는다");
+test("뽑기 기계 증정 상자: 줄 수 있는 것, 상한, 당첨 반·든 수에 비례, 받을 수 없는 것은 빼고", async () => {
+  const { canAddToStock, drawGift, giftable, GIFT_EACH_MAX, GIFT_KINDS_MAX, GIFT_WIN_P, readStock } = await import("./gift");
+  const { GACHA_ID } = await import("./rules");
+  assert.ok(giftable("chair"));
+  assert.ok(!giftable(GACHA_ID), "뽑기 기계 자신은 주지 않는다");
+  assert.ok(!giftable("rare-jar"), "보상은 주지 않는다");
+  assert.ok(!giftable("wp-stripe"), "벽지는 주지 않는다");
+  assert.ok(!giftable("nope"));
+  assert.deepEqual(readStock({ chair: 2, lamp: 0, nope: 3, "rare-jar": 1, bed: 500 }), { chair: 2, bed: GIFT_EACH_MAX });
+  assert.ok(!canAddToStock({ chair: GIFT_EACH_MAX }, "chair"));
+  const full = Object.fromEntries(Array.from({ length: GIFT_KINDS_MAX }, (_, i) => [`x${i}`, 1]));
+  assert.ok(!canAddToStock(full, "chair"), "가지 수 상한");
+  assert.ok(canAddToStock({ chair: 1 }, "chair") && canAddToStock({}, "lamp"));
+  assert.deepEqual(drawGift({}, () => true, rng(1)), { kind: "empty" });
+  assert.deepEqual(drawGift({ chair: 1 }, () => false, rng(1)), { kind: "empty" }, "받을 수 없는 것뿐이면 돌리지 않는다");
+  const rand = rng(3);
+  const got: Record<string, number> = { chair: 0, lamp: 0, miss: 0 };
+  for (let i = 0; i < 40000; i++) {
+    const d = drawGift({ chair: 3, lamp: 1, bed: 5 }, (id) => id !== "bed", rand);
+    got[d.kind === "win" ? d.id : d.kind]++;
+  }
+  assert.ok(Math.abs(got.miss / 40000 - (1 - GIFT_WIN_P)) < 0.01, `꽝 ${got.miss}`);
+  assert.ok(Math.abs(got.chair / (got.chair + got.lamp) - 0.75) < 0.02, `든 수에 비례 ${got.chair}:${got.lamp}`);
+  assert.equal(got.bed, undefined, "받을 수 없는 것은 나오지 않는다");
+});
+
+test("되팔기·증정 상자에 넣기: 보관함의 것만, 잼으로 산 것은 반값", async () => {
+  const { sellPrice } = await import("./gift");
+  const { sellItem, takeForGift } = await import("../room/rules");
+  const { FURNITURE_BY_ID } = await import("../room/catalog");
+  const chair = FURNITURE_BY_ID.get("chair")!;
+  assert.equal(sellPrice("chair"), Math.floor(chair.price / 2));
+  assert.equal(sellPrice("rare-jar"), null, "보상은 팔지 않는다");
+  assert.equal(sellPrice("gacha"), null, "뽑기 기계는 팔지 않는다(옛값 1,200에 산 사람)");
+  assert.equal(sellPrice("fountain"), null, "전리품(뿌리 조각)은 팔지 않는다");
+  assert.equal(sellPrice("wp-stripe"), null, "벽지는 팔지 않는다");
+  const base = freshRoom("x");
+  const room = { ...base, owned: { ...base.owned, chair: 2 }, placed: [{ it: "chair", pos: {} as never }] };
+  const sold = sellItem(room, "chair")!;
+  assert.equal(sold.jam, sellPrice("chair"));
+  assert.equal(sold.room.owned.chair, 1);
+  assert.equal(sellItem(sold.room, "chair"), null, "놓인 하나는 팔지 않는다");
+  const boxed = takeForGift(room, "chair")!;
+  assert.equal(boxed.owned.chair, 1);
+  assert.equal(takeForGift(boxed, "chair"), null);
+  assert.equal(takeForGift({ ...base, owned: { "rare-jar": 1 } }, "rare-jar"), null);
 });
 
 test("희귀종 수집가 칭호: 거둔 희귀 씨앗 종류 2·4·6", async () => {

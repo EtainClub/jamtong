@@ -2,15 +2,13 @@
 
 import { track } from "@/lib/analytics";
 import { useAuth } from "@/lib/firebase/auth";
-import { givePot, markGachaVisit } from "@/lib/firebase/slot";
+import { givePot } from "@/lib/firebase/slot";
 
 import { Sheet } from "../Sheet";
 import { useGarden } from "../store";
 import type { Species } from "../types";
 import { RARE_BY_ID, RARE_SEEDS, rareImage } from "./rare";
 import {
-  guestCanSpin,
-  GUEST_SPINS_PER_DAY,
   normalizeSlots,
   potShare,
   SEED_PITY,
@@ -24,7 +22,7 @@ import {
 } from "./rules";
 import { pct, SlotMachine, type SlotSymbol } from "./SlotMachine";
 import { QuizChance } from "./QuizChance";
-import { kstDay, kstDayNumber } from "../rules";
+import { kstDay } from "../rules";
 
 /**
  * 텃밭 씨앗 슬롯 — 잼을 내고 돌리면 씨앗이 나오고, 희귀 그림 셋이면 희귀 씨앗(docs/garden-slots.md).
@@ -35,39 +33,28 @@ export function SeedSlot({
   now,
   onClose,
   say,
-  guest,
 }: {
   catalog: Species[];
   now: number;
   onClose: () => void;
   say: (text: string) => void;
-  /** 남의 방 뽑기 기계(slot/rules.ts의 GACHA_ID) — 하루 한 번 무료로, 받은 씨앗은 내 주머니에. */
-  guest?: { gid: string; ownerNick: string };
 }) {
   const jam = useGarden((s) => s.data?.jam ?? 0);
   const slots = useGarden((s) => s.data?.slots);
-  const nick = useGarden((s) => s.data?.nick ?? "");
   const uid = useAuth().user?.uid ?? null;
   const ledger = normalizeSlots(slots);
   const today = kstDay(now);
-  const left = guest ? 0 : spinsLeft(ledger, "seed", today);
+  const left = spinsLeft(ledger, "seed", today);
   const toPity = Math.max(1, SEED_PITY - ledger.seedPity);
-  const guestState = guest ? guestCanSpin(ledger, guest.gid, today) : null;
-  const free = guest ? (guestState === "ok" ? 1 : 0) : ledger.freeSeed;
+  const free = ledger.freeSeed;
 
   const symbols: SlotSymbol[] = SEED_SYMBOLS.map((k) => ({ key: k, label: labelOf(k), node: symbolNode(k) }));
   const index = (k: SeedSymbol) => SEED_SYMBOLS.indexOf(k);
 
   return (
-    <Sheet label={guest ? `${guest.ownerNick}의 뽑기 기계` : "씨앗 슬롯머신"} title={guest ? `🎰 ${guest.ownerNick}의 뽑기 기계` : "🎰 씨앗 슬롯머신"} onClose={onClose}>
+    <Sheet label="씨앗 슬롯머신" title="🎰 씨앗 슬롯머신" onClose={onClose}>
       <p className="mt-1 text-center text-[12px] text-smoke">
-        {guest
-          ? guestState === "ok"
-            ? "손님은 하루 한 번 무료! 받은 씨앗은 내 주머니에 들어가요"
-            : guestState === "done-here"
-              ? "이 방의 뽑기 기계는 오늘 돌려 봤어요. 내일 또 놀러 와요"
-              : `오늘은 손님 무료 ${GUEST_SPINS_PER_DAY}번을 다 썼어요`
-          : "가운데 줄에 같은 그림 셋 · 💎 희귀 씨앗 셋이면 특별판 씨앗"}
+        가운데 줄에 같은 그림 셋 · 💎 희귀 씨앗 셋이면 특별판 씨앗
       </p>
       <SlotMachine
         symbols={symbols}
@@ -75,22 +62,18 @@ export function SeedSlot({
         jam={jam}
         left={left}
         free={free}
-        freeLabel={guest ? "🎟 손님 무료 한 번" : "🎟 무료로 당기기"}
-        footer={guest ? undefined : `희귀 씨앗까지 길어도 ${toPity}번 (천장 ${SEED_PITY}번)`}
-        after={(win) => (!win && !guest ? <QuizChance machine="seed" now={now} say={say} /> : null)}
+        footer={`희귀 씨앗까지 길어도 ${toPity}번 (천장 ${SEED_PITY}번)`}
+        after={(win) => (!win ? <QuizChance machine="seed" now={now} say={say} /> : null)}
         onSpin={() => {
-          const mode = guest ? { guest: guest.gid } : ledger.freeSeed > 0 ? ("free" as const) : ("paid" as const);
+          const mode = ledger.freeSeed > 0 ? ("free" as const) : ("paid" as const);
           const got = useGarden.getState().spinSeedSlot(catalog, Math.random, mode);
           if (got === "jam") return `잼이 ${SEED_SPIN_COST} 있어야 해요`;
           if (got === "done") return `오늘은 ${SLOT_SPINS_PER_DAY}번 다 돌렸어요. 내일 다시 만나요`;
           if (got === "no-free") return "무료 한 번이 없어요";
-          if (got === "guest-done") return "오늘은 이 방에서 이미 돌려 봤어요";
-          // 잼 항아리 — 낸 잼의 5%를 광장에(손님·무료 한 번은 낸 잼이 없다).
+          // 잼 항아리 — 낸 잼의 5%를 광장에(무료 한 번은 낸 잼이 없다).
           if (uid && got.paid) void givePot(uid, potShare(got.paid)).catch((e) => console.error("[slot] 잼 항아리에 넣지 못했다", e));
-          // 손님 — 그 방에 오늘 돌려 봤다는 표식(주인이 잼을 받는다).
-          if (guest && uid) void markGachaVisit(guest.gid, { uid, nick: nick || "이웃" }, kstDayNumber(now)).catch((e) => console.error("[slot] 뽑기 기계 표식을 남기지 못했다", e));
           const o = got.spin.outcome;
-          track(guest ? "gacha_guest" : "slot_spin", { machine: "seed", outcome: o.kind, mode: typeof mode === "string" ? mode : "guest", ...(o.kind === "rare" ? { rare: o.rare, pity: got.spin.pity } : {}) });
+          track("slot_spin", { machine: "seed", outcome: o.kind, mode, ...(o.kind === "rare" ? { rare: o.rare, pity: got.spin.pity } : {}) });
           const reels = got.spin.reels.map(index) as [number, number, number];
           if (o.kind === "miss") return { reels, win: false, message: <p>꽝이에요. 씨앗은 상점에서도 살 수 있어요.</p> };
           const rare = got.got.find((g) => g.rare);

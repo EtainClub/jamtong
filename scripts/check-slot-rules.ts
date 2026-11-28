@@ -3,10 +3,10 @@
  *
  *   firebase emulators:exec --only firestore --project demo-jamtong "pnpm check:slot-rules"
  *
- * 광장 잼 항아리(plazaPot/{물결}/givers/{uid}), 뽑기 기계 손님 표식(gardens/{gid}/slotVisits/{uid}), 칭호 rare를 본다.
+ * 광장 잼 항아리(plazaPot/{물결}/givers/{uid}), 뽑기 기계 증정 상자(gardens/{gid}/giftBox/stock·giftWins/{uid}), 칭호 rare를 본다.
  */
 import { initializeApp } from "firebase/app";
-import { collection, connectFirestoreEmulator, doc, getDocs, getFirestore, query, serverTimestamp, setDoc, where, type Firestore } from "firebase/firestore";
+import { collection, connectFirestoreEmulator, deleteField, doc, getDoc, getDocs, getFirestore, increment, runTransaction, serverTimestamp, setDoc, updateDoc, type Firestore } from "firebase/firestore";
 
 const EMU = process.env.FIRESTORE_EMULATOR_HOST;
 const PROJECT = process.env.GCLOUD_PROJECT ?? "demo-jamtong";
@@ -68,19 +68,50 @@ const pub = (over: Record<string, unknown> = {}) => ({ ownerUid: OWNER, nick: "�
   await expect(false, "모르는 칸", () => setDoc(doc(other, "plazaPot", wave, "givers", OTHER), { j: 4, at: serverTimestamp(), jam: 1 }));
   await expect(true, "누구나 합계를 읽는다", () => getDocs(collection(other, "plazaPot", wave, "givers")));
 
-  console.log("뽑기 기계 손님 표식");
-  const visit = (db: Firestore, uid: string, over: Record<string, unknown> = {}) =>
-    setDoc(doc(db, "gardens", gid, "slotVisits", uid), { day, nick: "손님", at: serverTimestamp(), ...over });
-  await expect(true, "손님이 오늘 한 번", () => visit(guest, GUEST));
-  await expect(false, "같은 날 또", () => visit(guest, GUEST, { nick: "또" }));
-  await expect(false, "주인이 제 방에", () => visit(owner, OWNER));
-  await expect(false, "남의 이름으로", () => visit(guest, OTHER));
-  await expect(false, "어제 날짜로", () => visit(other, OTHER, { day: day - 1 }));
-  await expect(true, "다른 손님도 오늘 한 번", () => visit(other, OTHER));
-  await expect(true, "주인은 오늘 표식을 읽는다", () => getDocs(query(collection(owner, "gardens", gid, "slotVisits"), where("day", "==", day))));
-  await expect(false, "손님은 모두의 표식을 읽지 못한다", () => getDocs(collection(guest, "gardens", gid, "slotVisits")));
+  console.log("뽑기 기계 증정 상자");
+  const stock = (db: Firestore) => doc(db, "gardens", gid, "giftBox", "stock");
+  const win = (db: Firestore, uid: string) => doc(db, "gardens", gid, "giftWins", uid);
+  await expect(true, "주인이 상자를 만든다", () => setDoc(stock(owner), { items: { chair: 2, lamp: 1 }, at: serverTimestamp() }));
+  await expect(true, "주인이 하나 더 넣는다", () => updateDoc(stock(owner), { "items.chair": increment(1), at: serverTimestamp() }));
+  await expect(false, "손님이 상자를 마음대로 고친다", () => updateDoc(stock(guest), { "items.chair": 0 }));
+  await expect(false, "상자에 모르는 칸", () => setDoc(stock(owner), { items: {}, at: serverTimestamp(), x: 1 }));
+  await expect(true, "누구나(열린 방) 상자를 읽는다", () => getDoc(stock(other)));
+  // 손님 한 번 — 기록과 빼기를 한 번에.
+  const take = (db: Firestore, uid: string, it: string, left: number, over: Record<string, unknown> = {}) =>
+    runTransaction(db, async (tx) => {
+      await tx.get(stock(db));
+      tx.set(win(db, uid), { day, it, n: "손님", at: serverTimestamp(), ...over });
+      if (it) tx.update(stock(db), { [`items.${it}`]: left });
+    });
+  await expect(false, "기록 없이 빼기만", () => updateDoc(stock(guest), { "items.chair": 2 }));
+  await expect(false, "적은 것과 다른 것을 뺀다", () =>
+    runTransaction(guest, async (tx) => {
+      await tx.get(stock(guest));
+      tx.set(win(guest, GUEST), { day, it: "chair", n: "손님", at: serverTimestamp() });
+      tx.update(stock(guest), { "items.lamp": 0 });
+    }));
+  await expect(false, "둘을 뺀다", () => take(guest, GUEST, "chair", 1));
+  await expect(false, "빼지 않고 받았다고 적는다", () => setDoc(win(guest, GUEST), { day, it: "chair", n: "손님", at: serverTimestamp() }));
+  await expect(false, "상자에 없는 것", () => take(guest, GUEST, "piano", 0));
+  await expect(true, "손님이 오늘 하나 받는다", () => take(guest, GUEST, "chair", 2));
+  await expect(false, "같은 날 또", () => take(guest, GUEST, "lamp", 0));
+  await expect(false, "같은 날 꽝으로 또", () => setDoc(win(guest, GUEST), { day, it: "", n: "손님", at: serverTimestamp() }));
+  await expect(true, "다른 손님은 꽝", () => setDoc(win(other, OTHER), { day, it: "", n: "다른", at: serverTimestamp() }));
+  await expect(false, "주인이 제 기계를", () => take(owner, OWNER, "lamp", 0));
+  await expect(false, "남의 이름으로", () => take(guest, "uNobody", "lamp", 0));
+  await expect(false, "어제 날짜로", () => setDoc(win(client("uY"), "uY"), { day: day - 1, it: "", n: "어제", at: serverTimestamp() }));
+  await expect(true, "주인은 기록을 읽는다", () => getDocs(collection(owner, "gardens", gid, "giftWins")));
+  await expect(false, "손님은 모두의 기록을 읽지 못한다", () => getDocs(collection(guest, "gardens", gid, "giftWins")));
+  await expect(true, "손님은 제 기록을 읽는다", () => getDoc(win(guest, GUEST)));
+  const third = client("uThird");
+  await expect(true, "마지막 하나는 칸째로 지운다", () =>
+    runTransaction(third, async (tx) => {
+      await tx.get(stock(third));
+      tx.set(win(third, "uThird"), { day, it: "lamp", n: "셋째", at: serverTimestamp() });
+      tx.update(stock(third), { "items.lamp": deleteField() });
+    }));
   await setDoc(doc(owner, "gardens", gid), { ownerUid: OWNER, hidden: true, updatedAt: serverTimestamp() });
-  await expect(false, "가린 방에는 남기지 못한다", () => visit(client("uNew"), "uNew"));
+  await expect(false, "가린 방에서는 돌리지 못한다", () => setDoc(win(client("uNew"), "uNew"), { day, it: "", n: "새", at: serverTimestamp() }));
 
   console.log(failed ? `\n실패 ${failed}` : "\n모두 기대대로");
   process.exit(failed ? 1 : 0);

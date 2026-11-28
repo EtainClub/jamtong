@@ -12,7 +12,9 @@ import { FurnitureStory } from "../room/FurnitureStory";
 import { STORY_COLLECTIONS, STORY_LABEL, type StoryCollection } from "../room/stories";
 import { activityOf } from "../room/activities";
 import { FurnitureIcon, RoomScene } from "../room/RoomArt";
-import { firstOpenSpot, hasSurface, nextRoomSize, OWN_MAX, ROOM_SIZES, onSale, weekLeft, weeklyPicks, type BuyRefusal } from "../room/rules";
+import { firstOpenSpot, hasSurface, nextRoomSize, OWN_MAX, ROOM_SIZES, onSale, stowedCount, weekLeft, weeklyPicks, type BuyRefusal } from "../room/rules";
+import { GACHA_ID } from "../slot/rules";
+import { SELL_RATE, sellPrice } from "../slot/gift";
 import { useGarden, type GardenData } from "../store";
 import type { Species } from "../types";
 import { BuySheet, ExpandBanner, priceText, ShopCard } from "./parts";
@@ -113,6 +115,8 @@ export function RoomShop({
           }}
         />
       )}
+
+      {cat === "furniture" && <SellShelf data={data} say={say} />}
 
       {cat === "furniture" && (
         <>
@@ -237,4 +241,53 @@ export function RoomShop({
 function previewSlot(room: GardenData["room"], id: string) {
   const pos = firstOpenSpot(room, id);
   return pos ? { pos, it: id } : null;
+}
+
+/**
+ * 🏷 남는 가구 팔기 — 보관함(놓지 않은 것)의 가구를 상점 값의 반에 판다(slot/gift.ts의 sellPrice).
+ * 슬롯머신에서 같은 가구가 쌓이면 여기서 팔거나, 뽑기 기계의 증정 상자에 넣어 손님에게 준다.
+ * 파는 것은 되돌릴 수 없어서 한 번 더 눌러야 판다.
+ */
+function SellShelf({ data, say }: { data: GardenData; say: (text: string) => void }) {
+  const [confirm, setConfirm] = useState<string | null>(null);
+  const room = data.room;
+  const spare = FURNITURE.filter((f) => sellPrice(f.id) !== null && stowedCount(room, f.id) > 0);
+  if (spare.length === 0) return null;
+  const hasGacha = (room.owned[GACHA_ID] ?? 0) > 0;
+  const sell = (f: Furniture) => {
+    if (confirm !== f.id) {
+      gardenFeedback("tap");
+      setConfirm(f.id);
+      return;
+    }
+    setConfirm(null);
+    const jam = useGarden.getState().sellFurniture(f.id);
+    if (jam === null) return say("팔 수 있는 것이 보관함에 없어요");
+    gardenFeedback("reward");
+    track("item_sell", { item: f.id, jam });
+    say(`🏷 ${josa(f.label, "을를")} 팔았어요 · 잼 +${jam}`);
+  };
+  return (
+    <details className="garden-shop-sell mb-4 rounded-xl border border-stone bg-white px-3 py-2">
+      <summary className="cursor-pointer text-[13px] font-bold">🏷 남는 가구 팔기 · 보관함 {spare.reduce((n, f) => n + stowedCount(room, f.id), 0)}개</summary>
+      <p className="mt-1 text-[12px] leading-relaxed text-smoke">
+        방에 놓지 않고 보관함에 둔 가구를 상점 값의 {Math.round(SELL_RATE * 100)}%에 팔아요. 잼으로 산 가구만 팔 수 있어요(전리품·보상은 팔지 않아요).
+        {hasGacha ? " 내 방 뽑기 기계의 증정 상자에 넣어 손님에게 줄 수도 있어요." : " 🎰 잼통 뽑기 기계를 두면 남는 가구를 손님에게 증정할 수도 있어요."}
+      </p>
+      <ul className="mt-2 space-y-1.5">
+        {spare.map((f) => (
+          <li key={f.id} className="flex min-h-[52px] items-center gap-2">
+            <span className="shrink-0"><FurnitureIcon id={f.id} size={40} /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-semibold">{f.label}</span>
+              <span className="block text-[11.5px] text-smoke">보관함 {stowedCount(room, f.id)}개 · 상점 값 🍯{f.price.toLocaleString("ko-KR")}</span>
+            </span>
+            <button type="button" className="garden-chip-btn shrink-0" onClick={() => sell(f)}>
+              {confirm === f.id ? "한 번 더 눌러 팔기" : `🍯${sellPrice(f.id)!.toLocaleString("ko-KR")} 받고 팔기`}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
 }

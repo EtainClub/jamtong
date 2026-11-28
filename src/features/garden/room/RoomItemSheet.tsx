@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { SeedSlot } from "../slot/SeedSlot";
-import { RoomSlot } from "../slot/RoomSlot";
+import { GiftBox } from "../slot/GiftBox";
+import { GiftSlot } from "../slot/GiftSlot";
 import { GACHA_ID } from "../slot/rules";
 import { useEffect, useState } from "react";
 
@@ -59,8 +59,6 @@ export function RoomItemSheet({
   /** 알림(토스트). 뽑기 기계의 당첨 소식에 쓴다. */
   say?: (text: string) => void;
 }) {
-  // 시트를 연 때 — 뽑기 기계가 오늘 날짜를 셈한다(렌더마다 시계를 읽지 않게).
-  const [openedAt] = useState(() => Date.now());
   const shown = room.shown.find((s) => s.id === placed.it);
   const species = shown?.species ? byId.get(shown.species) : undefined;
   const note = shown?.kind === "frame" ? species?.notes.find((n) => n.id === shown.note) : undefined;
@@ -76,7 +74,7 @@ export function RoomItemSheet({
   if (book && reader) {
     return <BookSheet book={book} room={room} mode={reader.mode} ownerNick={reader.ownerNick} gid={reader.gid} uid={reader.uid} catalog={[...byId.values()]} onClose={onClose} />;
   }
-  // 뽑기 기계(docs/garden-slots.md) — 주인은 방 꾸미기 슬롯, 손님은 하루 한 번 무료 씨앗 슬롯(받은 씨앗은 손님 주머니에).
+  // 뽑기 기계(docs/garden-slots.md §5) — 주인은 증정 상자를 채우고, 손님은 하루 한 번 무료로 돌려 그 상자의 아이템을 받는다.
   if (placed.it === GACHA_ID) {
     if (reader?.mode === "guest") {
       if (!reader.gid || !reader.uid) {
@@ -86,9 +84,9 @@ export function RoomItemSheet({
           </Sheet>
         );
       }
-      return <SeedSlot catalog={[...byId.values()]} now={openedAt} onClose={onClose} say={say} guest={{ gid: reader.gid, ownerNick: reader.ownerNick }} />;
+      return <GiftSlot gid={reader.gid} ownerNick={reader.ownerNick} onClose={onClose} say={say} />;
     }
-    return <RoomSlot now={openedAt} onClose={onClose} say={say} />;
+    return <GiftBox onClose={onClose} say={say} />;
   }
   const cartel = cartelOf(placed.it);
   if (cartel) return <CartelCardSheet cartel={cartel} onClose={onClose} />;

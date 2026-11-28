@@ -81,12 +81,12 @@ export function SlotMachine({
   footer?: ReactNode;
   /** 확률표(접어 둔다). */
   odds: ReactNode;
-  /** 돌린다. 돌리지 못하면 까닭(글). */
-  onSpin: () => SlotResult | string;
+  /** 돌린다. 돌리지 못하면 까닭(글). 서버에서 정하는 결과(남의 방 뽑기 기계)는 Promise로 — 그동안 레버를 막는다. */
+  onSpin: () => SlotResult | string | Promise<SlotResult | string>;
 }) {
   const n = Math.max(1, symbols.length);
   const [strips, setStrips] = useState<Column[]>(() => [0, 1, 2].map((c) => [c % n, (c + 1) % n, (c + 2) % n]));
-  const [phase, setPhase] = useState<"idle" | "pull" | "spin">("idle");
+  const [phase, setPhase] = useState<"idle" | "wait" | "pull" | "spin">("idle");
   const [result, setResult] = useState<SlotResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [celebrate, setCelebrate] = useState(0);
@@ -142,10 +142,19 @@ export function SlotMachine({
     });
   }, [phase]);
 
-  const spin = () => {
+  const spin = async () => {
     if (busy) return;
     setError(null);
-    const got = onSpin();
+    const out = onSpin();
+    let got: SlotResult | string;
+    if (out instanceof Promise) {
+      setPhase("wait");
+      got = await out.catch((e: unknown) => {
+        console.error("[slot] 돌리지 못했다", e);
+        return "돌리지 못했어요. 잠시 뒤 다시 해 보세요";
+      });
+      setPhase("idle");
+    } else got = out;
     if (typeof got === "string") {
       setError(got);
       gardenFeedback("tap");
@@ -211,7 +220,7 @@ export function SlotMachine({
           className="garden-slot-lever"
           aria-label={free > 0 ? "레버 당기기 · 무료" : `레버 당기기 · 잼 ${cost}`}
           disabled={!canSpin}
-          onClick={spin}
+          onClick={() => void spin()}
           style={{ left: `${SOCKET.left}%`, top: `${SOCKET.top}%` }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -227,7 +236,7 @@ export function SlotMachine({
       </div>
 
       <div className="garden-slot-controls">
-        <button type="button" className="garden-slot-go" disabled={!canSpin} onClick={spin}>
+        <button type="button" className="garden-slot-go" disabled={!canSpin} onClick={() => void spin()}>
           {busy ? "돌아가는 중…" : free > 0 ? freeLabel : left <= 0 ? "오늘은 끝" : jam < cost ? `🍯${cost} 필요` : `🍯${cost} 당기기`}
         </button>
         <p className="garden-slot-meta">
