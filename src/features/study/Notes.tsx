@@ -77,8 +77,9 @@ export function Review({ bank, boxes, today }: { bank: StudyBank; boxes: Record<
             {when(boxes[i.id][1])} · {boxes[i.id][0]}번 상자{boxes[i.id][0] === 1 ? " · 틀린 문제" : ""}
           </p>
           <p className="text-[13.5px] font-semibold">
-            {i.answer ? "⭕" : "❌"} {i.statement}
+            {i.kind === "choice" && i.choice ? i.statement : `${i.answer ? "⭕" : "❌"} ${i.statement}`}
           </p>
+          {i.kind === "choice" && i.choice && <p className="st-small font-bold">정답: {i.choice.options[i.choice.correct].label}</p>}
           <p className="st-small">{i.explain}</p>
           <p className="st-small">{units.get(i.unit)?.title}</p>
         </div>

@@ -5,7 +5,7 @@
  * ★ 날짜는 한국 날짜 "YYYY-MM-DD" 문자열로 다룬다. 문자열 비교가 곧 날짜 비교다.
  * ★ 경쟁이 없다 — 여기서 만드는 숫자는 모두 본인만 본다.
  */
-import type { StudyBank, StudyItem, StepId } from "./types";
+import { LEVEL_OF, type StudyBank, type StudyItem, type StepId } from "./types";
 
 const DAY = 86_400_000;
 const KST = 9 * 3_600_000;
@@ -84,7 +84,7 @@ export function unitStage(items: StudyItem[], boxes: Record<string, Box>): UnitS
 export function currentUnit(bank: StudyBank, boxes: Record<string, Box>): string | null {
   for (const u of bank.units) {
     const items = bank.items.filter((i) => i.unit === u.id);
-    if (items.length && !stepDone(items, boxes, "know")) return u.id;
+    if (items.some((i) => i.step === "know") && !stepDone(items, boxes, "know")) return u.id;
   }
   return null;
 }
@@ -135,10 +135,12 @@ export function pickSession(bank: StudyBank, boxes: Record<string, Box>, today: 
     .map((i) => i.id);
 }
 
-/** 단원 하나만 푸는 판 — 아직 안 푼 것, 낮은 칸 순. */
-export function unitSession(bank: StudyBank, boxes: Record<string, Box>, unitId: string): string[] {
+/**
+ * 단원 하나만 푸는 판 — 아직 안 푼 것, 낮은 칸 순. 내 단계까지의 문항만(1단계 사람에게 가리기 문항을 내지 않는다).
+ */
+export function unitSession(bank: StudyBank, boxes: Record<string, Box>, unitId: string, level = 1): string[] {
   return bank.items
-    .filter((i) => i.unit === unitId)
+    .filter((i) => i.unit === unitId && LEVEL_OF[i.step] <= level)
     .sort((a, b) => (boxes[a.id]?.[0] ?? 0) - (boxes[b.id]?.[0] ?? 0))
     .map((i) => i.id);
 }

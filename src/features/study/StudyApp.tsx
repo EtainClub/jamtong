@@ -147,7 +147,7 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
   const startIntro = (ids: string[]) => setLesson({ ids, mode: "intro", key: Date.now() });
   const startUnit = (id: string) => {
     setUnit(null);
-    setLesson({ ids: unitSession(bank, data.boxes, id), mode: "unit", key: Date.now() });
+    setLesson({ ids: unitSession(bank, data.boxes, id, level), mode: "unit", key: Date.now() });
   };
   const goalLeft = streak.today < data.goal;
 
@@ -269,7 +269,7 @@ function Panel({
     case "today":
       return <Today bank={bank} data={data} streak={streak} today={today} onDaily={onDaily} onIntro={onIntro} onUnit={onUnit} />;
     case "path":
-      return <Road bank={bank} boxes={data.boxes} onUnit={onUnit} />;
+      return <Road bank={bank} boxes={data.boxes} level={data.level ?? 1} onUnit={onUnit} />;
     case "cards":
       return <Cards bank={bank} wallet={data.wallet} />;
     case "review":

@@ -20,6 +20,13 @@ import type { StudyBank, StudyItem } from "./types";
  * ★ 틀리면 붉게 혼내지 않는다. 호박색으로 "같이 볼까요?" — 풀이가 주인공이다.
  */
 
+/** 문항 머리의 기술 이름(docs/jamgong-roadmap.md §3 표). */
+const SKILL_LABEL: Partial<Record<StudyItem["skill"], string>> = {
+  A0: "O/X · 알기",
+  A1: "가리기 · 사실과 주장",
+  A3: "가리기 · 숫자 읽기",
+};
+
 interface Turn {
   id: string;
   retry: boolean;
@@ -40,7 +47,8 @@ export function Lesson({
   const unitOf = useMemo(() => new Map(bank.units.map((u) => [u.id, u])), [bank]);
   const [queue, setQueue] = useState<Turn[]>(() => ids.filter((id) => byId.has(id)).map((id) => ({ id, retry: false })));
   const [at, setAt] = useState(0);
-  const [picked, setPicked] = useState<boolean | null>(null);
+  /** O/X면 true·false, 보기 문항이면 보기 번호. */
+  const [picked, setPicked] = useState<boolean | number | null>(null);
   const [checked, setChecked] = useState(false);
   const [right, setRight] = useState(0);
   const [combo, setCombo] = useState(0);
@@ -63,12 +71,13 @@ export function Lesson({
   const finished = at >= queue.length;
   const turn = queue[at];
   const item = turn ? byId.get(turn.id)! : null;
-  const ok = item !== null && checked && picked === item.answer;
+  const isRight = (it: StudyItem, p: boolean | number | null) => (it.kind === "choice" && it.choice ? p === it.choice.correct : p === it.answer);
+  const ok = item !== null && checked && isRight(item, picked);
 
   const check = () => {
     if (!item || picked === null) return;
     setChecked(true);
-    const correct = picked === item.answer;
+    const correct = isRight(item, picked);
     if (!turn.retry) {
       useStudy.getState().answer(item.id, correct, item.card !== null);
       if (correct) {
@@ -143,10 +152,32 @@ export function Lesson({
           <>
             <div className="st-lesson-body">
               <p className="st-small font-bold">
-                O/X · 알기 · {unitOf.get(item.unit)?.title}
+                {SKILL_LABEL[item.skill] ?? "O/X · 알기"} · {unitOf.get(item.unit)?.title}
                 {turn.retry ? " · 한 번 더" : ""}
               </p>
-              <p className="st-q">{item.statement}</p>
+              {item.choice?.prompt && <p className="st-small">{item.choice.prompt}</p>}
+              <p className="st-q">{item.kind === "choice" && item.skill === "A1" ? `“${item.statement}”` : item.statement}</p>
+              {item.choice?.from && <p className="st-small">— {item.choice.from}에서</p>}
+              {item.kind === "choice" && item.choice ? (
+                <div className="grid gap-2" role="group" aria-label="답 고르기">
+                  {item.choice.options.map((o, k) => {
+                    const cls = checked ? (k === item.choice!.correct ? "right" : k === picked ? "wrong" : "") : "";
+                    return (
+                      <button
+                        key={o.label}
+                        type="button"
+                        className={`st-opt ${cls}`}
+                        disabled={checked}
+                        aria-pressed={picked === k}
+                        onClick={() => setPicked(k)}
+                      >
+                        <b>{o.label}</b>
+                        <span>{o.hint}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
               <div className="st-ox" role="group" aria-label="답 고르기">
                 {[true, false].map((yes) => {
                   const cls = checked ? (yes === item.answer ? "right" : yes === picked ? "wrong" : "") : "";
@@ -165,6 +196,7 @@ export function Lesson({
                   );
                 })}
               </div>
+              )}
               {!checked && (
                 <div className="mt-auto flex items-end gap-2.5">
                   <Jamtongi mood="think" size={44} />
@@ -177,7 +209,7 @@ export function Lesson({
                 <>
                   <p className="st-fb-title">
                     <Jamtongi mood={ok ? "cheer" : "smile"} size={30} hop={ok} />
-                    {ok ? "맞았어요!" : `같이 볼까요? 정답은 ${item.answer ? "⭕" : "❌"}`}
+                    {ok ? "맞았어요!" : `같이 볼까요? 정답은 ${item.kind === "choice" && item.choice ? `「${item.choice.options[item.choice.correct].label}」` : item.answer ? "⭕" : "❌"}`}
                   </p>
                   <p className="text-[13.5px] leading-relaxed">{item.explain}</p>
                   <a className="st-link w-fit" href={unitOf.get(item.unit)?.href} target="_blank" rel="noopener">

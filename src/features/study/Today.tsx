@@ -54,7 +54,7 @@ export function Today({
   const goalMet = streak.today >= data.goal;
   const cur = currentUnit(bank, data.boxes);
   const curUnit = bank.units.find((u) => u.id === cur);
-  const curItems = bank.items.filter((i) => i.unit === cur);
+  const curItems = bank.items.filter((i) => i.unit === cur && i.step === "know");
   const curLearned = curItems.filter((i) => (data.boxes[i.id]?.[0] ?? 0) >= 2).length;
   const monday = weekOf(today);
   const rested = new Set(streak.rested);
