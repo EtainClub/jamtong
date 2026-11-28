@@ -3,6 +3,7 @@
 import { Say } from "./Jamtongi";
 import { addDays, GOALS, RESTS_PER_WEEK, weekday, type Streak } from "./rules";
 import { useStudy, type StudyData } from "./store";
+import { STEPS } from "./types";
 
 /**
  * 내 기록 › 출석부 — 이 달의 도장 달력. 본인만 본다(docs/daily-study.md §6.1).
@@ -81,14 +82,49 @@ export function Settings({ data }: { data: StudyData }) {
         </div>
         <p className="st-small">목표를 넘겨도 더 주는 것은 없어요. 내 속도에 맞게 골라요.</p>
       </div>
-      <div className="st-card grid gap-1">
-        <p className="st-eyebrow">공부 알림 · 준비 중</p>
-        <p className="text-[13.5px]">하루에 한 번, 고른 시각에 알려 드려요. 목표를 채운 날은 오지 않고, 잠금 화면에는 주제를 적지 않아요.</p>
-      </div>
+      <LevelCard data={data} />
       <div className="st-card grid gap-1">
         <p className="st-eyebrow">기록은 어디에</p>
-        <p className="text-[13.5px]">지금은 이 기기에만 저장돼요. 계정과 이어 다른 기기에서도 보는 기능은 곧 들어와요.</p>
+        <p className="text-[13.5px]">
+          이 기기와 잼통 계정에 함께 저장돼요. 같은 계정으로 다른 기기에서 열면 공부한 날·근거 카드·복습 일정이 모두 합쳐져요.
+          기록은 나만 볼 수 있어요.
+        </p>
       </div>
+    </div>
+  );
+}
+
+/**
+ * 내 단계 — 다섯 단계 가운데 어디인지와 「지금 단계에 머물기」(docs/jamgong-roadmap.md §3.1).
+ * 1단계에 머무는 것도 성공이다. 머물기를 켜면 다음 단계 초대가 뜨지 않는다.
+ */
+function LevelCard({ data }: { data: StudyData }) {
+  const setStay = useStudy((s) => s.setStay);
+  const level = data.level ?? 1;
+  return (
+    <div className="st-card grid gap-2">
+      <p className="st-eyebrow">내 단계</p>
+      <ol className="grid gap-1">
+        {STEPS.map((s) => (
+          <li key={s.id} className={`flex items-start gap-2 text-[13px] ${s.level > level ? "opacity-45" : ""}`}>
+            <span aria-hidden="true">{s.icon}</span>
+            <span className="min-w-0">
+              <b>
+                {s.level}단계 {s.label}
+              </b>
+              {s.level === level && <span className="ml-1 text-[11px] font-bold text-[var(--s-jam-ink)]">지금</span>}
+              <span className="st-small block">{s.can}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <label className="flex items-center justify-between gap-3 border-t border-[var(--s-line)] pt-2 text-[13.5px]">
+        <span>
+          지금 단계에 머물기
+          <span className="st-small block">켜 두면 다음 단계를 권하지 않아요. 기초 사실을 꾸준히 익히는 것만으로도 충분해요.</span>
+        </span>
+        <input type="checkbox" className="h-5 w-5 shrink-0 accent-[var(--s-ok)]" checked={Boolean(data.stay)} onChange={(e) => setStay(e.target.checked)} />
+      </label>
     </div>
   );
 }

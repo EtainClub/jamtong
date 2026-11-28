@@ -15,7 +15,7 @@ const FILTERS: Array<{ id: "all" | "fact" | "claim"; label: string; match: (t: A
 
 /**
  * 근거노트 › 근거 카드 — 익힌 근거가 모인다. 논쟁 직전에 꺼내 보는 곳(docs/daily-study.md §6.2).
- * O 문항을 맞혔을 때만 들어온다. X 문항(흔한 오해)의 문장은 담지 않는다.
+ * O 문항을 맞혔을 때만 들어온다. X 문항(헷갈리기 쉬운 문장)은 담지 않는다.
  */
 export function Cards({ bank, wallet }: { bank: StudyBank; wallet: string[] }) {
   const [q, setQ] = useState("");
@@ -59,7 +59,7 @@ export function Cards({ bank, wallet }: { bank: StudyBank; wallet: string[] }) {
 
 /**
  * 근거노트 › 다시 볼 것 — 푼 문항과 다음에 물을 날. 틀린 것(1칸)이 위에 온다.
- * X 문항은 문장 바로 아래에 풀이가 붙는다 — 오해 문장만 따로 보이지 않게.
+ * X 문항은 문장 바로 아래에 풀이가 붙는다 — 틀린 문장만 따로 보이지 않게.
  */
 export function Review({ bank, boxes, today }: { bank: StudyBank; boxes: Record<string, Box>; today: string }) {
   const units = useMemo(() => new Map(bank.units.map((u) => [u.id, u])), [bank]);

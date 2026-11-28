@@ -6,8 +6,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { getPublishedAchievements } from "../../content/achievements";
-import { buildStudyBank } from "./build";
-import { STUDY_SEGMENTS, STUDY_TABS, studyNavOf, SOON } from "./nav";
+import { validateStudy } from "../../content/study/validate";
+import { buildStudyBank, starterOf } from "./build";
+import { inviteFor, levelReady, pickLevelSession, sessionSize, type LevelState } from "./levels";
+import { navForLevel, STUDY_SEGMENTS, STUDY_TABS, studyNavOf, SOON, visibleSegments, visibleTabs } from "./nav";
+import { emptyStudy, normalizeStudy, type StudyData } from "./store";
+import { mergeBox, mergeStudy } from "./sync";
 import {
   addDays,
   currentUnit,
@@ -23,14 +27,15 @@ import {
   weekOf,
   type Box,
 } from "./rules";
-import type { StudyBank, StudyItem } from "./types";
+import type { StepId, StudyBank, StudyItem } from "./types";
 
-const item = (unit: string, n: number, answer = true): StudyItem => ({
-  id: `${unit}/ox${n}`, unit, step: "know", kind: "ox", statement: "s", answer, explain: "e", anchors: [`${unit}#c`], card: null,
+const item = (unit: string, n: number, answer = true, step: StepId = "know"): StudyItem => ({
+  id: `${unit}/${step === "know" ? "ox" : step}${n}`, unit, step, skill: "A0", kind: "ox", statement: "s", answer, explain: "e", anchors: [`${unit}#c`], card: null,
 });
 const BANK: StudyBank = {
   units: ["a:one", "a:two", "a:three"].map((id) => ({ id, course: "achievement", era: "seongnam", eraLabel: "성남시장 시절", title: id, kicker: "", href: "/" })),
   items: ["a:one", "a:two", "a:three"].flatMap((u) => [1, 2, 3, 4].map((n) => item(u, n, n <= 2))),
+  starter: [],
 };
 
 // ── 날짜 ─────────────────────────────────────────────────────────────
@@ -196,7 +201,7 @@ test("근거노트 카드: O 문항에서만, 확인된 claim으로만, 주장(C
 
 test("업적의 길: 성남시장 → 경기도지사 → 이재명 정부, 문항이 있는 업적은 모두 시기가 정해져 있다", async () => {
   const { ACHIEVEMENT_ERA, ERAS } = await import("./eras");
-  const { ACHIEVEMENT_OX } = await import("@/content/quizzes/ox");
+  const { ACHIEVEMENT_OX } = await import("@/content/study/ox");
   const bank = buildStudyBank();
   const rank = (id: string) => ERAS.findIndex((e) => e.id === id);
   for (let i = 1; i < bank.units.length; i++) assert.ok(rank(bank.units[i - 1].era) <= rank(bank.units[i].era), `${bank.units[i].id}: 시기가 거꾸로`);
@@ -222,4 +227,119 @@ test("원본 페이지 확인 문제: 잼공 문항과 같은 id, 고른 업적�
   assert.deepEqual(pageQuizItems([]), []);
   // 정원의 잡초 퀴즈·퀴즈 찬스(memorial/ox.ts)가 잼공 상자에 적는 id
   for (const e of buildMemorial()) for (const o of e.ox) assert.ok(ids.has(`a:${e.slug}/${o.id}`), `${e.slug}/${o.id}: 정원 퀴즈 문항이 잼공에 없다`);
+});
+
+// ── 단계 (docs/jamgong-roadmap.md §3) ───────────────────────────────
+
+const L1: LevelState = { level: 1, stay: false };
+const cards = (n: number) => Array.from({ length: n }, (_, k) => `c${k}`);
+const WITH_L2: StudyBank = { ...BANK, items: [...BANK.items, ...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => item("a:one", n, true, "understand"))] };
+
+test("단계: 1단계 판은 5문제(가볍게), 그 위는 8문제", () => {
+  assert.equal(sessionSize(1), 5);
+  assert.equal(sessionSize(2), 8);
+  assert.equal(pickLevelSession(BANK, {}, "2026-11-28", 1).length, 5);
+});
+
+test("단계 초대: 다음 단계 문항이 없으면 초대하지 않는다 — 지금은 알기 문항뿐이다", () => {
+  assert.equal(levelReady(BANK, 2), false);
+  assert.equal(inviteFor(BANK, L1, {}, cards(30), "2026-11-28"), null);
+  const real = buildStudyBank();
+  assert.equal(levelReady(real, 1), true);
+  assert.equal(inviteFor(real, L1, {}, cards(30), "2026-11-28"), null, "지금 콘텐츠로는 2단계 초대가 뜨지 않는다");
+});
+
+test("단계 초대: 근거 카드 10장이면 2단계로 초대, 머물기·거절 14일·마지막 단계면 묻지 않는다", () => {
+  assert.equal(inviteFor(WITH_L2, L1, {}, cards(9), "2026-11-28"), null);
+  assert.equal(inviteFor(WITH_L2, L1, {}, cards(10), "2026-11-28"), 2);
+  assert.equal(inviteFor(WITH_L2, { ...L1, stay: true }, {}, cards(10), "2026-11-28"), null, "머물기");
+  assert.equal(inviteFor(WITH_L2, { ...L1, declinedOn: "2026-11-20" }, {}, cards(10), "2026-11-28"), null, "거절한 지 8일");
+  assert.equal(inviteFor(WITH_L2, { ...L1, declinedOn: "2026-11-14" }, {}, cards(10), "2026-11-28"), 2, "거절한 지 14일");
+  assert.equal(inviteFor(WITH_L2, { level: 5, stay: false }, {}, cards(99), "2026-11-28"), null);
+});
+
+test("단계 판: 1단계에는 위 단계 문항이 나오지 않고, 2단계는 가리기 문제가 많고 알기 복습이 섞인다", () => {
+  const l1 = pickLevelSession(WITH_L2, {}, "2026-11-28", 1);
+  assert.ok(l1.every((id) => id.includes("/ox")), "1단계 판은 알기 문항만");
+  const l2 = pickLevelSession(WITH_L2, {}, "2026-11-28", 2);
+  const cur = l2.filter((id) => id.includes("/understand"));
+  assert.equal(l2.length, 8);
+  assert.ok(cur.length > l2.length - cur.length, "지금 단계가 더 많다");
+  assert.ok(cur.length < l2.length, "아래 단계 복습도 섞인다");
+  assert.equal(new Set(l2).size, l2.length);
+});
+
+test("보이는 화면: 1단계 하단 탭은 넷(말하기 없음), 준비 중 칸은 그 단계에 닿아야 보인다", () => {
+  assert.deepEqual(visibleTabs(1).map((t) => t.id), ["class", "road", "note", "me"]);
+  assert.deepEqual(visibleSegments("class", 1).map((s) => s.id), ["today"]);
+  assert.deepEqual(visibleSegments("note", 1).map((s) => s.id), ["cards", "review"]);
+  assert.equal(visibleTabs(4).length, 5, "4단계부터 말하기 탭");
+  for (const id of Object.keys(SOON)) {
+    const seg = Object.values(STUDY_SEGMENTS).flat().find((s) => s.id === id)!;
+    assert.ok(seg.minLevel > 1, `준비 중 칸 ${id}은 1단계 사람에게 보이지 않는다`);
+  }
+  assert.deepEqual(navForLevel(studyNavOf("reply"), 1), { tab: "class", seg: "today" }, "안 보이는 칸으로 온 링크는 교실로");
+  assert.deepEqual(navForLevel(studyNavOf("review"), 1), { tab: "note", seg: "review" });
+});
+
+test("첫 3분 문제: 서로 다른 단원의 O 문항 셋, 근거 카드가 되는 것, 짧은 것부터", () => {
+  const bank = buildStudyBank();
+  assert.equal(bank.starter.length, 3);
+  const items = bank.starter.map((id) => bank.items.find((i) => i.id === id)!);
+  assert.ok(items.every((i) => i.answer && i.card), "맞히면 근거 카드를 받는 O 문항");
+  assert.equal(new Set(items.map((i) => i.unit)).size, 3);
+  assert.deepEqual(starterOf(bank.items), bank.starter, "빌드마다 같다");
+});
+
+// ── 기기 사이 합치기 ─────────────────────────────────────────────────
+
+const rec = (over: Partial<StudyData>): StudyData => ({ ...emptyStudy(), ...over });
+
+test("합치기: 상자는 더 늦게 답한 쪽, 같은 날이면 낮은 칸", () => {
+  // [2, 12-01]은 11-28에 답함(3일), [3, 12-03]은 11-26에 답함(7일)
+  assert.deepEqual(mergeBox([2, "2026-12-01"], [3, "2026-12-03"]), [2, "2026-12-01"]);
+  assert.deepEqual(mergeBox([1, "2026-11-29"], [2, "2026-12-01"]), [1, "2026-11-29"], "같은 날(11-28)이면 낮은 칸");
+  assert.deepEqual(mergeBox(undefined, [2, "x"]), [2, "x"]);
+});
+
+test("합치기: 두 기기에서 따로 공부해도 날·카드·상자가 모두 남고, 설정은 늦게 고친 쪽", () => {
+  const phone = rec({ days: { "2026-11-27": 1 }, wallet: ["a", "b"], boxes: { a: [2, "2026-11-30"] }, goal: 2, updatedAt: 100, intro: true });
+  const pc = rec({ days: { "2026-11-27": 2, "2026-11-28": 1 }, wallet: ["c", "a"], boxes: { c: [2, "2026-12-01"] }, goal: 3, updatedAt: 200, level: 2 });
+  const m = mergeStudy(phone, pc);
+  assert.deepEqual(m.days, { "2026-11-27": 2, "2026-11-28": 1 });
+  assert.deepEqual(m.wallet, ["c", "a", "b"]);
+  assert.deepEqual(Object.keys(m.boxes).sort(), ["a", "c"]);
+  assert.equal(m.goal, 3, "늦게 고친 쪽");
+  assert.equal(m.intro, true, "한쪽이라도 안내를 마쳤으면");
+  assert.equal(m.level, 2, "단계는 내려가지 않는다");
+  assert.deepEqual(mergeStudy(phone, null), phone, "계정에 기록이 없으면 이 기기 것 그대로");
+});
+
+test("옛 기록 읽기: 3.0에서 안내를 마친 사람은 목표를 이미 고른 것, 단계는 1", () => {
+  const old = normalizeStudy({ v: 1, goal: 2, days: {}, boxes: {}, wallet: [], intro: true } as StudyData)!;
+  assert.equal(old.goalAsked, true);
+  assert.equal(old.level, 1);
+  assert.equal(normalizeStudy({ v: 2 } as unknown as StudyData), null);
+});
+
+// ── 문항 검사 (pnpm validate) ─────────────────────────────────────────
+
+test("문항 검사: 지금 문항은 통과하고, 주장을 사실처럼·해석을 O로·없는 앵커·확인 전 근거를 잡는다", () => {
+  const achievements = getPublishedAchievements();
+  assert.deepEqual(validateStudy(achievements), []);
+  const a = achievements.find((x) => x.claims.some((c) => c.assertionType === "CLAIM" && c.assertedBy))!;
+  const claim = a.claims.find((c) => c.assertionType === "CLAIM" && c.assertedBy)!;
+  const fact = a.claims.find((c) => c.assertionType === "FACT")!;
+  const bad = (statement: string, claimIds: string[], answer = true) => ({ id: "ox9", statement, answer, explain: "풀이를 열 자 넘게 적는다.", claimIds });
+  const run = (q: ReturnType<typeof bad>) => validateStudy(achievements, { [a.slug]: [q] });
+  assert.equal(run(bad("누가 했는지 빼고 주장만 적은 문장이다.", [claim.id])).length, 1, "주장한 사람이 없다");
+  assert.deepEqual(run(bad(`${claim.assertedBy}은 그렇게 밝혔다고 적은 문장이다.`, [claim.id])), []);
+  assert.equal(run(bad("없는 앵커를 가리키는 문장이다.", ["nope"])).length, 1);
+  assert.deepEqual(run(bad("누가 했는지 빼고 주장만 적은 문장이다.", [claim.id], false)), [], "X 문항은 오해라 귀속을 묻지 않는다");
+  assert.deepEqual(run(bad("사실만 근거로 쓴 문장이다.", [fact.id])), []);
+  const interp = achievements.flatMap((x) => x.claims.map((c) => ({ x, c }))).find(({ c }) => c.assertionType === "INTERPRETATION");
+  if (interp) {
+    const r = validateStudy(achievements, { [interp.x.slug]: [bad("해석을 사실처럼 외우게 하는 문장이다.", [interp.c.id])] });
+    assert.equal(r.length, 1, "해석뿐인 O 문항");
+  }
 });

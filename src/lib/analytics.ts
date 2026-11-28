@@ -233,7 +233,11 @@ export type AnalyticsEvent =
   | "garden_quiz_prize"
   | "garden_study_jam"
   /** 잼공 판 끝의 정원 선물 링크를 눌렀다(kind jam|seed). */
-  | "study_perk";
+  | "study_perk"
+  /** 잼공 첫 3분의 첫 문제에 답했다. correct. 첫 화면에서 떠나는지 본다(docs/jamgong-roadmap.md §4). */
+  | "study_first"
+  /** 다음 단계 초대에 답했다. level, accept. */
+  | "study_level";
 
 type Params = Record<string, string | number | boolean>;
 

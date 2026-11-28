@@ -74,7 +74,7 @@ test("진행 상태는 이어진 성과 카드가 있을 때만 — 없으면 �
 // ── 잡초 O/X 퀴즈 ────────────────────────────────────────────────────
 
 test("O/X 문항: 업적마다 O·X 둘씩, 근거 claim이 실재하고, 확인 전 claim으로 O를 만들지 않는다", async () => {
-  const { ACHIEVEMENT_OX } = await import("../../../content/quizzes/ox");
+  const { ACHIEVEMENT_OX } = await import("../../../content/study/ox");
   for (const e of entries) {
     const items = ACHIEVEMENT_OX[e.slug];
     assert.ok(items && items.length >= 4, `${e.slug}: 문항이 넷 이상`);

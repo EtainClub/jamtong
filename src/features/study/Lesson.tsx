@@ -33,7 +33,7 @@ export function Lesson({
 }: {
   bank: StudyBank;
   ids: string[];
-  mode: "daily" | "unit";
+  mode: "daily" | "unit" | "intro";
   onClose: () => void;
 }) {
   const byId = useMemo(() => new Map(bank.items.map((i) => [i.id, i])), [bank]);
@@ -109,16 +109,21 @@ export function Lesson({
           <>
             <div className="st-lesson-body items-center text-center">
               <Jamtongi mood="cheer" size={92} hop />
-              <p className="st-h text-[22px]">한 판 끝!</p>
+              <p className="st-h text-[22px]">{mode === "intro" ? "오늘은 여기까지! 잘했어요" : "한 판 끝!"}</p>
               <p className="st-small">
                 {firstTurns}문제 가운데 {right}개를 바로 맞혔어요.
                 {right < firstTurns ? " 틀린 건 「근거노트 › 다시 볼 것」에 들어갔어요." : ""}
               </p>
               <div className="st-reward">
                 <span>🫙 오늘 도장</span>
-                {doneToday !== null && <span>{doneToday >= goal ? "🎯 오늘 목표 채움" : `오늘 ${doneToday}/${goal}판`}</span>}
+                {mode !== "intro" && doneToday !== null && <span>{doneToday >= goal ? "🎯 오늘 목표 채움" : `오늘 ${doneToday}/${goal}판`}</span>}
               </div>
-              <GardenPerks bank={bank} ids={ids} goalMet={doneToday !== null && doneToday >= goal} />
+              {mode === "intro" ? (
+                // 첫날에는 정원·목표 이야기를 꺼내지 않는다(docs/jamgong-roadmap.md §4). 모은 카드와 "내일"만.
+                <p className="st-small">모은 근거 카드는 「근거노트」에 있어요. 내일 또 와요 — 잊을 때쯤 다시 물어볼게요.</p>
+              ) : (
+                <GardenPerks bank={bank} ids={ids} goalMet={doneToday !== null && doneToday >= goal} />
+              )}
               {earned.length > 0 && (
                 <div className="grid w-full gap-2 text-left">
                   <p className="st-eyebrow">근거노트에 새로 들어간 카드</p>

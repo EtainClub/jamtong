@@ -71,12 +71,14 @@ export function UnitSheet({
   bank,
   boxes,
   unitId,
+  level,
   onStart,
   onClose,
 }: {
   bank: StudyBank;
   boxes: Record<string, Box>;
   unitId: string;
+  level: number;
   onStart: () => void;
   onClose: () => void;
 }) {
@@ -99,7 +101,8 @@ export function UnitSheet({
         <p className="st-eyebrow">업적의 길 · {unit.eraLabel} · {unit.kicker}</p>
         <p className="st-h">{unit.title}</p>
         <div className="st-steps">
-          {STEPS.map((s) => {
+          {/* 내 단계까지만 보인다 — 1단계 사람은 아직 오지 않은 단계(가리기…)를 보지 않는다(docs/jamgong-roadmap.md §3.3). */}
+          {STEPS.filter((s) => s.level <= level).map((s) => {
             const ready = s.id === "know";
             const done = ready && knowDone;
             return (

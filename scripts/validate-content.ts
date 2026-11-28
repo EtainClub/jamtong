@@ -19,6 +19,7 @@ import { CORRECTIONS, validateCorrections } from "../src/content/corrections";
 import { archiveEntry } from "../src/content/source-archive";
 import { ARRIVALS } from "../src/features/garden/arrivals";
 import { buildCatalog } from "../src/features/garden/catalog";
+import { studyCount, validateStudy } from "../src/content/study/validate";
 
 let failed = false;
 
@@ -231,6 +232,21 @@ if (correctionErrors.length > 0) {
     for (const id of missing) console.error(`    ${id}`);
   } else {
     console.log(`✓ 정원 품종 장부 ${Object.keys(ARRIVALS).length}개`);
+  }
+}
+
+/*
+ * 잼공 문항. 근거 앵커가 실재하고, 주장·해석을 사실처럼 쓰지 않았는지 본다(src/content/study/validate.ts).
+ */
+{
+  const studyErrors = validateStudy(ACHIEVEMENTS.filter((a) => a.publishStatus === "published"));
+  if (studyErrors.length > 0) {
+    failed = true;
+    console.error(`\n✗ 잼공 문항 ${studyErrors.length}건`);
+    for (const e of studyErrors) console.error(`    ${e}`);
+  } else {
+    const { items, units } = studyCount();
+    console.log(`✓ 잼공 문항 ${items}개(업적 ${units}건) — 앵커·확인 여부·주장한 사람`);
   }
 }
 

@@ -85,6 +85,28 @@ service cloud.firestore {
           && request.resource.data.notes is list
           && request.resource.data.notes.size() <= 2000;
       }
+
+      /*
+       * 잼공 기록 (docs/daily-study.md §11). 한 문서에 다 담는다. 본인만 읽고 쓴다 — 남과 견줄 값이 없다.
+       * 공부 기록의 정직성은 혼자의 문제라 값은 보지 않고, 모양과 크기만 본다.
+       * 키 상한은 문항·카드가 늘어도 넉넉하게(문항 수천 개), 날은 400일(store.ts DAYS_KEEP).
+       */
+      match /study/{docId} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && docId == 'state'
+          && request.resource.data.v == 1
+          && request.resource.data.goal in [1, 2, 3]
+          && request.resource.data.days is map
+          && request.resource.data.days.size() <= 400
+          && request.resource.data.boxes is map
+          && request.resource.data.boxes.size() <= 6000
+          && request.resource.data.wallet is list
+          && request.resource.data.wallet.size() <= 6000
+          && request.resource.data.intro is bool
+          && (!('level' in request.resource.data) || request.resource.data.level in [1, 2, 3, 4, 5]);
+      }
     }
 
     /*

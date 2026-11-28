@@ -7,7 +7,10 @@ import { z } from "zod";
  * 한계·반론이 무엇인지를 묻는다. 숫자는 뜻(늘었다·줄었다, 어느 쪽이 크다)을 물을 때만 쓴다.
  *
  * ★ 문항은 claimIds의 claim만으로 참·거짓이 가려져야 한다. 풀이(explain)는 그 claim으로 답한다.
- * ★ X 문항은 흔한 오해다. 퀴즈 시트에서 문제로만 보이고 곧바로 풀이가 붙는다 — 다른 곳(카드·공유·위키)에 싣지 않는다.
+ * ★ X 문항은 **헷갈리기 쉬운 문장**이다. 실제로 SNS에서 도는 말인지는 확인하지 않았다 — 화면에서 "도는 말"·"흔한 오해"라고 부르지 않는다.
+ *   실제로 도는 말은 정책의 rumors에 따로 있다(사람이 승인한 판정과 함께, docs/jamgong-roadmap.md R5).
+ *   X 문항은 근거 claim이 그 문장을 곧바로 바로잡을 때만 싣는다. 퀴즈 시트에서 문제로만 보이고 곧바로 풀이가 붙는다 — 다른 곳(카드·공유·위키)에 싣지 않는다.
+ * ★ 2026-11-28 X 문항 56개를 다시 읽었다(docs/jamgong-ox-review.md).
  * ★ 주장(CLAIM)은 주장한 사람을 문장에 넣는다. 확인 전(verified: false) claim은 O 문항의 근거로 쓰지 않는다(memorial.test.ts가 본다).
  * ★ 초안은 GPT(Codex)가 claim·반론·쉬운 설명만 보고 썼고, 문항마다 근거 claim과 대조해 고쳤다(2026-11-25).
  */
@@ -40,7 +43,7 @@ export const ACHIEVEMENT_OX: Record<string, OxItem[]> = {
     { id: "ox1", answer: true, statement: "대장동 사업 회사는 성남도시개발공사가 의결권의 과반을 갖는 구조로 설립됐다.", explain: "성남도시개발공사가 의결권의 절반보다 한 주를 더 갖는 구조였어요. 공공이 사업 회사의 의결권 과반을 가진 거예요.", claimIds: ["claim-ppp-structure"] },
     { id: "ox2", answer: true, statement: "대장동 관련자들은 업무상 배임으로 1심 유죄 판결을 받았고 피고인들이 항소했다.", explain: "1심은 김만배 씨 등 관련자들의 업무상 배임을 인정했어요. 피고인들의 항소로 항소심이 시작됐고 자료 기준일까지 항소심 선고는 확인되지 않았어요.", claimIds: ["claim-trial-first", "claim-trial-appeal"] },
     { id: "ox3", answer: false, statement: "성남시는 대장동 개발이익 환수액 전체를 현금 배당으로 받았다고 설명했다.", explain: "성남시가 밝힌 환수 내역에는 현금 배당과 공원·기반시설 같은 현물 형태가 함께 들어 있어요. 환수액 전체가 현금 배당이라는 설명은 아니에요.", claimIds: ["claim-recovery-breakdown"] },
-    { id: "ox4", answer: false, statement: "대장동의 확정이익 방식은 부동산 경기가 오르면 공공도 상승분을 추가로 나누는 구조다.", explain: "확정이익 방식은 공공의 몫을 미리 정해 두는 구조예요. 경기가 내려가도 정해진 몫을 먼저 가져가지만 올라갈 때 상승분을 나누지는 않아요.", claimIds: ["claim-fixed-profit"] },
+    { id: "ox4", answer: false, statement: "대장동의 확정이익 방식은 부동산 경기가 오르면 공공도 상승분을 추가로 나누는 구조다.", explain: "확정이익 방식은 공공의 몫을 미리 정해 두는 구조예요. 경기가 올라도 상승분을 나누지 않아요. 1심 재판부도 확정 이익을 정해 둔 탓에 공공에 돌아갔어야 할 이익이 민간업자들에게 배분됐다고 판단했어요.", claimIds: ["claim-fixed-profit", "claim-trial-first"] },
   ],
   "export-surplus": [
     { id: "ox1", answer: true, statement: "한국의 수출 1조 달러 돌파 발표는 연간 확정치가 아닌 누적 수출 잠정 집계에 따른 것이다.", explain: "산업통상부가 발표한 것은 해당 시점까지의 누적 수출 잠정 집계예요. 한 해 전체의 확정 실적은 아니에요.", claimIds: ["es-1t"] },
@@ -124,7 +127,7 @@ export const ACHIEVEMENT_OX: Record<string, OxItem[]> = {
     { id: "ox1", answer: true, statement: "한·멕시코 전대금융은 현지 은행을 통해 한국산 물품·서비스 구매자에게 자금을 빌려주는 방식이다.", explain: "현지 은행에 신용한도를 설정해 한국산 물품·서비스를 사는 쪽에 자금을 빌려주는 방식이에요. 양국 수출입은행이 이를 신설하기로 했어요.", claimIds: ["claim-finance"] },
     { id: "ox2", answer: true, statement: "이재명 대통령은 한국 방산 기술의 멕시코 현지 생산을 위해 상대 정상에게 지원을 요청했다고 밝혔다.", explain: "이 대통령은 현지 생산과 제3국 시장 공동 진출을 위해 셰인바움 대통령의 관심과 지원을 요청했다고 밝혔어요. 요청했다는 발언과 생산 확정은 구분해야 해요.", claimIds: ["claim-defense-ask"] },
     { id: "ox3", answer: false, statement: "한·멕시코 투자보장협정 개정은 협상 타결로 서명과 국회 비준동의까지 모두 끝났다.", explain: "이 대통령은 개정 협상이 타결됐다고 밝히면서 서명과 국회 비준동의 등 필요한 절차를 거쳐야 한다고 설명했어요.", claimIds: ["claim-bit"] },
-    { id: "ox4", answer: false, statement: "한·멕시코는 정상회담에서 무역협정을 체결해 공동 이익 연구 단계를 마쳤다.", explain: "양국은 무역협정 체결에 필요한 공동 이익 연구에 착수하기로 합의했어요. 연구 착수 합의를 무역협정 체결로 볼 수는 없어요.", claimIds: ["claim-trade"] },
+    { id: "ox4", answer: false, statement: "한·멕시코는 이번 정상회담에서 무역협정 체결까지 마쳤다.", explain: "양국은 무역협정 체결에 필요한 공동 이익 연구에 착수하기로 합의했어요. 연구 착수 합의를 무역협정 체결로 볼 수는 없어요.", claimIds: ["claim-trade"] },
   ],
   "nuclear-submarine": [
     { id: "ox1", answer: true, statement: "한국 정부는 핵추진잠수함의 운용·정비 자립성을 확보하기 위해 국내 개발·건조 방침을 밝혔다.", explain: "정부는 전력 획득·유지·정비의 자립성과 안정성을 위해 한국에서 개발·건조하겠다고 밝혔어요.", claimIds: ["claim-where"] },
