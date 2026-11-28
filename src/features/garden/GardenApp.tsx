@@ -49,6 +49,7 @@ import { bookTitleInput } from "./room/library";
 import { useBlooms } from "./useBlooms";
 import { usePlaza } from "./usePlaza";
 import { installChipScroll } from "./chipScroll";
+import { cameFromStudy, clearFromStudy } from "@/features/study/fromStudy";
 
 /**
  * 잼통 정원. 설계는 docs/garden-game.md §3 (B안 MVP), 화면 구조는 docs/garden-miniroom.md §3.
@@ -231,6 +232,8 @@ export function GardenApp({
   // 정원을 연다. 원본 페이지의 "씨앗 받기"로 왔으면 그 품종을 기억해 둔다.
   const gift = useRef<string | null>(null);
   const perks = useRef<{ quiz: string | null; study: string | null; spin: "seed" | "room" | null }>({ quiz: null, study: null, spin: null });
+  // 잼공 판 끝 선물로 왔는가(study/fromStudy.ts) — 「잼공으로 돌아가기」를 띄운다. 첫 렌더는 "여는 중"이라 서버 렌더와 어긋나지 않는다.
+  const [fromStudy, setFromStudy] = useState(() => typeof window !== "undefined" && cameFromStudy());
   const inviteIn = useRef<string | null>(null);
   useEffect(() => {
     useGarden.getState().boot(catalog);
@@ -585,6 +588,38 @@ export function GardenApp({
       )}
 
       <GardenNav tab={visit ? null : tab} onTab={onTab} ripe={ripe} overgrown={plaza.level === "overgrown"} knocks={knocks.length} />
+
+      {/*
+       * 잼공 판 끝 선물(슬롯·씨앗)로 왔으면 돌아가는 길 — 슬롯을 돌리고 나서 정원에 갇히지 않게.
+       * 이번 방문 동안만 보이고, 닫을 수 있다.
+       */}
+      {fromStudy && (
+        <div className="fixed inset-x-0 z-40 flex justify-center px-4" style={{ bottom: "calc(68px + env(safe-area-inset-bottom))" }}>
+          <div className="flex items-center gap-1 rounded-full border-2 border-[#d97a22] bg-[#fff6ea] py-1 pl-1 pr-2 shadow-lg">
+            <Link
+              href="/study"
+              className="rounded-full bg-[#d97a22] px-4 py-2 text-[14px] font-extrabold text-white"
+              onClick={() => {
+                clearFromStudy();
+                track("garden_back_study", {});
+              }}
+            >
+              📖 잼공으로 돌아가기
+            </Link>
+            <button
+              type="button"
+              aria-label="돌아가기 버튼 닫기"
+              className="px-2 text-[16px] text-[#7a3f0c]"
+              onClick={() => {
+                clearFromStudy();
+                setFromStudy(false);
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {cards && <GardenCards onClose={() => setCards(false)} onDetail={() => openGuide("loop")} />}
       {guide && <GardenGuide section={guide} onClose={() => setGuide(null)} />}

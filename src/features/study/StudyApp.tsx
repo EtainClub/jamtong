@@ -10,6 +10,7 @@ import { loadStudy, saveStudy } from "@/lib/firebase/study";
 import { Lesson } from "./Lesson";
 import { Say } from "./Jamtongi";
 import { Debates } from "./Debates";
+import { setStudyFlusher } from "./flush";
 import { pickLevelSession, skipSession, skipTargets } from "./levels";
 import { navForLevel, STUDY_HOME, SOON, studyNavOf, visibleSegments, visibleTabs, type StudyNav, type StudySegment } from "./nav";
 import { Cards, Review } from "./Notes";
@@ -77,6 +78,14 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
     let unsubscribe: (() => void) | null = null;
     const save = (snapshot: StudyData) =>
       saveStudy(uid, snapshot).catch((error) => console.error("[study] 잼공 기록을 계정에 저장하지 못했다", error));
+    // 미뤄 둔 저장을 지금 한다 — 화면을 떠날 때 지우지 않고 저장한다(flush.ts).
+    let pending: StudyData | null = null;
+    const flush = () => {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      if (pending) void save(pending);
+      pending = null;
+    };
     void (async () => {
       let remote: StudyData | null;
       try {
@@ -91,14 +100,23 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
       unsubscribe = useStudy.subscribe((s) => {
         if (!s.data) return;
         if (timer) clearTimeout(timer);
-        const snapshot = s.data;
-        timer = setTimeout(() => void save(snapshot), SAVE_DELAY);
+        pending = s.data;
+        timer = setTimeout(flush, SAVE_DELAY);
       });
     })();
+    const onHide = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    setStudyFlusher(flush);
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onHide);
     return () => {
       alive = false;
       unsubscribe?.();
-      if (timer) clearTimeout(timer);
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onHide);
+      setStudyFlusher(null);
+      flush();
     };
   }, [uid, hasData]);
 
