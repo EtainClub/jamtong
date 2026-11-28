@@ -49,6 +49,11 @@ export const ACHIEVEMENT_ERA: Readonly<Record<string, EraId>> = {
   "resource-diplomacy": "government",
   "rail-merger": "government",
   "mexico-visit": "government",
+  "integrated-care": "government",
+  "regional-doctors": "government",
+  "working-hours": "government",
+  "local-currency": "government",
+  "yellow-envelope": "government",
 };
 
 const ORDER = new Map(ERAS.map((e, i) => [e.id, i]));

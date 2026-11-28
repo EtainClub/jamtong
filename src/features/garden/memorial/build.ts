@@ -60,6 +60,11 @@ const ICONS: Partial<Record<string, string>> = {
   "oil-supply": "🛢️",
   "mexico-visit": "🌵",
   "housing-stabilization": "🏠",
+  "integrated-care": "🤲",
+  "regional-doctors": "🩺",
+  "working-hours": "⏰",
+  "local-currency": "🎟️",
+  "yellow-envelope": "✉️",
 };
 
 const TEXT_LIMIT = 120;

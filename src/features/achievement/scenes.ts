@@ -44,6 +44,31 @@ export const SCENES_BY_ACHIEVEMENT: Record<string, SceneNavItem[]> = {
     { id: "counterpoint", label: "쟁점" },
     { id: "share", label: "공유" },
   ],
+  "integrated-care": [
+    { id: "timeline", label: "경과" },
+    { id: "counterpoint", label: "쟁점" },
+    { id: "share", label: "공유" },
+  ],
+  "regional-doctors": [
+    { id: "timeline", label: "경과" },
+    { id: "counterpoint", label: "쟁점" },
+    { id: "share", label: "공유" },
+  ],
+  "working-hours": [
+    { id: "timeline", label: "경과" },
+    { id: "counterpoint", label: "쟁점" },
+    { id: "share", label: "공유" },
+  ],
+  "local-currency": [
+    { id: "timeline", label: "경과" },
+    { id: "counterpoint", label: "쟁점" },
+    { id: "share", label: "공유" },
+  ],
+  "yellow-envelope": [
+    { id: "timeline", label: "경과" },
+    { id: "counterpoint", label: "쟁점" },
+    { id: "share", label: "공유" },
+  ],
   "youth-future-savings": [
     { id: "motion", label: "모집 절차" },
     { id: "timeline", label: "경과" },
