@@ -69,12 +69,13 @@ export function stepDone(items: StudyItem[], boxes: Record<string, Box>, step: S
 
 /**
  * 단원 상태. 손댄 적 없으면 씨앗, 알기를 마치면 새싹, 알기 문항이 모두 3칸 이상(두 번 넘게 맞힘)이면 꽃.
- * 열매는 다섯 단계를 모두 마쳐야 한다 — 반론·말하기 문항이 들어오기 전까지는 열매가 나오지 않는다.
+ * 열매는 **그 단원에 있는** 단계를 모두 마쳤을 때 — 알기 말고도 단계가 하나는 더 있어야 한다.
+ *   (예전에는 다섯 단계가 모두 있어야 했는데, 다섯 단계 문항을 다 가진 단원이 없어 열매가 나오지 않았다.)
  */
 export function unitStage(items: StudyItem[], boxes: Record<string, Box>): UnitStage {
   if (items.length === 0 || !items.some((i) => boxes[i.id])) return "seed";
-  const steps: StepId[] = ["know", "understand", "source", "counter", "speak"];
-  if (steps.every((s) => stepDone(items, boxes, s))) return "fruit";
+  const steps = (["know", "understand", "source", "counter", "speak"] as StepId[]).filter((s) => items.some((i) => i.step === s));
+  if (steps.length >= 2 && steps.every((s) => stepDone(items, boxes, s))) return "fruit";
   if (!stepDone(items, boxes, "know")) return "seed";
   const know = items.filter((i) => i.step === "know");
   return know.every((i) => (boxes[i.id]?.[0] ?? 0) >= 3) ? "bloom" : "sprout";
@@ -100,9 +101,24 @@ export function unitOpen(bank: StudyBank, boxes: Record<string, Box>, unitId: st
   return touched(unitId) || touched(bank.units[at - 1].id);
 }
 
+/**
+ * 길(업적·정책·언행)에 보일 단원 — 내 단계까지의 문항이 하나라도 있는 단원만. 위 단계 문항만 있는 단원은
+ * 누르면 빈 판이 열리므로 보이지 않는다.
+ */
+export function courseUnits(bank: StudyBank, course: string, level: number): StudyBank["units"] {
+  const playable = new Set(bank.items.filter((i) => LEVEL_OF[i.step] <= level).map((i) => i.unit));
+  return bank.units.filter((u) => u.course === course && playable.has(u.id));
+}
+
 // ── 오늘의 한 판 ────────────────────────────────────────────────────
 
 export const SESSION_SIZE = 8;
+
+/**
+ * 한 판으로 세는 최소 문제 수. 「오늘의 연습 하나」처럼 한두 문제짜리 연습은 상자에는 적지만 판으로 세지 않는다 —
+ * 하루 목표(와 그 정원 선물)가 한 문제로 채워지지 않게. 첫 3분(intro)과 오늘의 한 판은 늘 센다.
+ */
+export const PAN_MIN = 3;
 export const SESSION_REVIEW_MAX = 5;
 
 /**

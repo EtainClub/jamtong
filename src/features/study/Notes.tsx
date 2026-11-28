@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { EvidenceCardView } from "./EvidenceCardView";
 import { Say } from "./Jamtongi";
 import type { Box } from "./rules";
-import type { AssertionKind, StudyBank } from "./types";
+import { SPEECH_ROLE_LABEL, type AssertionKind, type StudyBank, type StudyItem } from "./types";
 
 const FILTERS: Array<{ id: "all" | "fact" | "claim"; label: string; match: (t: AssertionKind) => boolean }> = [
   { id: "all", label: "전체", match: () => true },
@@ -57,12 +57,24 @@ export function Cards({ bank, wallet }: { bank: StudyBank; wallet: string[] }) {
   );
 }
 
+/** 다시 볼 것을 한 번에 그리는 수. 푼 문제가 천 개를 넘을 수 있다. */
+const REVIEW_PAGE = 30;
+
+/** 다시 볼 것 한 줄의 문장 — 문항 종류마다 무엇을 보여 줄지. */
+function reviewLine(i: StudyItem): string {
+  if (i.kind === "ox") return `${i.answer ? "⭕" : "❌"} ${i.statement}`;
+  if (i.kind === "debate" || i.kind === "say") return `💬 ${i.statement}`;
+  if (i.kind === "parts" && i.parts) return `🧩 ${i.parts.sentences[0].text.replace(/\s+/g, " ").slice(0, 60)}…`;
+  return i.statement;
+}
+
 /**
  * 근거노트 › 다시 볼 것 — 푼 문항과 다음에 물을 날. 틀린 것(1칸)이 위에 온다.
  * X 문항은 문장 바로 아래에 풀이가 붙는다 — 틀린 문장만 따로 보이지 않게.
  */
 export function Review({ bank, boxes, today, sure = {} }: { bank: StudyBank; boxes: Record<string, Box>; today: string; sure?: Record<string, string> }) {
   const units = useMemo(() => new Map(bank.units.map((u) => [u.id, u])), [bank]);
+  const [shownCount, setShownCount] = useState(REVIEW_PAGE);
   // 「확실해요」라고 했는데 틀린 문제가 맨 앞 — 가장 위험한 착각이다(docs/jamgong-roadmap.md §5.2).
   const rows = bank.items
     .filter((i) => boxes[i.id])
@@ -72,25 +84,32 @@ export function Review({ bank, boxes, today, sure = {} }: { bank: StudyBank; box
   return (
     <div className="grid gap-2">
       <p className="st-small">잊을 때쯤 오늘의 한 판에 저절로 섞여 나와요. 맞힐수록 간격이 길어져요(1·3·7·16·35일).</p>
-      {rows.map((i) => (
+      {rows.slice(0, shownCount).map((i) => (
         <div key={i.id} className="st-card grid gap-1">
           <p className="st-eyebrow">
             {sure[i.id] ? "⚠️ 확신했는데 틀림 · " : ""}
             {when(boxes[i.id][1])} · {boxes[i.id][0]}번 상자{boxes[i.id][0] === 1 ? " · 틀린 문제" : ""}
           </p>
-          <p className="text-[13.5px] font-semibold">
-            {i.kind === "ox" ? `${i.answer ? "⭕" : "❌"} ${i.statement}` : i.kind === "debate" ? `💬 ${i.statement}` : i.statement}
-          </p>
+          <p className="text-[13.5px] font-semibold">{reviewLine(i)}</p>
           {i.kind === "choice" && i.choice && <p className="st-small font-bold">정답: {i.choice.options[i.choice.correct].label}</p>}
           {i.kind === "debate" && i.debate && (
             <p className="st-small font-bold">
               답의 뼈대: {i.debate.skeleton.options[i.debate.skeleton.correct].label} · 근거: {i.debate.evidence.options[i.debate.evidence.correct]}
             </p>
           )}
+          {i.kind === "say" && i.say && <p className="st-small">모범 답: {i.say.response}</p>}
+          {i.kind === "parts" && i.parts && (
+            <p className="st-small font-bold">{i.parts.sentences.map((x, k) => `${k + 1} ${SPEECH_ROLE_LABEL[x.role]}`).join(" · ")}</p>
+          )}
           <p className="st-small">{i.explain}</p>
           <p className="st-small">{units.get(i.unit)?.title}</p>
         </div>
       ))}
+      {rows.length > shownCount && (
+        <button type="button" className="st-btn st-btn-line w-full" onClick={() => setShownCount((n) => n + REVIEW_PAGE)}>
+          더 보기 ({rows.length - shownCount}개 남음)
+        </button>
+      )}
     </div>
   );
 }

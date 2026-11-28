@@ -33,8 +33,20 @@ import type { Level, StudyBank } from "./types";
  */
 const SAVE_DELAY = 2_000;
 
-export function StudyApp({ bank }: { bank: StudyBank }) {
+/** 1단계 사람이 은행 전체를 받기 시작하는 때(첫 화면이 다 그려진 뒤). 초대·건너뛰기 점검에 필요하다. */
+const FULL_BANK_IDLE_MS = 3_000;
+
+export function StudyApp({ bank: entry }: { bank: StudyBank }) {
   const data = useStudy((s) => s.data);
+  /*
+   * 은행 — 첫 화면에는 1단계 문항만 실려 온다(build.ts entryBank). 전체는 /study/bank.json에서 받는다.
+   * 2단계부터는 곧바로 받고 그동안 "여는 중"을 그린다. 1단계는 첫 화면을 먼저 그리고 조용히 받는다.
+   */
+  const [full, setFull] = useState<StudyBank | null>(null);
+  const [fullError, setFullError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const bank = full ?? entry;
+  const needFull = (data?.level ?? 1) >= 2;
   /*
    * 주소(?tab=, ?unit=)로 왔으면 그 자리부터. 첫 렌더는 기록(data)이 없어 "여는 중"만 그리므로
    * 여기서 주소창을 읽어도 서버 렌더와 어긋나지 않는다(정원 GardenApp과 같은 방식).
@@ -122,6 +134,31 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
     };
   }, [uid, hasData]);
 
+  useEffect(() => {
+    if (!hasData || full) return;
+    let alive = true;
+    const load = () =>
+      fetch("/study/bank.json")
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json() as Promise<StudyBank>;
+        })
+        .then((b) => {
+          if (!alive) return;
+          setFull(b);
+          setFullError(false);
+        })
+        .catch((error) => {
+          console.error("[study] 문항 은행 전체를 받지 못했다", error);
+          if (alive) setFullError(true);
+        });
+    const timer = setTimeout(load, needFull ? 0 : FULL_BANK_IDLE_MS);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [hasData, full, needFull, attempt]);
+
   // 자정을 넘겨 켜 둔 화면도 날짜를 바꾼다.
   useEffect(() => {
     const timer = setInterval(() => setToday(kstDay(Date.now())), 60_000);
@@ -151,10 +188,26 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
   }, []);
   const closeUnit = useCallback(() => setUnit(null), []);
 
-  if (!data || !today) {
+  if (!data || !today || (needFull && !full)) {
     return (
-      <div className={`${styles.study} -mx-4 min-h-[70vh] px-4 pt-10`}>
-        <p className="st-small text-center">잼공을 여는 중…</p>
+      <div className={`${styles.study} -mx-4 grid min-h-[70vh] content-start gap-3 px-4 pt-10`}>
+        {needFull && fullError ? (
+          <>
+            <p className="st-small text-center">문제를 불러오지 못했어요. 연결을 확인하고 다시 해 주세요.</p>
+            <button
+              type="button"
+              className="st-btn st-btn-jam mx-auto"
+              onClick={() => {
+                setFullError(false);
+                setAttempt((n) => n + 1);
+              }}
+            >
+              다시 불러오기
+            </button>
+          </>
+        ) : (
+          <p className="st-small text-center">잼공을 여는 중…</p>
+        )}
       </div>
     );
   }
@@ -167,11 +220,14 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
   const startDaily = () => setLesson({ ids: pickLevelSession(bank, data.boxes, today, level), mode: "daily", key: Date.now() });
   const startIntro = (ids: string[]) => setLesson({ ids, mode: "intro", key: Date.now() });
   const startCheck = (target: Level) => setLesson({ ids: skipSession(bank, data.boxes, target), mode: "check", target, key: Date.now() });
-  const startItems = (ids: string[]) => setLesson({ ids, mode: "unit", key: Date.now() });
+  // 빈 판은 열지 않는다 — 문항이 없으면 그대로 둔다.
+  const startItems = (ids: string[]) => ids.length > 0 && setLesson({ ids, mode: "unit", key: Date.now() });
   const startAssess = () => setLesson({ ids: assessSession(bank, data.boxes, data.checked ?? [], level), mode: "assess", key: Date.now() });
   const startUnit = (id: string) => {
+    const ids = unitSession(bank, data.boxes, id, level);
+    if (ids.length === 0) return;
     setUnit(null);
-    setLesson({ ids: unitSession(bank, data.boxes, id, level), mode: "unit", key: Date.now() });
+    setLesson({ ids, mode: "unit", key: Date.now() });
   };
   const goalLeft = streak.today < data.goal;
 

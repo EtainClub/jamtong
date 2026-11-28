@@ -15,7 +15,7 @@ import { WEAKNESS_ITEMS } from "../../content/study/weakness";
 import { validateDebate, validateNumbers, validateSort, validateStudy, validateWeakness, validateWeigh } from "../../content/study/validate";
 import { CHECK_ITEMS, WEIGHT_ITEMS } from "../../content/study/weigh";
 import { STATEMENTS } from "../../content/words";
-import { buildStudyBank, rumorItems, SKELETON_OPTIONS, starterOf } from "./build";
+import { buildStudyBank, entryBank, rumorItems, SKELETON_OPTIONS, starterOf } from "./build";
 import { allowedValues, approveInSource, approvedVerdict, isQuestion, validateVerdicts, VERDICTS, type Verdict } from "../../content/policies/verdicts";
 import { ASSESS_SIZE, assessReady, assessSession, inviteFor, levelReady, pickLevelSession, sessionSize, SKIP_SIZE, skipSession, skipTargets, type LevelState } from "./levels";
 import { navForLevel, STUDY_SEGMENTS, STUDY_TABS, studyNavOf, SOON, visibleSegments, visibleTabs } from "./nav";
@@ -23,9 +23,10 @@ import { SAY_PER_SESSION } from "./levels";
 import { SPEECH_PARTS } from "../../content/study/speech";
 import { validateSpeech } from "../../content/study/validate";
 import { emptyStudy, normalizeStudy, type StudyData } from "./store";
-import { mergeBox, mergeStudy } from "./sync";
+import { answeredOn, mergeBox, mergeStudy, sameStudy } from "./sync";
 import {
   addDays,
+  courseUnits,
   currentUnit,
   grade,
   learned,
@@ -633,4 +634,51 @@ test("말의 뼈대 검사: 원문에 없는 문장, 순서가 바뀐 문장, �
   assert.ok(validateSpeech(STATEMENTS, [made]).some((e) => e.includes("원문에 없는")));
   const noClaim = { ...q, parts: q.parts.map((x) => ({ ...x, role: "reason" as const })) };
   assert.ok(validateSpeech(STATEMENTS, [noClaim]).some((e) => e.includes("주장이 없다")));
+});
+
+test("점검·개선(2026-11-28): 빈 단원 숨기기, 첫 화면 은행, 열매, 확신 착각 합치기, 직접 답하기 미리 당기지 않기", () => {
+  const bank = buildStudyBank();
+  // 길에는 내 단계까지 풀 문항이 있는 단원만 보인다.
+  for (const level of [1, 2, 3, 4, 5]) {
+    for (const course of ["achievement", "policy", "words"]) {
+      for (const u of courseUnits(bank, course, level)) {
+        assert.ok(unitSession(bank, {}, u.id, level).length > 0, `L${level} ${u.id}: 누르면 빈 판이 열리지 않는다`);
+      }
+    }
+  }
+  assert.ok(courseUnits(bank, "policy", 2).length < bank.units.filter((u) => u.course === "policy").length, "2단계에서는 위 단계 문항만 있는 정책 단원이 숨는다");
+
+  // 첫 화면 은행 — 1단계 문항과 그 단원만, 첫 3분 문제는 그 안에.
+  const entry = entryBank(bank);
+  assert.ok(entry.items.every((i) => i.step === "know"));
+  assert.ok(entry.items.every((i) => entry.units.some((u) => u.id === i.unit)));
+  assert.ok(entry.starter.every((id) => entry.items.some((i) => i.id === id)));
+  assert.ok(JSON.stringify(entry).length * 5 < JSON.stringify(bank).length, "전체보다 훨씬 가볍다");
+
+  // 열매 — 그 단원에 있는 단계를 모두 마치면(알기 말고 하나 더 있어야).
+  const unit = bank.units.find((u) => new Set(bank.items.filter((i) => i.unit === u.id).map((i) => i.step)).size >= 2)!;
+  const items = bank.items.filter((i) => i.unit === unit.id);
+  const all = Object.fromEntries(items.map((i) => [i.id, [3, "2099-01-01"] as Box]));
+  assert.equal(unitStage(items, all), "fruit");
+  const knowOnly = bank.items.filter((i) => i.unit === bank.units.find((u) => bank.items.filter((x) => x.unit === u.id).every((x) => x.step === "know"))?.id);
+  if (knowOnly.length) assert.notEqual(unitStage(knowOnly, Object.fromEntries(knowOnly.map((i) => [i.id, [3, "2099-01-01"] as Box]))), "fruit", "알기뿐인 단원은 꽃까지");
+
+  // 「확신했는데 틀림」 — 한 기기에서 맞혀 지운 것을 다른 기기의 옛 표시가 되살리지 않는다.
+  const id = "a:x/ox1";
+  const missed = { ...emptyStudy(), boxes: { [id]: [1, "2026-11-21"] as Box }, sureMisses: { [id]: "2026-11-20" }, updatedAt: 1 };
+  const fixed = { ...emptyStudy(), boxes: { [id]: [2, addDays("2026-11-22", 3)] as Box }, sureMisses: {}, updatedAt: 2 };
+  assert.equal(answeredOn(fixed.boxes[id]), "2026-11-22");
+  assert.deepEqual(mergeStudy(fixed, missed).sureMisses, {}, "나중에 맞혔으면 지운다");
+  assert.deepEqual(mergeStudy(missed, { ...missed, sureMisses: {} }).sureMisses, { [id]: "2026-11-20" }, "아직 틀린 채면 남는다");
+  // 칸 순서만 다른 기록은 같다 — 다시 쓰지 않는다.
+  const a = { ...emptyStudy(), goal: 2 as const, level: 3 as const };
+  const b = Object.fromEntries(Object.entries(a).reverse()) as typeof a;
+  assert.ok(sameStudy(a, b));
+  assert.ok(!sameStudy(a, { ...a, goal: 1 }));
+
+  // 5단계 — 다 익혀 때가 안 된 직접 답하기는 미리 당겨 내지 않는다.
+  const says = Object.fromEntries(bank.items.filter((i) => i.kind === "say").map((i) => [i.id, [3, "2099-01-01"] as Box]));
+  const ids = pickLevelSession(bank, says, "2026-12-01", 5);
+  assert.ok(ids.every((x) => bank.items.find((i) => i.id === x)!.kind !== "say"));
+  assert.ok(ids.length > 0, "말의 뼈대와 복습으로 채운다");
 });

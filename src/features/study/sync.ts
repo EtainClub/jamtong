@@ -6,10 +6,10 @@
  * ★ 상자는 "더 늦게 답한 쪽"을 고른다. 답한 날 = 다음에 물을 날 − 그 칸의 간격. 같은 날이면 낮은 칸(조심스러운 쪽).
  * ★ 설정(목표·단계·머물기)은 늦게 고친 쪽(updatedAt)을 따른다. 단계는 내려가지 않으므로 큰 쪽.
  */
-import { addDays, BOX_DAYS, type Box } from "./rules";
+import { addDays, BOX_DAYS, learned, type Box } from "./rules";
 import type { StudyData } from "./store";
 
-function answeredOn(box: Box): string {
+export function answeredOn(box: Box): string {
   return addDays(box[1], -BOX_DAYS[Math.max(1, Math.min(BOX_DAYS.length, box[0])) - 1]);
 }
 
@@ -47,12 +47,28 @@ export function mergeStudy(local: StudyData, remote: StudyData | null): StudyDat
       .sort((a, b) => a.day.localeCompare(b.day))
       .slice(-24),
     checked: [...new Set([...(remote.checked ?? []), ...(local.checked ?? [])])],
-    sureMisses: { ...(remote.sureMisses ?? {}), ...(local.sureMisses ?? {}) },
+    // 「확신했는데 틀림」은 다음에 맞히면 지운다 — 한 기기에서 지운 것을 다른 기기의 옛 표시가 되살리지 않게,
+    // 합친 상자가 그날이나 그 뒤에 맞힌 것이면 뺀다.
+    sureMisses: Object.fromEntries(
+      Object.entries({ ...(remote.sureMisses ?? {}), ...(local.sureMisses ?? {}) }).filter(([id, day]) => !(learned(boxes[id]) && answeredOn(boxes[id]) >= day)),
+    ),
     updatedAt: Math.max(local.updatedAt ?? 0, remote.updatedAt ?? 0),
   };
 }
 
+/** 키 순서와 상관없이 같은 값이면 같은 문자열. Firestore는 칸 순서를 지키지 않는다. undefined 칸은 뺀다(저장할 때처럼). */
+function stable(v: unknown): string {
+  if (Array.isArray(v)) return `[${v.map(stable).join(",")}]`;
+  if (v && typeof v === "object")
+    return `{${Object.keys(v)
+      .filter((k) => (v as Record<string, unknown>)[k] !== undefined)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${stable((v as Record<string, unknown>)[k])}`)
+      .join(",")}}`;
+  return JSON.stringify(v) ?? "null";
+}
+
 /** 두 기록이 같은가 — 합친 결과가 계정 것과 같으면 다시 쓰지 않는다. */
 export function sameStudy(a: StudyData | null, b: StudyData | null): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+  return stable(a) === stable(b);
 }
