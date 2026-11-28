@@ -10,6 +10,9 @@ import { PolicyClips } from "@/features/garden/album/PolicyClips";
 import { WikiNotes } from "@/features/wiki/WikiNotes";
 import { contentPages, getPublicPage, pageSummary, publicTitles } from "@/lib/wiki/load";
 import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
+import { PageDoors } from "@/features/study/PageDoors";
+import { PageQuiz } from "@/features/study/PageQuiz";
+import { pageQuizItems } from "@/features/study/build";
 import { renderWiki } from "@/lib/wiki/markdown";
 
 const KIND_LABEL: Record<string, string> = {
@@ -73,6 +76,16 @@ export default async function WikiPage({
 
   const { nodes, notes } = renderWiki(page.body, publicTitles());
   const isTrial = TRIAL_POLICIES.some((p) => page.name === `policy/${p.slug}`);
+  // 페이지가 무엇의 위키인지 — 정책 팩트(policy/<slug>), 업적 소스(source: <slug>), 언행 소스(source: words:<slug>).
+  const achievementSlug = page.kind === "source" && page.source && !page.source.includes(":") ? page.source : null;
+  const seed = page.name.startsWith("policy/")
+    ? `p:${page.name.slice("policy/".length)}`
+    : page.source?.startsWith("words:")
+      ? `w:${page.source.slice("words:".length)}`
+      : achievementSlug
+        ? `a:${achievementSlug}`
+        : undefined;
+  const quiz = achievementSlug ? pageQuizItems([achievementSlug]) : [];
 
   return (
     <>
@@ -141,6 +154,14 @@ export default async function WikiPage({
         {nodes}
         <WikiNotes notes={notes} />
         {page.name.startsWith("policy/") && <PolicyClips slug={page.name.slice("policy/".length)} />}
+
+        {/* 다 읽은 사람에게 — 업적 소스면 그 업적의 확인 문제, 씨앗(품종표에 있으면), 잼공. */}
+        {quiz.length > 0 && (
+          <div className="mt-10">
+            <PageQuiz items={quiz} where="wiki" inset={false} />
+          </div>
+        )}
+        <PageDoors seed={seed} study={quiz.length > 0 && achievementSlug ? { slug: achievementSlug, title: quiz[0].title } : {}} className={quiz.length > 0 ? "mt-3" : "mt-10"} inset={false} />
       </main>
 
       <BottomNav />

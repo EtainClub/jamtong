@@ -28,14 +28,20 @@ interface Tab {
 
 const TABS: Tab[] = [
   { href: "/", label: "홈", ready: true, icon: <HomeIcon /> },
-  /* 타임라인은 상단 메뉴로 옮겼다. 정부 정책 팩트가 위키에 쌓이면서 위키가 더 자주 쓰인다. */
-  { href: "/wiki", label: "위키", ready: true, icon: <WikiIcon /> },
+  /*
+   * 위키 자리를 잼공(매일 공부)에 내줬다(docs/daily-study.md §8.1). 잼공은 정원처럼 제 하단 탭을 그리므로
+   * /study에서는 이 바가 보이지 않는다. 위키는 업적 탭이 자기 것으로 치고, 상단 메뉴에서도 들어간다.
+   */
+  { href: "/study", label: "잼공", ready: true, icon: <StudyIcon /> },
   {
     href: "/explore",
     label: "업적",
     ready: true,
-    /* 카르텔은 업적을 가로질러 보는 축이다. 주소는 다르지만 같은 탭 아래다. */
-    owns: ["/achievement", "/cartel"],
+    /*
+     * 카르텔은 업적을 가로질러 보는 축이다. 주소는 다르지만 같은 탭 아래다.
+     * 위키(정부 정책 팩트·AI에게 묻기)도 업적과 한 묶음이라 이 탭 아래다.
+     */
+    owns: ["/achievement", "/cartel", "/wiki"],
     icon: <ExploreIcon />,
   },
   { href: "/words", label: "언행", ready: true, icon: <QuoteIcon /> },
@@ -125,8 +131,8 @@ function HomeIcon() {
   );
 }
 
-/** 펼친 책. 여러 장이 모인 참고서라는 뜻이다. */
-function WikiIcon() {
+/** 펼친 책. 매일 펴서 공부한다는 뜻이다(잼공). 이름만으로는 뜻을 모를 수 있어 그림이 공부를 말한다. */
+function StudyIcon() {
   return (
     <svg {...iconProps}>
       <path d="M12 6.5C10 5 7.5 4.5 4 4.5v13c3.5 0 6 .5 8 2 2-1.5 4.5-2 8-2v-13c-3.5 0-6 .5-8 2z" />

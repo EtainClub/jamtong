@@ -13,6 +13,7 @@ import type { WikiConceptCard } from "@/lib/wiki/load";
 import type { StatusCount } from "@/content/pledges";
 import { PledgeBar, PledgeLegend } from "@/features/pledges/PledgeProgress";
 import { GardenHomeCard } from "@/features/garden/GardenHomeCard";
+import { StudyHomeCard } from "@/features/study/StudyHomeCard";
 import { CheerHomeCard } from "@/features/words/CheerHomeCard";
 import { loadSelection, saveSelection } from "@/features/app/rememberSelection";
 
@@ -357,6 +358,7 @@ export function HomeFeed({
         </ul>
       </section>
 
+      <StudyHomeCard />
       <GardenHomeCard />
       <CheerHomeCard />
 

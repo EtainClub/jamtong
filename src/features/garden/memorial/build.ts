@@ -187,7 +187,7 @@ export function buildMemorial(): MemorialEntry[] {
       ...(cartoonOf(a) ? { cartoon: cartoonOf(a) } : {}),
       ox: (ACHIEVEMENT_OX[a.slug] ?? [])
         .filter((q) => q.claimIds.every((id) => a.claims.some((c) => c.id === id)))
-        .map((q) => ({ statement: q.statement, answer: q.answer, explain: q.explain, anchor: `${a.slug}#${q.claimIds[0]}` })),
+        .map((q) => ({ id: q.id, statement: q.statement, answer: q.answer, explain: q.explain, anchor: `${a.slug}#${q.claimIds[0]}` })),
       quiz: {
         question: `「${a.title}」에서 확인된 숫자는 무엇일까요?`,
         options,

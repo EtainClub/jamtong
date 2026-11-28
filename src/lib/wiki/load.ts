@@ -23,6 +23,8 @@ export interface WikiPage {
   title: string;
   kind: string;
   updated?: string;
+  /** kind가 source일 때 그 소스(업적 slug 또는 `words:<slug>`). 페이지 끝의 연습·씨앗 문이 쓴다. */
+  source?: string;
   /** frontmatter를 뗀 본문. */
   body: string;
 }
@@ -59,6 +61,7 @@ export function allPages(): WikiPage[] {
         title: front.title ?? name,
         kind: front.kind ?? "meta",
         updated: front.updated,
+        ...(front.source ? { source: front.source } : {}),
         body,
       });
     }

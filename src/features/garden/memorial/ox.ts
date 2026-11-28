@@ -24,6 +24,8 @@ export interface OxQuiz {
   explain: string;
   /** 풀이의 근거 앵커(업적slug#claimId). */
   anchor: string;
+  /** 잼공 문항 id `a:<slug>/<ox id>` — 정원에서 푼 것도 잼공 상자에 쌓인다(docs/daily-study.md §7). */
+  item: string;
 }
 
 /** rand는 0 ≤ x < 1. 문항이 있는 업적에서 고른다 — 업적을 먼저 고르고 그 안에서 문항을(업적마다 같은 확률). 없으면 null. */
@@ -32,7 +34,7 @@ export function makeOx(entries: readonly MemorialEntry[], rand: () => number): O
   if (usable.length === 0) return null;
   const e = usable[Math.floor(rand() * usable.length)];
   const q = e.ox[Math.floor(rand() * e.ox.length)];
-  return { slug: e.slug, title: e.title, href: e.href, statement: q.statement, answer: q.answer, explain: q.explain, anchor: q.anchor };
+  return { slug: e.slug, title: e.title, href: e.href, statement: q.statement, answer: q.answer, explain: q.explain, anchor: q.anchor, item: `a:${e.slug}/${q.id}` };
 }
 
 /**

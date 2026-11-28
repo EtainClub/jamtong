@@ -1,0 +1,788 @@
+<title>잼공 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 레이아웃: 넓은 화면은 [휴대폰 시안 | 설계 메모] 두 칸, 좁은 화면은 시안 아래 메모.
+   느낌: 잼공 = 공부방 느낌, 모눈 공책(밝음) / 칠판(어두움). 잼통이의 잼 호박색이 유일한 강조색. */
+:root {
+  --bg: #e9efec;          /* 책상 */
+  --paper: #fbfcfa;       /* 공책 */
+  --grid: #dbe6e1;        /* 모눈 */
+  --ink: #1f3a35;         /* 칠판 먹색 */
+  --muted: #5c726c;
+  --line: #cfdcd6;
+  --board: #24443d;       /* 칠판 */
+  --board-ink: #eef5ef;
+  --jam: #d97a22;         /* 잼 */
+  --jam-soft: #fbe7cf;
+  --jam-ink: #7a3f0c;
+  --ok: #2f8a57;
+  --ok-soft: #dcf1e3;
+  --hmm: #b7791f;
+  --hmm-soft: #fbefd6;
+  --fact: #2f8a57;
+  --claim: #c0711b;
+  --interp: #3b6fb0;
+  --opinion: #7d5aa8;
+  --counter: #8a4fa0;
+  --display: "Jua", "IBM Plex Sans KR", system-ui, sans-serif;
+  --body: "IBM Plex Sans KR", system-ui, -apple-system, "Apple SD Gothic Neo", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121c1a; --paper: #1a2a27; --grid: #22352f; --ink: #e6f0ea; --muted: #9db3ab; --line: #2f4741;
+    --board: #0f1f1b; --board-ink: #e6f0ea; --jam: #f09a45; --jam-soft: #3d2a17; --jam-ink: #ffd6a8;
+    --ok: #5cc48a; --ok-soft: #1c3a2a; --hmm: #e6ac4f; --hmm-soft: #3a2e17;
+    --fact: #5cc48a; --claim: #f0a050; --interp: #7fa8e0; --opinion: #b496dc; --counter: #c592d8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121c1a; --paper: #1a2a27; --grid: #22352f; --ink: #e6f0ea; --muted: #9db3ab; --line: #2f4741;
+  --board: #0f1f1b; --board-ink: #e6f0ea; --jam: #f09a45; --jam-soft: #3d2a17; --jam-ink: #ffd6a8;
+  --ok: #5cc48a; --ok-soft: #1c3a2a; --hmm: #e6ac4f; --hmm-soft: #3a2e17;
+  --fact: #5cc48a; --claim: #f0a050; --interp: #7fa8e0; --opinion: #b496dc; --counter: #c592d8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); line-height: 1.55; }
+button { font: inherit; color: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid var(--jam); outline-offset: 2px; }
+.page { max-width: 1080px; margin: 0 auto; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.page-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 16px; }
+.page-head h1 { font-family: var(--display); font-weight: 400; font-size: 28px; margin: 0; }
+.page-head p { margin: 0; color: var(--muted); font-size: 13px; }
+.tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--jam-soft); color: var(--jam-ink); }
+.stage { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 880px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── 휴대폰 ─────────────────────────────── */
+.phone { position: relative; width: 100%; max-width: 400px; height: 780px; margin: 0 auto;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 30px; overflow: hidden;
+  display: flex; flex-direction: column; box-shadow: 0 18px 40px -18px #1f3a3555; }
+@media (max-width: 880px) { .phone { height: min(780px, 86dvh); } }
+.site-nav-note { font-size: 10.5px; color: var(--muted); text-align: center; padding: 4px 0 0; }
+.appbar { display: flex; align-items: center; gap: 8px; padding: 12px 14px 8px; background: var(--board); color: var(--board-ink); }
+.appbar .back { font-size: 11px; opacity: .8; border: 1px solid #ffffff30; border-radius: 999px; padding: 2px 8px; background: none; color: inherit; }
+.appbar h2 { font-family: var(--display); font-weight: 400; font-size: 19px; margin: 0; flex: 1; letter-spacing: -.01em; }
+.chip-stat { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #ffffff18; }
+.segs { display: flex; gap: 6px; padding: 8px 12px; background: var(--board); overflow-x: auto; scrollbar-width: none; }
+.segs button { flex-shrink: 0; border: 1px solid #ffffff2a; background: none; color: var(--board-ink); opacity: .75; border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.segs button[aria-pressed="true"] { background: var(--board-ink); color: var(--board); opacity: 1; }
+.screen { flex: 1; overflow-y: auto; padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 12px;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px; background-position: -1px -1px; }
+.tabs { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); background: var(--paper); }
+.tabs button { border: 0; background: none; padding: 7px 0 9px; display: grid; justify-items: center; gap: 1px; font-size: 10.5px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.tabs button .ico { font-size: 19px; line-height: 1.2; filter: grayscale(.6); }
+.tabs button[aria-current="page"] { color: var(--ink); }
+.tabs button[aria-current="page"] .ico { filter: none; transform: translateY(-1px); }
+
+/* 공통 블록 */
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
+.eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; color: var(--muted); }
+.h { font-family: var(--display); font-weight: 400; font-size: 17px; margin: 2px 0 4px; }
+.small { font-size: 12px; color: var(--muted); }
+.row { display: flex; align-items: center; gap: 10px; }
+.btn { border: 0; border-radius: 14px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
+.btn-jam { background: var(--jam); color: #fff; box-shadow: 0 4px 0 color-mix(in srgb, var(--jam) 60%, #000); }
+.btn-jam:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--jam) 60%, #000); }
+.btn-line { background: var(--paper); border: 1px solid var(--line); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; box-shadow: none; }
+.link { color: var(--jam-ink); font-weight: 600; font-size: 12px; text-decoration: underline; text-underline-offset: 2px; }
+:root[data-theme="dark"] .link { color: var(--jam); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .link { color: var(--jam); } }
+
+/* 잼통이 + 말풍선 */
+.greet { display: flex; gap: 10px; align-items: flex-end; }
+.bubble { position: relative; background: var(--paper); border: 1px solid var(--line); border-radius: 16px 16px 16px 4px; padding: 9px 12px; font-size: 13.5px; flex: 1; min-width: 0; }
+.jt { flex-shrink: 0; }
+.jt.hop { animation: hop .6s ease-out; }
+@keyframes hop { 0%,100% { transform: translateY(0) } 35% { transform: translateY(-14px) scale(1.04, .96) } 60% { transform: translateY(0) scale(.96, 1.04) } }
+@media (prefers-reduced-motion: reduce) { .jt.hop { animation: none; } }
+
+/* 출석 */
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 8px; }
+.day { display: grid; justify-items: center; gap: 2px; font-size: 10.5px; color: var(--muted); }
+.stamp { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; border: 1.5px dashed var(--line); background: var(--paper); }
+.stamp.on { border: 2px solid var(--jam); background: var(--jam-soft); }
+.stamp.rest { border-style: solid; color: var(--muted); font-weight: 700; }
+.stamp.today { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.cta { background: var(--board); color: var(--board-ink); border-radius: 18px; padding: 14px; display: grid; gap: 10px; }
+.cta .btn-jam { width: 100%; font-size: 16px; padding: 13px; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 6px; font-size: 11.5px; }
+.meta-row span { background: #ffffff16; border-radius: 999px; padding: 2px 8px; }
+
+.progress { height: 8px; border-radius: 999px; background: var(--grid); overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--ok); border-radius: inherit; transition: width .35s ease; }
+
+/* 근거 카드 */
+.ev { border: 1px solid var(--line); border-left: 5px solid var(--t, var(--fact)); border-radius: 12px; padding: 10px 12px; background: var(--paper); display: grid; gap: 6px; }
+.ev .kind { font-size: 10.5px; font-weight: 700; color: var(--t); letter-spacing: .02em; }
+.ev p { margin: 0; font-size: 13px; }
+.ev .anchor { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; color: var(--muted); word-break: break-all; }
+.t-fact { --t: var(--fact); } .t-claim { --t: var(--claim); } .t-interp { --t: var(--interp); } .t-opinion { --t: var(--opinion); } .t-counter { --t: var(--counter); }
+
+/* 길 지도 */
+.course-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.course-chips button { flex-shrink: 0; border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.course-chips button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.path { position: relative; padding: 6px 0 10px; }
+.path svg.trail { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.node { position: relative; display: flex; align-items: center; gap: 10px; margin: 0 0 18px; }
+.node:nth-child(4n+2) { padding-left: 64px; } .node:nth-child(4n+3) { padding-left: 120px; } .node:nth-child(4n+4) { padding-left: 64px; }
+.node button { width: 58px; height: 58px; border-radius: 50%; border: 0; display: grid; place-items: center; font-size: 25px; cursor: pointer; flex-shrink: 0;
+  background: var(--paper); box-shadow: 0 5px 0 var(--line), inset 0 0 0 2px var(--line); }
+.node.fruit button { background: var(--jam-soft); box-shadow: 0 5px 0 color-mix(in srgb, var(--jam) 55%, transparent), inset 0 0 0 2px var(--jam); }
+.node.bloom button, .node.sprout button { background: var(--ok-soft); box-shadow: 0 5px 0 color-mix(in srgb, var(--ok) 45%, transparent), inset 0 0 0 2px var(--ok); }
+.node.now button { background: var(--jam); color: #fff; box-shadow: 0 5px 0 color-mix(in srgb, var(--jam) 60%, #000); animation: pulse 2s ease-in-out infinite; }
+.node.locked button { filter: grayscale(1); opacity: .5; cursor: default; }
+@keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.06) } }
+@media (prefers-reduced-motion: reduce) { .node.now button { animation: none; } }
+.node .lbl { font-size: 12.5px; font-weight: 600; line-height: 1.3; min-width: 0; }
+.node .lbl small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; }
+
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.field { text-align: left; }
+.field .plants { font-size: 18px; letter-spacing: 2px; }
+
+/* 대화 */
+.chat { display: grid; gap: 8px; }
+.msg { max-width: 85%; padding: 9px 12px; border-radius: 16px; font-size: 13.5px; }
+.msg.them { background: var(--paper); border: 1px solid var(--line); border-radius: 16px 16px 16px 4px; }
+.msg.me { justify-self: end; background: var(--jam-soft); color: var(--ink); border-radius: 16px 16px 4px 16px; }
+.msg .who { font-size: 10.5px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 2px; }
+.pick { display: grid; gap: 6px; }
+.pick button { text-align: left; border: 1.5px solid var(--line); background: var(--paper); border-radius: 12px; padding: 8px 10px; font-size: 12.5px; cursor: pointer; display: flex; gap: 8px; align-items: flex-start; }
+.pick button[aria-pressed="true"] { border-color: var(--jam); background: var(--jam-soft); }
+.pick .k { flex-shrink: 0; font-size: 10px; font-weight: 700; color: var(--t); border: 1px solid var(--t); border-radius: 6px; padding: 0 5px; margin-top: 2px; }
+.verdict { border-radius: 12px; padding: 10px 12px; font-size: 12.5px; display: grid; gap: 4px; }
+.verdict.good { background: var(--ok-soft); }
+.verdict.hint { background: var(--hmm-soft); }
+
+/* 레슨 오버레이 */
+.overlay { position: absolute; inset: 0; background: var(--paper); display: flex; flex-direction: column; z-index: 5; }
+.lesson-top { display: flex; align-items: center; gap: 10px; padding: 14px 14px 6px; }
+.lesson-top .x { border: 0; background: none; font-size: 20px; cursor: pointer; color: var(--muted); }
+.lesson-top .progress { flex: 1; height: 12px; }
+.streakfire { font-size: 12px; font-weight: 700; color: var(--jam-ink); min-width: 34px; text-align: right; }
+.lesson-body { flex: 1; overflow-y: auto; padding: 10px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+.qtype { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
+.qtext { font-size: 17px; font-weight: 700; line-height: 1.45; margin: 0; text-wrap: balance; }
+.opts { display: grid; gap: 8px; }
+.opts.ox { grid-template-columns: 1fr 1fr; }
+.opt { border: 2px solid var(--line); background: var(--paper); border-radius: 14px; padding: 12px; font-size: 14px; text-align: left; cursor: pointer; box-shadow: 0 3px 0 var(--line); }
+.opts.ox .opt { font-size: 30px; text-align: center; padding: 16px 0; }
+.opt[aria-pressed="true"] { border-color: var(--interp); background: color-mix(in srgb, var(--interp) 12%, var(--paper)); box-shadow: 0 3px 0 var(--interp); }
+.opt.right { border-color: var(--ok); background: var(--ok-soft); box-shadow: 0 3px 0 var(--ok); }
+.opt.wrong { border-color: var(--hmm); background: var(--hmm-soft); box-shadow: 0 3px 0 var(--hmm); }
+.lesson-foot { padding: 12px 16px 16px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
+.lesson-foot.good { background: var(--ok-soft); border-color: transparent; }
+.lesson-foot.hint { background: var(--hmm-soft); border-color: transparent; }
+.fb-title { font-family: var(--display); font-size: 18px; display: flex; align-items: center; gap: 8px; }
+.fb-text { font-size: 13px; margin: 0; }
+.lesson-foot .btn { width: 100%; padding: 13px; font-size: 15px; }
+.btn-ok { background: var(--ok); color: #fff; box-shadow: 0 4px 0 color-mix(in srgb, var(--ok) 60%, #000); }
+
+.done { align-items: center; text-align: center; }
+.earned { display: grid; gap: 8px; width: 100%; text-align: left; }
+.reward { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.reward span { background: var(--jam-soft); color: var(--jam-ink); font-weight: 700; font-size: 12px; border-radius: 999px; padding: 4px 10px; }
+:root[data-theme="dark"] .reward span { color: var(--jam); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .reward span { color: var(--jam); } }
+
+/* 시트 */
+.sheet-wrap { position: absolute; inset: 0; background: #0006; display: flex; align-items: flex-end; z-index: 6; }
+.sheet { width: 100%; background: var(--paper); border-radius: 22px 22px 0 0; padding: 16px; display: grid; gap: 10px; max-height: 85%; overflow-y: auto; }
+.lock { background: linear-gradient(160deg, #2b3d52, #182634); color: #f1f5f9; border-radius: 16px; padding: 14px; display: grid; gap: 8px; }
+.lock .time { font-family: var(--display); font-size: 30px; text-align: center; }
+.noti { background: #ffffff22; border-radius: 12px; padding: 8px 10px; font-size: 12px; display: grid; gap: 1px; }
+.noti b { font-size: 12.5px; }
+.steps5 { display: grid; gap: 6px; }
+.steps5 div { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--line); font-size: 13px; }
+.steps5 .st { margin-left: auto; font-size: 11px; color: var(--muted); }
+.steps5 .doneS { background: var(--ok-soft); border-color: transparent; }
+.steps5 .nowS { background: var(--jam-soft); border-color: var(--jam); }
+
+/* 달력 */
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 11px; }
+.cal .dname { color: var(--muted); font-weight: 600; }
+.cal .c { aspect-ratio: 1; max-width: 100%; display: grid; place-items: center; border-radius: 10px; font-variant-numeric: tabular-nums; }
+.cal .c.on { background: var(--jam-soft); font-size: 15px; }
+.cal .c.rest { color: var(--muted); font-weight: 700; background: var(--grid); }
+.cal .c.today { outline: 2px solid var(--ink); }
+.badges { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.badge { text-align: center; font-size: 11.5px; padding: 10px 6px; }
+.badge .b { font-size: 26px; display: block; }
+.badge.off { opacity: .45; filter: grayscale(1); }
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.setting:last-child { border-bottom: 0; }
+.seg3 { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg3 button { border: 0; background: var(--paper); padding: 5px 9px; font-size: 12px; cursor: pointer; }
+.seg3 button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.toggle { width: 42px; height: 24px; border-radius: 999px; border: 0; background: var(--line); position: relative; cursor: pointer; flex-shrink: 0; }
+.toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .2s; }
+.toggle[aria-checked="true"] { background: var(--ok); }
+.toggle[aria-checked="true"]::after { left: 21px; }
+.search { width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; background: var(--paper); color: var(--ink); font: inherit; font-size: 13px; }
+.list { display: grid; gap: 8px; }
+.item { display: flex; gap: 10px; align-items: flex-start; }
+.item .ic { font-size: 20px; line-height: 1.2; }
+.item p { margin: 0; font-size: 13px; }
+.timer { font-family: var(--display); font-size: 40px; text-align: center; font-variant-numeric: tabular-nums; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; padding: 6px 0; }
+.check input { margin-top: 3px; accent-color: var(--ok); }
+.toast { position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%); background: var(--ink); color: var(--paper); font-size: 12.5px; padding: 7px 14px; border-radius: 999px; z-index: 9; white-space: nowrap; }
+
+/* ── 설계 메모 ─────────────────────────── */
+.notes { display: grid; gap: 14px; min-width: 0; }
+.notes section { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+.notes h3 { font-family: var(--display); font-weight: 400; font-size: 19px; margin: 0 0 6px; }
+.notes h4 { font-size: 13px; margin: 12px 0 4px; }
+.notes p, .notes li { font-size: 13.5px; max-width: 65ch; }
+.notes ul { padding-left: 18px; margin: 4px 0; }
+.notes .where { font-size: 11px; font-weight: 700; color: var(--jam-ink); letter-spacing: .06em; }
+:root[data-theme="dark"] .notes .where { color: var(--jam); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .notes .where { color: var(--jam); } }
+.navcmp { overflow-x: auto; }
+.navcmp table { border-collapse: collapse; font-size: 12.5px; width: 100%; min-width: 340px; }
+.navcmp td, .navcmp th { border: 1px solid var(--line); padding: 5px 6px; text-align: center; }
+.navcmp th { font-size: 11px; color: var(--muted); font-weight: 600; text-align: left; }
+.navcmp .new { background: var(--jam-soft); font-weight: 700; }
+.map { overflow-x: auto; }
+.map table { border-collapse: collapse; font-size: 12.5px; width: 100%; min-width: 420px; }
+.map td, .map th { border-bottom: 1px solid var(--line); padding: 6px 6px; text-align: left; vertical-align: top; }
+.map th { font-size: 11px; color: var(--muted); }
+</style>
+
+<div class="page">
+  <header class="page-head">
+    <h1>잼공</h1>
+    <span class="tag">시안 · 예시 데이터</span>
+    <p>재밌는 공부, 잼통 공부. 하단 탭 「위키」 자리에 들어가는 매일 공부 앱. 탭과 버튼을 눌러 보세요. 레슨과 대화 연습은 실제로 풀립니다.</p>
+  </header>
+
+  <div class="stage">
+    <div>
+      <div class="phone" id="phone">
+        <div class="appbar">
+          <button class="back" type="button" id="exitBtn" aria-label="사이트로 돌아가기">← 잼통</button>
+          <h2>잼공<small style="display:block;font-family:var(--body);font-size:10.5px;opacity:.75;margin-top:-2px">재밌는 공부, 잼통 공부 · 처음 올 때만 보여요</small></h2>
+          <span class="chip-stat" title="이어 간 날">🫙 12일</span>
+          <span class="chip-stat" title="이번 주 쉼표">⏸ 1</span>
+        </div>
+        <nav class="segs" id="segs" aria-label="칸"></nav>
+        <main class="screen" id="screen" tabindex="-1"></main>
+        <nav class="tabs" id="tabs" aria-label="잼공 탭"></nav>
+      </div>
+      <p class="site-nav-note">사이트 하단 탭: 홈 · <b>📖 잼공</b> · 업적 · 언행 · 정원 (위키는 업적 탭과 상단 메뉴로)</p>
+    </div>
+
+    <aside class="notes" id="notes" aria-live="polite"></aside>
+  </div>
+</div>
+
+<script>
+/* ───────── 잼통이 ───────── */
+function jam(mood = "smile", size = 56) {
+  const mouths = {
+    smile: '<path d="M27 47 Q32 52 37 47" stroke="#3a2412" stroke-width="2.2" fill="none" stroke-linecap="round"/>',
+    cheer: '<path d="M26 46 Q32 55 38 46 Z" fill="#3a2412"/>',
+    think: '<path d="M28 49 L36 48" stroke="#3a2412" stroke-width="2.2" stroke-linecap="round"/>',
+    wow: '<circle cx="32" cy="49" r="3" fill="#3a2412"/>',
+    sleep: '<path d="M28 48 Q32 50 36 48" stroke="#3a2412" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  };
+  const eyes = mood === "sleep"
+    ? '<path d="M22 40 q3 2 6 0 M36 40 q3 2 6 0" stroke="#3a2412" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    : '<circle cx="25" cy="40" r="2.6" fill="#3a2412"/><circle cx="39" cy="40" r="2.6" fill="#3a2412"/>';
+  return `<svg class="jt" width="${size}" height="${size * 1.15}" viewBox="0 0 64 74" aria-hidden="true">
+    <path d="M32 12 C26 4 18 5 17 8 C22 12 28 13 32 12 Z" fill="#5aa046"/>
+    <path d="M32 12 C38 3 47 4 48 7 C43 12 36 13 32 12 Z" fill="#6cb653"/>
+    <path d="M32 12 V17" stroke="#4a8a3a" stroke-width="2"/>
+    <rect x="13" y="16" width="38" height="9" rx="3" fill="#f3e6c8" stroke="#c9b48a" stroke-width="1.2"/>
+    <path d="M12 26 h40 a4 4 0 0 1 4 4 v28 a12 12 0 0 1 -12 12 h-24 a12 12 0 0 1 -12 -12 v-28 a4 4 0 0 1 4 -4 z" fill="#ffffffb0" stroke="#b9c9c3" stroke-width="1.4"/>
+    <path d="M10 37 Q20 33 32 36 T54 35 V58 a12 12 0 0 1 -12 12 h-20 a12 12 0 0 1 -12 -12 z" fill="#e8892b"/>
+    <path d="M20 36 q1 6 -1 8" stroke="#f6b26b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path d="M44 35.5 v5 a2 2 0 0 1 -4 0 v-3" fill="#e8892b"/>
+    ${eyes}${mouths[mood] || mouths.smile}
+    <circle cx="20" cy="46" r="2.4" fill="#f7a59a" opacity=".7"/><circle cx="44" cy="46" r="2.4" fill="#f7a59a" opacity=".7"/>
+    <path d="M18 70 v3 M46 70 v3" stroke="#b9c9c3" stroke-width="3" stroke-linecap="round"/>
+  </svg>`;
+}
+
+/* ───────── 예시 콘텐츠 (실제 claim에서 옮김) ───────── */
+const KIND = {
+  FACT: { cls: "t-fact", label: "확인된 사실" },
+  CLAIM: { cls: "t-claim", label: "주장" },
+  INTERPRETATION: { cls: "t-interp", label: "해석" },
+  OPINION: { cls: "t-opinion", label: "의견" },
+  COUNTER: { cls: "t-counter", label: "반론·한계" },
+};
+const WALLET = [
+  { k: "FACT", unit: "대장동", text: "대장동 사업 회사는 성남도시개발공사가 의결권의 과반(절반+1주)을 갖는 구조로 설립됐다.", a: "daejangdong#claim-ppp-structure" },
+  { k: "COUNTER", unit: "대장동", text: "1심은 김만배 씨 등 관련자들의 업무상 배임을 인정했고, 피고인들의 항소로 항소심이 진행 중이다.", a: "daejangdong#claim-trial-first" },
+  { k: "FACT", unit: "잠재성장률 반등 전망", text: "IMF가 잠재성장률을 직접 발표한 것은 아니다. IMF의 성장률·GDP갭률 전망으로 언론이 역산한 값이다.", a: "policy:potential-growth-2026#claim-method" },
+  { k: "INTERPRETATION", unit: "잠재성장률 반등 전망", text: "연합뉴스는 반등 요인으로 반도체 호황에 따른 투자 증가와 AI 확산에 따른 생산성 개선을 꼽았다.", a: "policy:potential-growth-2026#claim-drivers" },
+  { k: "COUNTER", unit: "잠재성장률 반등 전망", text: "OECD는 2026년 6월 한국 잠재성장률을 2026년 1.66%, 2027년 1.52%로 계속 낮아지는 쪽으로 추정했다.", a: "policy:potential-growth-2026#claim-oecd" },
+  { k: "FACT", unit: "출생아 반등", text: "출생아는 늘었지만 사망자가 더 많아 자연감소가 이어졌다. 감소 폭이 줄었을 뿐이다.", a: "birth-rebound#br-natural" },
+  { k: "CLAIM", unit: "경기도 재난기본소득", text: "경기도는 1차 재난기본소득이 지급액보다 큰 소비를 유도한다고 밝혔다(경기도의 주장).", a: "gyeonggi-basic-income#claim-effect" },
+];
+
+const LESSON = [
+  { type: "O/X · 알기", unit: "대장동", q: "대장동 사업 회사는 성남도시개발공사가 의결권의 과반을 갖는 구조로 설립됐다.", ox: true, answer: 0,
+    explain: "성남도시개발공사가 의결권의 절반보다 한 주를 더 갖는 구조였어요. 공공이 사업 회사의 의결권 과반을 가진 거예요.", a: "daejangdong#claim-ppp-structure", href: "https://jamtong.kr/achievement/daejangdong" },
+  { type: "O/X · 이해", unit: "대장동", q: "대장동의 확정이익 방식은 부동산 경기가 오르면 공공도 상승분을 추가로 나누는 구조다.", ox: true, answer: 1,
+    explain: "확정이익 방식은 공공의 몫을 미리 정해 두는 구조예요. 경기가 내려가도 정해진 몫을 먼저 가져가지만, 올라갈 때 상승분을 나누지는 않아요.", a: "daejangdong#claim-fixed-profit", href: "https://jamtong.kr/achievement/daejangdong" },
+  { type: "사실·주장 가리기 · 출처", unit: "잠재성장률 반등 전망", q: "“반등 요인은 반도체 호황에 따른 투자 증가와 AI 확산에 따른 생산성 개선이다.” 이 문장은?",
+    opts: ["확인된 사실", "연합뉴스의 해석", "정부의 주장"], answer: 1,
+    explain: "연합뉴스가 꼽은 반등 요인이에요. 통계가 확정한 사실이 아니라 언론의 분석(해석)이에요. 논쟁에서 쓸 때는 “연합뉴스 분석에 따르면”을 붙이세요.", a: "policy:potential-growth-2026#claim-drivers", href: "https://jamtong.kr/wiki/policy/potential-growth-2026" },
+  { type: "숫자 뜻 · 이해", unit: "출생아 반등", q: "출생아가 늘어난 2026년 8월, 인구는 어떻게 됐을까?",
+    opts: ["출생아가 사망자보다 많아 자연증가로 바뀌었다", "여전히 자연감소였고, 감소 폭만 줄었다", "통계가 나오지 않았다"], answer: 1,
+    explain: "출생아는 늘었지만 사망자가 더 많았어요. 자연감소 폭이 줄었을 뿐, 자연증가로 바뀐 것은 아니에요.", a: "birth-rebound#br-natural", href: "https://jamtong.kr/achievement/birth-rebound" },
+  { type: "출처 고르기 · 출처", unit: "잠재성장률 반등 전망", q: "“한국 잠재성장률 2026년 2.14%”는 어디서 나온 숫자일까?",
+    opts: ["IMF가 직접 발표한 잠재성장률", "IMF의 성장률·GDP갭 전망으로 언론이 역산한 값", "기획재정부 공식 발표"], answer: 1,
+    explain: "IMF는 잠재성장률을 직접 내지 않았어요. 연합뉴스·SBS Biz가 IMF의 실질성장률·GDP갭률 전망으로 역산했어요. 이 점을 먼저 인정하면 상대가 꺼낼 반박이 힘을 잃어요.", a: "policy:potential-growth-2026#claim-method", href: "https://jamtong.kr/wiki/policy/potential-growth-2026" },
+  { type: "반론도 알기 · 반론", unit: "잠재성장률 반등 전망", q: "잠재성장률 반등 전망과 다른 방향의 추정은 어느 것일까?",
+    opts: ["OECD는 6월에 2026년 1.66%, 2027년 1.52%로 계속 낮아진다고 추정했다", "국회예산정책처는 2026년 2.22%로 오른다고 전망했다", "IMF가 10월 전망을 철회했다"], answer: 0,
+    explain: "OECD 추정은 하락 쪽이에요(IMF 수치보다 4개월 앞선 추정). 국회예산정책처는 오르는 쪽이고, IMF 철회는 사실이 아니에요. 반론을 먼저 알고 있으면 “그건 시점과 방법이 달라”로 받을 수 있어요.", a: "policy:potential-growth-2026#claim-oecd", href: "https://jamtong.kr/wiki/policy/potential-growth-2026" },
+];
+
+const DIALOG = {
+  rumor: "'40년 만의 반전'? 그거 과장이잖아. IMF가 낸 숫자도 아니라던데.",
+  rumorAnchor: "policy:potential-growth-2026 · rumor-exaggerated",
+  cards: [
+    { id: "method", k: "FACT", label: "IMF 직접 발표가 아니다 — 언론이 역산", say: "맞아, IMF가 잠재성장률을 직접 발표한 건 아니야. IMF의 성장률·GDP갭 전망으로 언론이 역산한 값이야.", role: "must" },
+    { id: "numbers", k: "FACT", label: "2.14% → 2.20%, 2년 연속 상승 보도 · 모두 전망치", say: "그렇게 계산하면 2026년 2.14%, 2027년 2.20%로 2년 연속 오르고, 그래서 '약 40년 만'이라고 보도된 거야. 다 전망치고.", role: "must" },
+    { id: "oecd", k: "COUNTER", label: "OECD는 하락 쪽으로 추정 (6월)", say: "OECD는 6월에 계속 낮아진다고 추정했어. 기관마다 전망이 갈려.", role: "plus" },
+    { id: "nabo", k: "FACT", label: "국회예산정책처도 상승 전망 · 방법은 다름", say: "국회예산정책처도 오르는 쪽으로 봤어. 다만 기관마다 방법과 시점이 달라 그대로 견주긴 어려워.", role: "plus" },
+    { id: "ppp", k: "FACT", label: "대장동 사업 회사 의결권 과반은 공공", say: "", role: "off" },
+  ],
+  link: "jamtong.kr/wiki/policy/potential-growth-2026",
+};
+
+const PATH = [
+  { e: "🍎", s: "fruit", t: "성남시 무상급식", sub: "열매 · 다섯 단계 끝" },
+  { e: "🍎", s: "fruit", t: "성남시의료원", sub: "열매" },
+  { e: "🌸", s: "bloom", t: "경기도 재난기본소득", sub: "꽃 · 4/5 · 말하기 남음" },
+  { e: "🌱", s: "sprout", t: "경기도 아동급식", sub: "새싹 · 2/5" },
+  { e: "📍", s: "now", t: "성남 판교대장 도시개발사업", sub: "지금 · 3/5 · 다음은 반론" },
+  { e: "🔒", s: "locked", t: "북극항로", sub: "대장동을 마치면 열려요" },
+  { e: "🔒", s: "locked", t: "수출 1조 달러·경상수지 세계 2위", sub: "" },
+  { e: "🔒", s: "locked", t: "출생아 26개월 연속 증가", sub: "" },
+];
+
+/* ───────── 탭과 칸 ───────── */
+const TABS = [
+  { id: "class", ico: "🏫", label: "교실", segs: [["today", "오늘"], ["notice", "알림장"]] },
+  { id: "road", ico: "🗺️", label: "배움길", segs: [["path", "길"], ["fields", "분야 지도"]] },
+  { id: "talk", ico: "💬", label: "말하기", segs: [["reply", "대화 연습"], ["rumors", "도는 말"], ["explain", "30초 설명"]] },
+  { id: "note", ico: "📒", label: "근거노트", segs: [["cards", "근거 카드"], ["review", "다시 볼 것"], ["terms", "용어장"]] },
+  { id: "me", ico: "🌼", label: "내 기록", segs: [["attend", "출석부"], ["garden", "꽃밭·배지"], ["settings", "설정·알림"]] },
+];
+const state = { tab: "class", seg: "today", course: 0, picks: [], replyDone: false, pushOn: false, goal: 1, pushHour: 20, neutral: true };
+try { const t = localStorage.getItem("jt-study-tab"); if (t) { const [a, b] = t.split(":"); if (TABS.some(x => x.id === a)) { state.tab = a; state.seg = b; } } } catch (e) {}
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function evCard(c, extra = "") {
+  const k = KIND[c.k];
+  return `<div class="ev ${k.cls}"><span class="kind">${k.label} · ${esc(c.unit)}</span><p>${esc(c.text)}</p><span class="anchor">^[${esc(c.a)}]</span>${extra}</div>`;
+}
+function toast(text) {
+  const t = document.createElement("div"); t.className = "toast"; t.textContent = text;
+  $("#phone").appendChild(t); setTimeout(() => t.remove(), 1800);
+}
+
+function renderChrome() {
+  $("#tabs").innerHTML = TABS.map(t => `<button type="button" data-tab="${t.id}" ${t.id === state.tab ? 'aria-current="page"' : ""}><span class="ico" aria-hidden="true">${t.ico}</span>${t.label}</button>`).join("");
+  const tab = TABS.find(t => t.id === state.tab);
+  $("#segs").innerHTML = tab.segs.map(([id, l]) => `<button type="button" data-seg="${id}" aria-pressed="${id === state.seg}">${l}</button>`).join("");
+}
+function go(tab, seg) {
+  state.tab = tab; state.seg = seg || TABS.find(t => t.id === tab).segs[0][0];
+  try { localStorage.setItem("jt-study-tab", state.tab + ":" + state.seg); } catch (e) {}
+  render(); $("#screen").scrollTop = 0;
+}
+
+/* ───────── 화면들 ───────── */
+const SCREENS = {
+  today() {
+    const days = [["월", "on"], ["화", "on"], ["수", "rest"], ["목", "on"], ["금", "on"], ["토", "today"], ["일", ""]];
+    return `
+    <div class="greet">${jam("cheer", 58)}<div class="bubble">토요일이에요! 어제 하던 <b>대장동</b> 반론 단계가 남았어요. 다시 볼 카드도 4장 있어요.</div></div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><span class="eyebrow">이번 주 출석</span><span class="small">⏸ 쉼표가 수요일을 메웠어요</span></div>
+      <div class="week">${days.map(([d, s]) => `<div class="day"><span class="stamp ${s === "on" ? "on" : s === "rest" ? "rest" : ""} ${s === "today" ? "today" : ""}">${s === "on" ? "🫙" : s === "rest" ? "⏸" : ""}</span>${d}</div>`).join("")}</div>
+    </div>
+    <div class="cta">
+      <div class="eyebrow" style="color:inherit;opacity:.75">오늘의 한 판</div>
+      <div class="h" style="margin:0">다시 보기 4 + 새 문제 4</div>
+      <div class="meta-row"><span>약 4분</span><span>대장동 · 잠재성장률 · 출생아</span><span>목표: 가볍게(1판)</span></div>
+      <button class="btn btn-jam" type="button" data-act="lesson">시작하기</button>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><div><div class="eyebrow">이어 하기</div><div class="h">성남 판교대장 도시개발사업</div></div><span style="font-size:26px">📍</span></div>
+      <div class="progress" aria-label="다섯 단계 중 셋"><i style="width:60%"></i></div>
+      <p class="small" style="margin:6px 0 0">알기 ✓ · 이해 ✓ · 출처 ✓ · <b>반론</b> · 말하기</p>
+    </div>
+    <div class="card">
+      <div class="eyebrow">이번 주 도는 말</div>
+      <p style="margin:4px 0 8px;font-size:13.5px">“'40년 만의 반전'은 과장이다. IMF가 낸 숫자도 아니다.”</p>
+      <button class="btn btn-line" type="button" data-go="talk:reply">근거로 답장해 보기 →</button>
+    </div>
+    <div class="card">
+      <div class="eyebrow">오늘의 근거 한 장</div>
+      <div style="margin-top:6px">${evCard(WALLET[2])}</div>
+    </div>
+    <div class="card">
+      <div class="eyebrow">모르는 게 있으면</div>
+      <div class="row" style="margin-top:6px"><input class="search" id="ask" placeholder="잼통이에게 묻기 · 예) 확정이익 방식이 뭐야?" aria-label="잼통이에게 묻기"><button class="btn btn-line" type="button" data-act="ask">묻기</button></div>
+      <p class="small" style="margin:6px 0 0">위키의 AI 질문과 같은 답. 답에 쓰인 근거로 바로 연습할 수 있어요.</p>
+    </div>`;
+  },
+  notice() {
+    const items = [
+      ["🌱", "새 단원이 열렸어요", "정책 팩트의 길에 「잠재성장률 반등 전망」이 들어왔어요.", "11월 27일"],
+      ["✏️", "내 근거 카드가 고쳐졌어요", "「대장동 재판」 카드가 항소심 진행 상황으로 바뀌었어요. 고친 이유는 정정 기록에서 볼 수 있어요.", "11월 25일"],
+      ["💌", "1촌 응원 쪽지", "“같이 공부해요! 나는 카르텔의 길 하는 중” — 1촌 한 분", "11월 24일"],
+      ["🌼", "주간 돌아보기", "이번 주에 근거 9장을 익혔고, 「성남시의료원」이 열매가 됐어요.", "11월 23일"],
+    ];
+    return `<div class="list">${items.map(([i, t, d, w]) => `<div class="card item"><span class="ic">${i}</span><div style="min-width:0"><b style="font-size:13.5px">${t}</b><p class="small" style="margin:2px 0">${d}</p><span class="small">${w}</span></div></div>`).join("")}</div>
+    <button class="btn btn-line" type="button" data-go="me:settings">알림 설정 →</button>`;
+  },
+  path() {
+    const courses = [["업적의 길", "28단원"], ["정책 팩트의 길", "도는 말 있는 정책부터"], ["말과 연설의 길", "52편"], ["카르텔의 길", "12단원"]];
+    return `
+    <div class="course-chips">${courses.map(([c], i) => `<button type="button" data-course="${i}" aria-pressed="${i === state.course}">${c}</button>`).join("")}</div>
+    <p class="small" style="margin:0">${courses[state.course][0]} · ${courses[state.course][1]} · 원본 페이지 하나가 단원 하나</p>
+    ${state.course === 0 ? `<div class="path">${PATH.map((n, i) => `<div class="node ${n.s}"><button type="button" ${n.s === "locked" ? 'aria-disabled="true"' : `data-unit="${i}"`} aria-label="${esc(n.t)}">${n.e}</button><span class="lbl">${esc(n.t)}<small>${n.sub}</small></span></div>`).join("")}</div>`
+      : `<div class="card"><div class="greet">${jam("think", 46)}<div class="bubble">시안에서는 업적의 길만 그렸어요. 다른 길도 같은 오솔길 모양이고, 그림 배경만 달라요.</div></div></div>`}`;
+  },
+  fields() {
+    const f = [["외교·안보", "🌸🌱🌱", "3단원 중 1 꽃"], ["제도·행정", "🍎🌸🌱🌱", "열매 1"], ["민생·복지", "🍎🍎🌸🌱", "열매 2"], ["지역·인프라", "🌱🌱", "새싹 2"], ["재정·경제", "🌸🌱🌱🌱", "꽃 1"], ["재난 대응", "🫘🫘", "아직 씨앗"]];
+    return `<p class="small" style="margin:0">업적의 분야(categories)마다 꽃밭이 핍니다. 점수나 백분율은 보여 주지 않아요.</p>
+    <div class="fields">${f.map(([n, p, s]) => `<div class="card field"><div class="eyebrow">${n}</div><div class="plants" aria-hidden="true">${p}</div><div class="small">${s}</div></div>`).join("")}</div>
+    <div class="card"><div class="greet">${jam("smile", 44)}<div class="bubble">「재난 대응」은 아직 씨앗이에요. 신천지 대응 단원부터 해 볼까요?</div></div></div>`;
+  },
+  reply() {
+    const picked = state.picks;
+    const cards = DIALOG.cards;
+    let verdict = "";
+    if (state.replyDone) {
+      const must = cards.filter(c => c.role === "must").every(c => picked.includes(c.id));
+      const plus = picked.some(id => cards.find(c => c.id === id).role === "plus");
+      const off = picked.some(id => cards.find(c => c.id === id).role === "off");
+      const lines = cards.filter(c => picked.includes(c.id) && c.role !== "off").map(c => c.say);
+      const notes = [];
+      if (!must) notes.push("상대의 말에서 맞는 부분(IMF가 직접 낸 숫자가 아니다)을 먼저 인정하고, 숫자가 모두 전망치라는 걸 함께 넣어 보세요.");
+      if (off) notes.push("「대장동」 카드는 다른 이야기예요. 엉뚱한 근거는 신뢰를 깎아요.");
+      if (must && plus) notes.push("반론(OECD)이나 다른 기관 전망까지 넣었어요. 상대가 꺼내기 전에 먼저 말하면 더 믿음을 얻어요.");
+      else if (must) notes.push("핵심은 다 들어갔어요. OECD 추정 같은 반대 쪽 숫자도 알고 있으면 더 단단해져요.");
+      verdict = `
+      ${lines.length ? `<div class="msg me"><span class="who">내 답장</span>${lines.map(esc).join(" ")}<br><span class="small">출처: ${DIALOG.link}</span></div>` : ""}
+      <div class="verdict ${must && !off ? "good" : "hint"}"><b>${must && !off ? "🫙 좋은 답장이에요!" : "🫙 조금만 더!"}</b>${notes.map(n => `<span>${n}</span>`).join("")}</div>
+      <div class="row">${lines.length ? `<button class="btn btn-jam" type="button" data-act="copy" style="flex:1">답장 복사 (원본 링크 포함)</button>` : ""}<button class="btn btn-line" type="button" data-act="retry">다시 고르기</button></div>`;
+    }
+    return `
+    <p class="small" style="margin:0">정책 팩트의 길 · 잠재성장률 반등 전망 · 말하기 단계</p>
+    <div class="chat">
+      <div class="msg them"><span class="who">💬 친구</span>${esc(DIALOG.rumor)}</div>
+    </div>
+    <p class="small" style="margin:0">SNS에서 실제로 도는 말을 요약한 것 <span class="anchor" style="font-family:ui-monospace,monospace;font-size:10.5px">(${DIALOG.rumorAnchor})</span></p>
+    ${state.replyDone ? verdict : `
+    <div class="eyebrow">어떤 근거로 답할까? (2~3장)</div>
+    <div class="pick">${cards.map(c => `<button type="button" data-pick="${c.id}" aria-pressed="${picked.includes(c.id)}" class="${KIND[c.k].cls}"><span class="k">${KIND[c.k].label}</span><span>${esc(c.label)}</span></button>`).join("")}</div>
+    <button class="btn btn-jam" type="button" data-act="compose" ${picked.length < 2 ? "disabled" : ""}>답장 만들기</button>`}
+    <p class="small" style="margin:0">답장 문장은 카드의 근거 문장을 말투만 바꿔 이어 붙인 것. AI가 새로 쓰지 않아요.</p>`;
+  },
+  rumors() {
+    const r = [
+      ["“40년 만의 반전은 과장이다”", "잠재성장률 반등 전망", "답장 완성", "ok"],
+      ["“반도체 호황 덕인데 대통령이 자기 성과처럼 내세운다”", "잠재성장률 반등 전망", "연습 전", ""],
+      ["“입맛에 맞는 보도만 골라 인용한다”", "잠재성장률 반등 전망", "연습 전", ""],
+      ["“고유가·고금리에 반등 전망은 믿기 어렵다”", "잠재성장률 반등 전망", "연습 전", ""],
+    ];
+    return `<p class="small" style="margin:0">정책 팩트의 도는 말(rumors) 가운데 대응하는 근거가 있는 것만 실어요. 소문을 사실처럼 보여 주지 않고, 늘 근거와 함께 보여 줘요.</p>
+    <div class="list">${r.map(([t, u, s, ok]) => `<button type="button" class="card item" data-go="talk:reply" style="text-align:left;cursor:pointer"><span class="ic">${ok ? "✅" : "💬"}</span><div style="min-width:0"><p><b>${t}</b></p><span class="small">${u} · ${s}</span></div></button>`).join("")}</div>`;
+  },
+  explain() {
+    return `
+    <div class="card"><div class="eyebrow">단원 고르기</div><div class="h">성남시의료원</div><p class="small" style="margin:0">열매가 된 단원만 나와요. 다 익힌 걸 내 말로 꺼내 보는 연습이에요.</p></div>
+    <div class="card" style="display:grid;gap:8px">
+      <div class="timer" id="timer">0:30</div>
+      <button class="btn btn-jam" type="button" data-act="timer">소리 내어 설명 시작</button>
+      <p class="small" style="margin:0">녹음하지 않아요. 끝나면 스스로 짚어 봐요.</p>
+    </div>
+    <div class="card">
+      <div class="eyebrow">내가 말했나?</div>
+      <label class="check"><input type="checkbox" id="c1"> 무엇을 한 정책인지 한두 문장으로</label>
+      <label class="check"><input type="checkbox" id="c2"> 확인된 사실과 누구의 주장인지를 나눠서</label>
+      <label class="check"><input type="checkbox" id="c3"> 어디에 적혀 있는지(출처 하나)</label>
+      <label class="check"><input type="checkbox" id="c4"> 반론이나 한계 하나</label>
+      <p class="small" style="margin:6px 0 0">빠뜨린 칸의 근거 카드를 바로 보여 줘요. 채점하지 않아요.</p>
+    </div>`;
+  },
+  cards() {
+    return `<input class="search" id="q" placeholder="근거 찾기 · 예) 대장동, OECD" aria-label="근거 찾기">
+    <div class="course-chips"><button type="button" aria-pressed="true">전체 ${WALLET.length}</button><button type="button" aria-pressed="false">확인된 사실</button><button type="button" aria-pressed="false">반론·한계</button><button type="button" aria-pressed="false">주장·해석</button></div>
+    <div class="list" id="wallet">${WALLET.map((c, i) => evCard(c, `<div class="row"><button class="btn btn-line" type="button" data-copy="${i}" style="padding:5px 10px;font-size:12px">복사</button><a class="link" href="#" data-noop>원문 보기</a></div>`)).join("")}</div>
+    <p class="small" style="margin:0">X 문항(흔한 오해) 문장은 여기에 담지 않아요. 카드는 원본 claim을 가리키는 앵커라 원본이 고쳐지면 같이 바뀌어요.</p>`;
+  },
+  review() {
+    return `<p class="small" style="margin:0">틀렸거나 오래된 문제. 잊을 때쯤 오늘의 한 판에 다시 나와요.</p>
+    <div class="list">
+      <div class="card"><div class="eyebrow">내일 · 2번 상자</div><p style="margin:4px 0;font-size:13.5px">“반등 요인은 반도체·AI”는 사실일까 해석일까?</p><span class="small">지난번 답: 확인된 사실 → 정답: 연합뉴스의 해석</span></div>
+      <div class="card"><div class="eyebrow">오늘 · 1번 상자</div><p style="margin:4px 0;font-size:13.5px">경기도 3차 재난기본소득은 모든 도민에게 지급됐다?</p><span class="small">정답: X — 국민지원금에서 빠진 소득상위 도민 등 대상</span></div>
+      <div class="card"><div class="eyebrow">12월 4일 · 3번 상자</div><p style="margin:4px 0;font-size:13.5px">대장동 확정이익 방식은 상승분을 나누는 구조다?</p><span class="small">정답: X</span></div>
+    </div>`;
+  },
+  terms() {
+    const t = [["잠재성장률", "물가를 크게 올리지 않고 낼 수 있는 성장률. 직접 잴 수 없어 기관마다 추정한다."], ["GDP갭률", "실제 GDP가 잠재 GDP보다 얼마나 높거나 낮은지의 비율."], ["확정이익 방식", "개발이익 가운데 공공의 몫을 미리 정해 두는 방식."], ["자연감소", "출생아보다 사망자가 많아 인구가 줄어드는 것."]];
+    return `<div class="list">${t.map(([a, b]) => `<div class="card"><b>${a}</b><p class="small" style="margin:2px 0 0">${b}</p></div>`).join("")}</div>
+    <p class="small" style="margin:0">언행의 용어 풀이(glossary)와 레슨에서 만난 낱말이 모여요.</p>`;
+  },
+  attend() {
+    const on = [2, 3, 5, 6, 9, 10, 11, 12, 13, 16, 17, 19, 20, 23, 24, 26, 27];
+    const rest = [4, 18, 25];
+    const start = 0; // 2026-11-01은 일요일
+    let cells = ["일", "월", "화", "수", "목", "금", "토"].map(d => `<span class="dname">${d}</span>`).join("");
+    for (let i = 0; i < start; i++) cells += "<span></span>";
+    for (let d = 1; d <= 30; d++) {
+      const cls = on.includes(d) ? "on" : rest.includes(d) ? "rest" : "";
+      cells += `<span class="c ${cls} ${d === 28 ? "today" : ""}" aria-label="11월 ${d}일">${on.includes(d) ? "🫙" : rest.includes(d) ? "⏸" : d}</span>`;
+    }
+    return `<div class="card"><div class="row" style="justify-content:space-between"><div class="h">2026년 11월</div><span class="small">이어 간 날 12일</span></div><div class="cal">${cells}</div></div>
+    <div class="card"><div class="greet">${jam("sleep", 42)}<div class="bubble">⏸ 쉼표는 주마다 2개씩 저절로 채워져요. 빠진 날을 메워 줘요. 잼으로 사지 않아요.</div></div></div>
+    <p class="small" style="margin:0">출석부는 나만 봐요. 1촌·방·공유 카드에 나가지 않아요.</p>`;
+  },
+  garden() {
+    const b = [["🔍", "첫 1차 자료", 1], ["⚖️", "첫 반론", 1], ["💬", "첫 답장", 1], ["🫙", "7일 이어 가기", 1], ["🗺️", "업적의 길 한 바퀴", 0], ["📜", "1차 자료 10장", 0]];
+    return `<div class="card"><div class="eyebrow">정원으로 가는 보상</div>
+      <div class="list" style="margin-top:6px">
+        <div class="item"><span class="ic">🍯</span><p>하루 목표를 채우면 잼 조금 + 물뿌리개 한 번 <span class="small">(하루 한 번)</span></p></div>
+        <div class="item"><span class="ic">🌰</span><p>단원 「알기」를 마치면 그 업적 품종의 씨앗</p></div>
+        <div class="item"><span class="ic">🏛️</span><p>단원이 열매가 되면 기념관 기념품이 「공부한 기념품」으로 자라요</p></div>
+      </div>
+      <button class="btn btn-line" type="button" data-act="garden" style="margin-top:8px">정원 가기 🌱</button></div>
+    <div class="eyebrow">배지 · 알아낸 것으로만</div>
+    <div class="badges">${b.map(([i, n, on]) => `<div class="card badge ${on ? "" : "off"}"><span class="b">${i}</span>${n}</div>`).join("")}</div>`;
+  },
+  settings() {
+    const g = [[1, "가볍게 1판"], [2, "꾸준히 2판"], [3, "열심히 3판"]];
+    const hours = [8, 12, 20, 21];
+    return `<div class="card">
+      <div class="setting"><span>하루 목표</span><span class="seg3">${g.map(([v, l]) => `<button type="button" data-goal="${v}" aria-pressed="${state.goal === v}">${l}</button>`).join("")}</span></div>
+      <div class="setting"><span>공부 알림<br><span class="small">하루에 한 번만, 목표를 채운 날은 안 와요</span></span><button class="toggle" type="button" role="switch" data-act="push" aria-checked="${state.pushOn}" aria-label="공부 알림"></button></div>
+      <div class="setting"><span>알림 시각</span><span class="seg3">${hours.map(h => `<button type="button" data-hour="${h}" aria-pressed="${state.pushHour === h}">${h}시</button>`).join("")}</span></div>
+      <div class="setting"><span>잠금 화면에 내용 숨기기<br><span class="small">“잼통이가 기다려요”처럼 주제를 적지 않아요</span></span><button class="toggle" type="button" role="switch" data-act="neutral" aria-checked="${state.neutral}" aria-label="잠금 화면에 내용 숨기기"></button></div>
+      <div class="setting"><span>새 단원 소식 · 주간 돌아보기<br><span class="small">그날의 공부 알림에 합쳐서 보내요</span></span><span class="small">알림 켜면 함께</span></div>
+    </div>
+    <button class="btn btn-line" type="button" data-act="pushpreview">알림 미리 보기</button>
+    <p class="small" style="margin:0">밤 10시~아침 8시에는 보내지 않아요. 아이폰은 홈 화면에 추가해야 알림을 받을 수 있어요.</p>`;
+  },
+};
+
+/* ───────── 설계 메모 (화면마다) ───────── */
+const NOTES = {
+  class: { title: "🏫 교실", why: "매일 들어오면 처음 보는 곳. 할 일 하나(오늘의 한 판)가 가장 크다.", items: [
+    "<b>오늘</b> — 잼통이 인사, 이번 주 출석(쉼표 포함), 오늘의 한 판, 이어 하기, 이번 주 도는 말, 오늘의 근거 한 장, 잼통이에게 묻기(위키 AI 질문을 여기서도).",
+    "<b>알림장</b> — 새 단원, <b>내 근거 카드가 고쳐졌어요</b>(정정이 생기면 익힌 사람에게 알린다), 1촌 응원 쪽지, 주간 돌아보기.",
+    "점수·순위·남과의 비교 문구는 어디에도 없다." ] },
+  road: { title: "🗺️ 배움길", why: "무엇을 얼마나 알게 됐는지 지도로 보인다. 다음에 할 단원이 반짝인다.", items: [
+    "<b>길</b> — 업적·정책 팩트·말과 연설·카르텔, 길 넷. 단원 = 원본 페이지 하나. 단원을 누르면 다섯 단계(알기·이해·출처·반론·말하기).",
+    "단원 상태는 씨앗 → 새싹 → 꽃 → 열매. <b>반론 단계를 건너뛰면 열매가 되지 않는다.</b>",
+    "<b>분야 지도</b> — 업적 분야 여섯의 꽃밭. 비어 있는 분야를 권한다." ] },
+  talk: { title: "💬 말하기", why: "이 앱의 목적(논쟁에서 근거로 말하기)을 직접 연습하는 곳. 잼공에서 가장 공들일 탭.", items: [
+    "<b>대화 연습</b> — 친구 메시지(정책의 도는 말 요약) → 근거 카드 2~3장 고르기 → 답장 완성 → 원본 링크와 함께 복사. 정답이 하나가 아니고 '꼭 넣을 카드'와 '넣으면 좋은 카드'가 있다.",
+    "<b>도는 말</b> — 대응 근거가 있는 소문만 모은 목록. 연습했는지 표시.",
+    "<b>30초 설명</b> — 열매가 된 단원을 소리 내어 설명하고 네 칸(무엇·사실과 주장·출처·반론)을 스스로 짚는다. 녹음·AI 채점 없음.",
+    "답장은 카드에 딸린 <code>say</code>(근거 문장을 말투만 바꾼 것)를 이어 붙인다. 모델 호출이 없다." ] },
+  note: { title: "📒 근거노트", why: "논쟁 직전에 꺼내 보는 곳. 익힌 것이 쌓여 내 무기가 된다.", items: [
+    "<b>근거 카드</b> — 사실·주장·해석·의견·반론을 색으로 나눈다. 검색, 복사, 원문 보기. 앵커만 저장해 원본이 고쳐지면 따라 바뀐다.",
+    "<b>다시 볼 것</b> — 틀린 문제와 상자(1~5) 일정. 오늘의 한 판에 자동으로 섞인다.",
+    "<b>용어장</b> — 언행 glossary + 레슨에서 만난 낱말." ] },
+  me: { title: "🌼 내 기록", why: "꾸준함을 나만 본다. 정원과 이어지는 문.", items: [
+    "<b>출석부</b> — 달력 도장, 쉼표(주 2개 자동). 끊겨도 꾸짖지 않는다.",
+    "<b>꽃밭·배지</b> — 정원으로 가는 보상(하루 상한), 알아낸 것으로만 주는 배지.",
+    "<b>설정·알림</b> — 하루 목표, 공부 알림(시각·잠금 화면 숨김). 알림은 하루 한 번이 최대, 목표를 채운 날은 오지 않는다." ] },
+};
+
+function renderNotes() {
+  const n = NOTES[state.tab];
+  $("#notes").innerHTML = `
+  <section>
+    <div class="where">지금 보는 탭</div>
+    <h3>${n.title}</h3>
+    <p>${n.why}</p>
+    <ul>${n.items.map(i => `<li>${i}</li>`).join("")}</ul>
+  </section>
+  <section>
+    <h3>앱 지도</h3>
+    <div class="map"><table>
+      <thead><tr><th>탭</th><th>칸</th><th>매일 쓰는 이유</th></tr></thead>
+      <tbody>
+        <tr><td>🏫 교실</td><td>오늘 · 알림장</td><td>오늘의 한 판, 이어 하기</td></tr>
+        <tr><td>🗺️ 배움길</td><td>길 · 분야 지도</td><td>다음 단원, 내가 아는 범위</td></tr>
+        <tr><td>💬 말하기</td><td>대화 연습 · 도는 말 · 30초 설명</td><td>근거로 답하는 연습</td></tr>
+        <tr><td>📒 근거노트</td><td>근거 카드 · 다시 볼 것 · 용어장</td><td>논쟁 직전에 꺼내 보기</td></tr>
+        <tr><td>🌼 내 기록</td><td>출석부 · 꽃밭·배지 · 설정·알림</td><td>꾸준함, 정원 보상</td></tr>
+      </tbody></table></div>
+  </section>
+  <section>
+    <h3>사이트 하단 탭</h3>
+    <div class="navcmp"><table>
+      <tr><th>지금</th><td>홈</td><td>위키</td><td>업적</td><td>언행</td><td>정원</td></tr>
+      <tr><th>바뀐 뒤</th><td>홈</td><td class="new">잼공</td><td>업적</td><td>언행</td><td>정원</td></tr>
+    </table></div>
+    <p>위키는 <b>업적 탭</b>이 자기 것으로 치고(<code>owns: ["/wiki"]</code>), 상단 메뉴와 홈에서도 들어간다. 위키의 AI 질문은 교실의 「잼통이에게 묻기」로도 쓸 수 있다.</p>
+  </section>`;
+}
+
+function render() {
+  renderChrome();
+  $("#screen").innerHTML = (SCREENS[state.seg] || SCREENS.today)();
+  renderNotes();
+}
+
+/* ───────── 레슨 ───────── */
+let L = null;
+function openLesson() {
+  L = { i: 0, sel: null, checked: false, right: 0, combo: 0 };
+  const o = document.createElement("div"); o.className = "overlay"; o.id = "lesson"; o.setAttribute("role", "dialog"); o.setAttribute("aria-label", "오늘의 한 판");
+  $("#phone").appendChild(o); drawLesson();
+}
+function closeLesson() { $("#lesson")?.remove(); L = null; }
+function drawLesson() {
+  const o = $("#lesson"); if (!o) return;
+  if (L.i >= LESSON.length) return drawDone(o);
+  const q = LESSON[L.i];
+  const pct = Math.round((L.i + (L.checked ? 1 : 0)) / LESSON.length * 100);
+  const ok = L.checked && L.sel === q.answer;
+  const opts = q.ox ? ["⭕", "❌"] : q.opts;
+  o.innerHTML = `
+    <div class="lesson-top"><button class="x" type="button" data-act="quit" aria-label="그만두기">✕</button><div class="progress"><i style="width:${pct}%"></i></div><span class="streakfire">${L.combo >= 2 ? "🔥" + L.combo : ""}</span></div>
+    <div class="lesson-body">
+      <div class="qtype">${q.type} · ${q.unit}</div>
+      <p class="qtext">${esc(q.q)}</p>
+      <div class="opts ${q.ox ? "ox" : ""}">${opts.map((t, i) => {
+        let cls = ""; if (L.checked) { if (i === q.answer) cls = "right"; else if (i === L.sel) cls = "wrong"; }
+        return `<button type="button" class="opt ${cls}" data-opt="${i}" aria-pressed="${L.sel === i}" ${L.checked ? "disabled" : ""} aria-label="${q.ox ? (i === 0 ? "맞다(O)" : "아니다(X)") : esc(t)}">${esc(t)}</button>`;
+      }).join("")}</div>
+      ${L.checked ? "" : `<div class="greet" style="margin-top:auto">${jam("think", 44)}<div class="bubble">근거는 언제나 원본 claim에서 와요. 틀려도 막히지 않아요.</div></div>`}
+    </div>
+    <div class="lesson-foot ${L.checked ? (ok ? "good" : "hint") : ""}">
+      ${L.checked ? `
+        <div class="fb-title">${jam(ok ? "cheer" : "smile", 30)} ${ok ? "맞았어요!" : "같이 볼까요?"}</div>
+        <p class="fb-text">${esc(q.explain)}</p>
+        <div class="row" style="flex-wrap:wrap"><span class="ev-anchor small" style="font-family:ui-monospace,monospace">^[${esc(q.a)}]</span><a class="link" href="${q.href}" target="_blank" rel="noopener">원문 보기</a></div>
+        <button class="btn ${ok ? "btn-ok" : "btn-jam"}" type="button" data-act="next">계속</button>`
+      : `<button class="btn btn-jam" type="button" data-act="check" ${L.sel === null ? "disabled" : ""}>확인</button>`}
+    </div>`;
+  if (L.checked && ok) o.querySelector(".fb-title .jt")?.classList.add("hop");
+}
+function drawDone(o) {
+  o.innerHTML = `
+    <div class="lesson-top"><button class="x" type="button" data-act="quit" aria-label="닫기">✕</button><div class="progress"><i style="width:100%"></i></div><span class="streakfire"></span></div>
+    <div class="lesson-body done">
+      ${jam("cheer", 92).replace('class="jt"', 'class="jt hop"')}
+      <div class="h" style="font-size:22px">오늘의 한 판 끝!</div>
+      <p class="small" style="margin:0">${LESSON.length}문제 중 ${L.right}개를 바로 맞혔어요. 틀린 건 다시 볼 것에 들어갔어요.</p>
+      <div class="reward"><span>🫙 오늘 도장</span><span>🍯 +30 (정원)</span><span>💧 물뿌리개 1</span></div>
+      <div class="earned"><div class="eyebrow">오늘 근거노트에 들어간 카드</div>${[WALLET[0], WALLET[2], WALLET[4]].map(c => evCard(c)).join("")}</div>
+    </div>
+    <div class="lesson-foot"><button class="btn btn-jam" type="button" data-act="afterDone">좋아요</button></div>`;
+}
+
+/* 알림 묻기 시트 — 첫 판을 마친 뒤에 한 번 */
+function pushSheet(preview) {
+  const w = document.createElement("div"); w.className = "sheet-wrap"; w.id = "sheet";
+  const body = state.neutral ? "오늘의 한 판(약 4분)이 준비됐어요" : "대장동 반론 단계 · 다시 볼 카드 4장";
+  w.innerHTML = `<div class="sheet" role="dialog" aria-label="공부 알림">
+    <div class="greet">${jam("smile", 46)}<div class="bubble">${preview ? "알림은 이렇게 와요." : `내일도 잊지 않게 <b>저녁 ${state.pushHour}시</b>에 한 번만 알려 드릴까요?`}</div></div>
+    <div class="lock"><div class="time">${state.pushHour}:00</div>
+      <div class="noti"><b>잼통 · 🫙 잼통이가 기다려요</b><span>${body}</span></div>
+      <div class="noti"><b>잼통 · 🌼 이번 주 돌아보기</b><span>근거 9장을 익혔어요 (일요일에만)</span></div>
+    </div>
+    <p class="small" style="margin:0">하루에 한 번이 최대예요. 목표를 채운 날은 오지 않아요. 언제든 내 기록 → 설정에서 끌 수 있어요.</p>
+    ${preview ? `<button class="btn btn-line" type="button" data-act="sheetClose">닫기</button>` :
+      `<div class="row"><button class="btn btn-line" type="button" data-act="sheetClose" style="flex:1">나중에</button><button class="btn btn-jam" type="button" data-act="pushYes" style="flex:1">알려 주세요</button></div>`}
+  </div>`;
+  $("#phone").appendChild(w);
+}
+
+function unitSheet(i) {
+  const n = PATH[i];
+  const done = { fruit: 5, bloom: 4, sprout: 2, now: 3 }[n.s] ?? 0;
+  const steps = [["🌱", "알기"], ["🌿", "이해"], ["🔍", "출처"], ["⚖️", "반론"], ["💬", "말하기"]];
+  const w = document.createElement("div"); w.className = "sheet-wrap"; w.id = "sheet";
+  w.innerHTML = `<div class="sheet" role="dialog" aria-label="${esc(n.t)}">
+    <div class="eyebrow">업적의 길 · 단원</div><div class="h">${esc(n.t)}</div>
+    <div class="steps5">${steps.map(([e, l], k) => `<div class="${k < done ? "doneS" : k === done ? "nowS" : ""}">${e} ${l}<span class="st">${k < done ? "마침" : k === done ? "다음" : "잠김"}</span></div>`).join("")}</div>
+    <div class="row"><a class="link" href="#" data-noop>원본 업적 페이지 보기</a></div>
+    <div class="row"><button class="btn btn-line" type="button" data-act="sheetClose" style="flex:1">닫기</button>${done < 5 ? `<button class="btn btn-jam" type="button" data-act="lessonFromSheet" style="flex:1">${steps[done][1]} 시작</button>` : `<button class="btn btn-jam" type="button" data-act="explainFromSheet" style="flex:1">30초 설명하기</button>`}</div>
+  </div>`;
+  $("#phone").appendChild(w);
+}
+
+let timerId = null;
+function runTimer() {
+  const el = $("#timer"); if (!el) return;
+  clearInterval(timerId); let s = 30; el.textContent = "0:30";
+  timerId = setInterval(() => { s--; const t = $("#timer"); if (!t || s < 0) { clearInterval(timerId); return; } t.textContent = `0:${String(s).padStart(2, "0")}`; if (s === 0) toast("시간 끝! 아래 네 칸을 짚어 보세요"); }, 1000);
+}
+
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); toast("복사했어요"); }
+  catch (e) { toast("복사가 막혔어요. 길게 눌러 선택하세요"); }
+}
+
+/* ───────── 이벤트 ───────── */
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button, a"); if (!t) return;
+  const d = t.dataset;
+  if (d.noop !== undefined) { e.preventDefault(); toast("시안에서는 원본 페이지로 가지 않아요"); return; }
+  if (d.tab) return go(d.tab);
+  if (d.seg) { state.seg = d.seg; try { localStorage.setItem("jt-study-tab", state.tab + ":" + state.seg); } catch (er) {} render(); return; }
+  if (d.go) { const [a, b] = d.go.split(":"); return go(a, b); }
+  if (d.course) { state.course = +d.course; return render(); }
+  if (d.unit) return unitSheet(+d.unit);
+  if (d.pick) { const i = state.picks.indexOf(d.pick); i >= 0 ? state.picks.splice(i, 1) : state.picks.length < 3 ? state.picks.push(d.pick) : toast("3장까지 고를 수 있어요"); return render(); }
+  if (d.copy) { const c = WALLET[+d.copy]; return copy(`${c.text}\n출처: jamtong.kr (${c.a})`); }
+  if (d.goal) { state.goal = +d.goal; return render(); }
+  if (d.hour) { state.pushHour = +d.hour; return render(); }
+  if (d.opt !== undefined && L && !L.checked) { L.sel = +d.opt; return drawLesson(); }
+  switch (d.act) {
+    case "lesson": return openLesson();
+    case "quit": return closeLesson();
+    case "check": { const q = LESSON[L.i]; L.checked = true; if (L.sel === q.answer) { L.right++; L.combo++; } else L.combo = 0; return drawLesson(); }
+    case "next": L.i++; L.sel = null; L.checked = false; return drawLesson();
+    case "afterDone": closeLesson(); if (!state.pushOn) pushSheet(false); return;
+    case "pushYes": state.pushOn = true; $("#sheet")?.remove(); toast(`매일 ${state.pushHour}시에 알려 드릴게요`); return render();
+    case "sheetClose": $("#sheet")?.remove(); return;
+    case "lessonFromSheet": $("#sheet")?.remove(); return openLesson();
+    case "explainFromSheet": $("#sheet")?.remove(); return go("talk", "explain");
+    case "pushpreview": return pushSheet(true);
+    case "push": state.pushOn = !state.pushOn; return render();
+    case "neutral": state.neutral = !state.neutral; return render();
+    case "compose": state.replyDone = true; return render();
+    case "retry": state.replyDone = false; state.picks = []; return render();
+    case "copy": { const lines = DIALOG.cards.filter(c => state.picks.includes(c.id) && c.role !== "off").map(c => c.say); return copy(lines.join(" ") + `\n근거: https://${DIALOG.link}`); }
+    case "timer": return runTimer();
+    case "ask": { const v = ($("#ask")?.value || "").trim(); return toast(v ? "시안에서는 답하지 않아요 · 실제로는 위키 AI 질문으로" : "물어볼 것을 적어 주세요"); }
+    case "garden": return toast("정원(/garden)으로 갑니다");
+  }
+  if (t.id === "exitBtn") toast("사이트 홈으로 돌아갑니다");
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id !== "q") return;
+  const v = e.target.value.trim();
+  const list = $("#wallet"); if (!list) return;
+  list.innerHTML = WALLET.map((c, i) => [c, i]).filter(([c]) => !v || (c.text + c.unit).includes(v)).map(([c, i]) => evCard(c, `<div class="row"><button class="btn btn-line" type="button" data-copy="${i}" style="padding:5px 10px;font-size:12px">복사</button><a class="link" href="#" data-noop>원문 보기</a></div>`)).join("") || `<p class="small">맞는 카드가 없어요.</p>`;
+});
+
+render();
+</script>

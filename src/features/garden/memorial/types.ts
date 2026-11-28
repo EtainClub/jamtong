@@ -91,7 +91,7 @@ export interface MemorialEntry {
    * 잡초 O/X 퀴즈 문항 — 내용을 이해했는지 묻는다(content/quizzes/ox.ts). 근거 앵커 `<업적slug>#<claimId>`가 붙는다.
    * 문항이 없는 업적은 잡초 퀴즈에 나오지 않는다.
    */
-  ox: Array<{ statement: string; answer: boolean; explain: string; anchor: string }>;
+  ox: Array<{ id: string; statement: string; answer: boolean; explain: string; anchor: string }>;
   quiz: {
     question: string;
     options: MemorialQuizOption[];

@@ -29,7 +29,7 @@ import { TitleChips, Toast } from "./parts";
 import { PlazaView } from "./PlazaView";
 import { HOME_RAID_REFRESH } from "./raid/rules";
 import { raidGapWindow, raidPhase, type RaidWave } from "./rules";
-import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, kstDay, kstDayNumber, nextMeteor, nextMonsoon, nextRain, PUBLIC_ID, TITLE_ORDER, titleLabel, titleLevels, type TitleId } from "./rules";
+import { bloomBonus, caresFor, formatLeft, isMeteor, isRaining, josa, kstDay, kstDayNumber, nextMeteor, nextMonsoon, nextRain, PUBLIC_ID, TITLE_ORDER, titleLabel, titleLevels, type TitleId } from "./rules";
 import { ShareCard } from "./ShareCard";
 import { GardenShareButton } from "./GardenShareButton";
 import { takeInviteParam, useInvite } from "./invite";
@@ -40,6 +40,7 @@ import { VisitView } from "./VisitView";
 import { ANCHOR_RE, PHOTO_ID } from "./album/rules";
 import { usePhotoSync } from "./album/useAlbumRemote";
 import { CLIP_EVENT, SNAP_EVENT } from "./album/ClipLink";
+import { requestSlot } from "./slot/pending";
 import { takeSnap, type SnapClip } from "./album/snap";
 import { BASKET_MAX, useGarden, type GardenData } from "./store";
 import type { Leaf, Species } from "./types";
@@ -229,6 +230,7 @@ export function GardenApp({
 
   // 정원을 연다. 원본 페이지의 "씨앗 받기"로 왔으면 그 품종을 기억해 둔다.
   const gift = useRef<string | null>(null);
+  const perks = useRef<{ quiz: string | null; study: string | null; spin: "seed" | "room" | null }>({ quiz: null, study: null, spin: null });
   const inviteIn = useRef<string | null>(null);
   useEffect(() => {
     useGarden.getState().boot(catalog);
@@ -242,11 +244,16 @@ export function GardenApp({
       url.searchParams.delete("clip");
       window.history.replaceState(null, "", url.pathname + url.search);
     }
+    // 원본 페이지에서 가져온 것 — 씨앗(gift), 확인 문제 정답 선물(quiz), 잼공 하루 목표의 잼(study). 받고 나면 주소에서 지운다.
     const id = url.searchParams.get("gift");
-    if (!id) return;
-    url.searchParams.delete("gift");
+    const quiz = url.searchParams.get("quiz");
+    const study = url.searchParams.get("study");
+    const spin = url.searchParams.get("spin");
+    if (!id && !quiz && !study) return;
+    for (const k of ["gift", "quiz", "study", "spin"]) url.searchParams.delete(k);
     window.history.replaceState(null, "", url.pathname + url.search);
     gift.current = id;
+    perks.current = { quiz, study, spin: spin === "seed" || spin === "room" ? spin : null };
   }, [catalog]);
 
   // 계정. 광장에 흔적을 남기고 정원을 기기 사이로 옮기려면 있어야 한다.
@@ -317,15 +324,43 @@ export function GardenApp({
     track("garden_open", { ripe: beds.filter((p) => p && p.ripeAt <= at).length });
   }, [hasData, syncing]);
 
-  // 선물 씨앗은 계정과 맞춘 뒤에 준다(품종마다 한 번). 먼저 주면 계정 정원에 덮여 사라진다.
+  // 선물 씨앗·정답 선물·잼공 잼은 계정과 맞춘 뒤에 준다(한 번씩). 먼저 주면 계정 정원에 덮여 사라진다.
   useEffect(() => {
     const id = gift.current;
-    if (!id || !hasData || syncing) return;
+    const { quiz, study, spin } = perks.current;
+    if ((!id && !quiz && !study) || !hasData || syncing) return;
     gift.current = null;
-    const species = catalog.find((s) => s.id === id);
-    if (!species) return;
-    const given = useGarden.getState().gift(species);
-    say(given ? `🌱 「${species.title}」 씨앗을 받았어요` : "이 씨앗은 이미 받았어요");
+    perks.current = { quiz: null, study: null, spin: null };
+    const store = useGarden.getState();
+    const lines: string[] = [];
+    const species = id ? catalog.find((s) => s.id === id) : undefined;
+    if (species) lines.push(store.gift(species) ? `🌱 「${species.title}」 씨앗을 받았어요` : "이 씨앗은 이미 받았어요");
+    if (quiz) {
+      const got = store.claimQuizPrize(quiz);
+      if (typeof got === "object") {
+        lines.push(`🎁 정답 선물 · ${josa(got.label, "을를")} 받았어요(방 꾸미기 보관함)`);
+        track("garden_quiz_prize", { item: got.id });
+        gardenFeedback("reward");
+      } else if (got === "done") lines.push("이 업적의 정답 선물은 이미 받았어요");
+      else if (got === "full") lines.push("받을 수 있는 가구를 다 가지고 있어서 선물이 없어요");
+    }
+    if (study) {
+      const got = store.claimStudyJam(study, spin ?? undefined);
+      if (got) {
+        const where = got.spin === "seed" ? "🌱 텃밭 씨앗 슬롯" : got.spin === "room" ? "🛋 방 꾸미기 슬롯" : null;
+        lines.push(`📖 잼공 목표 채움 · 잼 +${got.jam}${where ? ` · ${where} 무료 한 번` : ""}`);
+        if (spin && !got.spin) lines.push("무료 한 번은 이미 가득 쌓여 있어요");
+        track("garden_study_jam", { jam: got.jam, spin: got.spin ?? "none" });
+        gardenFeedback("reward");
+        // 그 슬롯이 있는 칸으로 가서 바로 연다.
+        if (got.spin) {
+          setNav(navOf(got.spin === "seed" ? "beds" : "room"));
+          requestSlot(got.spin);
+        }
+      } else lines.push("오늘 잼공 선물은 이미 받았어요");
+    }
+    // 받은 것을 한 번 알린다 — 정원을 연 직후 한 번뿐이다.
+    if (lines.length) say(lines.join(" · "));
   }, [hasData, syncing, catalog, say]);
 
   // 칭호. 정원 기록에서 셈하므로 따로 저장하지 않는다. 계정과 맞춘 뒤의 단계를 기준으로, 오르면 알린다.
