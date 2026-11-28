@@ -195,6 +195,36 @@ export const ACHIEVEMENT_OX: Record<string, OxItem[]> = {
     { id: "ox3", answer: false, statement: "금융위원회가 발표한 청년미래적금 누적 신청자는 모두 계좌 개설까지 마친 사람들이다.", explain: "금융위원회가 발표한 것은 누적 가입 신청자 수예요. 신청 종료 후 자격심사와 계좌 개설이 별도로 진행돼요.", claimIds: ["ys-demand"] },
     { id: "ox4", answer: false, statement: "청년미래적금의 최대 수익 효과는 정부 기여금과 비과세를 뺀 은행 이자만 뜻한다.", explain: "안내된 최대 효과는 정부 기여금과 비과세 혜택을 포함해 단리 적금으로 환산한 값이에요. 은행 금리 자체와는 달라요.", claimIds: ["ys-rate"] },
   ],
+  "integrated-care": [
+    { id: "ox1", answer: true, statement: "통합돌봄 본사업은 2026년 3월부터 전국 시군구에서 시행됐다.", explain: "2026년 3월 27일부터 전국 229개 시군구에서 의료·요양·돌봄을 함께 설계하고 연계하는 본사업이 시행됐어요.", claimIds: ["ic-launch"] },
+    { id: "ox2", answer: true, statement: "통합돌봄 대상에는 의료 필요도가 높은 중증 장애인도 포함된다.", explain: "65세 이상 노인과 함께 의료 필요도가 높은 중증 장애인(지체·뇌병변 등)도 대상이에요.", claimIds: ["ic-access"] },
+    { id: "ox3", answer: false, statement: "통합돌봄의 근거 법률은 이재명 정부 출범 뒤에 처음 만들어졌다.", explain: "돌봄통합지원법은 2024년 3월 26일 제정됐고 2026년 3월 27일 시행됐어요. 제정은 현 정부 출범 전이에요.", claimIds: ["ic-law"] },
+    { id: "ox4", answer: false, statement: "첫 실태조사에서 인구감소지역은 모든 돌봄 서비스의 충족률이 일반지역보다 낮았다.", explain: "방문진료·재택의료센터는 인구감소지역이 낮았지만, 지역사회중심재활·노인맞춤돌봄 등은 인구감소지역이 더 높았어요.", claimIds: ["ic-gap"] },
+  ],
+  "regional-doctors": [
+    { id: "ox1", answer: true, statement: "지역의사선발전형으로 뽑힌 학생은 면허를 딴 뒤 정해진 지역에서 10년간 복무해야 한다.", explain: "학비를 지원받는 대신 의사면허 취득 후 선발 때 공고된 지역에서 10년간 복무해요.", claimIds: ["rd-service"] },
+    { id: "ox2", answer: true, statement: "지역의사법은 2026년 2월부터 시행됐다.", explain: "지역의사법은 2025년 12월 23일 공포됐고 2026년 2월 24일 시행됐어요.", claimIds: ["rd-enforcement"] },
+    { id: "ox3", answer: false, statement: "비대면진료를 제도화한 개정 의료법은 공포와 동시에 바로 시행됐다.", explain: "2025년 12월 23일 공포됐고, 공포 1년 뒤인 2026년 12월 24일에 시행될 예정이에요.", claimIds: ["rd-telemedicine-date"] },
+    { id: "ox4", answer: false, statement: "개정 의료법은 비대면진료를 대면진료를 대신하는 기본 진료 방식으로 정했다.", explain: "비대면진료는 대면진료의 보완적 수단이에요. 재진환자·의원급 의료기관 중심으로 운영하도록 했어요.", claimIds: ["rd-telemedicine-design"] },
+  ],
+  "working-hours": [
+    { id: "ox1", answer: true, statement: "노사정은 실노동시간을 2030년까지 OECD 평균 수준으로 줄이기로 했다.", explain: "노사정 공동선언에서 2030년까지 OECD 평균 수준(연 1,700시간대)으로 줄이도록 노력하기로 했어요.", claimIds: ["wh-target"] },
+    { id: "ox2", answer: true, statement: "고용노동부는 임금 감소 없이 노동시간을 줄이는 기업에 노동자 1인당 지원금을 주겠다고 밝혔다.", explain: "워라밸+4.5 프로젝트로 노사 합의로 임금 감소 없이 실노동시간을 줄이는 기업에 해당 노동자 1인당 지원한다고 밝혔어요.", claimIds: ["wh-support"] },
+    { id: "ox3", answer: false, statement: "워라밸+4.5 프로젝트 참여 기업은 모두 주 4.5일제 방식으로만 노동시간을 줄였다.", explain: "금요일 오후 휴무나 격주 휴무 외에 주 38시간제·주 35시간제 같은 방식도 있었어요.", claimIds: ["wh-june-status"] },
+    { id: "ox4", answer: false, statement: "6월 말 워라밸+4.5 프로젝트 참여 기업은 대부분 대기업이었다.", explain: "6월 말 참여 기업 가운데 50인 미만 기업이 67.9%였어요.", claimIds: ["wh-june-status"] },
+  ],
+  "local-currency": [
+    { id: "ox1", answer: true, statement: "개정 지역사랑상품권법은 국가와 지자체의 상품권 발행·운영 지원을 의무로 정했다.", explain: "상품권 발행·판매·환전 등 운영에 필요한 행정적·재정적 지원이 의무가 됐어요.", claimIds: ["lc-support"] },
+    { id: "ox2", answer: true, statement: "개정법은 인구감소지역에 보조금을 추가로 반영할 수 있는 근거를 새로 만들었다.", explain: "인구감소지역에 보조금 예산을 더 반영할 수 있는 근거가 생겼어요. 금액이나 비율을 정한 것은 아니에요.", claimIds: ["lc-depopulation"] },
+    { id: "ox3", answer: false, statement: "개정 지역사랑상품권법에 따라 모든 지자체는 상품권을 반드시 발행해야 한다.", explain: "법은 지자체장이 상품권을 발행할 수 있다고 정해요. 지원이 의무가 된 것이지 발행이 의무가 된 것은 아니에요.", claimIds: ["lc-optional"] },
+    { id: "ox4", answer: false, statement: "국가 지원 의무화 조항은 법이 공포된 날부터 바로 시행됐다.", explain: "개정법은 2025년 8월 26일 공포됐지만 지원 의무화는 2026년 1월 1일부터 시행됐어요.", claimIds: ["lc-dates"] },
+  ],
+  "yellow-envelope": [
+    { id: "ox1", answer: true, statement: "개정 노동조합법은 근로조건을 실질적으로 지배·결정하는 원청도 그 범위에서 사용자로 본다.", explain: "근로계약 당사자가 아니어도 근로조건을 실질적이고 구체적으로 지배·결정할 수 있으면 그 범위에서 사용자로 인정돼요.", claimIds: ["ye-employer"] },
+    { id: "ox2", answer: true, statement: "노란봉투법은 2026년 3월부터 시행됐다.", explain: "2025년 8월 24일 국회를 통과해 9월 9일 공포됐고, 2026년 3월 10일 시행됐어요.", claimIds: ["ye-enactment"] },
+    { id: "ox3", answer: false, statement: "노란봉투법은 불법 파업을 포함한 모든 쟁의행위의 손해배상 책임을 없앴다.", explain: "법에 따른 노조 활동의 청구를 제한한 것이에요. 배상책임이 인정되면 근로자별 책임비율을 정하고 감면을 심사해요.", claimIds: ["ye-damages"] },
+    { id: "ox4", answer: false, statement: "10월 1일 기준 교섭 요구를 받은 원청 대부분에서 원·하청 교섭이 완전 타결됐다.", explain: "10월 1일 기준 교섭 요구를 받은 원청 460곳 가운데 완전 타결은 3곳이었어요.", claimIds: ["ye-october"] },
+  ],
 };
 
 for (const items of Object.values(ACHIEVEMENT_OX)) for (const item of items) oxItemSchema.parse(item);

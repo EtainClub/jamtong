@@ -27,6 +27,11 @@ import { housingStabilization } from "./housing-stabilization/achievement";
 import { exportSurplus } from "./export-surplus/achievement";
 import { inboundTourism } from "./inbound-tourism/achievement";
 import { birthRebound } from "./birth-rebound/achievement";
+import { integratedCare } from "./integrated-care/achievement";
+import { regionalDoctors } from "./regional-doctors/achievement";
+import { workingHours } from "./working-hours/achievement";
+import { localCurrency } from "./local-currency/achievement";
+import { yellowEnvelope } from "./yellow-envelope/achievement";
 
 /**
  * 업적 레지스트리.
@@ -63,6 +68,11 @@ export const ACHIEVEMENTS: Achievement[] = [
   oilSupply,
   mexicoVisit,
   housingStabilization,
+  integratedCare,
+  regionalDoctors,
+  workingHours,
+  localCurrency,
+  yellowEnvelope,
 ];
 
 export function getAchievement(slug: string): Achievement | undefined {

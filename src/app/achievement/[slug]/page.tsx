@@ -56,6 +56,111 @@ type LayoutConfig = {
 };
 
 const LAYOUTS: Record<string, LayoutConfig> = {
+  "integrated-care": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "시행과 첫 실태조사",
+          timelineLede: "전국 시행부터 첫 실태조사, 인력 점검까지 순서대로 봅니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "보건복지부 발표 수치입니다. 신청·연계 인원은 8월 31일 기준입니다.",
+          relationsHeading: "",
+          relationsLede: "",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "ic-launch", label: "229개 시군구 전국 시행" },
+      { claimId: "ic-use", label: "신청 9만 3천여 명" },
+    ],
+    askSuggestions: ["통합돌봄은 누가 신청할 수 있나요?", "신청한 사람은 얼마나 되나요?", "지역마다 받을 수 있는 서비스가 다른가요?"],
+  },
+  "regional-doctors": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "법 통과에서 시행까지",
+          timelineLede: "두 법이 언제 통과·공포·시행되는지, 아직 남은 일정은 무엇인지 봅니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "법률과 보건복지부·교육부 안내의 수치입니다.",
+          relationsHeading: "",
+          relationsLede: "",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "rd-service", label: "10년 지역 의무복무" },
+      { claimId: "rd-telemedicine-date", label: "비대면진료 2026.12.24 시행" },
+    ],
+    askSuggestions: ["지역의사는 어떻게 뽑나요?", "비대면진료는 언제부터 바뀌나요?", "의료계는 왜 반대하나요?"],
+  },
+  "working-hours": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "로드맵에서 현장까지",
+          timelineLede: "노사정 공동선언부터 참여 기업 집계까지의 경과입니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "고용노동부 발표 수치입니다. 참여 기업은 7월 말 기준입니다.",
+          relationsHeading: "",
+          relationsLede: "",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "wh-target", label: "2030년 연 1,700시간대 목표" },
+      { claimId: "wh-support", label: "1인당 최대 720만 원 지원" },
+    ],
+    askSuggestions: ["주 4.5일제 지원은 누가 받을 수 있나요?", "참여 기업은 얼마나 되나요?", "경영계는 무엇을 우려하나요?"],
+  },
+  "local-currency": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "개정에서 기본계획까지",
+          timelineLede: "국회 통과, 공포, 조항별 시행일과 첫 기본계획을 순서대로 봅니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "행정안전부 발표 수치입니다.",
+          relationsHeading: "",
+          relationsLede: "",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "lc-support", label: "국가·지자체 지원 의무화" },
+      { claimId: "lc-optional", label: "발행 자체는 의무 아님" },
+    ],
+    askSuggestions: ["무엇이 의무가 됐나요?", "모든 지자체가 상품권을 발행해야 하나요?", "재정 부담은 없나요?"],
+  },
+  "yellow-envelope": {
+    Layout: (props) => (
+      <NarrativeLayout
+        {...props}
+        copy={{
+          timelineHeading: "통과에서 시행 뒤까지",
+          timelineLede: "국회 통과와 시행, 정부 지침, 시행 뒤 교섭 현황을 순서대로 봅니다.",
+          numbersHeading: "숫자로 보면",
+          numbersLede: "노동부 자료를 인용한 보도의 집계입니다(10월 1일 기준).",
+          relationsHeading: "",
+          relationsLede: "",
+          shareWhat: "보고 있는 시점과 열어 둔 근거가 링크에 담깁니다.",
+        }}
+      />
+    ),
+    heroHighlights: [
+      { claimId: "ye-employer", label: "원청의 사용자성 인정" },
+      { claimId: "ye-damages", label: "손해배상 책임비율·감면" },
+    ],
+    askSuggestions: ["하청 노동자는 원청과 교섭할 수 있나요?", "파업 손해배상은 어떻게 달라졌나요?", "교섭은 실제로 얼마나 타결됐나요?"],
+  },
   "inbound-tourism": {
     Layout: (props) => (
       <NarrativeLayout

@@ -167,11 +167,12 @@ export const PLEDGE_CHECK_2026: PolicyInput = {
     {
       id: "claim-working-hours",
       text:
-        "고용노동부는 2026년 1월 14일 실노동시간 단축 로드맵을 발표했다. 2030년까지 실노동시간을 OECD " +
+        "노사정은 2025년 12월 30일 실노동시간 단축 공동선언과 로드맵 추진과제를 발표했고, 고용노동부는 2026년 1월 14일 " +
+        "이행점검단을 출범시키며 후속 지원사업을 발표했다. 2030년까지 실노동시간을 OECD " +
         "평균 수준인 연 1,700시간대로 줄이는 것이 목표다. 주 4.5일제를 도입하는 기업에는 근로자 1인당 " +
         "최대 720만 원을 지원하고, 노동시간 단축 관련 예산으로 9,363억 원이 편성됐다.",
       assertionType: "FACT",
-      sourceIds: ["src-tf-working-hours", "src-herald-working-hours"],
+      sourceIds: ["src-tf-working-hours", "src-herald-working-hours", "src-moel-roadmap-20251230"],
       verified: true,
     },
     // ── 공약 8·9 생활안정·돌봄 ──
@@ -249,6 +250,15 @@ export const PLEDGE_CHECK_2026: PolicyInput = {
     "배달앱 수수료 상한제, 공공기관장 임기 일치, 정년 연장, 2차 공공기관 이전은 2026년 10월 현재 법 통과·확정 발표를 찾지 못해 공약 화면에서 '확인 전'으로 둔다.",
   ],
   sources: [
+    {
+      id: "src-moel-roadmap-20251230",
+      title: "국민주권정부, 실노동시간 단축 노사정 첫 공동 선언",
+      publisher: "고용노동부",
+      url: "https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=18805",
+      publishedAt: "2025-12-30",
+      type: "official",
+      license: "public",
+    },
     { id: "src-korea-growth-fund", title: "150조 원 규모 국민성장펀드 출범", publisher: "대한민국 정책브리핑(금융위원회)", url: "https://www.korea.kr/multi/visualNewsView.do?newsId=148956487", publishedAt: "2025-12-16", type: "official", license: "public" },
     { id: "src-etnews-gpu", title: "[APEC 2025] 韓·엔비디아 AI 동맹...GPU 26만장 확보, 피지컬 AI 가속", publisher: "전자신문", url: "https://www.etnews.com/20251031000349", publishedAt: "2025-10-31", type: "press", license: "link-only" },
     { id: "src-korea-martial-law", title: "계엄 선포해도 '국회 출입 방해' 금지…이달 계엄법 개정안 시행", publisher: "대한민국 정책브리핑(법제처)", url: "https://www.korea.kr/news/policyNewsView.do?newsId=148946023", publishedAt: "2025-07-15", type: "official", license: "public" },
