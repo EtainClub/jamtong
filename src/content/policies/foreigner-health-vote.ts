@@ -20,12 +20,12 @@ export const FOREIGNER_HEALTH_VOTE: PolicyInput = {
   scope: "외국인·중국인 건강보험 재정수지와 지방선거 외국인 투표권에 관한 숫자",
   ministries: ["보건복지부", "국민건강보험공단", "중앙선거관리위원회"],
   categories: ["welfare", "institution"],
-  asOf: "2026-10-08",
+  asOf: "2026-11-28",
   rumors: [
     {
       id: "rumor-health-freeride",
       text: "중국인이 건강보험 혜택을 가로채 건보 재정이 적자다",
-      claimIds: ["claim-foreign-surplus", "claim-china-2024", "claim-stat-fix"],
+      claimIds: ["claim-foreign-surplus", "claim-china-2024", "claim-stat-fix", "claim-2025"],
     },
     {
       id: "rumor-vote-visa",
@@ -41,6 +41,15 @@ export const FOREIGNER_HEALTH_VOTE: PolicyInput = {
         "보험료가 받은 급여보다 많았다. 2024년 흑자는 9,439억 원이다.",
       assertionType: "FACT",
       sourceIds: ["src-asiae-health", "src-ytn-health"],
+      verified: true,
+    },
+    {
+      id: "claim-2025",
+      text:
+        "2025년 외국인 가입자 전체의 건강보험 재정수지는 1조 128억 원 흑자로 역대 가장 컸다. 같은 해 중국 국적 " +
+        "가입자는 낸 보험료 9,564억 원보다 받은 급여 9,973억 원이 많아 409억 원 적자로, 1년 만에 다시 적자가 됐다.",
+      assertionType: "FACT",
+      sourceIds: ["src-yna-health-2025"],
       verified: true,
     },
     {
@@ -114,6 +123,15 @@ export const FOREIGNER_HEALTH_VOTE: PolicyInput = {
     "2026년 지방선거 외국인 유권자의 국적별 공식 집계는 확인하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-yna-health-2025",
+      title: "외국인 건보 흑자 1조 돌파…중국은 1년만에 적자로 다시 돌아서",
+      publisher: "연합뉴스",
+      url: "https://www.yna.co.kr/view/AKR20261024029400530",
+      publishedAt: "2026-10-25",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-asiae-health",
       title: "[2025국감]\"중국인 건보 무임승차\" 주장에 \"흑자 상태\" 반박",

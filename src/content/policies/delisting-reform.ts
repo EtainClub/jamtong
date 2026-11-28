@@ -17,7 +17,7 @@ export const DELISTING_REFORM: PolicyInput = {
   scope: "2026년 2월 발표된 상장폐지 개혁방안의 요건(동전주·시가총액·자본잠식·공시위반), 시행일, 집중관리기간과 첫 적용",
   ministries: ["금융위원회", "한국거래소"],
   categories: ["economy", "institution"],
-  asOf: "2026-10-12",
+  asOf: "2026-11-28",
   rumors: [
     {
       id: "rumor-45-days",
@@ -73,11 +73,12 @@ export const DELISTING_REFORM: PolicyInput = {
     {
       id: "claim-task-force",
       text:
-        "거래소에 상장폐지 심사 4개 팀, 20명 규모의 상장폐지 집중관리단을 두고 '내년 7월까지' " +
-        "집중관리기간을 운영한다고 보도됐다(2026년 2월 보도 기준, 2027년 7월).",
+        "상장폐지 집중관리단을 꾸리고 거래소 부이사장을 단장으로 2027년 6월까지 상장폐지 집중관리기간을 운영한다. " +
+        "권대영 금융위원회 부위원장이 2026년 2월 12일 브리핑에서 밝혔다. 보도에는 거래소 상장폐지 심사 4개 팀·20명 " +
+        "규모로 나오고, 한 보도는 기간을 '내년 7월까지'로 적었으나 금융위 브리핑은 6월이다.",
       assertionType: "FACT",
-      sourceIds: ["src-hellot-20260218"],
-      verified: false,
+      sourceIds: ["src-korea-delisting-briefing", "src-hellot-20260218"],
+      verified: true,
     },
     {
       id: "claim-first-designation",
@@ -130,6 +131,15 @@ export const DELISTING_REFORM: PolicyInput = {
     "첫 관리종목 수는 보도마다 21개·23개·36개로 다르다. 본문의 21개를 적었다.",
   ],
   sources: [
+    {
+      id: "src-korea-delisting-briefing",
+      title: "금융위원회 현안 설명(권대영 부위원장)",
+      publisher: "대한민국 정책브리핑",
+      url: "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156744498",
+      publishedAt: "2026-02-12",
+      type: "official",
+      license: "public",
+    },
     {
       id: "src-fsc-20260513",
       title: "상장폐지 개혁방안(2.12일발표) 시행을 위한 한국거래소 상장규정 개정 승인",

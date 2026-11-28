@@ -90,6 +90,15 @@ claim마다 `policy:<slug>#<claimId>` 앵커로 나간다.
 4. `src/content/policies/index.ts`의 `POLICIES`에 더한다.
 5. `pnpm garden:arrivals && pnpm validate && pnpm wiki:lint`.
 
+### 도는 말 판정 — 사람이 승인한다
+
+도는 말(`rumors`)의 판정은 `src/content/policies/verdicts.ts`에 둔다(열쇠 `<slug>#<rumorId>`).
+**에이전트는 `value`·`note` 초안만 쓰고 `approved`를 쓰지 않는다.** 승인은 운영자가 한다
+(`pnpm study:verdicts`로 대기 목록을 보고 `--approve <열쇠…>`). 승인된 판정만 위키와 잼공에 나간다.
+판정은 이어진 claim보다 세게 말하지 않는다 — 부처 해명뿐이면 「정부 해명만 있음」, 확인 전 claim이 섞이면
+「확인 불가」. `pnpm validate`가 본다. **사실을 말하는 주장에만 판정한다** — 요청("~해 달라")·의견("~해야 한다")·
+주장을 품지 않은 질문에는 판정을 두지 않는다.
+
 ### 통통에서 가져온 청소년·청년 정책
 
 통통(tt.jamtong.kr)의 공개 정책 항목은 `pnpm policies:tongtong`이 `../tongtong`에서 읽어

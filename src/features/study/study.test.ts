@@ -3,6 +3,8 @@
  * 다시 묻기 상자, 이어 가기(쉼표), 오늘의 한 판, 길(탭·칸), 문항 은행의 근거를 본다.
  */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
 
 import { getPublishedAchievements } from "../../content/achievements";
@@ -13,7 +15,8 @@ import { WEAKNESS_ITEMS } from "../../content/study/weakness";
 import { validateDebate, validateNumbers, validateSort, validateStudy, validateWeakness, validateWeigh } from "../../content/study/validate";
 import { CHECK_ITEMS, WEIGHT_ITEMS } from "../../content/study/weigh";
 import { STATEMENTS } from "../../content/words";
-import { buildStudyBank, SKELETON_OPTIONS, starterOf } from "./build";
+import { buildStudyBank, rumorItems, SKELETON_OPTIONS, starterOf } from "./build";
+import { allowedValues, approveInSource, approvedVerdict, isQuestion, validateVerdicts, VERDICTS, type Verdict } from "../../content/policies/verdicts";
 import { ASSESS_SIZE, assessReady, assessSession, inviteFor, levelReady, pickLevelSession, sessionSize, SKIP_SIZE, skipSession, skipTargets, type LevelState } from "./levels";
 import { navForLevel, STUDY_SEGMENTS, STUDY_TABS, studyNavOf, SOON, visibleSegments, visibleTabs } from "./nav";
 import { emptyStudy, normalizeStudy, type StudyData } from "./store";
@@ -192,7 +195,7 @@ test("문항 은행: id가 영구 꼴이고 겹치지 않으며, 앵커가 실�
   assert.ok(bank.units.filter((u) => u.course === "achievement").length >= 20, "업적 단원이 스물 넘게");
   assert.equal(new Set(bank.items.map((i) => i.id)).size, bank.items.length);
   for (const i of bank.items) {
-    assert.match(i.id, i.kind === "ox" ? /^a:[a-z0-9-]+\/ox[0-9]+$/ : /^[apw]:[a-z0-9-]+\/[sndwkglh][0-9]+$/);
+    assert.match(i.id, i.kind === "ox" ? /^a:[a-z0-9-]+\/ox[0-9]+$/ : /^[apw]:[a-z0-9-]+\/([sndwkglh][0-9]+|[vr]-[a-z0-9-]+)$/);
     assert.ok(bank.units.some((u) => u.id === i.unit), `${i.id}: 단원이 있다`);
     for (const anchor of i.anchors) assert.ok(anchorExists(anchor), `${i.id}: 없는 앵커 ${anchor}`);
   }
@@ -444,8 +447,15 @@ test("건너뛰기 점검: 4단계가 있어야 켜지고, 그 단계 문제 6�
 
 test("답하기 문항: 쟁점·약점이 은행에 들어오고, 화제 돌리기는 늘 오답이며, 정답 자리가 한곳에 몰리지 않는다", () => {
   const bank = buildStudyBank();
-  const debates = bank.items.filter((i) => i.kind === "debate");
+  const debates = bank.items.filter((i) => i.kind === "debate" && i.skill !== "C2");
+  const rumorReplies = bank.items.filter((i) => i.kind === "debate" && i.skill === "C2");
   const weak = bank.items.filter((i) => i.skill === "C3");
+  for (const i of rumorReplies) {
+    assert.equal(i.step, "counter");
+    assert.notEqual(i.debate!.skeleton.correct, SKELETON_OPTIONS.findIndex((o) => o.id === "dodge"), `${i.id}: 화제 돌리기는 정답이 아니다`);
+    assert.equal(i.debate!.evidence.options.length, 3);
+    assert.match(i.debate!.href, /^\/wiki\/policy\/[a-z0-9-]+$/);
+  }
   assert.equal(debates.length, DEBATE_ITEMS.length);
   assert.equal(weak.length, WEAKNESS_ITEMS.length);
   const dodge = SKELETON_OPTIONS.findIndex((o) => o.id === "dodge");
@@ -527,3 +537,53 @@ test("실력 점검: 3단계부터, 28일마다, 처음 보는 문장만, 기술
 function pickAssess(bank: StudyBank, boxes: Record<string, Box>, checked: string[]) {
   return assessSession(bank, boxes, checked, 3);
 }
+
+test("도는 말 판정: 근거보다 세게 말하지 않고, 승인 전에는 아무 데도 나가지 않는다", () => {
+  assert.deepEqual(validateVerdicts(POLICIES), [], "초안이 규칙을 지킨다");
+  assert.ok(Object.values(VERDICTS).every((v) => !v.approved || v.approved >= v.drafted));
+  // 부처 해명(CLAIM)뿐인 도는 말을 하나 찾아 「사실과 다름」이라 하면 걸린다.
+  const officialOnly = POLICIES.flatMap((p) => p.rumors.map((r) => ({ p, r, claims: r.claimIds.map((id) => p.claims.find((c) => c.id === id)!) })))
+    .find(({ claims }) => allowedValues(claims).join() === "official-only,unknown");
+  assert.ok(officialOnly, "부처 해명뿐인 도는 말이 있다");
+  const key = `${officialOnly.p.slug}#${officialOnly.r.id}`;
+  const tooStrong: Record<string, Verdict> = { [key]: { value: "false", note: "부처가 사실이 아니라고 설명했다.", drafted: "2026-11-28" } };
+  assert.equal(validateVerdicts(POLICIES, tooStrong).length, 1, "해명만으로 「사실과 다름」은 안 된다");
+  // 승인 전에는 보이지 않고 문항도 없다.
+  const draft: Record<string, Verdict> = { [key]: { value: "official-only", note: "부처가 사실이 아니라고 설명했지만 따로 확인된 것은 아니다.", drafted: "2026-11-28" } };
+  assert.equal(approvedVerdict(officialOnly.p.slug, officialOnly.r.id, draft), null);
+  assert.equal(rumorItems(draft, []).items.length, 0, "승인 전에는 문항이 생기지 않는다");
+  // 승인하면 3단계 「맞을까?」가 생기고, 뼈대는 「모른다」다.
+  const approved = { [key]: { ...draft[key], approved: "2026-11-28" } };
+  const { items } = rumorItems(approved, []);
+  const pick = items.find((i) => i.kind === "choice")!;
+  assert.equal(pick.step, "source");
+  assert.equal(pick.skill, "C2");
+  assert.equal(pick.choice!.options[pick.choice!.correct].label, "정부 해명만 있어요");
+  assert.equal(pick.explain, draft[key].note);
+  const reply = items.find((i) => i.kind === "debate");
+  if (reply) {
+    assert.equal(reply.step, "counter");
+    assert.equal(SKELETON_OPTIONS[reply.debate!.skeleton.correct].id, "unknown");
+  }
+  // 문항 은행 전체도 승인된 판정만 쓴다.
+  const bank = buildStudyBank();
+  const rumorIds = bank.items.filter((i) => /\/[vr]-/.test(i.id)).map((i) => i.id);
+  const approvedCount = Object.values(VERDICTS).filter((v) => v.approved).length;
+  assert.ok(approvedCount > 0 || rumorIds.length === 0, "승인된 판정이 없으면 도는 말 문항도 없다");
+});
+
+test("도는 말 판정: 승인 스크립트는 그 판정의 줄에만 날짜를 적고, 질문 꼴은 문항으로 내지 않는다", () => {
+  const src = readFileSync(join(process.cwd(), "src/content/policies/verdicts.ts"), "utf8");
+  const draft = Object.entries(VERDICTS).find(([, x]) => !x.approved);
+  if (!draft) return; // 모두 승인됐으면 볼 줄이 없다
+  const [key, v] = draft;
+  const out = approveInSource(src, key, "2026-12-01")!;
+  assert.ok(out, "줄을 찾는다");
+  const changed = out.split("\n").filter((l, i) => l !== src.split("\n")[i]);
+  assert.equal(changed.length, 1, "한 줄만 바뀐다");
+  assert.ok(changed[0].includes(`${JSON.stringify(key)}:`) && changed[0].endsWith(`drafted: "${v.drafted}", approved: "2026-12-01" },`));
+  assert.equal(approveInSource(out, key, "2026-12-02"), null, "이미 승인된 줄은 다시 적지 않는다");
+  assert.equal(approveInSource(src, "없는#열쇠", "2026-12-01"), null);
+  assert.ok(isQuestion("무기징역을 받은 범죄자를 가석방한다는 소식이 사실인가"));
+  assert.ok(!isQuestion("전 국민이 똑같이 받는다"));
+});

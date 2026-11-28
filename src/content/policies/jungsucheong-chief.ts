@@ -19,7 +19,7 @@ export const JUNGSUCHEONG_CHIEF: PolicyInput = {
     "윤호중 행정안전부 장관의 임은정 광주지방중수청장 감찰 지시(10월 11~12일)와 그 근거·반응, 수사·공소기관장의 국무회의 배석의 시작과 근거, 김지용 청장 첫 배석(10월 20일) 뒤 대통령의 반박과 반대 측 주장",
   ministries: ["행정안전부", "중대범죄수사청", "청와대"],
   categories: ["institution"],
-  asOf: "2026-10-30",
+  asOf: "2026-11-28",
   rumors: [
     {
       id: "rumor-pressure",
@@ -34,7 +34,7 @@ export const JUNGSUCHEONG_CHIEF: PolicyInput = {
     {
       id: "rumor-pc",
       text: "임은정 검사장의 PC를 들여다보며 쓴소리한 사람을 잡으려 한다",
-      claimIds: ["claim-procedure"],
+      claimIds: ["claim-procedure", "claim-pc-forensic"],
     },
     {
       id: "rumor-seat",
@@ -82,10 +82,18 @@ export const JUNGSUCHEONG_CHIEF: PolicyInput = {
       id: "claim-procedure",
       text:
         "보도된 감찰 절차는 서면 질의와 증거·자료 제출 요구로 자료를 모은 뒤 징계 여부를 검토하고, 중수청→행정안전부 " +
-        "장관→국무총리 소속 징계위원회를 거쳐 의결하는 순서다. 업무용 PC를 조사했다는 보도는 찾지 못했다. 임 청장은 " +
+        "장관→국무총리 소속 징계위원회를 거쳐 의결하는 순서다. 임 청장은 " +
         "\"감찰 1호인 만큼 사명감을 가지고 잘 대처하겠다\"고 했다.",
       assertionType: "FACT",
       sourceIds: ["src-koreancenter-1423815", "src-wikitree-1165306"],
+      verified: true,
+    },
+    {
+      id: "claim-pc-forensic",
+      text:
+        "중수청 감찰관실은 2026년 10월 19일 광주지방중수청을 찾아 임은정 청장의 업무용 PC를 포렌식했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-yna-20261019-pc"],
       verified: true,
     },
     {
@@ -161,11 +169,20 @@ export const JUNGSUCHEONG_CHIEF: PolicyInput = {
   ],
   gaps: [
     "임은정 청장 감찰의 결과와 징계 여부는 아직 나오지 않았다.",
-    "임 청장의 업무용 PC를 들여다본다는 답글의 근거는 찾지 못했다.",
+    "10월 19일 업무용 PC 포렌식으로 무엇을 찾으려 했는지와 그 결과는 공개되지 않았다.",
     "중수청장 국무회의 배석이 정부조직법상 의무인지에 대한 법학계의 정리된 해석은 찾지 못했다.",
     "보수 정부 때 민주당이 수사기관장의 대통령 보고·배석에 반대했다는 답글의 구체적 발언은 확인하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-yna-20261019-pc",
+      title: "중수청, 임은정 광주청장 업무용 PC 포렌식…감찰 본격화",
+      publisher: "연합뉴스",
+      url: "https://www.yna.co.kr/view/AKR20261019166900004",
+      publishedAt: "2026-10-19",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-wikitree-1165306",
       title: "\"안타깝고 서글픈 일\"…'중수청 1호 감찰 대상' 임은정이 직접 남긴 말",

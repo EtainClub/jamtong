@@ -17,7 +17,7 @@ export const MAY18_MERIT_LIST: PolicyInput = {
     "5·18 민주유공자 명단이 비공개인 법적 근거와 판결, 2026년 명단 공개 법안, 5·18에 대한 대법원 판결·특별법, 2026년 10월 '폭동' 표현 항소심 무죄의 의미",
   ministries: ["국가보훈부"],
   categories: ["institution"],
-  asOf: "2026-10-30",
+  asOf: "2026-11-28",
   rumors: [
     {
       id: "rumor-list",
@@ -83,8 +83,8 @@ export const MAY18_MERIT_LIST: PolicyInput = {
         "전두환·노태우 전 대통령 등에게 내란·반란 등의 죄를 확정했다. 판결은 광주 시민들의 시위를 헌정 질서를 지키기 " +
         "위한 정당한 행위로 보았다.",
       assertionType: "FACT",
-      sourceIds: ["src-scourt-1997"],
-      verified: false,
+      sourceIds: ["src-scourt-1997", "src-law-96do3376"],
+      verified: true,
     },
     {
       id: "claim-act",
@@ -185,6 +185,15 @@ export const MAY18_MERIT_LIST: PolicyInput = {
     "이진숙 의원 등의 개정안이 국회 상임위원회에서 어디까지 논의됐는지는 확인하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-law-96do3376",
+      title: "대법원 1997. 4. 17. 선고 96도3376 전원합의체 판결 (판례 원문)",
+      publisher: "국가법령정보센터",
+      url: "https://www.law.go.kr/precInfoP.do?precSeq=209155",
+      publishedAt: "1997-04-17",
+      type: "judicial",
+      license: "public",
+    },
     {
       id: "src-newsis-20190212",
       title: "독립유공자와 달리 5·18유공자 명단 공개 안 돼…이유는",
