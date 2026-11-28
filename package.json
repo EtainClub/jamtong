@@ -27,6 +27,7 @@
     "check:library-rules": "tsx scripts/check-library-rules.ts",
     "check:slot-rules": "tsx scripts/check-slot-rules.ts",
     "check:album-rules": "tsx scripts/check-album-rules.ts",
+    "check:study-rules": "tsx scripts/check-study-rules.ts",
     "check:storage-rules": "tsx scripts/check-storage-rules.ts",
     "grant-admin": "tsx scripts/grant-admin.ts",
     "infographics:migrate": "tsx --env-file=.env.local scripts/migrate-infographics.ts",

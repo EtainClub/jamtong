@@ -58,7 +58,7 @@
 | 자산 | 위치 | 규모(2026-11-28) | 공부에서 쓰임 |
 |---|---|---|---|
 | 업적 claim·출처·핵심 숫자·연표 | `src/content/achievements/**` | 업적 28건 | 모든 문항의 근거 |
-| 잡초 O/X 문항 | `src/content/quizzes/ox.ts` | 업적마다 4문항, 112문항 | 첫 문항 은행. 그대로 옮긴다 |
+| 잡초 O/X 문항 | `src/content/study/ox.ts` | 업적마다 4문항, 112문항 | 첫 문항 은행. 그대로 옮긴다 |
 | 기념관 숫자 퀴즈 | `src/features/garden/memorial/` | 업적마다 | "숫자 뜻" 문항의 원형 |
 | 반론 | 업적 `counterpoints` | 28건 업적 | "반론도 알기" 문항 |
 | 쉬운 설명 장면 + 카툰 그림 | 업적 `eli5.scenes`, `public/cartoons/` | 28건 | 레슨 도입부(먼저 보고 푼다) |
@@ -385,7 +385,7 @@ src/content/study/
   index.ts           STUDY_UNITS (길·단원·단계별 문항 id)
 ```
 
-- `src/content/quizzes/ox.ts`는 `study/achievements.ts`로 옮기고, 정원의 잡초 퀴즈는 거기서 읽는다(문항 id 유지 — §7의 양방향 연결).
+- `src/content/study/ox.ts`는 `study/achievements.ts`로 옮기고, 정원의 잡초 퀴즈는 거기서 읽는다(문항 id 유지 — §7의 양방향 연결).
 - 문항 id는 `<단원>/<문항>` 꼴로 **영구**다. 문장을 크게 고치면 새 id를 쓰고 옛 id는 `retired`로 둔다(사용자의 상자 기록이 엉뚱한 문항에 붙지 않게).
 - 생성 가능한 것(사실·주장 가리기, 출처 고르기, 순서 맞추기)은 콘텐츠에서 **빌드 시 만든다**(`src/features/study/build.ts`, memorial/build.ts처럼). 손으로 쓸 것은 O/X·빈칸·반론·대화 답장뿐이다.
 
@@ -466,7 +466,7 @@ interface StudyData {
   - 정원은 선물을 계정과 맞춘 뒤에 준다(씨앗과 같은 길). 주소만으로 받을 수 있어 정답을 확인하지는 않는다 — 업적마다 한 번, 하루 한 번이라 상한이 작다.
   - 계측 `page_quiz`·`page_quiz_prize`·`page_quiz_study`·`garden_quiz_prize`·`garden_study_jam`·`study_perk`.
 
-**아직 (다음 순서)**
+**아직 (다음 순서)** — 2026-11-28 발전 계획으로 순서가 바뀌었다: `docs/jamgong-roadmap.md`(2판: 가벼운 입구 + 다섯 단계 알기·가리기·따지기·답하기·말하기. R1 입구·기반 → R2 가리기 → R3 답하기 → R4 따지기 → R5 도는 말 판정(사람 승인) → R6 말하기). 아래는 그 전의 목록이다.
 1. Firestore `studies/{uid}` 동기화 + 규칙 + `check:study-rules` — 지금은 기기마다 따로다.
 2. `quizzes/ox.ts`를 `src/content/study/`로 옮기기(§10.1) — 지금은 정원과 같은 파일을 읽는다. 옮길 때 문항 id를 바꾸지 않는다.
 3. 단계 2·3 문항(숫자 뜻·사실·주장 가리기·출처 고르기), `/wiki` 옮김 안내 띠.

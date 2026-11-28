@@ -7,8 +7,8 @@ import type { MemorialEntry } from "./types";
  * 잡초 O/X 퀴즈 — 광장 잡초를 뽑으면 가끔 뜬다(rules.ts의 WEED_QUIZ_ODDS·WEED_QUIZ_PER_DAY).
  * 맞히면 상점 가구 하나를 선물로 받는다. 순수 함수만 둔다(memorial.test.ts).
  *
- * ★ 숫자를 맞히게 하지 않는다 — 내용을 이해했는지 묻는다(2026-11-25). 문항은 content/quizzes/ox.ts에 있고,
- *   업적의 claim만으로 참·거짓이 가려진다. X 문항은 흔한 오해이고, 풀이가 근거 claim으로 바로잡는다.
+ * ★ 숫자를 맞히게 하지 않는다 — 내용을 이해했는지 묻는다(2026-11-25). 문항은 content/study/ox.ts에 있고,
+ *   업적의 claim만으로 참·거짓이 가려진다. X 문항은 헷갈리기 쉬운 문장이고, 풀이가 근거 claim으로 바로잡는다.
  * ★ 선물은 무작위지만 확률을 공개한다 — 고를 수 있는 가구 가운데 같은 확률. 잼으로 사는 것이 아니고(뽑기 아님), 가진 수 상한(OWN_MAX)을 넘지 않는다.
  */
 

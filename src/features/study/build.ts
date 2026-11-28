@@ -1,14 +1,14 @@
 /**
  * 잼공 문항 은행 만들기 — 서버에서만 부른다(콘텐츠를 읽는다). 설계는 docs/daily-study.md §10.
  *
- * ★ 지금 문항은 잡초 O/X 문항(src/content/quizzes/ox.ts)뿐이다. 정원의 잡초 퀴즈와 같은 문항이고,
+ * ★ 지금 문항은 잡초 O/X 문항(src/content/study/ox.ts)뿐이다. 정원의 잡초 퀴즈와 같은 문항이고,
  *   잼공 문항 id는 `a:<slug>/<ox id>`로 영구다. 다른 유형(빈칸·사실·주장 가리기·대화 답장)은 다음 단계에서 더한다.
  * ★ 문항의 근거 claim이 업적에 없으면 그 문항은 싣지 않는다(기념관 build.ts와 같은 거름).
- * ★ 근거노트 카드는 O 문항에서만 만든다. X 문항(흔한 오해)은 문제 화면 밖으로 나가지 않는다.
+ * ★ 근거노트 카드는 O 문항에서만 만든다. X 문항(헷갈리기 쉬운 문장)은 문제 화면 밖으로 나가지 않는다.
  * ★ 단원은 성남시장 시절 → 경기도지사 시절 → 이재명 정부 순서로, 같은 시기 안에서는 일이 시작된 순서로 선다(eras.ts).
  */
 import { getPublishedAchievements } from "@/content/achievements";
-import { ACHIEVEMENT_OX } from "@/content/quizzes/ox";
+import { ACHIEVEMENT_OX } from "@/content/study/ox";
 import type { Claim } from "@/content/schema";
 
 import { ACHIEVEMENT_ERA, ERAS, eraKey, eraRank } from "./eras";
@@ -42,6 +42,7 @@ export function buildStudyBank(): StudyBank {
         id: `${unit}/${q.id}`,
         unit,
         step: "know",
+        skill: "A0",
         kind: "ox",
         statement: q.statement,
         answer: q.answer,
@@ -63,7 +64,17 @@ export function buildStudyBank(): StudyBank {
   // 문항이 있는데 시기를 정하지 않은 업적 — 길의 어디에 둘지 모른다. 빌드를 세운다.
   if (missing.length) throw new Error(`잼공: 시기를 정하지 않은 업적 — src/features/study/eras.ts에 적는다: ${missing.join(", ")}`);
   units.sort((a, b) => keys.get(a.id)!.localeCompare(keys.get(b.id)!));
-  return { units, items };
+  return { units, items, starter: starterOf(items) };
+}
+
+/** 첫 3분의 세 문제 — 카드가 되는 O 문항 가운데 문장+풀이가 짧은 것, 단원마다 하나. 같은 길이면 id 순(빌드마다 같다). */
+export function starterOf(items: StudyItem[], n = 3): string[] {
+  const out: StudyItem[] = [];
+  const sorted = items
+    .filter((i) => i.answer && i.card)
+    .sort((a, b) => a.statement.length + a.explain.length - (b.statement.length + b.explain.length) || a.id.localeCompare(b.id));
+  for (const i of sorted) if (out.length < n && !out.some((o) => o.unit === i.unit)) out.push(i);
+  return out.map((i) => i.id);
 }
 
 /** 원본 페이지에 심는 확인 문제 한 개 — 잼공 문항과 같은 id라서 푼 기록이 잼공 상자에 그대로 쌓인다. */

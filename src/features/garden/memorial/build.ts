@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { getPublishedAchievements } from "@/content/achievements";
 import { ACHIEVEMENT_HEROES } from "@/content/achievements/heroes";
 import { CARTOON_MEDIA } from "@/content/cartoons";
-import { ACHIEVEMENT_OX } from "@/content/quizzes/ox";
+import { ACHIEVEMENT_OX } from "@/content/study/ox";
 import { MILESTONES } from "@/content/milestones";
 import type { Achievement, AchievementCategory } from "@/content/schema";
 

@@ -1,7 +1,12 @@
 /**
  * 잼공의 길 — 하단 탭 다섯과 그 안의 칸. 설계는 docs/daily-study.md §8.2. 순수 함수만 둔다(study.test.ts).
  * 정원의 nav.ts와 같은 모양이다. 주소의 ?tab= 값은 "자리(place)" — 탭 이름이거나 칸 이름이다.
+ *
+ * ★ 화면은 단계만큼만 보인다(docs/jamgong-roadmap.md §3.3). 칸마다 보이기 시작하는 단계(minLevel)가 있고,
+ *   칸이 하나도 안 보이는 탭은 하단 탭에서 빠진다 — 1단계 사람의 하단 탭은 넷이다(말하기는 4단계부터).
+ *   「준비 중」 칸도 그 단계에 닿은 사람에게만 보인다. 처음 온 사람은 만들다 만 칸을 보지 않는다.
  */
+import type { Level } from "./types";
 
 export type StudyTab = "class" | "road" | "talk" | "note" | "me";
 
@@ -27,14 +32,30 @@ export const STUDY_TABS: Array<{ id: StudyTab; icon: string; label: string }> = 
   { id: "me", icon: "🌼", label: "내 기록" },
 ];
 
-/** 탭마다의 칸. 첫 칸이 기본이다. */
-export const STUDY_SEGMENTS: Record<StudyTab, Array<{ id: StudySegment; label: string }>> = {
-  class: [{ id: "today", label: "오늘" }, { id: "notice", label: "알림장" }],
-  road: [{ id: "path", label: "길" }, { id: "fields", label: "분야 지도" }],
-  talk: [{ id: "reply", label: "대화 연습" }, { id: "rumors", label: "도는 말" }, { id: "explain", label: "30초 설명" }],
-  note: [{ id: "cards", label: "근거 카드" }, { id: "review", label: "다시 볼 것" }, { id: "terms", label: "용어장" }],
-  me: [{ id: "attend", label: "출석부" }, { id: "rewards", label: "꽃밭·배지" }, { id: "settings", label: "설정" }],
+/** 탭마다의 칸. 첫 칸이 기본이다. minLevel = 그 칸이 보이기 시작하는 단계. */
+export const STUDY_SEGMENTS: Record<StudyTab, Array<{ id: StudySegment; label: string; minLevel: Level }>> = {
+  class: [{ id: "today", label: "오늘", minLevel: 1 }, { id: "notice", label: "알림장", minLevel: 3 }],
+  road: [{ id: "path", label: "길", minLevel: 1 }, { id: "fields", label: "분야 지도", minLevel: 2 }],
+  talk: [{ id: "reply", label: "대화 연습", minLevel: 4 }, { id: "rumors", label: "도는 말", minLevel: 4 }, { id: "explain", label: "30초 설명", minLevel: 5 }],
+  note: [{ id: "cards", label: "근거 카드", minLevel: 1 }, { id: "review", label: "다시 볼 것", minLevel: 1 }, { id: "terms", label: "용어장", minLevel: 2 }],
+  me: [{ id: "attend", label: "출석부", minLevel: 1 }, { id: "rewards", label: "꽃밭·배지", minLevel: 3 }, { id: "settings", label: "설정", minLevel: 1 }],
 };
+
+/** 이 단계에서 보이는 칸. */
+export function visibleSegments(tab: StudyTab, level: Level): Array<{ id: StudySegment; label: string }> {
+  return STUDY_SEGMENTS[tab].filter((s) => s.minLevel <= level);
+}
+
+/** 이 단계에서 보이는 탭 — 보이는 칸이 하나라도 있는 탭. */
+export function visibleTabs(level: Level): typeof STUDY_TABS {
+  return STUDY_TABS.filter((t) => visibleSegments(t.id, level).length > 0);
+}
+
+/** 자리가 이 단계에서 보이지 않으면 교실로 — 옛 링크(?tab=reply)로 온 1단계 사람이 빈 칸을 보지 않게. */
+export function navForLevel(nav: StudyNav | null, level: Level): StudyNav {
+  if (nav && visibleSegments(nav.tab, level).some((s) => s.id === nav.seg)) return nav;
+  return STUDY_HOME;
+}
 
 /**
  * 아직 만들지 않은 칸과 그 칸이 무엇이 될지. 눌리는데 아무 일도 없는 칸이 가장 나쁘다 —

@@ -16,7 +16,7 @@ import { chancesLeft, normalizeSlots } from "./rules";
 
 /**
  * 퀴즈 찬스 — 꽝이 나오면 업적 O/X 문항 하나를 맞혀 한 번 더(무료) 돌린다(docs/garden-slots.md).
- * 문항은 잡초 퀴즈와 같은 "내용을 이해했는지" 묻는 문항(content/quizzes/ox.ts). 맞혔든 틀렸든 풀이와 근거가 붙는다.
+ * 문항은 잡초 퀴즈와 같은 "내용을 이해했는지" 묻는 문항(content/study/ox.ts). 맞혔든 틀렸든 풀이와 근거가 붙는다.
  * 문항을 여는 순간 찬스를 쓴다 — 닫고 다시 열어 쉬운 문항을 고를 수 없게.
  */
 export function QuizChance({ machine, now, say }: { machine: "seed" | "room"; now: number; say: (text: string) => void }) {

@@ -7,7 +7,7 @@ import { ACHIEVEMENTS, getAchievement } from "@/content/achievements";
 import { statementsFor } from "@/content/words";
 import { KIND_LABEL } from "@/content/words/schema";
 import { findScene, validateAchievement, type Achievement } from "@/content/schema";
-import { ACHIEVEMENT_OX } from "@/content/quizzes/ox";
+import { ACHIEVEMENT_OX } from "@/content/study/ox";
 
 import { AchievementHero } from "@/features/achievement/AchievementHero";
 import { Section } from "@/features/achievement/Section";

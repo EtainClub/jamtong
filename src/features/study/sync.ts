@@ -1,0 +1,52 @@
+/**
+ * 잼공 기록 합치기 — 이 기기의 기록과 계정(Firestore users/{uid}/study/state)의 기록을 하나로. 순수 함수(study.test.ts).
+ *
+ * ★ 정원은 "늦게 고친 쪽이 이긴다"지만, 잼공 기록은 합칠 수 있다. 공부한 날·근거 카드·문항 상자는 어느 기기에서 했든 모두 내 것이다.
+ *   두 기기에서 따로 공부해도 아무것도 사라지지 않는다.
+ * ★ 상자는 "더 늦게 답한 쪽"을 고른다. 답한 날 = 다음에 물을 날 − 그 칸의 간격. 같은 날이면 낮은 칸(조심스러운 쪽).
+ * ★ 설정(목표·단계·머물기)은 늦게 고친 쪽(updatedAt)을 따른다. 단계는 내려가지 않으므로 큰 쪽.
+ */
+import { addDays, BOX_DAYS, type Box } from "./rules";
+import type { StudyData } from "./store";
+
+function answeredOn(box: Box): string {
+  return addDays(box[1], -BOX_DAYS[Math.max(1, Math.min(BOX_DAYS.length, box[0])) - 1]);
+}
+
+export function mergeBox(a: Box | undefined, b: Box | undefined): Box | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  const da = answeredOn(a);
+  const db = answeredOn(b);
+  if (da !== db) return da > db ? a : b;
+  return a[0] <= b[0] ? a : b;
+}
+
+export function mergeStudy(local: StudyData, remote: StudyData | null): StudyData {
+  if (!remote) return local;
+  const newer = (remote.updatedAt ?? 0) > (local.updatedAt ?? 0) ? remote : local;
+  const days: Record<string, number> = { ...remote.days };
+  for (const [d, n] of Object.entries(local.days)) days[d] = Math.max(days[d] ?? 0, n);
+  const boxes: Record<string, Box> = {};
+  for (const id of new Set([...Object.keys(local.boxes), ...Object.keys(remote.boxes)])) {
+    const box = mergeBox(local.boxes[id], remote.boxes[id]);
+    if (box) boxes[id] = box;
+  }
+  const wallet = [...remote.wallet];
+  for (const id of local.wallet) if (!wallet.includes(id)) wallet.push(id);
+  return {
+    ...newer,
+    days,
+    boxes,
+    wallet,
+    intro: local.intro || remote.intro,
+    goalAsked: Boolean(local.goalAsked || remote.goalAsked),
+    level: Math.max(local.level ?? 1, remote.level ?? 1) as StudyData["level"],
+    updatedAt: Math.max(local.updatedAt ?? 0, remote.updatedAt ?? 0),
+  };
+}
+
+/** 두 기록이 같은가 — 합친 결과가 계정 것과 같으면 다시 쓰지 않는다. */
+export function sameStudy(a: StudyData | null, b: StudyData | null): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
