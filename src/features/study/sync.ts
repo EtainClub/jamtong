@@ -42,6 +42,12 @@ export function mergeStudy(local: StudyData, remote: StudyData | null): StudyDat
     intro: local.intro || remote.intro,
     goalAsked: Boolean(local.goalAsked || remote.goalAsked),
     level: Math.max(local.level ?? 1, remote.level ?? 1) as StudyData["level"],
+    // 점검 기록은 날짜로 합친다(같은 날 두 번이면 둘 다 남는다 — 드물다).
+    checks: [...(remote.checks ?? []), ...(local.checks ?? []).filter((c) => !(remote.checks ?? []).some((r) => r.day === c.day && r.right === c.right && r.total === c.total))]
+      .sort((a, b) => a.day.localeCompare(b.day))
+      .slice(-24),
+    checked: [...new Set([...(remote.checked ?? []), ...(local.checked ?? [])])],
+    sureMisses: { ...(remote.sureMisses ?? {}), ...(local.sureMisses ?? {}) },
     updatedAt: Math.max(local.updatedAt ?? 0, remote.updatedAt ?? 0),
   };
 }

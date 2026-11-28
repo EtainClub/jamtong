@@ -16,6 +16,45 @@ import { useStudy } from "./store";
 import { SKIP_PASS } from "./levels";
 import { STEPS, type Level, type StudyBank, type StudyItem } from "./types";
 
+/** 3단계부터: 답과 함께 확신도를 고르고, 모르면 「잘 모르겠어요」(docs/jamgong-roadmap.md §5.2). */
+function Confidence({
+  picked,
+  conf,
+  checked,
+  onConf,
+  onUnknown,
+}: {
+  picked: boolean | number | null;
+  conf: "sure" | "maybe";
+  checked: boolean;
+  onConf: (c: "sure" | "maybe") => void;
+  onUnknown: () => void;
+}) {
+  if (checked) return null;
+  return (
+    <div className="grid gap-2 pt-1">
+      <div className="flex items-center gap-2 text-[12.5px]">
+        <span className="st-small">얼마나 확신해요?</span>
+        {(["sure", "maybe"] as const).map((c) => (
+          <button
+            key={c}
+            type="button"
+            aria-pressed={conf === c}
+            onClick={() => onConf(c)}
+            className={`rounded-full border px-3 py-1 font-bold ${conf === c ? "border-[var(--s-ink)] bg-[var(--s-ink)] text-[var(--s-paper)]" : "border-[var(--s-line)]"}`}
+          >
+            {c === "sure" ? "확실해요" : "아마요"}
+          </button>
+        ))}
+      </div>
+      <button type="button" className="st-opt" aria-pressed={picked === -1} onClick={onUnknown}>
+        <b>잘 모르겠어요</b>
+        <span>모르는 걸 모른다고 하는 것도 판단력이에요</span>
+      </button>
+    </div>
+  );
+}
+
 /**
  * 한 판 — 문항을 하나씩 풀고, 바로 풀이(근거 claim으로 쓴 것)와 원문 링크를 본다. 설계는 docs/daily-study.md §4.3·§8.6.
  *
@@ -29,6 +68,10 @@ const SKILL_LABEL: Partial<Record<StudyItem["skill"], string>> = {
   A0: "O/X · 알기",
   A1: "가리기 · 사실과 주장",
   A3: "가리기 · 숫자 읽기",
+  A2: "따지기 · 확인 수준",
+  A4: "따지기 · 자료의 무게",
+  B1: "따지기 · 비약 찾기",
+  B2: "따지기 · 제목과 근거",
   C1: "답하기 · 쟁점에 답하기",
   C3: "답하기 · 약점 먼저 말하기",
 };
@@ -47,7 +90,7 @@ export function Lesson({
 }: {
   bank: StudyBank;
   ids: string[];
-  mode: "daily" | "unit" | "intro" | "check";
+  mode: "daily" | "unit" | "intro" | "check" | "assess";
   /** 건너뛰기 점검이면 열 단계. */
   target?: Level;
   onClose: () => void;
@@ -60,6 +103,10 @@ export function Lesson({
   const [picked, setPicked] = useState<boolean | number | null>(null);
   /** 쟁점 문항의 ① 답의 뼈대. picked는 ② 근거. */
   const [skel, setSkel] = useState<number | null>(null);
+  /** 3단계부터: 얼마나 확신하는지(docs/jamgong-roadmap.md §5.2). 「잘 모르겠어요」는 picked = -1. */
+  const [conf, setConf] = useState<"sure" | "maybe">("maybe");
+  /** 실력 점검: 기술 → [맞힘, 문항 수]. */
+  const [tally, setTally] = useState<Record<string, [number, number]>>({});
   const [checked, setChecked] = useState(false);
   const [right, setRight] = useState(0);
   const [combo, setCombo] = useState(0);
@@ -94,6 +141,13 @@ export function Lesson({
     if (!item || picked === null) return;
     setChecked(true);
     const correct = isRight(item, picked);
+    if (mode === "assess") {
+      // 실력 점검은 상자에 적지 않는다 — 처음 보는 문장으로 잰 기록만 남긴다.
+      setTally((t) => ({ ...t, [item.skill]: [(t[item.skill]?.[0] ?? 0) + (correct ? 1 : 0), (t[item.skill]?.[1] ?? 0) + 1] }));
+      if (correct) setRight((n) => n + 1);
+      return;
+    }
+    if (!correct && conf === "sure" && picked !== -1) useStudy.getState().markSure(item.id);
     if (!turn.retry) {
       useStudy.getState().answer(item.id, correct, item.card !== null);
       if (correct) {
@@ -106,7 +160,11 @@ export function Lesson({
   };
 
   const next = () => {
-    if (at + 1 >= queue.length && doneToday === null) {
+    if (mode === "assess" && at + 1 >= queue.length && doneToday === null) {
+      useStudy.getState().recordCheck({ day: dayNow, right, total: queue.length, skills: tally }, queue.map((t) => t.id));
+      track("study_assess", { right, total: queue.length });
+      setDoneToday(0);
+    } else if (at + 1 >= queue.length && doneToday === null) {
       setDoneToday(useStudy.getState().finish());
       if (mode === "check" && target && right >= SKIP_PASS) useStudy.getState().levelUp(target);
       track("study_finish", { size: firstTurns, right, mode });
@@ -114,6 +172,7 @@ export function Lesson({
     setAt((n) => n + 1);
     setPicked(null);
     setSkel(null);
+    setConf("maybe");
     setChecked(false);
   };
 
@@ -149,6 +208,10 @@ export function Lesson({
           <>
             <div className="st-lesson-body items-center text-center">
               <Jamtongi mood="cheer" size={92} hop />
+              {mode === "assess" ? (
+                <AssessResult right={right} total={queue.length} tally={tally} />
+              ) : (
+              <>
               <p className="st-h text-[22px]">
                 {mode === "intro"
                   ? "오늘은 여기까지! 잘했어요"
@@ -171,6 +234,8 @@ export function Lesson({
                 <p className="st-small">모은 근거 카드는 「근거노트」에 있어요. 내일 또 와요 — 잊을 때쯤 다시 물어볼게요.</p>
               ) : (
                 <GardenPerks bank={bank} ids={ids} goalMet={doneToday !== null && doneToday >= goal} />
+              )}
+              </>
               )}
               {earned.length > 0 && (
                 <div className="grid w-full gap-2 text-left">
@@ -214,6 +279,12 @@ export function Lesson({
               {item.choice?.prompt && <p className="st-small">{item.choice.prompt}</p>}
               {item.kind !== "debate" && <p className="st-q">{item.kind === "choice" && item.skill === "A1" ? `“${item.statement}”` : item.statement}</p>}
               {item.choice?.from && <p className="st-small">— {item.choice.from}에서</p>}
+              {item.choice?.evidence && (
+                <div className="rounded-xl border border-[var(--s-line)] bg-[var(--s-paper)] px-3 py-2 text-[13px] leading-relaxed">
+                  <span className="st-eyebrow block">근거(원자료를 정리한 문장)</span>
+                  {item.choice.evidence}
+                </div>
+              )}
               {item.kind === "debate" && item.debate ? (
                 <DebateQuestion item={item} skel={skel} ev={typeof picked === "number" ? picked : null} checked={checked} onSkel={setSkel} onEv={setPicked} />
               ) : item.kind === "choice" && item.choice ? (
@@ -234,6 +305,9 @@ export function Lesson({
                       </button>
                     );
                   })}
+                  {item.step === "source" && (
+                    <Confidence picked={picked} conf={conf} checked={checked} onConf={setConf} onUnknown={() => setPicked(-1)} />
+                  )}
                 </div>
               ) : (
               <div className="st-ox" role="group" aria-label="답 고르기">
@@ -263,7 +337,9 @@ export function Lesson({
                     <Jamtongi mood={ok ? "cheer" : "smile"} size={30} hop={ok} />
                     {ok
                       ? "맞았어요!"
-                      : item.kind === "debate"
+                      : picked === -1
+                        ? `모르는 걸 모른다고 했어요. 정답은 「${item.choice?.options[item.choice.correct].label}」`
+                        : item.kind === "debate"
                         ? "같이 볼까요?"
                         : `같이 볼까요? 정답은 ${item.kind === "choice" && item.choice ? `「${item.choice.options[item.choice.correct].label}」` : item.answer ? "⭕" : "❌"}`}
                   </p>
@@ -413,6 +489,38 @@ function DebateAnswer({ item, skel, ev }: { item: StudyItem; skel: number | null
         <summary className="cursor-pointer font-bold">모범 답변 보기</summary>
         <p className="mt-1">{d.response}</p>
       </details>
+    </div>
+  );
+}
+
+/** 기술 이름 — 실력 점검 결과에 쓴다. */
+export const SKILL_NAME: Record<string, string> = {
+  A0: "내용 알기",
+  A1: "사실·주장 가리기",
+  A2: "확인 수준",
+  A3: "숫자 읽기",
+  A4: "자료의 무게",
+  B1: "비약 찾기",
+  B2: "제목과 근거",
+  C1: "쟁점에 답하기",
+  C3: "약점 먼저 말하기",
+};
+
+/** 실력 점검 결과 — 점수와 순위가 아니라 기술마다 꽃 하나(docs/jamgong-roadmap.md §5.3). */
+function AssessResult({ right, total, tally }: { right: number; total: number; tally: Record<string, [number, number]> }) {
+  return (
+    <div className="grid w-full gap-2">
+      <p className="st-h text-[22px]">실력 점검 끝!</p>
+      <p className="st-small">처음 보는 문장 {total}개 가운데 {right}개를 가려냈어요. 이 기록은 나만 봐요.</p>
+      <div className="grid gap-1.5 text-left">
+        {Object.entries(tally).map(([skill, [r, t]]) => (
+          <div key={skill} className="flex items-center justify-between rounded-xl border border-[var(--s-line)] px-3 py-2 text-[13.5px]">
+            <span>{SKILL_NAME[skill] ?? skill}</span>
+            <span aria-label={`${t}개 가운데 ${r}개`}>{r === t ? "🌸" : r * 2 >= t ? "🌿" : "🌱"} {r}/{t}</span>
+          </div>
+        ))}
+      </div>
+      <p className="st-small">4주 뒤 다시 재면 어디가 자랐는지 보여 드려요.</p>
     </div>
   );
 }

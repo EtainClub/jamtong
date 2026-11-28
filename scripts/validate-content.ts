@@ -19,7 +19,7 @@ import { CORRECTIONS, validateCorrections } from "../src/content/corrections";
 import { archiveEntry } from "../src/content/source-archive";
 import { ARRIVALS } from "../src/features/garden/arrivals";
 import { buildCatalog } from "../src/features/garden/catalog";
-import { studyCount, validateDebate, validateNumbers, validateSort, validateStudy, validateWeakness } from "../src/content/study/validate";
+import { studyCount, validateDebate, validateNumbers, validateSort, validateStudy, validateWeakness, validateWeigh } from "../src/content/study/validate";
 
 let failed = false;
 
@@ -246,15 +246,16 @@ if (correctionErrors.length > 0) {
     ...validateNumbers(published),
     ...validateDebate(published),
     ...validateWeakness(POLICIES),
+    ...validateWeigh(published, POLICIES, STATEMENTS),
   ];
   if (studyErrors.length > 0) {
     failed = true;
     console.error(`\n✗ 잼공 문항 ${studyErrors.length}건`);
     for (const e of studyErrors) console.error(`    ${e}`);
   } else {
-    const { items, units, sort, numbers, debate, weakness } = studyCount();
+    const { items, units, sort, numbers, debate, weakness, weigh } = studyCount();
     console.log(
-      `✓ 잼공 문항 — 알기 O/X ${items}개(업적 ${units}건), 가리기 사실·주장 ${sort}개·숫자 ${numbers}개, 답하기 쟁점 ${debate}개·약점 ${weakness}개`,
+      `✓ 잼공 문항 — 알기 O/X ${items}개(업적 ${units}건), 가리기 사실·주장 ${sort}개·숫자 ${numbers}개, 따지기 ${weigh}개, 답하기 쟁점 ${debate}개·약점 ${weakness}개`,
     );
   }
 }

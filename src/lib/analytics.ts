@@ -239,7 +239,9 @@ export type AnalyticsEvent =
   /** 다음 단계 초대에 답했다. level, accept. */
   | "study_level"
   /** 정원에서 「잼공으로 돌아가기」를 눌렀다(잼공 판 끝 선물로 왔을 때만 뜬다). */
-  | "garden_back_study";
+  | "garden_back_study"
+  /** 잼공 실력 점검을 마쳤다. right, total. 문항·답 내용은 보내지 않는다. */
+  | "study_assess";
 
 type Params = Record<string, string | number | boolean>;
 

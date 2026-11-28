@@ -38,7 +38,7 @@ export const STUDY_SEGMENTS: Record<StudyTab, Array<{ id: StudySegment; label: s
   road: [{ id: "path", label: "길", minLevel: 1 }, { id: "fields", label: "분야 지도", minLevel: 2 }],
   talk: [{ id: "reply", label: "쟁점 연습", minLevel: 4 }, { id: "rumors", label: "도는 말", minLevel: 4 }, { id: "explain", label: "30초 설명", minLevel: 5 }],
   note: [{ id: "cards", label: "근거 카드", minLevel: 1 }, { id: "review", label: "다시 볼 것", minLevel: 1 }, { id: "terms", label: "용어장", minLevel: 2 }],
-  me: [{ id: "attend", label: "출석부", minLevel: 1 }, { id: "rewards", label: "꽃밭·배지", minLevel: 3 }, { id: "settings", label: "설정", minLevel: 1 }],
+  me: [{ id: "attend", label: "출석부", minLevel: 1 }, { id: "rewards", label: "실력 점검", minLevel: 3 }, { id: "settings", label: "설정", minLevel: 1 }],
 };
 
 /** 이 단계에서 보이는 칸. */
@@ -67,7 +67,6 @@ export const SOON: Partial<Record<StudySegment, string>> = {
   rumors: "SNS에서 도는 말 가운데 대응하는 근거가 있는 것만 모아 보여 드려요.",
   explain: "다 익힌 단원을 소리 내어 30초 동안 설명하고, 빠뜨린 것을 스스로 짚어 보는 연습이에요.",
   terms: "언행의 용어 풀이와 레슨에서 만난 낱말이 모여요.",
-  rewards: "공부한 만큼 정원에 씨앗과 잼이 가고, 알아낸 것으로 배지를 받아요.",
 };
 
 /** 자리 → 탭과 칸. 모르는 값이면 null. */

@@ -45,7 +45,7 @@ export interface EvidenceCard {
 }
 
 export interface StudyUnit {
-  /** 단원 id. 업적이면 `a:<slug>`, 정부 정책이면 `p:<slug>`. */
+  /** 단원 id. 업적이면 `a:<slug>`, 정부 정책이면 `p:<slug>`, 언행이면 `w:<slug>`. */
   id: string;
   course: CourseId;
   /** 업적이 선 시기(eras.ts) — 길은 성남시장 → 경기도지사 → 이재명 정부 순서다. */
@@ -70,7 +70,14 @@ export interface StudyItem {
   /** O/X 문항의 답. 보기 문항은 늘 true다(문장 자체는 근거가 있는 말이다). */
   answer: boolean;
   /** 보기 문항 — 보기와 정답 번호, 어디서 듣는 말인지. */
-  choice?: { prompt: string; from?: string; options: Array<{ label: string; hint: string }>; correct: number };
+  choice?: {
+    prompt: string;
+    from?: string;
+    /** 함께 보여 주는 근거(제목과 근거 문항의 원자료 문장). */
+    evidence?: string;
+    options: Array<{ label: string; hint: string }>;
+    correct: number;
+  };
   /**
    * 쟁점 문항(4단계 답하기) — 지인 메시지에 ① 답의 뼈대 ② 근거를 고르고 ③ 모범 답변을 본다. 둘 다 맞아야 맞힌 것이다.
    */

@@ -38,6 +38,23 @@ export interface StudyData {
   updatedAt?: number;
   /** 하루 목표 선물(정원 슬롯)을 받으러 간 날. 그날은 "아직 안 받았어요"를 묻지 않는다. */
   perkDay?: string;
+  /**
+   * 「확실해요」라고 해 놓고 틀린 문항 → 그날(3단계부터, docs/jamgong-roadmap.md §5.2). 가장 위험한 착각이라 다시 볼 것 맨 앞에 둔다.
+   * 다음에 맞히면 지운다.
+   */
+  sureMisses?: Record<string, string>;
+  /** 실력 점검 기록(§5.3). 처음 보는 문장으로만 낸다 — 점검 답은 상자에 적지 않는다. */
+  checks?: StudyCheck[];
+  /** 점검에 이미 낸 문항 — 다음 점검에 다시 내지 않는다. */
+  checked?: string[];
+}
+
+export interface StudyCheck {
+  day: string;
+  right: number;
+  total: number;
+  /** 기술 → [맞힘, 문항 수]. */
+  skills: Record<string, [number, number]>;
 }
 
 const STORAGE_KEY = "jamgong-v1";
@@ -97,6 +114,10 @@ interface StudyState {
   setStay: (stay: boolean) => void;
   /** 하루 목표 선물을 받으러 정원으로 간다. */
   markPerk: (day: string) => void;
+  /** 「확실해요」라고 했는데 틀렸다. */
+  markSure: (itemId: string) => void;
+  /** 실력 점검을 마쳤다. */
+  recordCheck: (result: StudyCheck, ids: string[]) => void;
 }
 
 export const useStudy = create<StudyState>((set, get) => {
@@ -120,11 +141,16 @@ export const useStudy = create<StudyState>((set, get) => {
       return merged;
     },
     answer: (itemId, correct, card) =>
-      update((d) => ({
-        ...d,
-        boxes: { ...d.boxes, [itemId]: grade(d.boxes[itemId], correct, today()) },
-        wallet: correct && card && !d.wallet.includes(itemId) ? [...d.wallet, itemId] : d.wallet,
-      })),
+      update((d) => {
+        const sureMisses = { ...(d.sureMisses ?? {}) };
+        if (correct) delete sureMisses[itemId];
+        return {
+          ...d,
+          boxes: { ...d.boxes, [itemId]: grade(d.boxes[itemId], correct, today()) },
+          wallet: correct && card && !d.wallet.includes(itemId) ? [...d.wallet, itemId] : d.wallet,
+          sureMisses,
+        };
+      }),
     finish: () => {
       const t = today();
       return update((d) => ({ ...d, days: trimDays({ ...d.days, [t]: (d.days[t] ?? 0) + 1 }) })).days[t];
@@ -135,5 +161,12 @@ export const useStudy = create<StudyState>((set, get) => {
     declineInvite: () => update((d) => ({ ...d, declinedOn: today() })),
     setStay: (stay) => update((d) => ({ ...d, stay })),
     markPerk: (day) => update((d) => ({ ...d, perkDay: day })),
+    markSure: (itemId) => update((d) => ({ ...d, sureMisses: { ...(d.sureMisses ?? {}), [itemId]: today() } })),
+    recordCheck: (result, ids) =>
+      update((d) => ({
+        ...d,
+        checks: [...(d.checks ?? []), result].slice(-24),
+        checked: [...new Set([...(d.checked ?? []), ...ids])].slice(-2000),
+      })),
   };
 });

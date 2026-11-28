@@ -3,7 +3,8 @@
 import { Say } from "./Jamtongi";
 import { addDays, GOALS, RESTS_PER_WEEK, weekday, type Streak } from "./rules";
 import { useStudy, type StudyData } from "./store";
-import { SKIP_PASS, SKIP_SIZE } from "./levels";
+import { ASSESS_EVERY_DAYS, ASSESS_SIZE, SKIP_PASS, SKIP_SIZE } from "./levels";
+import { SKILL_NAME } from "./Lesson";
 import { STEPS, type Level } from "./types";
 
 /**
@@ -140,6 +141,56 @@ function LevelCard({ data, targets, onCheck }: { data: StudyData; targets: Level
         </span>
         <input type="checkbox" className="h-5 w-5 shrink-0 accent-[var(--s-ok)]" checked={Boolean(data.stay)} onChange={(e) => setStay(e.target.checked)} />
       </label>
+    </div>
+  );
+}
+
+/**
+ * 내 기록 › 실력 점검 — 3단계부터, 4주마다, 선택(docs/jamgong-roadmap.md §5.3).
+ * 처음 보는 문장 12개로 기술마다 얼마나 가려내는지 잰다. 점수·순위는 없고, 지난번과 견준 꽃만 보인다.
+ */
+export function Assessment({ data, today, ready, poolSize, onStart }: { data: StudyData; today: string; ready: boolean; poolSize: number; onStart: () => void }) {
+  const checks = data.checks ?? [];
+  const last = checks.at(-1);
+  const first = checks[0];
+  const nextDay = last ? addDays(last.day, ASSESS_EVERY_DAYS) : today;
+  return (
+    <div className="grid gap-3">
+      <Say mood="think" size={44}>
+        한 번도 본 적 없는 문장 {ASSESS_SIZE}개로 <b>가려내는 힘</b>을 재 봐요. 맞힌 개수보다, 4주 뒤에 어디가 자랐는지가 중요해요.
+      </Say>
+      <div className="st-card grid gap-2">
+        {ready && poolSize >= ASSESS_SIZE ? (
+          <button type="button" className="st-btn st-btn-jam w-full" onClick={onStart}>
+            실력 점검 시작({ASSESS_SIZE}문제, 5분쯤)
+          </button>
+        ) : (
+          <p className="text-[13.5px]">
+            {poolSize < ASSESS_SIZE ? "처음 보는 문장이 모자라요. 새 문항이 들어오면 다시 볼 수 있어요." : `다음 점검은 ${Number(nextDay.slice(5, 7))}월 ${Number(nextDay.slice(8))}일부터예요.`}
+          </p>
+        )}
+        <p className="st-small">점검 답은 복습 일정에 넣지 않아요. 결과는 나만 봐요.</p>
+      </div>
+      {last && (
+        <div className="st-card grid gap-1.5">
+          <p className="st-eyebrow">
+            지난 점검 · {Number(last.day.slice(5, 7))}월 {Number(last.day.slice(8))}일 · {last.total}개 가운데 {last.right}개
+          </p>
+          {Object.entries(last.skills).map(([skill, [r, t]]) => {
+            const before = first && first !== last ? first.skills[skill] : undefined;
+            const grew = before && t && before[1] ? r / t - before[0] / before[1] : null;
+            return (
+              <div key={skill} className="flex items-center justify-between text-[13.5px]">
+                <span>{SKILL_NAME[skill] ?? skill}</span>
+                <span>
+                  {r === t ? "🌸" : r * 2 >= t ? "🌿" : "🌱"} {r}/{t}
+                  {grew !== null && grew > 0 && <span className="st-small"> · 처음보다 자랐어요</span>}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -14,6 +14,20 @@ import type { Policy } from "../policies/schema";
 import type { Achievement, Claim } from "../schema";
 import { DEBATE_ITEMS, debateItemSchema, type DebateItem } from "./debate";
 import { WEAKNESS_ITEMS, weaknessItemSchema, type WeaknessItem } from "./weakness";
+import {
+  CHECK_ITEMS,
+  checkItemSchema,
+  HEADLINE_ITEMS,
+  headlineItemSchema,
+  LEAP_ITEMS,
+  leapItemSchema,
+  WEIGHT_ITEMS,
+  weightItemSchema,
+  type CheckItem,
+  type HeadlineItem,
+  type LeapItem,
+  type WeightItem,
+} from "./weigh";
 import { NUMBER_ITEMS, numberItemSchema, type NumberItem, type NumberKind } from "./numbers";
 import { ACHIEVEMENT_OX, type OxItem } from "./ox";
 import { SORT_ITEMS, sortItemSchema, type SortItem } from "./sort";
@@ -64,7 +78,7 @@ export function validateStudy(achievements: Achievement[], ox: Record<string, Ox
 }
 
 /** 문항 수 — 통과 줄에 적는다. */
-export function studyCount(): { items: number; units: number; sort: number; numbers: number; debate: number; weakness: number } {
+export function studyCount(): { items: number; units: number; sort: number; numbers: number; debate: number; weakness: number; weigh: number } {
   const all = Object.values(ACHIEVEMENT_OX);
   return {
     items: all.reduce((n, xs) => n + xs.length, 0),
@@ -73,6 +87,7 @@ export function studyCount(): { items: number; units: number; sort: number; numb
     numbers: NUMBER_ITEMS.length,
     debate: DEBATE_ITEMS.length,
     weakness: WEAKNESS_ITEMS.length,
+    weigh: CHECK_ITEMS.length + WEIGHT_ITEMS.length + LEAP_ITEMS.length + HEADLINE_ITEMS.length,
   };
 }
 
@@ -241,5 +256,111 @@ export function validateWeakness(policies: Policy[], items: WeaknessItem[] = WEA
     }
     if (new Set(picks.map((x) => x.claimId)).size !== 3 || new Set(picks.map((x) => x.label)).size !== 3) errors.push(`${where}: 보기 셋이 겹친다`);
   }
+  return errors;
+}
+
+// ── 3단계 「따지기」 (docs/jamgong-roadmap.md R4) ─────────────────────
+
+interface WeighInput {
+  check?: CheckItem[];
+  weight?: WeightItem[];
+  leap?: LeapItem[];
+  headline?: HeadlineItem[];
+}
+
+/**
+ * 따지기 검사 — 정답이 근거에서 나오는지.
+ *   확인 수준: verified → 확인된 claim이고 답이 "확인됨". unverified → verified:false claim이고 답이 "확인 안 됨".
+ *             gap → 그 정책의 gaps에 실재하고 답이 "확인 안 됨".
+ *   자료의 무게: claim이 확인된 것이고, 답(법령·통계·판결·공식)이 그 claim의 출처 종류 가운데 하나다.
+ *   비약 찾기: caveat → 그 언행에 "오해하기 쉬운 대목"이 있다. x → 그 업적의 X 문항이다.
+ *   제목과 근거: 출처가 언론이고, claim이 확인된 것이며 그 출처를 근거로 든다.
+ * 모든 문항: 모양(zod)과 id 겹침.
+ */
+export function validateWeigh(
+  achievements: Achievement[],
+  policies: Policy[],
+  statements: Array<{ slug: string; easy?: { caveat?: unknown } }>,
+  input: WeighInput = { check: CHECK_ITEMS, weight: WEIGHT_ITEMS, leap: LEAP_ITEMS, headline: HEADLINE_ITEMS },
+): string[] {
+  const errors: string[] = [];
+  const shape = <T,>(where: string, schema: { safeParse: (x: unknown) => { success: boolean; error?: { issues: Array<{ path: PropertyKey[]; message: string }> } } }, q: T) => {
+    const r = schema.safeParse(q);
+    if (!r.success) errors.push(`${where}: 모양 — ${r.error!.issues.map((i) => i.path.join(".") + " " + i.message).join(", ")}`);
+    return r.success;
+  };
+  const claimIn = (unit: string, claimId: string) => {
+    const slug = unit.slice(2);
+    return unit.startsWith("a:") ? achievements.find((a) => a.slug === slug)?.claims.find((c) => c.id === claimId) : policies.find((p) => p.slug === slug)?.claims.find((c) => c.id === claimId);
+  };
+  const sourcesIn = (unit: string) => {
+    const slug = unit.slice(2);
+    return unit.startsWith("a:") ? achievements.find((a) => a.slug === slug)?.sources : policies.find((p) => p.slug === slug)?.sources;
+  };
+  const dup = (kind: string, ids: string[]) => {
+    const seen = new Set<string>();
+    for (const id of ids) {
+      if (seen.has(id)) errors.push(`잼공 ${kind}: 문항 id ${id}가 겹친다`);
+      seen.add(id);
+    }
+  };
+
+  for (const q of input.check ?? []) {
+    const where = `잼공 확인 수준 ${q.unit}/${q.id}`;
+    if (!shape(where, checkItemSchema, q)) continue;
+    if (q.kind === "gap") {
+      const p = policies.find((x) => x.slug === q.unit.slice(2));
+      if (q.gapIndex === undefined || !p?.gaps[q.gapIndex]) errors.push(`${where}: 그 정책에 gaps[${q.gapIndex}]가 없다`);
+      if (q.answer !== "unconfirmed") errors.push(`${where}: 확인 못 한 것(gap)은 답이 "확인 안 됨"이다`);
+      continue;
+    }
+    const c = q.claimId ? claimIn(q.unit, q.claimId) : undefined;
+    if (!c) {
+      errors.push(`${where}: 없는 claim ${q.claimId}`);
+      continue;
+    }
+    if (q.kind === "verified" && (!c.verified || q.answer !== "confirmed")) errors.push(`${where}: 확인된 claim이어야 하고 답은 "확인됨"이다`);
+    if (q.kind === "unverified" && (c.verified || q.answer !== "unconfirmed")) errors.push(`${where}: 확인 전 claim이어야 하고 답은 "확인 안 됨"이다`);
+  }
+  dup("확인 수준", (input.check ?? []).map((q) => q.id));
+
+  for (const q of input.weight ?? []) {
+    const where = `잼공 자료의 무게 ${q.unit}/${q.id}`;
+    if (!shape(where, weightItemSchema, q)) continue;
+    const c = claimIn(q.unit, q.claimId);
+    if (!c?.verified) {
+      errors.push(`${where}: 없거나 확인 전인 claim ${q.claimId}`);
+      continue;
+    }
+    const types = c.sourceIds.map((id) => sourcesIn(q.unit)?.find((x) => x.id === id)?.type);
+    if (!types.includes(q.answer)) errors.push(`${where}: 답 ${q.answer}이 그 claim의 출처 종류(${types.join(",")})에 없다`);
+  }
+  dup("자료의 무게", (input.weight ?? []).map((q) => q.id));
+
+  for (const q of input.leap ?? []) {
+    const where = `잼공 비약 ${q.id}`;
+    if (!shape(where, leapItemSchema, q)) continue;
+    if (q.source === "caveat") {
+      const st = statements.find((x) => x.slug === q.slug);
+      if (!st?.easy?.caveat) errors.push(`${where}: 언행 ${q.slug}에 "오해하기 쉬운 대목"이 없다`);
+    } else {
+      const items = q.unit ? ACHIEVEMENT_OX[q.unit.slice(2)] : undefined;
+      const ox = items?.find((x) => x.id === q.oxId);
+      if (!ox) errors.push(`${where}: 없는 X 문항 ${q.unit}/${q.oxId}`);
+      else if (ox.answer) errors.push(`${where}: O 문항은 비약이 아니다`);
+    }
+  }
+  dup("비약", (input.leap ?? []).map((q) => q.id));
+
+  for (const q of input.headline ?? []) {
+    const where = `잼공 제목과 근거 ${q.unit}/${q.id}`;
+    if (!shape(where, headlineItemSchema, q)) continue;
+    const source = sourcesIn(q.unit)?.find((x) => x.id === q.sourceId);
+    const c = claimIn(q.unit, q.claimId);
+    if (!source || source.type !== "press") errors.push(`${where}: 언론 출처가 아니다(${q.sourceId})`);
+    if (!c?.verified) errors.push(`${where}: 없거나 확인 전인 claim ${q.claimId}`);
+    else if (!c.sourceIds.includes(q.sourceId)) errors.push(`${where}: claim ${q.claimId}이 그 기사를 근거로 들지 않는다`);
+  }
+  dup("제목과 근거", (input.headline ?? []).map((q) => q.id));
   return errors;
 }
