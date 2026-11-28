@@ -11,15 +11,16 @@ import type { PolicyInput } from "./schema";
  *   준비하고 있다"는 데까지만 밝혔다.
  * ★ 2026-10-24 처음 등록 — 잼통 Voice 이슈 #76.
  * ★ 2026-10-31 보충 — 잼통 Voice 이슈 #196(코스닥 대책).
+ * ★ 2026-11-28 보충 — 잼통 Voice 이슈 #313(11월 재급락과 정부 대응).
  */
 export const STOCK_STABILIZATION_FUND: PolicyInput = {
   slug: "stock-stabilization-fund",
-  title: "2026년 10월 증시 급락과 증권시장안정펀드",
+  title: "2026년 10~11월 증시 급락과 증권시장안정펀드",
   scope:
-    "2026년 10월 코스피 급락과 서킷브레이커, 금융당국 긴급 점검, 증안펀드의 구조·과거 가동 사례·2026년 검토 상황과 비판",
+    "2026년 10월 코스피 급락과 서킷브레이커, 금융당국 긴급 점검, 증안펀드의 구조·과거 가동 사례·2026년 검토 상황과 비판, 11월 재급락 뒤 긴급 시장상황점검회의·자사주 매수 한도 완화·대통령 지시",
   ministries: ["금융위원회", "재정경제부"],
   categories: ["economy"],
-  asOf: "2026-10-31",
+  asOf: "2026-11-28",
   rumors: [
     {
       id: "rumor-fund",
@@ -30,6 +31,11 @@ export const STOCK_STABILIZATION_FUND: PolicyInput = {
       id: "rumor-kosdaq",
       text: "코스닥 지수 흐름은 어떤가, 정부의 코스닥 대책은 무엇인가",
       claimIds: ["claim-kosdaq-benchmark"],
+    },
+    {
+      id: "rumor-no-action",
+      text: "주가 폭락으로 가계 자산이 무너지는데 대통령은 증시 대책 없이 부동산 홍보와 시장 방문만 한다",
+      claimIds: ["claim-nov-drop", "claim-nov-f4", "claim-nov-buyback", "claim-nov-president", "claim-nov-not-yet"],
     },
   ],
   claims: [
@@ -122,6 +128,55 @@ export const STOCK_STABILIZATION_FUND: PolicyInput = {
       sourceIds: ["src-mtn-20260129-kosdaq"],
       verified: true,
     },
+    {
+      id: "claim-nov-drop",
+      text:
+        "11월에도 급락이 이어졌다. 11월 6일 코스피는 8.52% 내린 4,924.61까지 밀려 서킷브레이커가 발동됐고, 정부는 같은 날 긴급 시장상황점검회의를 열었다. " +
+        "11월 23일에는 4,708.54로 마감해 1월 13일 이후 가장 낮은 종가를 기록했다. 24일 6.32% 올라 5,006.03으로 5,000선을 되찾았지만, " +
+        "25일 장 초반 다시 5% 넘게 떨어져 매도 사이드카가 발동됐다.",
+      assertionType: "FACT",
+      sourceIds: ["src-news1-20261106", "src-fnnews-20261125", "src-hankooki-20261125"],
+      verified: true,
+    },
+    {
+      id: "claim-nov-f4",
+      text:
+        "이형일 부총리 겸 재정경제부 장관은 11월 22일 한국은행 총재, 금융위원장, 금융감독원장과 긴급 시장상황점검회의를 열고, " +
+        "필요하면 증권시장안정펀드를 바로 가동할 수 있도록 준비에 들어가기로 했다. 기존 출자 약정 규모는 10조 7,600억 원이며, " +
+        "가동 시점과 매입 규모는 정하지 않았다. 증안펀드는 캐피털콜(출자 요청) 방식이라 완전히 준비되기까지 길게는 한 달이 걸릴 수 있다고 정부 관계자는 말했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-fnnews-20261125", "src-hankooki-20261125"],
+      verified: true,
+    },
+    {
+      id: "claim-nov-buyback",
+      text:
+        "금융위원회는 11월 24일부터 3개월 동안 상장사의 하루 자사주 매수 주문 수량 한도를 완화했다. " +
+        "금융감독원과 한국거래소는 불법 공매도 특별 집중감시에 들어갔다.",
+      assertionType: "FACT",
+      sourceIds: ["src-hankooki-20261125"],
+      verified: true,
+    },
+    {
+      id: "claim-nov-president",
+      text:
+        "이재명 대통령은 11월 24일 국무회의에서 \"주가가 어제 떨어졌다 오늘 폭등하고 널뛰기하는데, 대응 대책이 좀 필요하기는 하다\"며 " +
+        "이억원 금융위원장에게 대책 마련을 지시했다. 이 위원장은 \"단기·중기·장기로 나눠 준비하고 있다\"며 비상대응계획이 마련돼 있다고 답했다. " +
+        "보도는 대통령이 그동안 주가 언급을 자제해 온 데서 대응 쪽으로 기조를 바꾼 것으로 해석했다. 청와대 대변인은 11월 23일 최근 불안이 " +
+        "\"미국 증시와 같이 연동된 측면이 있다\"고 설명했다.",
+      assertionType: "CLAIM",
+      assertedBy: "이재명 대통령·이억원 금융위원장·청와대",
+      sourceIds: ["src-fnnews-20261125", "src-hankooki-20261125"],
+      verified: true,
+    },
+    {
+      id: "claim-nov-not-yet",
+      text:
+        "11월 25일 보도 기준으로 증안펀드의 실제 주식 매입은 시작되지 않았다. 정부 대응은 가동 준비, 자사주 매수 한도 완화, 공매도 감시까지다.",
+      assertionType: "FACT",
+      sourceIds: ["src-hankooki-20261125", "src-fnnews-20261125"],
+      verified: true,
+    },
   ],
   critiqueIds: ["claim-critique"],
   timeline: [
@@ -157,13 +212,66 @@ export const STOCK_STABILIZATION_FUND: PolicyInput = {
       summary: "개별 종목 부양에는 선을 그었다.",
       claimIds: ["claim-president"],
     },
+    {
+      id: "t-nov6",
+      date: "2026-11-06",
+      datePrecision: "day",
+      title: "코스피 8.52% 급락, 긴급 점검회의",
+      summary: "서킷브레이커 발동.",
+      claimIds: ["claim-nov-drop"],
+    },
+    {
+      id: "t-nov22",
+      date: "2026-11-22",
+      datePrecision: "day",
+      title: "긴급 시장상황점검회의, 증안펀드 가동 준비",
+      summary: "기존 약정 10조 7,600억 원.",
+      claimIds: ["claim-nov-f4"],
+    },
+    {
+      id: "t-nov24",
+      date: "2026-11-24",
+      datePrecision: "day",
+      title: "자사주 매수 한도 완화, 대통령 대책 지시",
+      summary: "국무회의에서 금융위원장에게 지시.",
+      claimIds: ["claim-nov-buyback", "claim-nov-president"],
+    },
   ],
   gaps: [
-    "2026년에 증안펀드를 다시 조성한다면 규모·출자기관·가동 조건을 정부가 밝힌 적은 없다.",
+    "11월 22일 가동 준비 결정 뒤에도 증안펀드의 실제 매입 시점·규모·가동 조건은 발표되지 않았다(11월 25일 보도 기준).",
+    "11월 22일 회의와 11월 23일 자사주 매수 한도 완화의 정부 보도자료 원문은 대조하지 못했다. 보도로 확인했다.",
+    "11월 증시 하락이 가계 금융자산에 준 영향을 정부가 집계해 발표한 자료는 찾지 못했다.",
     "금융위원회 공식 보도자료 원문은 대조하지 못했다. 발언은 보도로 확인했다.",
     "2026년 10월 코스닥 지수의 월간 흐름과 코스닥 대책의 효과는 공식 자료로 정리하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-news1-20261106",
+      title: "정부, 증시 급락에 긴급시장상황점검회의…금융·통화당국 소집",
+      publisher: "뉴스1",
+      url: "https://www.news1.kr/economy/trend/6345258",
+      publishedAt: "2026-11-06",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-fnnews-20261125",
+      title: "롤러코스터 장세에 靑·정부 움직인다…관망서 '적극 대응' 기조 전환",
+      publisher: "파이낸셜뉴스(뉴스1)",
+      url: "https://www.fnnews.com/news/202611250505559744",
+      publishedAt: "2026-11-25",
+      type: "press",
+      license: "link-only",
+    },
+    {
+      id: "src-hankooki-20261125",
+      title: "李 \"주가 널뛰기\" 직접 점검…코스피 또 급락에 靑·정부 대응 시험대",
+      publisher: "데일리한국",
+      url: "https://daily.hankooki.com/news/articleView.html?idxno=1428776",
+      publishedAt: "2026-11-25",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-hankook-20261015",
       title: "코스피 폭락에… 금융당국, 긴급 증시 점검회의 개최",

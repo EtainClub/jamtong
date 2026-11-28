@@ -185,6 +185,8 @@ import { DEATH_PENALTY } from "./death-penalty";
 import { PRESIDENT_SON_ALLEGATIONS } from "./president-son-allegations";
 import { PRESIDENT_FAMILY_DISPUTE } from "./president-family-dispute";
 import { UNIVERSAL_PUBLIC_RENTAL } from "./universal-public-rental";
+import { PUBLIC_HOUSING_240K } from "./public-housing-240k";
+import { PUBLIC_RENTAL_RULES } from "./public-rental-rules";
 import { RECALL_SYSTEM } from "./recall-system";
 import { DECISION_RECORDS } from "./decision-records";
 import { STATE_VIOLENCE_STATUTE } from "./state-violence-statute";
@@ -407,6 +409,8 @@ export const POLICIES: Policy[] = [
   CHOI_KYO_JIN_RESIGNATION,
   CSAT_REFORM_DEBATE_2026,
   NATIONAL_EXAM_AI_CHEATING,
+  PUBLIC_HOUSING_240K,
+  PUBLIC_RENTAL_RULES,
   // 이재명 대통령 형사재판 다섯 건과 재판 중단 배경 — /trials 허브가 묶어 보인다
   ...TRIAL_POLICIES,
   // 통통(tt.jamtong.kr)에서 가져온 청소년·청년 정책 — pnpm policies:tongtong
