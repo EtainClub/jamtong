@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { AppTopBar } from "@/features/app/AppTopBar";
-import { buildStudyBank } from "@/features/study/build";
+import { buildStudyBank, entryBank } from "@/features/study/build";
 import { StudyApp } from "@/features/study/StudyApp";
 
 const TITLE = "잼공";
@@ -21,7 +21,8 @@ export const metadata: Metadata = {
 
 export default function StudyPage() {
   // 문항 은행은 빌드 때 콘텐츠에서 만든다. 콘텐츠 전체는 클라이언트로 보내지 않는다.
-  const bank = buildStudyBank();
+  // 첫 화면에는 1단계 문항만 — 나머지는 StudyApp이 /study/bank.json에서 받는다.
+  const bank = entryBank(buildStudyBank());
 
   return (
     <>

@@ -67,7 +67,7 @@ export function Today({
     : due > 0
       ? `다시 볼 문제가 ${due}개 있어요. 잊을 때쯤 한 번 더 보면 오래 남아요.`
       : curUnit
-        ? `오늘은 「${curUnit.title}」을 알아봐요.`
+        ? `오늘은 「${curUnit.title}」 차례예요.`
         : "모든 단원의 알기를 마쳤어요! 복습으로 단단하게 다져요.";
 
   return (

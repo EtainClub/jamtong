@@ -21,7 +21,7 @@ import { ACHIEVEMENT_OX } from "@/content/study/ox";
 import type { Claim } from "@/content/schema";
 
 import { ACHIEVEMENT_ERA, ERAS, eraKey, eraRank } from "./eras";
-import type { AssertionKind, EvidenceCard, StudyBank, StudyItem, StudyUnit } from "./types";
+import { LEVEL_OF, type AssertionKind, type EvidenceCard, type StudyBank, type StudyItem, type StudyUnit } from "./types";
 
 /** 약한 층이 앞이다 — 카드에는 근거 claim들 가운데 가장 약한 층을 적는다. */
 const WEAKEST: AssertionKind[] = ["OPINION", "CLAIM", "INTERPRETATION", "FACT"];
@@ -84,6 +84,17 @@ export function buildStudyBank(): StudyBank {
     items: [...items, ...level2.items, ...level3.items, ...level4.items, ...rumors.items, ...level5.items],
     starter: starterOf(items),
   };
+}
+
+/**
+ * 첫 화면에 실어 보내는 은행 — 1단계(알기) 문항과 그 단원만. 처음 온 사람의 첫 3분은 이것으로 충분하다.
+ * 은행 전체(지금 1.4MB 남짓)는 /study/bank.json에서 따로 받는다(StudyApp). 처음 들어오는 화면을 가볍게 두려는 것이다
+ * (docs/jamgong-roadmap.md §8 "입구는 가볍게").
+ */
+export function entryBank(bank: StudyBank): StudyBank {
+  const items = bank.items.filter((i) => LEVEL_OF[i.step] === 1);
+  const units = new Set(items.map((i) => i.unit));
+  return { units: bank.units.filter((u) => units.has(u.id)), items, starter: bank.starter };
 }
 
 /** 사실·주장 가리기의 네 보기. 늘 같은 순서 — 갈래를 익히게 한다. */

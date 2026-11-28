@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { ERAS } from "./eras";
-import { currentUnit, STAGE_ICON, STAGE_LABEL, stepDone, unitOpen, unitStage, type Box } from "./rules";
-import { STEPS, type StudyBank } from "./types";
+import { courseUnits, currentUnit, STAGE_ICON, STAGE_LABEL, stepDone, unitOpen, unitStage, type Box } from "./rules";
+import { LEVEL_OF, STEPS, type StudyBank } from "./types";
 
 /** 길. minLevel = 그 길이 열리는 단계. 정책 팩트의 길은 2단계 「가리기」 문항으로 시작한다(docs/jamgong-roadmap.md R2). */
 const COURSES = [
@@ -35,7 +35,7 @@ export function Road({ bank, boxes, level, onUnit }: { bank: StudyBank; boxes: R
         </div>
       )}
       {course !== "achievement" ? (
-        <CourseList bank={bank} boxes={boxes} course={course} onUnit={onUnit} />
+        <CourseList bank={bank} boxes={boxes} course={course} level={level} onUnit={onUnit} />
       ) : (
         <>
       <p className="st-small">업적의 길 · {roadUnits.length}단원 · 성남시장 시절부터 이재명 정부까지 · 앞 단원을 풀기 시작하면 다음 단원이 열려요</p>
@@ -79,14 +79,17 @@ export function Road({ bank, boxes, level, onUnit }: { bank: StudyBank; boxes: R
 /**
  * 정책 팩트의 길(2단계부터)·말과 연설의 길(3단계부터) — 단원 목록.
  * 업적의 길처럼 잠그지 않는다 — 관심 있는 것부터 골라 푼다.
+ * ★ 내 단계까지의 문항이 있는 단원만 보인다. 예전에는 위 단계 문항만 있는 단원도 보여, 누르면 빈 판이 열렸다
+ *   (2단계에서 정책 단원 143개 가운데 113개).
  */
 const COURSE_NOTE: Record<string, string> = {
   policy: "뉴스에서 듣는 문장이 사실인지 누구의 주장인지 가려 봐요",
   words: "연설 요약만 보면 어디서 오해하기 쉬운지 따져 봐요",
 };
 
-function CourseList({ bank, boxes, course, onUnit }: { bank: StudyBank; boxes: Record<string, Box>; course: string; onUnit: (unitId: string) => void }) {
-  const units = bank.units.filter((u) => u.course === course);
+function CourseList({ bank, boxes, course, level, onUnit }: { bank: StudyBank; boxes: Record<string, Box>; course: string; level: number; onUnit: (unitId: string) => void }) {
+  const mine = bank.items.filter((i) => LEVEL_OF[i.step] <= level);
+  const units = courseUnits(bank, course, level);
   const label = COURSES.find((c) => c.id === course)?.label ?? "";
   return (
     <div className="grid gap-2">
@@ -94,7 +97,7 @@ function CourseList({ bank, boxes, course, onUnit }: { bank: StudyBank; boxes: R
         {label} · {units.length}단원 · {COURSE_NOTE[course]}
       </p>
       {units.map((u) => {
-        const items = bank.items.filter((i) => i.unit === u.id);
+        const items = mine.filter((i) => i.unit === u.id);
         const learned = items.filter((i) => (boxes[i.id]?.[0] ?? 0) >= 2).length;
         return (
           <button key={u.id} type="button" className="st-card flex items-center gap-3 text-left" onClick={() => onUnit(u.id)}>
@@ -147,6 +150,7 @@ export function UnitSheet({
     return { ...s, total: mine.length, learned: mine.filter((i) => (boxes[i.id]?.[0] ?? 0) >= 2).length, done: stepDone(items, boxes, s.id) };
   });
   const allDone = steps.filter((s) => s.total > 0).every((s) => s.done);
+  const playable = steps.some((s) => s.total > 0);
   const isPolicy = unit.course === "policy";
 
   return (
@@ -170,8 +174,8 @@ export function UnitSheet({
           <button type="button" className="st-btn st-btn-line flex-1" onClick={onClose}>
             닫기
           </button>
-          <button type="button" className="st-btn st-btn-jam flex-1" onClick={onStart}>
-            {allDone ? "다시 풀기" : "풀기"}
+          <button type="button" className="st-btn st-btn-jam flex-1" onClick={onStart} disabled={!playable}>
+            {!playable ? "다음 단계에서 열려요" : allDone ? "다시 풀기" : "풀기"}
           </button>
         </div>
       </div>

@@ -11,7 +11,7 @@ import { flushStudy } from "./flush";
 import { markFromStudy } from "./fromStudy";
 import { GoalGift } from "./GoalGift";
 import { Jamtongi } from "./Jamtongi";
-import { kstDay, stepDone } from "./rules";
+import { kstDay, PAN_MIN, stepDone } from "./rules";
 import { useStudy } from "./store";
 import { SKIP_PASS } from "./levels";
 import { savedSay, saveSay } from "./sayStore";
@@ -150,7 +150,9 @@ export function Lesson({
     };
   }, []);
 
-  const firstTurns = ids.length;
+  const [firstTurns] = useState(() => ids.filter((id) => byId.has(id)).length);
+  /** 이 판을 하루 판 수에 세는가 — 한두 문제짜리 연습은 세지 않는다(rules.ts PAN_MIN). */
+  const counts = mode !== "unit" || firstTurns >= PAN_MIN;
   const finished = at >= queue.length;
   const turn = queue[at];
   const item = turn ? byId.get(turn.id)! : null;
@@ -198,7 +200,7 @@ export function Lesson({
       track("study_assess", { right, total: queue.length });
       setDoneToday(0);
     } else if (at + 1 >= queue.length && doneToday === null) {
-      setDoneToday(useStudy.getState().finish());
+      setDoneToday(counts ? useStudy.getState().finish() : (useStudy.getState().data?.days[dayNow] ?? 0));
       if (mode === "check" && target && right >= SKIP_PASS) useStudy.getState().levelUp(target);
       track("study_finish", { size: firstTurns, right, mode });
     }
@@ -256,16 +258,22 @@ export function Lesson({
                     ? right >= SKIP_PASS
                       ? `통과! ${target}단계 「${STEPS.find((x) => x.level === target)?.label}」를 열었어요`
                       : `${firstTurns}문제 가운데 ${right}개 — 조금만 더 해 봐요`
-                    : "한 판 끝!"}
+                    : counts
+                      ? "한 판 끝!"
+                      : "연습 끝!"}
               </p>
               <p className="st-small">
                 {firstTurns}문제 가운데 {right}개를 바로 맞혔어요.
                 {right < firstTurns ? " 틀린 건 「근거노트 › 다시 볼 것」에 들어갔어요." : ""}
               </p>
-              <div className="st-reward">
-                <span>🫙 오늘 도장</span>
-                {mode !== "intro" && doneToday !== null && <span>{doneToday >= goal ? "🎯 오늘 목표 채움" : `오늘 ${doneToday}/${goal}판`}</span>}
-              </div>
+              {counts ? (
+                <div className="st-reward">
+                  <span>🫙 오늘 도장</span>
+                  {mode !== "intro" && doneToday !== null && <span>{doneToday >= goal ? "🎯 오늘 목표 채움" : `오늘 ${doneToday}/${goal}판`}</span>}
+                </div>
+              ) : (
+                <p className="st-small">{PAN_MIN}문제보다 짧은 연습은 하루 판 수에 세지 않아요. 푼 문제는 복습 일정에 들어갔어요.</p>
+              )}
               {mode === "intro" ? (
                 // 첫날에는 정원·목표 이야기를 꺼내지 않는다(docs/jamgong-roadmap.md §4). 모은 카드와 "내일"만.
                 <p className="st-small">모은 근거 카드는 「근거노트」에 있어요. 내일 또 와요 — 잊을 때쯤 다시 물어볼게요.</p>

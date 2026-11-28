@@ -7,7 +7,7 @@
  * ★ 문항이 없는 단계로는 초대하지 않는다. 지금은 알기 문항뿐이라 초대가 뜨지 않는다 — R2에서 가리기 문항이 들어오면 켜진다.
  * ★ 건너뛰기 점검은 4단계(답하기)가 생긴 뒤에 둔다(운영자 결정, 2026-11-28) — R3에서 켰다(skipTargets).
  */
-import { addDays, pickSession, type Box } from "./rules";
+import { addDays, isDue, pickSession, type Box } from "./rules";
 import { LEVEL_OF, type Level, type StudyBank } from "./types";
 
 export const LEVEL_MAX: Level = 5;
@@ -118,7 +118,10 @@ export function pickLevelSession(bank: StudyBank, boxes: Record<string, Box>, to
   const cur =
     level === 5
       ? (() => {
-          const say = pickSession({ ...curBank, items: curBank.items.filter((i) => i.kind === "say") }, boxes, today, Math.min(SAY_PER_SESSION, want));
+          // 다 익혀 때가 안 된 직접 답하기를 "미리 복습"으로 당겨 내지 않는다 — 새 것이나 때가 된 것만.
+          const say = pickSession({ ...curBank, items: curBank.items.filter((i) => i.kind === "say") }, boxes, today, Math.min(SAY_PER_SESSION, want)).filter(
+            (id) => !boxes[id] || isDue(boxes[id], today),
+          );
           return [...say, ...pickSession({ ...curBank, items: curBank.items.filter((i) => i.kind !== "say") }, boxes, today, want - say.length)];
         })()
       : pickSession(curBank, boxes, today, want);
