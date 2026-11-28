@@ -110,6 +110,22 @@ export function courseUnits(bank: StudyBank, course: string, level: number): Stu
   return bank.units.filter((u) => u.course === course && playable.has(u.id));
 }
 
+/**
+ * 건너뛴 시기를 뺀 은행 — 업적의 길에서 고른 시기(성남·경기·정부)의 업적 단원과 그 문항을 뺀다.
+ * 정책·언행 단원은 시기와 상관없이 남는다. 오늘의 한 판·지금 단원·초대·점검은 이 은행으로 고른다.
+ * 시기를 모두 건너뛰지는 못한다(배움길이 하나는 남긴다).
+ */
+export function withoutSkipped(bank: StudyBank, skip: readonly string[] | undefined): StudyBank {
+  if (!skip?.length) return bank;
+  const drop = new Set(bank.units.filter((u) => u.course === "achievement" && skip.includes(u.era)).map((u) => u.id));
+  if (drop.size === 0) return bank;
+  return {
+    units: bank.units.filter((u) => !drop.has(u.id)),
+    items: bank.items.filter((i) => !drop.has(i.unit)),
+    starter: bank.starter.filter((id) => !drop.has(id.split("/")[0])),
+  };
+}
+
 // ── 오늘의 한 판 ────────────────────────────────────────────────────
 
 export const SESSION_SIZE = 8;

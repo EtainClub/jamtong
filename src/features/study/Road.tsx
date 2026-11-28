@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { ERAS } from "./eras";
-import { courseUnits, currentUnit, STAGE_ICON, STAGE_LABEL, stepDone, unitOpen, unitStage, type Box } from "./rules";
+import { courseUnits, currentUnit, STAGE_ICON, STAGE_LABEL, stepDone, unitOpen, unitStage, withoutSkipped, type Box } from "./rules";
+import { useStudy } from "./store";
 import { LEVEL_OF, STEPS, type StudyBank } from "./types";
 
 /** 길. minLevel = 그 길이 열리는 단계. 정책 팩트의 길은 2단계 「가리기」 문항으로 시작한다(docs/jamgong-roadmap.md R2). */
 const COURSES = [
   { id: "achievement", label: "업적의 길", minLevel: 1 },
-  { id: "policy", label: "정책 팩트의 길", minLevel: 2 },
+  { id: "policy", label: "정책 팩트의 길", minLevel: 1 },
   { id: "words", label: "말과 연설의 길", minLevel: 3 },
 ] as const;
 
@@ -18,8 +19,24 @@ const COURSES = [
  * 배움길 › 길 — 단원이 이어진 오솔길. 지나온 단원은 새싹·꽃·열매, 지금 단원은 반짝인다(docs/daily-study.md §6.3).
  * 단원 = 원본 페이지 하나. 누르면 다섯 단계 시트가 열린다.
  */
-export function Road({ bank, boxes, level, onUnit }: { bank: StudyBank; boxes: Record<string, Box>; level: number; onUnit: (unitId: string) => void }) {
-  const cur = currentUnit(bank, boxes);
+export function Road({
+  bank,
+  boxes,
+  level,
+  skip,
+  onUnit,
+}: {
+  bank: StudyBank;
+  boxes: Record<string, Box>;
+  level: number;
+  /** 건너뛴 시기(store.ts skipEras). */
+  skip: string[];
+  onUnit: (unitId: string) => void;
+}) {
+  const setSkipEras = useStudy((s) => s.setSkipEras);
+  // 지금 단원과 열린 단원은 건너뛴 시기를 뺀 길에서 센다 — 이재명 정부부터 걸으면 그 첫 단원이 열린다.
+  const scoped = withoutSkipped(bank, skip);
+  const cur = currentUnit(scoped, boxes);
   const courses = COURSES.filter((c) => c.minLevel <= level);
   const [course, setCourse] = useState<(typeof COURSES)[number]["id"]>("achievement");
   const roadUnits = bank.units.filter((u) => u.course === "achievement");
@@ -38,18 +55,37 @@ export function Road({ bank, boxes, level, onUnit }: { bank: StudyBank; boxes: R
         <CourseList bank={bank} boxes={boxes} course={course} level={level} onUnit={onUnit} />
       ) : (
         <>
-      <p className="st-small">업적의 길 · {roadUnits.length}단원 · 성남시장 시절부터 이재명 정부까지 · 앞 단원을 풀기 시작하면 다음 단원이 열려요</p>
+      <p className="st-small">업적의 길 · {roadUnits.length}단원 · 앞 단원을 풀기 시작하면 다음 단원이 열려요 · 관심 없는 시기는 건너뛰어도 돼요</p>
       {ERAS.map((era) => {
         const units = roadUnits.filter((u) => u.era === era.id);
         if (units.length === 0) return null;
+        const skipped = skip.includes(era.id);
+        // 시기를 모두 건너뛰지는 못한다 — 남은 시기가 하나면 그 시기의 「건너뛰기」는 없다.
+        const left = ERAS.filter((e) => !skip.includes(e.id) && roadUnits.some((u) => u.era === e.id)).length;
         return (
           <section key={era.id} aria-label={era.label}>
-            <p className="st-eyebrow pt-3">{era.label}</p>
+            <div className="flex items-center justify-between gap-2 pt-3">
+              <p className="st-eyebrow">
+                {era.label} · {units.length}단원{skipped ? " · 건너뜀" : ""}
+              </p>
+              {(skipped || left > 1) && (
+                <button
+                  type="button"
+                  className="st-link text-[12.5px]"
+                  onClick={() => setSkipEras(skipped ? skip.filter((x) => x !== era.id) : [...skip, era.id])}
+                >
+                  {skipped ? "다시 넣기" : "건너뛰기"}
+                </button>
+              )}
+            </div>
+            {skipped ? (
+              <p className="st-small pt-1">이 시기의 업적은 오늘의 한 판에 나오지 않아요. 언제든 다시 넣을 수 있어요.</p>
+            ) : (
             <ol className="pt-1">
               {units.map((u) => {
                 const items = bank.items.filter((i) => i.unit === u.id);
                 const stage = unitStage(items, boxes);
-                const open = unitOpen(bank, boxes, u.id);
+                const open = unitOpen(scoped, boxes, u.id);
                 const now = u.id === cur;
                 const cls = now ? "now" : !open ? "locked" : stage;
                 const icon = now ? "📍" : !open ? "🔒" : STAGE_ICON[stage];
@@ -67,6 +103,7 @@ export function Road({ bank, boxes, level, onUnit }: { bank: StudyBank; boxes: R
                 );
               })}
             </ol>
+            )}
           </section>
         );
       })}

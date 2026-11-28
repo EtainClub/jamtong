@@ -29,7 +29,8 @@ import {
   type WeightItem,
 } from "./weigh";
 import { NUMBER_ITEMS, numberItemSchema, type NumberItem, type NumberKind } from "./numbers";
-import { ACHIEVEMENT_OX, type OxItem } from "./ox";
+import { ACHIEVEMENT_OX, oxItemSchema, type OxItem } from "./ox";
+import { POLICY_OX } from "./policyOx";
 import { SORT_ITEMS, sortItemSchema, type SortItem } from "./sort";
 import { SPEECH_PARTS, speechPartsSchema, type SpeechParts } from "./speech";
 
@@ -79,11 +80,13 @@ export function validateStudy(achievements: Achievement[], ox: Record<string, Ox
 }
 
 /** 문항 수 — 통과 줄에 적는다. */
-export function studyCount(): { items: number; units: number; sort: number; numbers: number; debate: number; weakness: number; weigh: number; speech: number } {
+export function studyCount(): { items: number; units: number; policyOx: number; policyUnits: number; sort: number; numbers: number; debate: number; weakness: number; weigh: number; speech: number } {
   const all = Object.values(ACHIEVEMENT_OX);
   return {
     items: all.reduce((n, xs) => n + xs.length, 0),
     units: all.length,
+    policyOx: Object.values(POLICY_OX).reduce((n, xs) => n + xs.length, 0),
+    policyUnits: Object.keys(POLICY_OX).length,
     sort: SORT_ITEMS.length,
     numbers: NUMBER_ITEMS.length,
     debate: DEBATE_ITEMS.length,
@@ -401,6 +404,62 @@ export function validateSpeech(statements: Array<{ slug: string; body?: string }
     if (q.parts.every((p) => body.includes(squash(p.text))) && !body.includes(joined)) errors.push(`${where}: 문장이 원문에서 이어지지 않는다(순서가 다르거나 사이에 문장이 빠졌다)`);
     if (!q.parts.some((p) => p.role === "claim")) errors.push(`${where}: 주장이 없다`);
     if (!q.parts.some((p) => p.role !== "claim")) errors.push(`${where}: 근거나 예시가 없다`);
+  }
+  return errors;
+}
+
+// ── 1단계 「알기」 › 정부 정책 팩트 O/X ─────────────────────────────
+
+/** 문장의 숫자(쉼표·소수점 포함). 근거 claim에 없는 숫자를 잡는다. */
+const numbersIn = (t: string) => (t.match(/\d[\d,.]*\d|\d/g) ?? []).map((n) => n.replace(/[.,]$/, ""));
+
+/**
+ * 정책 O/X 검사.
+ *   1. 모양, id 겹침, 정책과 claim이 실재한다.
+ *   2. 근거 claim은 O·X 모두 확인된 것.
+ *   3. O 문항 — 부처 주장(CLAIM)이 근거면 주장한 쪽이 문장에 있다. 근거가 해석·의견뿐이면 안 된다.
+ *   4. 문장·풀이의 숫자는 근거 claim이나 정책 제목에 있다.
+ *   5. 정책마다 같은 문장이 두 번 나오지 않는다.
+ */
+export function validatePolicyOx(policies: Policy[], ox: Record<string, OxItem[]> = POLICY_OX): string[] {
+  const errors: string[] = [];
+  const bySlug = new Map(policies.map((p) => [p.slug, p]));
+  for (const [slug, items] of Object.entries(ox)) {
+    const p = bySlug.get(slug);
+    if (!p) {
+      errors.push(`정책 O/X ${slug}: 없는 정책`);
+      continue;
+    }
+    const ids = new Set<string>();
+    const statements = new Set<string>();
+    for (const q of items) {
+      const where = `정책 O/X ${slug}/${q.id}`;
+      const shape = oxItemSchema.safeParse(q);
+      if (!shape.success) {
+        errors.push(`${where}: 모양 — ${shape.error.issues.map((i) => i.path.join(".") + " " + i.message).join(", ")}`);
+        continue;
+      }
+      if (ids.has(q.id)) errors.push(`${where}: 문항 id가 겹친다`);
+      ids.add(q.id);
+      if (statements.has(q.statement)) errors.push(`${where}: 같은 문장이 두 번`);
+      statements.add(q.statement);
+      const claims = q.claimIds.map((id) => p.claims.find((c) => c.id === id));
+      if (claims.some((c) => !c)) {
+        errors.push(`${where}: 없는 claim ${q.claimIds.filter((_, k) => !claims[k]).join(", ")}`);
+        continue;
+      }
+      const found = claims as Claim[];
+      for (const c of found) if (!c.verified) errors.push(`${where}: 확인 전 claim(${c.id})을 근거로 썼다`);
+      // 숫자는 근거 claim이나 정책 제목(「2026년 …」「5·18」 같은 이름)에 있어야 한다.
+      const text = `${p.title} ${found.map((c) => c.text).join(" ")}`;
+      for (const n of [...numbersIn(q.statement), ...numbersIn(q.explain)]) if (!text.includes(n)) errors.push(`${where}: 근거 claim에 없는 숫자 ${n}`);
+      if (!q.answer) continue;
+      for (const c of found.filter((x) => x.assertionType === "CLAIM")) {
+        const by = c.assertedBy ?? "";
+        if (!names(by).some((name) => q.statement.includes(name))) errors.push(`${where}: 근거가 「${by}」의 주장(${c.id})인데 문장에 주장한 쪽이 없다`);
+      }
+      if (found.every((c) => c.assertionType === "INTERPRETATION" || c.assertionType === "OPINION")) errors.push(`${where}: 근거가 해석·의견뿐인 O 문항`);
+    }
   }
   return errors;
 }

@@ -41,6 +41,7 @@ export function mergeStudy(local: StudyData, remote: StudyData | null): StudyDat
     wallet,
     intro: local.intro || remote.intro,
     goalAsked: Boolean(local.goalAsked || remote.goalAsked),
+    eraAsked: Boolean(local.eraAsked || remote.eraAsked),
     level: Math.max(local.level ?? 1, remote.level ?? 1) as StudyData["level"],
     // 점검 기록은 날짜로 합친다(같은 날 두 번이면 둘 다 남는다 — 드물다).
     checks: [...(remote.checks ?? []), ...(local.checks ?? []).filter((c) => !(remote.checks ?? []).some((r) => r.day === c.day && r.right === c.right && r.total === c.total))]

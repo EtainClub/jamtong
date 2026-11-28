@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type { Metadata } from "next";
 
 import { AppTopBar } from "@/features/app/AppTopBar";
@@ -22,13 +24,16 @@ export const metadata: Metadata = {
 export default function StudyPage() {
   // 문항 은행은 빌드 때 콘텐츠에서 만든다. 콘텐츠 전체는 클라이언트로 보내지 않는다.
   // 첫 화면에는 1단계 문항만 — 나머지는 StudyApp이 /study/bank.json에서 받는다.
-  const bank = entryBank(buildStudyBank());
+  const full = buildStudyBank();
+  const bank = entryBank(full);
+  // 은행이 바뀌면 주소도 바뀐다 — 배포 뒤에 브라우저에 남은 옛 은행을 쓰지 않게.
+  const bankVersion = createHash("sha1").update(JSON.stringify(full)).digest("hex").slice(0, 12);
 
   return (
     <>
       <AppTopBar />
       <main id="main" className="mx-auto w-full max-w-[560px] flex-1 px-4">
-        <StudyApp bank={bank} />
+        <StudyApp bank={bank} bankVersion={bankVersion} />
       </main>
       {/* 사이트 하단 탭(BottomNav)은 두지 않는다. 잼공은 제 하단 탭을 StudyApp 안에서 그린다(정원과 같다). */}
     </>

@@ -18,6 +18,7 @@ import { STATEMENTS } from "@/content/words";
 import { SPEECH_PARTS } from "@/content/study/speech";
 import { isQuestion, VERDICT_LABEL, VERDICTS, type Verdict, type VerdictValue } from "@/content/policies/verdicts";
 import { ACHIEVEMENT_OX } from "@/content/study/ox";
+import { POLICY_OX } from "@/content/study/policyOx";
 import type { Claim } from "@/content/schema";
 
 import { ACHIEVEMENT_ERA, ERAS, eraKey, eraRank } from "./eras";
@@ -73,6 +74,33 @@ export function buildStudyBank(): StudyBank {
   // 문항이 있는데 시기를 정하지 않은 업적 — 길의 어디에 둘지 모른다. 빌드를 세운다.
   if (missing.length) throw new Error(`잼공: 시기를 정하지 않은 업적 — src/features/study/eras.ts에 적는다: ${missing.join(", ")}`);
   units.sort((a, b) => keys.get(a.id)!.localeCompare(keys.get(b.id)!));
+  // 정부 정책 팩트의 알기(O/X) — 업적의 길 뒤, 정책 목록 순서대로. 이재명 정부부터 걷는 사람이 업적 14건 뒤에도 이어 간다.
+  for (const p of POLICIES) {
+    const ox = POLICY_OX[p.slug];
+    if (!ox?.length) continue;
+    const unit = `p:${p.slug}`;
+    const mine: StudyItem[] = [];
+    for (const q of ox) {
+      const claims = q.claimIds.map((id) => p.claims.find((c) => c.id === id));
+      if (claims.some((c) => !c?.verified)) continue;
+      const anchors = q.claimIds.map((id) => `policy:${p.slug}#${id}`);
+      mine.push({
+        id: `${unit}/${q.id}`,
+        unit,
+        step: "know",
+        skill: "A0",
+        kind: "ox",
+        statement: q.statement,
+        answer: q.answer,
+        explain: q.explain,
+        anchors,
+        card: q.answer ? cardOf(q.statement, claims as Claim[], anchors[0]) : null,
+      });
+    }
+    if (!mine.length) continue;
+    units.push({ id: unit, course: "policy", era: "government", eraLabel: ERAS[eraRank("government")].label, title: p.title, kicker: "정부 정책", href: `/wiki/policy/${p.slug}` });
+    items.push(...mine);
+  }
   const level2 = levelTwoItems(units);
   const level3 = levelThreeItems([...units, ...level2.units]);
   const level4 = levelFourItems([...units, ...level2.units, ...level3.units]);
@@ -82,7 +110,8 @@ export function buildStudyBank(): StudyBank {
   return {
     units: [...before, ...level5.units],
     items: [...items, ...level2.items, ...level3.items, ...level4.items, ...rumors.items, ...level5.items],
-    starter: starterOf(items),
+    // 첫 3분 문제는 업적에서 — 첫 화면 은행(entryBank)에 실리는 것이 업적 알기뿐이다.
+    starter: starterOf(items.filter((i) => i.unit.startsWith("a:"))),
   };
 }
 
@@ -92,7 +121,9 @@ export function buildStudyBank(): StudyBank {
  * (docs/jamgong-roadmap.md §8 "입구는 가볍게").
  */
 export function entryBank(bank: StudyBank): StudyBank {
-  const items = bank.items.filter((i) => LEVEL_OF[i.step] === 1);
+  // 업적의 알기만 — 정책 팩트의 알기(수백 개)는 전체 은행과 함께 받는다. 첫 판들은 업적에서 시작한다.
+  const achievementUnits = new Set(bank.units.filter((u) => u.course === "achievement").map((u) => u.id));
+  const items = bank.items.filter((i) => LEVEL_OF[i.step] === 1 && achievementUnits.has(i.unit));
   const units = new Set(items.map((i) => i.unit));
   return { units: bank.units.filter((u) => units.has(u.id)), items, starter: bank.starter };
 }
@@ -116,7 +147,7 @@ export const NUMBER_OPTIONS: Array<{ kind: NumberKind; label: string; hint: stri
  * 2단계 「가리기」 문항(docs/jamgong-roadmap.md R2) — 사실·주장 가리기(A1)와 숫자 읽기(A3).
  * 정부 정책에서 온 문항은 정책 단원(`p:<slug>`, 위키 정책 페이지)에 든다. 근거 claim이 없거나 확인 전이면 싣지 않는다.
  */
-function levelTwoItems(achievementUnits: StudyUnit[]): { units: StudyUnit[]; items: StudyItem[] } {
+function levelTwoItems(known: StudyUnit[]): { units: StudyUnit[]; items: StudyItem[] } {
   const achievements = new Map(getPublishedAchievements().map((a) => [a.slug, a]));
   const policies = new Map(POLICIES.map((p) => [p.slug, p]));
   const units: StudyUnit[] = [];
@@ -127,8 +158,9 @@ function levelTwoItems(achievementUnits: StudyUnit[]): { units: StudyUnit[]; ite
   };
   const anchorOf = (unit: string, claimId: string) => (unit.startsWith("a:") ? `${unit.slice(2)}#${claimId}` : `policy:${unit.slice(2)}#${claimId}`);
   const ensureUnit = (unit: string): boolean => {
-    if (unit.startsWith("a:")) return achievementUnits.some((u) => u.id === unit);
-    if (units.some((u) => u.id === unit)) return true;
+    // 이미 있는 단원(업적, 정책 알기로 만든 정책 단원)은 다시 만들지 않는다.
+    if (known.some((u) => u.id === unit) || units.some((u) => u.id === unit)) return true;
+    if (unit.startsWith("a:")) return false;
     const p = policies.get(unit.slice(2));
     if (!p) return false;
     units.push({ id: unit, course: "policy", era: "government", eraLabel: ERAS[eraRank("government")].label, title: p.title, kicker: "정부 정책", href: `/wiki/policy/${p.slug}` });

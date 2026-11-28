@@ -9,6 +9,7 @@ export const dynamic = "force-static";
 
 export function GET() {
   return Response.json(buildStudyBank(), {
-    headers: { "Cache-Control": "public, max-age=300" },
+    // 주소에 은행 내용의 해시(?v=)가 붙어 오므로 바뀌면 새 주소다 — 한 번 받은 것은 오래 둬도 된다.
+    headers: { "Cache-Control": "public, max-age=86400" },
   });
 }
