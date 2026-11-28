@@ -32,6 +32,11 @@ export const LEVEL_OF: Record<StepId, Level> = { know: 1, understand: 2, source:
  */
 export type Skill = "A0" | "A1" | "A2" | "A3" | "A4" | "B1" | "B2" | "B3" | "C1" | "C2" | "C3" | "C4";
 
+/** 말의 뼈대의 세 역할. */
+export type SpeechRole = "claim" | "reason" | "example";
+
+export const SPEECH_ROLE_LABEL: Record<SpeechRole, string> = { claim: "주장", reason: "근거", example: "예시" };
+
 export type AssertionKind = "FACT" | "CLAIM" | "INTERPRETATION" | "OPINION";
 
 /** 근거노트에 들어가는 카드 한 장 — O 문항(참인 문장)에서만 만든다. X 문항(헷갈리기 쉬운 문장)은 싣지 않는다. */
@@ -63,8 +68,11 @@ export interface StudyItem {
   unit: string;
   step: StepId;
   skill: Skill;
-  /** ox = O/X(알기), choice = 보기 고르기(가리기부터), debate = 쟁점에 답하기(답하기). */
-  kind: "ox" | "choice" | "debate";
+  /**
+   * ox = O/X(알기), choice = 보기 고르기(가리기부터), debate = 쟁점에 답하기(답하기),
+   * say = 직접 말하기·쓰기(말하기), parts = 말의 뼈대 가르기(말하기).
+   */
+  kind: "ox" | "choice" | "debate" | "say" | "parts";
   /** O/X 문항의 문장, 보기 문항의 문장(사실·주장 가리기)이나 질문(숫자 읽기). */
   statement: string;
   /** O/X 문항의 답. 보기 문항은 늘 true다(문장 자체는 근거가 있는 말이다). */
@@ -88,6 +96,24 @@ export interface StudyItem {
     /** 모범 답변 — 위키 반론의 답변 그대로. */
     response: string;
     /** 원본 반론 자리. */
+    href: string;
+  };
+  /**
+   * 직접 말하기·쓰기(5단계) — 지인 메시지에 내 말로 답하고, 모범 답변과 네 칸 점검표로 스스로 견준다.
+   * ★ AI가 채점하지 않는다(docs/jamgong-roadmap.md §8). 쓴 글은 기기에만 둔다(sayStore.ts).
+   */
+  say?: {
+    message: string;
+    /** 모범 답변 — 4단계 문항의 모범 답 그대로. */
+    response: string;
+    href: string;
+  };
+  /**
+   * 말의 뼈대(5단계) — 연설·글의 이어진 문장을 주장·근거·예시로 가른다. 나눈 것은 편집자다(src/content/study/speech.ts).
+   */
+  parts?: {
+    sentences: Array<{ text: string; role: SpeechRole }>;
+    why: string;
     href: string;
   };
   explain: string;

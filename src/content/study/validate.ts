@@ -31,6 +31,7 @@ import {
 import { NUMBER_ITEMS, numberItemSchema, type NumberItem, type NumberKind } from "./numbers";
 import { ACHIEVEMENT_OX, type OxItem } from "./ox";
 import { SORT_ITEMS, sortItemSchema, type SortItem } from "./sort";
+import { SPEECH_PARTS, speechPartsSchema, type SpeechParts } from "./speech";
 
 /** "국제통화기금(IMF)", "대한민국 정부"처럼 긴 이름도 문장에서 한 낱말로 불리면 된다. */
 function names(by: string): string[] {
@@ -78,7 +79,7 @@ export function validateStudy(achievements: Achievement[], ox: Record<string, Ox
 }
 
 /** 문항 수 — 통과 줄에 적는다. */
-export function studyCount(): { items: number; units: number; sort: number; numbers: number; debate: number; weakness: number; weigh: number } {
+export function studyCount(): { items: number; units: number; sort: number; numbers: number; debate: number; weakness: number; weigh: number; speech: number } {
   const all = Object.values(ACHIEVEMENT_OX);
   return {
     items: all.reduce((n, xs) => n + xs.length, 0),
@@ -88,6 +89,7 @@ export function studyCount(): { items: number; units: number; sort: number; numb
     debate: DEBATE_ITEMS.length,
     weakness: WEAKNESS_ITEMS.length,
     weigh: CHECK_ITEMS.length + WEIGHT_ITEMS.length + LEAP_ITEMS.length + HEADLINE_ITEMS.length,
+    speech: SPEECH_PARTS.length,
   };
 }
 
@@ -362,5 +364,43 @@ export function validateWeigh(
     else if (!c.sourceIds.includes(q.sourceId)) errors.push(`${where}: claim ${q.claimId}이 그 기사를 근거로 들지 않는다`);
   }
   dup("제목과 근거", (input.headline ?? []).map((q) => q.id));
+  return errors;
+}
+
+// ── 5단계 「말하기」 › 말의 뼈대 (docs/jamgong-roadmap.md R6) ────────────
+
+/** 공백을 한 칸으로 — 원문 대조는 줄바꿈 차이만 너그럽게 본다. */
+const squash = (t: string) => t.replace(/\s+/g, " ").trim();
+
+/**
+ * 말의 뼈대 검사.
+ *   1. 모양, id가 겹치지 않는다, 언행이 있고 원문(body)이 있다.
+ *   2. 문장마다 원문에 그대로 있고, 원문의 순서대로 이어진다(사이에 다른 문장이 끼지 않는다).
+ *   3. 주장이 하나는 있고, 근거나 예시가 하나는 있다.
+ */
+export function validateSpeech(statements: Array<{ slug: string; body?: string }>, items: SpeechParts[] = SPEECH_PARTS): string[] {
+  const errors: string[] = [];
+  const seen = new Set<string>();
+  for (const q of items) {
+    const where = `말의 뼈대 ${q.id}`;
+    const r = speechPartsSchema.safeParse(q);
+    if (!r.success) {
+      errors.push(`${where}: 모양 — ${r.error.issues.map((i) => i.path.join(".") + " " + i.message).join(", ")}`);
+      continue;
+    }
+    if (seen.has(q.id)) errors.push(`${where}: id가 겹친다`);
+    seen.add(q.id);
+    const st = statements.find((x) => x.slug === q.slug);
+    if (!st?.body) {
+      errors.push(`${where}: 원문이 있는 언행 ${q.slug}이 없다`);
+      continue;
+    }
+    const body = squash(st.body);
+    const joined = q.parts.map((p) => squash(p.text)).join(" ");
+    for (const p of q.parts) if (!body.includes(squash(p.text))) errors.push(`${where}: 원문에 없는 문장 — 「${p.text.slice(0, 30)}…」`);
+    if (q.parts.every((p) => body.includes(squash(p.text))) && !body.includes(joined)) errors.push(`${where}: 문장이 원문에서 이어지지 않는다(순서가 다르거나 사이에 문장이 빠졌다)`);
+    if (!q.parts.some((p) => p.role === "claim")) errors.push(`${where}: 주장이 없다`);
+    if (!q.parts.some((p) => p.role !== "claim")) errors.push(`${where}: 근거나 예시가 없다`);
+  }
   return errors;
 }

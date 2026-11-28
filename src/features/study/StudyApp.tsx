@@ -10,6 +10,8 @@ import { loadStudy, saveStudy } from "@/lib/firebase/study";
 import { Lesson } from "./Lesson";
 import { Say } from "./Jamtongi";
 import { Debates } from "./Debates";
+import { Explain } from "./Explain";
+import { Rumors } from "./Rumors";
 import { setStudyFlusher } from "./flush";
 import { assessReady, assessSession, pickLevelSession, skipSession, skipTargets } from "./levels";
 import { navForLevel, STUDY_HOME, SOON, studyNavOf, visibleSegments, visibleTabs, type StudyNav, type StudySegment } from "./nav";
@@ -323,6 +325,10 @@ function Panel({
     }
     case "reply":
       return <Debates bank={bank} boxes={data.boxes} onItems={onItems} />;
+    case "rumors":
+      return <Rumors bank={bank} boxes={data.boxes} onItems={onItems} />;
+    case "explain":
+      return <Explain bank={bank} boxes={data.boxes} />;
     default:
       return null;
   }

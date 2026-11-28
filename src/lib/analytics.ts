@@ -241,7 +241,9 @@ export type AnalyticsEvent =
   /** 정원에서 「잼공으로 돌아가기」를 눌렀다(잼공 판 끝 선물로 왔을 때만 뜬다). */
   | "garden_back_study"
   /** 잼공 실력 점검을 마쳤다. right, total. 문항·답 내용은 보내지 않는다. */
-  | "study_assess";
+  | "study_assess"
+  /** 잼공 30초 설명을 마쳤다. got(짚은 수), total. 단원·말한 내용은 보내지 않는다. */
+  | "study_explain";
 
 type Params = Record<string, string | number | boolean>;
 

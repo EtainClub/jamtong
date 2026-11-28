@@ -14,7 +14,8 @@ import { Jamtongi } from "./Jamtongi";
 import { kstDay, stepDone } from "./rules";
 import { useStudy } from "./store";
 import { SKIP_PASS } from "./levels";
-import { STEPS, type Level, type StudyBank, type StudyItem } from "./types";
+import { savedSay, saveSay } from "./sayStore";
+import { SPEECH_ROLE_LABEL, STEPS, type Level, type SpeechRole, type StudyBank, type StudyItem } from "./types";
 
 /** 3단계부터: 답과 함께 확신도를 고르고, 모르면 「잘 모르겠어요」(docs/jamgong-roadmap.md §5.2). */
 function Confidence({
@@ -75,7 +76,24 @@ const SKILL_LABEL: Partial<Record<StudyItem["skill"], string>> = {
   C2: "도는 말 · 판정",
   C1: "답하기 · 쟁점에 답하기",
   C3: "답하기 · 약점 먼저 말하기",
+  C4: "말하기 · 내 말로 답하기",
+  B3: "말하기 · 말의 뼈대",
 };
+
+/** 말의 뼈대 — 늘 같은 순서. */
+const ROLES: SpeechRole[] = ["claim", "reason", "example"];
+
+/**
+ * 내 말로 답하기의 네 칸 점검표(docs/jamgong-roadmap.md R6). 모범 답과 견주며 스스로 짚는다 — AI가 채점하지 않는다.
+ * 셋 이상이면 익힌 것으로 센다(SAY_PASS).
+ */
+const SAY_CHECKS = [
+  "맞는 부분은 먼저 인정했어요(인정할 게 없으면 체크)",
+  "근거를 하나 이상 댔어요",
+  "근거보다 세게 말하지 않았어요",
+  "30초 안에 끝날 만큼 짧고 분명했어요",
+];
+const SAY_PASS = 3;
 
 interface Turn {
   id: string;
@@ -106,6 +124,12 @@ export function Lesson({
   const [skel, setSkel] = useState<number | null>(null);
   /** 3단계부터: 얼마나 확신하는지(docs/jamgong-roadmap.md §5.2). 「잘 모르겠어요」는 picked = -1. */
   const [conf, setConf] = useState<"sure" | "maybe">("maybe");
+  /** 말의 뼈대 — 문장마다 고른 역할(ROLES의 번호). */
+  const [roles, setRoles] = useState<Array<number | null>>([]);
+  /** 내 말로 답하기 — 쓴 글, 모범 답을 열었는지, 점검표. */
+  const [text, setText] = useState("");
+  const [said, setSaid] = useState(false);
+  const [ticks, setTicks] = useState<boolean[]>([false, false, false, false]);
   /** 실력 점검: 기술 → [맞힘, 문항 수]. */
   const [tally, setTally] = useState<Record<string, [number, number]>>({});
   const [checked, setChecked] = useState(false);
@@ -131,15 +155,21 @@ export function Lesson({
   const turn = queue[at];
   const item = turn ? byId.get(turn.id)! : null;
   const isRight = (it: StudyItem, p: boolean | number | null) =>
-    it.kind === "debate" && it.debate
-      ? skel === it.debate.skeleton.correct && p === it.debate.evidence.correct
-      : it.kind === "choice" && it.choice
-        ? p === it.choice.correct
-        : p === it.answer;
+    it.kind === "say"
+      ? ticks.filter(Boolean).length >= SAY_PASS
+      : it.kind === "parts" && it.parts
+        ? it.parts.sentences.every((x, k) => roles[k] === ROLES.indexOf(x.role))
+        : it.kind === "debate" && it.debate
+          ? skel === it.debate.skeleton.correct && p === it.debate.evidence.correct
+          : it.kind === "choice" && it.choice
+            ? p === it.choice.correct
+            : p === it.answer;
   const ok = item !== null && checked && isRight(item, picked);
+  /** 말의 뼈대 — 문장마다 역할을 다 골랐나. */
+  const partsReady = item?.kind === "parts" && roles.length === (item.parts?.sentences.length ?? -1) && roles.every((x) => x !== null);
 
   const check = () => {
-    if (!item || picked === null) return;
+    if (!item || (picked === null && !partsReady)) return;
     setChecked(true);
     const correct = isRight(item, picked);
     if (mode === "assess") {
@@ -148,6 +178,7 @@ export function Lesson({
       if (correct) setRight((n) => n + 1);
       return;
     }
+    if (item.kind === "say") saveSay(item.id, text, dayNow);
     if (!correct && conf === "sure" && picked !== -1) useStudy.getState().markSure(item.id);
     if (!turn.retry) {
       useStudy.getState().answer(item.id, correct, item.card !== null);
@@ -157,7 +188,8 @@ export function Lesson({
       }
     }
     setCombo((c) => (correct ? c + 1 : 0));
-    if (!correct && !turn.retry) setQueue((q) => [...q, { id: item.id, retry: true }]);
+    // 내 말로 답하기는 스스로 견준 것이라 판 끝에 다시 내지 않는다 — 다음에 상자가 다시 부른다.
+    if (!correct && !turn.retry && item.kind !== "say") setQueue((q) => [...q, { id: item.id, retry: true }]);
   };
 
   const next = () => {
@@ -174,6 +206,10 @@ export function Lesson({
     setPicked(null);
     setSkel(null);
     setConf("maybe");
+    setRoles([]);
+    setText("");
+    setSaid(false);
+    setTicks([false, false, false, false]);
     setChecked(false);
   };
 
@@ -278,7 +314,7 @@ export function Lesson({
                 {turn.retry ? " · 한 번 더" : ""}
               </p>
               {item.choice?.prompt && <p className="st-small">{item.choice.prompt}</p>}
-              {item.kind !== "debate" && <p className="st-q">{item.kind === "choice" && item.skill === "A1" ? `“${item.statement}”` : item.statement}</p>}
+              {(item.kind === "ox" || item.kind === "choice" || item.kind === "parts") && <p className={item.kind === "parts" ? "st-small font-bold" : "st-q"}>{item.kind === "choice" && item.skill === "A1" ? `“${item.statement}”` : item.statement}</p>}
               {item.choice?.from && <p className="st-small">— {item.choice.from}에서</p>}
               {item.choice?.evidence && (
                 <div className="rounded-xl border border-[var(--s-line)] bg-[var(--s-paper)] px-3 py-2 text-[13px] leading-relaxed">
@@ -286,7 +322,26 @@ export function Lesson({
                   {item.choice.evidence}
                 </div>
               )}
-              {item.kind === "debate" && item.debate ? (
+              {item.kind === "say" && item.say ? (
+                <SayQuestion
+                  key={`${item.id}-${at}`}
+                  item={item}
+                  text={text}
+                  said={said}
+                  ticks={ticks}
+                  checked={checked}
+                  onText={setText}
+                  onTick={(k) => setTicks((t) => t.map((v, i) => (i === k ? !v : v)))}
+                />
+              ) : item.kind === "parts" && item.parts ? (
+                <PartsQuestion
+                  key={`${item.id}-${at}`}
+                  item={item}
+                  roles={roles}
+                  checked={checked}
+                  onRole={(k, r) => setRoles((prev) => item.parts!.sentences.map((_, i) => (i === k ? r : (prev[i] ?? null))))}
+                />
+              ) : item.kind === "debate" && item.debate ? (
                 <DebateQuestion item={item} skel={skel} ev={typeof picked === "number" ? picked : null} checked={checked} onSkel={setSkel} onEv={setPicked} />
               ) : item.kind === "choice" && item.choice ? (
                 <div className="grid gap-2" role="group" aria-label="답 고르기">
@@ -336,29 +391,50 @@ export function Lesson({
                 <>
                   <p className="st-fb-title">
                     <Jamtongi mood={ok ? "cheer" : "smile"} size={30} hop={ok} />
-                    {ok
+                    {item.kind === "say"
+                      ? ok
+                        ? "잘 말했어요!"
+                        : "좋아요. 다음엔 빈 칸을 채워 봐요"
+                      : ok
                       ? "맞았어요!"
                       : picked === -1
                         ? `모르는 걸 모른다고 했어요. 정답은 「${item.choice?.options[item.choice.correct].label}」`
-                        : item.kind === "debate"
+                        : item.kind === "debate" || item.kind === "parts"
                         ? "같이 볼까요?"
                         : `같이 볼까요? 정답은 ${item.kind === "choice" && item.choice ? `「${item.choice.options[item.choice.correct].label}」` : item.answer ? "⭕" : "❌"}`}
                   </p>
                   {item.kind === "debate" && item.debate ? (
                     <DebateAnswer item={item} skel={skel} ev={typeof picked === "number" ? picked : null} />
+                  ) : item.kind === "parts" && item.parts ? (
+                    <PartsAnswer item={item} roles={roles} />
+                  ) : item.kind === "say" ? (
+                    <p className="text-[13.5px] leading-relaxed">
+                      {ticks.filter(Boolean).length}칸을 채웠어요. {item.explain}
+                    </p>
                   ) : (
                     <p className="text-[13.5px] leading-relaxed">{item.explain}</p>
                   )}
-                  <a className="st-link w-fit" href={item.debate?.href ?? unitOf.get(item.unit)?.href} target="_blank" rel="noopener">
+                  <a className="st-link w-fit" href={item.debate?.href ?? item.say?.href ?? item.parts?.href ?? unitOf.get(item.unit)?.href} target="_blank" rel="noopener">
                     원문 보기 — {unitOf.get(item.unit)?.title}
                   </a>
                   <button type="button" className={`st-btn ${ok ? "st-btn-ok" : "st-btn-jam"}`} onClick={next}>
                     계속
                   </button>
                 </>
+              ) : item.kind === "say" && !said ? (
+                <button
+                  type="button"
+                  className="st-btn st-btn-jam"
+                  onClick={() => {
+                    setSaid(true);
+                    setPicked(0);
+                  }}
+                >
+                  다 말했어요 · 모범 답 보기
+                </button>
               ) : (
-                <button type="button" className="st-btn st-btn-jam" disabled={picked === null || (item.kind === "debate" && skel === null)} onClick={check}>
-                  확인
+                <button type="button" className="st-btn st-btn-jam" disabled={item.kind === "parts" ? !partsReady : picked === null || (item.kind === "debate" && skel === null)} onClick={check}>
+                  {item.kind === "say" ? "점검 마치기" : "확인"}
                 </button>
               )}
             </div>
@@ -506,6 +582,8 @@ export const SKILL_NAME: Record<string, string> = {
   C1: "쟁점에 답하기",
   C3: "약점 먼저 말하기",
   C2: "도는 말에 답하기",
+  C4: "내 말로 답하기",
+  B3: "말의 뼈대",
 };
 
 /** 실력 점검 결과 — 점수와 순위가 아니라 기술마다 꽃 하나(docs/jamgong-roadmap.md §5.3). */
@@ -523,6 +601,140 @@ function AssessResult({ right, total, tally }: { right: number; total: number; t
         ))}
       </div>
       <p className="st-small">4주 뒤 다시 재면 어디가 자랐는지 보여 드려요.</p>
+    </div>
+  );
+}
+
+/**
+ * 내 말로 답하기 — 지인 메시지에 보기 없이 답한다. 쓰거나 소리 내어 말한 뒤 모범 답을 열고, 네 칸으로 스스로 견준다.
+ * 쓴 글은 이 기기에만 남는다(sayStore.ts). 지난번 쓴 글이 있으면 접어서 보여 준다.
+ */
+function SayQuestion({
+  item,
+  text,
+  said,
+  ticks,
+  checked,
+  onText,
+  onTick,
+}: {
+  item: StudyItem;
+  text: string;
+  said: boolean;
+  ticks: boolean[];
+  checked: boolean;
+  onText: (t: string) => void;
+  onTick: (k: number) => void;
+}) {
+  const s = item.say!;
+  const [before] = useState(() => savedSay(item.id));
+  return (
+    <div className="grid gap-3">
+      <div className="flex items-end gap-2">
+        <span className="text-[22px]" aria-hidden="true">💬</span>
+        <p className="st-bubble">
+          <span className="st-small block font-bold">지인</span>
+          {s.message}
+        </p>
+      </div>
+      <label className="grid gap-1.5">
+        <span className="st-small font-bold">내 답 — 써도 되고, 소리 내어 말해도 돼요</span>
+        <textarea
+          className="min-h-[104px] w-full rounded-xl border border-[var(--s-line)] bg-[var(--s-paper)] px-3 py-2 text-[14.5px] leading-relaxed"
+          value={text}
+          disabled={said}
+          maxLength={2000}
+          placeholder="인정할 건 인정하고, 근거 하나를 붙여 짧게."
+          onChange={(e) => onText(e.target.value)}
+        />
+        <span className="st-small">쓴 글은 이 기기에만 남아요. 어디에도 보내지 않아요.</span>
+      </label>
+      {before && !said && (
+        <details className="rounded-xl bg-[var(--s-paper)] px-3 py-2 text-[13px]">
+          <summary className="cursor-pointer font-bold">지난번 내 답 ({before.day})</summary>
+          <p className="mt-1 whitespace-pre-wrap">{before.text}</p>
+        </details>
+      )}
+      {said && (
+        <>
+          <div className="rounded-xl border border-[var(--s-line)] px-3 py-2 text-[13.5px] leading-relaxed">
+            <span className="st-eyebrow block">모범 답</span>
+            {s.response}
+          </div>
+          <p className="st-small font-bold">내 답과 견줘 봐요 — 해낸 칸에 체크</p>
+          <div className="grid gap-1.5" role="group" aria-label="네 칸 점검">
+            {SAY_CHECKS.map((c, k) => (
+              <button key={c} type="button" className="st-opt" disabled={checked} aria-pressed={ticks[k]} onClick={() => onTick(k)}>
+                <b className="text-[14px]">
+                  {ticks[k] ? "☑️" : "⬜"} {c}
+                </b>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** 말의 뼈대 — 문장마다 주장·근거·예시 가운데 하나를 고른다. */
+function PartsQuestion({
+  item,
+  roles,
+  checked,
+  onRole,
+}: {
+  item: StudyItem;
+  roles: Array<number | null>;
+  checked: boolean;
+  onRole: (k: number, r: number) => void;
+}) {
+  const p = item.parts!;
+  return (
+    <div className="grid gap-3">
+      {p.sentences.map((x, k) => (
+        <div key={k} className="grid gap-1.5 rounded-xl border border-[var(--s-line)] px-3 py-2">
+          <p className="text-[14.5px] leading-relaxed">
+            <span className="st-small mr-1 font-bold">{k + 1}</span>
+            {x.text}
+          </p>
+          <div className="flex gap-1.5" role="group" aria-label={`${k + 1}번 문장의 역할`}>
+            {ROLES.map((r, ri) => {
+              const right = ROLES.indexOf(x.role);
+              const cls = checked ? (ri === right ? "right" : ri === roles[k] ? "wrong" : "") : "";
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  disabled={checked}
+                  aria-pressed={roles[k] === ri}
+                  onClick={() => onRole(k, ri)}
+                  className={`st-opt flex-1 !py-1.5 text-center ${cls}`}
+                >
+                  <b className="text-[13.5px]">{SPEECH_ROLE_LABEL[r]}</b>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+      <p className="st-small">주장 = 하려는 말 · 근거 = 왜 그런지 · 예시 = 보여 주는 일</p>
+    </div>
+  );
+}
+
+/** 말의 뼈대 풀이 — 편집자가 나눈 것임을 밝힌다. */
+function PartsAnswer({ item, roles }: { item: StudyItem; roles: Array<number | null> }) {
+  const p = item.parts!;
+  return (
+    <div className="grid gap-1.5 text-[13.5px] leading-relaxed">
+      {p.sentences.map((x, k) => (
+        <p key={k}>
+          {roles[k] === ROLES.indexOf(x.role) ? "✅" : "↪️"} {k + 1}번은 <b>{SPEECH_ROLE_LABEL[x.role]}</b>
+        </p>
+      ))}
+      <p>{p.why}</p>
+      <p className="st-small">편집자가 나눈 것이에요. 다르게 볼 수도 있어요 — 원문 전체를 읽고 판단해요.</p>
     </div>
   );
 }

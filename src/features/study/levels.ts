@@ -20,6 +20,9 @@ export const INVITE_AFTER: Record<Exclude<Level, 1>, { cards?: number; answered?
   5: { answered: 10, label: "답하기 연습을 10번 했어요" },
 };
 
+/** 5단계 한 판에 넣는 「내 말로 답하기」 수. */
+export const SAY_PER_SESSION = 2;
+
 /** 초대를 거절하면 다시 묻기까지 쉬는 날. */
 export const INVITE_REST_DAYS = 14;
 
@@ -88,7 +91,8 @@ export function skipTargets(bank: StudyBank, level: Level): Level[] {
 
 /** 점검 문제 — 그 단계 문항 여섯. 안 푼 것부터, 단원이 겹치지 않게 고른다. 6개 가운데 5개를 맞히면 그 단계가 열린다. */
 export function skipSession(bank: StudyBank, boxes: Record<string, Box>, target: Level): string[] {
-  const pool = bank.items.filter((i) => LEVEL_OF[i.step] === target).sort((a, b) => Number(Boolean(boxes[a.id])) - Number(Boolean(boxes[b.id])));
+  // 내 말로 답하기는 스스로 견주는 것이라 점검으로 쓰지 않는다 — 5단계 점검은 말의 뼈대로 한다.
+  const pool = bank.items.filter((i) => LEVEL_OF[i.step] === target && i.kind !== "say").sort((a, b) => Number(Boolean(boxes[a.id])) - Number(Boolean(boxes[b.id])));
   const out: string[] = [];
   const units = new Set<string>();
   for (const i of pool) if (out.length < SKIP_SIZE && !units.has(i.unit)) { out.push(i.id); units.add(i.unit); }
@@ -108,7 +112,16 @@ function upTo(bank: StudyBank, pred: (l: Level) => boolean): StudyBank {
 export function pickLevelSession(bank: StudyBank, boxes: Record<string, Box>, today: string, level: Level): string[] {
   const size = sessionSize(level);
   if (level === 1) return pickSession(upTo(bank, (l) => l === 1), boxes, today, size);
-  const cur = pickSession(upTo(bank, (l) => l === level), boxes, today, Math.round(size * 0.7));
+  const want = Math.round(size * 0.7);
+  const curBank = upTo(bank, (l) => l === level);
+  // 5단계의 「내 말로 답하기」는 한 문제가 무겁다(직접 쓰거나 말한다) — 한 판에 둘까지, 나머지는 말의 뼈대로.
+  const cur =
+    level === 5
+      ? (() => {
+          const say = pickSession({ ...curBank, items: curBank.items.filter((i) => i.kind === "say") }, boxes, today, Math.min(SAY_PER_SESSION, want));
+          return [...say, ...pickSession({ ...curBank, items: curBank.items.filter((i) => i.kind !== "say") }, boxes, today, want - say.length)];
+        })()
+      : pickSession(curBank, boxes, today, want);
   const lower = pickSession(upTo(bank, (l) => l < level), boxes, today, size - cur.length);
   // 지금 단계 둘에 아래 단계 하나씩 번갈아.
   const out: string[] = [];
@@ -139,7 +152,8 @@ export function assessReady(level: Level, checks: Array<{ day: string }> | undef
  */
 export function assessSession(bank: StudyBank, boxes: Record<string, Box>, checked: string[], level: Level): string[] {
   const seen = new Set(checked);
-  const pool = bank.items.filter((i) => LEVEL_OF[i.step] <= level && !boxes[i.id] && !seen.has(i.id));
+  // 내 말로 답하기는 스스로 견주는 연습이라 잴 수 없다 — 점검에서 뺀다. 말의 뼈대는 정답이 있어 넣는다.
+  const pool = bank.items.filter((i) => LEVEL_OF[i.step] <= level && i.kind !== "say" && !boxes[i.id] && !seen.has(i.id));
   const bySkill = new Map<string, typeof pool>();
   for (const i of pool) bySkill.set(i.skill, [...(bySkill.get(i.skill) ?? []), i]);
   const out: string[] = [];

@@ -12,7 +12,8 @@ import type { StudyBank } from "./types";
  * ★ 반론은 "물리칠 대상"이 아니다 — 인정할 것은 인정하는 답이 모범 답인 경우가 많다.
  */
 export function Debates({ bank, boxes, onItems }: { bank: StudyBank; boxes: Record<string, Box>; onItems: (ids: string[]) => void }) {
-  const items = bank.items.filter((i) => i.kind === "debate");
+  // 도는 말 대화 답장(C2)은 「도는 말」 칸에 있다. 여기는 업적 쟁점만.
+  const items = bank.items.filter((i) => i.kind === "debate" && i.skill !== "C2");
   const units = bank.units.filter((u) => items.some((i) => i.unit === u.id));
   const learned = (id: string) => (boxes[id]?.[0] ?? 0) >= 2;
   const nextOne = items.find((i) => !boxes[i.id]) ?? items.find((i) => !learned(i.id)) ?? items[0];

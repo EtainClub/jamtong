@@ -15,6 +15,7 @@ import { DEBATE_ITEMS, type Skeleton } from "@/content/study/debate";
 import { WEAKNESS_ITEMS } from "@/content/study/weakness";
 import { CHECK_ITEMS, HEADLINE_ITEMS, LEAP_ITEMS, WEIGHT_ITEMS, type Leap, type WeightAnswer } from "@/content/study/weigh";
 import { STATEMENTS } from "@/content/words";
+import { SPEECH_PARTS } from "@/content/study/speech";
 import { isQuestion, VERDICT_LABEL, VERDICTS, type Verdict, type VerdictValue } from "@/content/policies/verdicts";
 import { ACHIEVEMENT_OX } from "@/content/study/ox";
 import type { Claim } from "@/content/schema";
@@ -76,9 +77,11 @@ export function buildStudyBank(): StudyBank {
   const level3 = levelThreeItems([...units, ...level2.units]);
   const level4 = levelFourItems([...units, ...level2.units, ...level3.units]);
   const rumors = rumorItems(VERDICTS, [...units, ...level2.units, ...level3.units, ...level4.units]);
+  const before = [...units, ...level2.units, ...level3.units, ...level4.units, ...rumors.units];
+  const level5 = levelFiveItems([...level4.items, ...rumors.items], before);
   return {
-    units: [...units, ...level2.units, ...level3.units, ...level4.units, ...rumors.units],
-    items: [...items, ...level2.items, ...level3.items, ...level4.items, ...rumors.items],
+    units: [...before, ...level5.units],
+    items: [...items, ...level2.items, ...level3.items, ...level4.items, ...rumors.items, ...level5.items],
     starter: starterOf(items),
   };
 }
@@ -529,6 +532,59 @@ export function rumorItems(verdicts: Record<string, Verdict>, known: StudyUnit[]
       },
       explain: v.note,
       anchors,
+      card: null,
+    });
+  }
+  return { units, items };
+}
+
+/**
+ * 5단계 「말하기」(docs/jamgong-roadmap.md R6).
+ *   직접 말하기·쓰기(C4): 4단계 쟁점·도는 말 대화 답장의 메시지에 이번엔 보기 없이 내 말로 답한다.
+ *     모범 답은 4단계와 같은 답이고, 견주는 것은 네 칸 점검표다(AI가 채점하지 않는다).
+ *     id는 4단계 문항의 `d<n>`→`t<n>`, `r-<도는 말>`→`t-<도는 말>` — 같은 쟁점이 단계를 건너 이어진다.
+ *   말의 뼈대(B3): 연설·글의 이어진 문장을 주장·근거·예시로 가른다(src/content/study/speech.ts).
+ */
+export function levelFiveItems(prior: StudyItem[], known: StudyUnit[]): { units: StudyUnit[]; items: StudyItem[] } {
+  const units: StudyUnit[] = [];
+  const items: StudyItem[] = [];
+  for (const d of prior) {
+    if (d.kind !== "debate" || !d.debate) continue;
+    const id = d.id.replace(/\/d([0-9]+)$/, "/t$1").replace(/\/r-/, "/t-");
+    if (id === d.id) continue;
+    items.push({
+      id,
+      unit: d.unit,
+      step: "speak",
+      skill: "C4",
+      kind: "say",
+      statement: d.debate.message,
+      answer: true,
+      say: { message: d.debate.message, response: d.debate.response, href: d.debate.href },
+      explain: d.debate.skeleton.why,
+      anchors: d.anchors,
+      card: null,
+    });
+  }
+  const words = new Map(STATEMENTS.map((w) => [w.slug, w]));
+  for (const q of SPEECH_PARTS) {
+    const w = words.get(q.slug);
+    if (!w?.body) continue;
+    const unit = `w:${q.slug}`;
+    if (!known.some((u) => u.id === unit) && !units.some((u) => u.id === unit)) {
+      units.push({ id: unit, course: "words", era: "government", eraLabel: ERAS[eraRank("government")].label, title: w.title, kicker: "말과 연설", href: `/words/${q.slug}` });
+    }
+    items.push({
+      id: `${unit}/${q.id}`,
+      unit,
+      step: "speak",
+      skill: "B3",
+      kind: "parts",
+      statement: "문장마다 주장·근거·예시를 골라 봐요.",
+      answer: true,
+      parts: { sentences: q.parts, why: q.why, href: `/words/${q.slug}` },
+      explain: q.why,
+      anchors: [`words:${q.slug}`],
       card: null,
     });
   }

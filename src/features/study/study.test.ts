@@ -19,6 +19,9 @@ import { buildStudyBank, rumorItems, SKELETON_OPTIONS, starterOf } from "./build
 import { allowedValues, approveInSource, approvedVerdict, isQuestion, validateVerdicts, VERDICTS, type Verdict } from "../../content/policies/verdicts";
 import { ASSESS_SIZE, assessReady, assessSession, inviteFor, levelReady, pickLevelSession, sessionSize, SKIP_SIZE, skipSession, skipTargets, type LevelState } from "./levels";
 import { navForLevel, STUDY_SEGMENTS, STUDY_TABS, studyNavOf, SOON, visibleSegments, visibleTabs } from "./nav";
+import { SAY_PER_SESSION } from "./levels";
+import { SPEECH_PARTS } from "../../content/study/speech";
+import { validateSpeech } from "../../content/study/validate";
 import { emptyStudy, normalizeStudy, type StudyData } from "./store";
 import { mergeBox, mergeStudy } from "./sync";
 import {
@@ -195,7 +198,7 @@ test("문항 은행: id가 영구 꼴이고 겹치지 않으며, 앵커가 실�
   assert.ok(bank.units.filter((u) => u.course === "achievement").length >= 20, "업적 단원이 스물 넘게");
   assert.equal(new Set(bank.items.map((i) => i.id)).size, bank.items.length);
   for (const i of bank.items) {
-    assert.match(i.id, i.kind === "ox" ? /^a:[a-z0-9-]+\/ox[0-9]+$/ : /^[apw]:[a-z0-9-]+\/([sndwkglh][0-9]+|[vr]-[a-z0-9-]+)$/);
+    assert.match(i.id, i.kind === "ox" ? /^a:[a-z0-9-]+\/ox[0-9]+$/ : /^[apw]:[a-z0-9-]+\/([sndwkglhbt][0-9]+|[vrt]-[a-z0-9-]+)$/);
     assert.ok(bank.units.some((u) => u.id === i.unit), `${i.id}: 단원이 있다`);
     for (const anchor of i.anchors) assert.ok(anchorExists(anchor), `${i.id}: 없는 앵커 ${anchor}`);
   }
@@ -586,4 +589,48 @@ test("도는 말 판정: 승인 스크립트는 그 판정의 줄에만 날짜�
   assert.equal(approveInSource(src, "없는#열쇠", "2026-12-01"), null);
   assert.ok(isQuestion("무기징역을 받은 범죄자를 가석방한다는 소식이 사실인가"));
   assert.ok(!isQuestion("전 국민이 똑같이 받는다"));
+});
+
+test("5단계 말하기: 내 말로 답하기는 4단계 쟁점을 잇고, 말의 뼈대는 원문 그대로, 한 판에 직접 답하기는 둘까지", () => {
+  const bank = buildStudyBank();
+  const says = bank.items.filter((i) => i.kind === "say");
+  const parts = bank.items.filter((i) => i.kind === "parts");
+  assert.ok(levelReady(bank, 5), "5단계 문항이 있다");
+  assert.ok(says.length > 0 && parts.length === SPEECH_PARTS.length);
+  for (const i of says) {
+    assert.equal(i.step, "speak");
+    assert.equal(i.skill, "C4");
+    const from = bank.items.find((d) => d.kind === "debate" && d.id === i.id.replace(/\/t([0-9]+)$/, "/d$1").replace(/\/t-/, "/r-"));
+    assert.ok(from, `${i.id}: 이어지는 4단계 문항이 있다`);
+    assert.equal(i.say!.response, from!.debate!.response, "모범 답은 4단계와 같다");
+  }
+  for (const i of parts) {
+    assert.equal(i.skill, "B3");
+    assert.ok(i.parts!.sentences.some((x) => x.role === "claim"));
+    assert.match(i.parts!.href, /^\/words\/[a-z0-9-]+$/);
+  }
+  // 한 판 — 직접 답하기는 둘까지.
+  const boxes: Record<string, Box> = {};
+  for (let d = 1; d <= 10; d++) {
+    const ids = pickLevelSession(bank, boxes, `2026-12-${String(d).padStart(2, "0")}`, 5);
+    assert.ok(ids.filter((id) => bank.items.find((i) => i.id === id)!.kind === "say").length <= SAY_PER_SESSION);
+    for (const id of ids) boxes[id] = [2, "2099-01-01"];
+  }
+  // 4단계에서 답하기 10번이면 5단계로 초대.
+  const ten = Object.fromEntries(bank.items.filter((i) => i.step === "counter").slice(0, 10).map((i) => [i.id, [2, "x"] as Box]));
+  assert.equal(inviteFor(bank, { level: 4, stay: false }, ten, cards(10), "2026-11-28"), 5);
+  assert.ok(assessSession(bank, {}, [], 5).every((id) => bank.items.find((i) => i.id === id)!.kind !== "say"), "실력 점검에 직접 답하기는 넣지 않는다");
+  // 칸 — 도는 말과 30초 설명은 이제 준비 중이 아니다.
+  assert.ok(!("rumors" in SOON) && !("explain" in SOON));
+});
+
+test("말의 뼈대 검사: 원문에 없는 문장, 순서가 바뀐 문장, 주장 없는 토막을 잡는다", () => {
+  assert.deepEqual(validateSpeech(STATEMENTS), []);
+  const q = SPEECH_PARTS[0];
+  const swapped = { ...q, parts: [q.parts[1], q.parts[0], ...q.parts.slice(2)] };
+  assert.ok(validateSpeech(STATEMENTS, [swapped]).some((e) => e.includes("이어지지 않는다")));
+  const made = { ...q, parts: q.parts.map((x, k) => (k === 0 ? { ...x, text: x.text + " 지어낸 말." } : x)) };
+  assert.ok(validateSpeech(STATEMENTS, [made]).some((e) => e.includes("원문에 없는")));
+  const noClaim = { ...q, parts: q.parts.map((x) => ({ ...x, role: "reason" as const })) };
+  assert.ok(validateSpeech(STATEMENTS, [noClaim]).some((e) => e.includes("주장이 없다")));
 });

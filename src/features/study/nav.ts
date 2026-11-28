@@ -64,8 +64,6 @@ export function navForLevel(nav: StudyNav | null, level: Level): StudyNav {
 export const SOON: Partial<Record<StudySegment, string>> = {
   notice: "새 단원이 열리거나, 내가 익힌 근거가 고쳐지면 여기에 알려 드려요.",
   fields: "분야(외교·안보, 민생·복지 …)마다 내가 아는 단원이 꽃밭으로 피어요.",
-  rumors: "SNS에서 도는 말 가운데 대응하는 근거가 있는 것만 모아 보여 드려요.",
-  explain: "다 익힌 단원을 소리 내어 30초 동안 설명하고, 빠뜨린 것을 스스로 짚어 보는 연습이에요.",
   terms: "언행의 용어 풀이와 레슨에서 만난 낱말이 모여요.",
 };
 
