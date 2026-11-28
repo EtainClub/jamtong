@@ -139,6 +139,12 @@
 .study :global(.st-ox button[aria-pressed="true"]) { border-color: var(--s-interp); background: #3b6fb01a; box-shadow: 0 4px 0 var(--s-interp); }
 .study :global(.st-ox button.right) { border-color: var(--s-ok); background: var(--s-ok-soft); box-shadow: 0 4px 0 var(--s-ok); }
 .study :global(.st-ox button.wrong) { border-color: var(--s-hmm); background: var(--s-hmm-soft); box-shadow: 0 4px 0 var(--s-hmm); }
+.study :global(.st-opt) { display: grid; gap: 1px; text-align: left; border: 2px solid var(--s-line); border-radius: 14px; background: var(--s-paper); padding: 10px 14px; box-shadow: 0 3px 0 var(--s-line); }
+.study :global(.st-opt b) { font-size: 15px; }
+.study :global(.st-opt span) { font-size: 12px; color: var(--s-muted); }
+.study :global(.st-opt[aria-pressed="true"]) { border-color: var(--s-interp); background: #3b6fb01a; box-shadow: 0 3px 0 var(--s-interp); }
+.study :global(.st-opt.right) { border-color: var(--s-ok); background: var(--s-ok-soft); box-shadow: 0 3px 0 var(--s-ok); }
+.study :global(.st-opt.wrong) { border-color: var(--s-hmm); background: var(--s-hmm-soft); box-shadow: 0 3px 0 var(--s-hmm); }
 .study :global(.st-foot) { padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid var(--s-line); display: grid; gap: 10px; }
 .study :global(.st-foot.good) { background: var(--s-ok-soft); border-color: transparent; }
 .study :global(.st-foot.hint) { background: var(--s-hmm-soft); border-color: transparent; }
