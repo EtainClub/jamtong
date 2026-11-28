@@ -15,6 +15,7 @@ import { BOOKS } from "../src/content/books";
 import { validateBook } from "../src/content/books/schema";
 import { translationReport } from "../src/content/books/translations";
 import { POLICIES } from "../src/content/policies";
+import { VERDICTS, validateVerdicts } from "../src/content/policies/verdicts";
 import { CORRECTIONS, validateCorrections } from "../src/content/corrections";
 import { archiveEntry } from "../src/content/source-archive";
 import { ARRIVALS } from "../src/features/garden/arrivals";
@@ -232,6 +233,21 @@ if (correctionErrors.length > 0) {
     for (const id of missing) console.error(`    ${id}`);
   } else {
     console.log(`✓ 정원 품종 장부 ${Object.keys(ARRIVALS).length}개`);
+  }
+}
+
+/*
+ * 도는 말 판정(src/content/policies/verdicts.ts) — 판정이 근거보다 세지 않은지. 승인된 것만 밖에 나간다.
+ */
+{
+  const verdictErrors = validateVerdicts(POLICIES);
+  if (verdictErrors.length > 0) {
+    failed = true;
+    console.error(`\n✗ 도는 말 판정 ${verdictErrors.length}건`);
+    for (const e of verdictErrors) console.error(`    ${e}`);
+  } else {
+    const all = Object.values(VERDICTS);
+    console.log(`✓ 도는 말 판정 ${all.length}건(승인 ${all.filter((v) => v.approved).length}건) — 근거보다 세게 말하지 않음`);
   }
 }
 

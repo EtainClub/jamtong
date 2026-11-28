@@ -14,12 +14,12 @@ export const CHEORWON_HOWITZER_CRASH: PolicyInput = {
   scope: "11월 5일 강원 철원 43번 국도에서 야간 이동하던 육군 자주포에 승용차 2대가 추돌한 사고의 경위, 경찰 수사, 육군 입장",
   ministries: ["국방부", "육군", "경찰청"],
   categories: ["diplomacy", "institution"],
-  asOf: "2026-11-11",
+  asOf: "2026-11-28",
   rumors: [
     {
       id: "rumor-no-escort",
       text: "K9 자주포가 호송과 교통 통제 없이 도로를 달리다 사망 사고가 났는데 정부 대응이 보이지 않는다",
-      claimIds: ["claim-vehicle", "claim-visibility", "claim-investigation", "claim-army"],
+      claimIds: ["claim-vehicle", "claim-visibility", "claim-escort", "claim-investigation", "claim-army"],
     },
   ],
   claims: [
@@ -47,6 +47,16 @@ export const CHEORWON_HOWITZER_CRASH: PolicyInput = {
         "호위 차량 배치나 교통 통제가 있었는지는 군이 밝히지 않았다.",
       assertionType: "FACT",
       sourceIds: ["src-hankookilbo-20261110", "src-mt-20261110", "src-genews-20261110"],
+      verified: true,
+    },
+    {
+      id: "claim-escort",
+      text:
+        "자주포 대열은 처음에 앞뒤에서 경광등을 켠 호위 차량과 함께 움직였다. 이동 중 자주포 2대에 문제가 생겨 뒤처지자 " +
+        "호위 차량 1대가 그쪽을 따라갔고, 대열이 2대씩 나뉘면서 앞선 대열의 후미에는 호위 차량이 없었다. 승용차 2대가 " +
+        "그 대열 맨 뒤의 자주포를 잇따라 들이받았다고 보도됐다.",
+      assertionType: "FACT",
+      sourceIds: ["src-yna-20261111-convoy"],
       verified: true,
     },
     {
@@ -103,6 +113,15 @@ export const CHEORWON_HOWITZER_CRASH: PolicyInput = {
     "경찰 수사의 결론(책임 소재)은 아직 나오지 않았다.",
   ],
   sources: [
+    {
+      id: "src-yna-20261111-convoy",
+      title: "철원 자주포 연쇄추돌…2대 뒤처져 대열 갈라진 상태서 사고(종합)",
+      publisher: "연합뉴스",
+      url: "https://www.yna.co.kr/view/AKR20261110122453504",
+      publishedAt: "2026-11-11",
+      type: "press",
+      license: "link-only",
+    },
     {
       id: "src-hankyung-2026111085427",
       title: "훈련 마치고 복귀하던 자주포…민간 차량 2대 연쇄 추돌 2명 사상",

@@ -17,7 +17,7 @@ export const OIL_RELIEF_FUND: PolicyInput = {
   scope: "2026년 중동 전쟁 추경으로 지급한 고유가 피해지원금의 대상·금액·기한",
   ministries: ["행정안전부"],
   categories: ["welfare", "economy"],
-  asOf: "2026-10-13",
+  asOf: "2026-11-28",
   rumors: [
     {
       id: "rumor-everyone",
@@ -27,7 +27,7 @@ export const OIL_RELIEF_FUND: PolicyInput = {
     {
       id: "rumor-still-usable",
       text: "지금 신청하면 아직 받을 수 있다",
-      claimIds: ["claim-deadline"],
+      claimIds: ["claim-deadline", "claim-apply-deadline"],
     },
     {
       id: "rumor-newborn",
@@ -82,6 +82,15 @@ export const OIL_RELIEF_FUND: PolicyInput = {
         "주소지 관할 지역의 매장에서만 쓸 수 있었다.",
       assertionType: "FACT",
       sourceIds: ["src-mois-relief", "src-korea-relief-2nd"],
+      verified: true,
+    },
+    {
+      id: "claim-apply-deadline",
+      text:
+        "신청은 2026년 7월 3일, 이의신청은 온라인 7월 17일·오프라인 7월 16일에 마감됐다. " +
+        "행정안전부는 기한 안에 신청(이의신청 포함)하지 않으면 지원금을 받을 수 없다고 안내했다.",
+      assertionType: "FACT",
+      sourceIds: ["src-korea-relief-apply"],
       verified: true,
     },
     {
@@ -152,6 +161,15 @@ export const OIL_RELIEF_FUND: PolicyInput = {
     "신청 링크 사칭 피해 규모는 확인하지 못했다.",
   ],
   sources: [
+    {
+      id: "src-korea-relief-apply",
+      title: "고유가 피해지원금 7월 3일까지 꼭 신청하세요!",
+      publisher: "대한민국 정책브리핑",
+      url: "https://www.korea.kr/news/policyNewsView.do?newsId=148967349",
+      publishedAt: "2026-06-30",
+      type: "official",
+      license: "public",
+    },
     {
       id: "src-gangnam-relief",
       title: "고유가 피해지원금 신청 및 안내",

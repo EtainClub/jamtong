@@ -72,6 +72,7 @@ const SKILL_LABEL: Partial<Record<StudyItem["skill"], string>> = {
   A4: "따지기 · 자료의 무게",
   B1: "따지기 · 비약 찾기",
   B2: "따지기 · 제목과 근거",
+  C2: "도는 말 · 판정",
   C1: "답하기 · 쟁점에 답하기",
   C3: "답하기 · 약점 먼저 말하기",
 };
@@ -504,6 +505,7 @@ export const SKILL_NAME: Record<string, string> = {
   B2: "제목과 근거",
   C1: "쟁점에 답하기",
   C3: "약점 먼저 말하기",
+  C2: "도는 말에 답하기",
 };
 
 /** 실력 점검 결과 — 점수와 순위가 아니라 기술마다 꽃 하나(docs/jamgong-roadmap.md §5.3). */

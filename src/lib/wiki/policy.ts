@@ -1,5 +1,6 @@
 import type { Claim } from "@/content/schema";
 import type { Policy } from "@/content/policies/schema";
+import { approvedVerdict, VERDICT_LABEL } from "@/content/policies/verdicts";
 
 /**
  * 정책 데이터를 위키 페이지 본문(마크다운)으로 옮긴다.
@@ -43,6 +44,13 @@ export function policyMarkdown(policy: Policy): string {
     L.push("", "## 도는 주장과 확인된 것");
     for (const rumor of policy.rumors) {
       L.push("", `### 도는 주장 — 「${rumor.text}」`, "");
+      // 판정은 사람이 승인한 것만 싣는다(src/content/policies/verdicts.ts).
+      const verdict = approvedVerdict(policy.slug, rumor.id);
+      if (verdict) {
+        // 판정은 이어진 claim만으로 쓴다 — 그 claim들을 앵커로 단다.
+        const anchors = rumor.claimIds.map((id) => ` ^[policy:${policy.slug}#${id}]`).join("");
+        L.push(`**판정: ${VERDICT_LABEL[verdict.value]}** — ${verdict.note}${anchors}`, "");
+      }
       for (const id of rumor.claimIds) {
         const claim = byId.get(id);
         if (!claim) continue;

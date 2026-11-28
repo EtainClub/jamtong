@@ -15,6 +15,7 @@ import { DEBATE_ITEMS, type Skeleton } from "@/content/study/debate";
 import { WEAKNESS_ITEMS } from "@/content/study/weakness";
 import { CHECK_ITEMS, HEADLINE_ITEMS, LEAP_ITEMS, WEIGHT_ITEMS, type Leap, type WeightAnswer } from "@/content/study/weigh";
 import { STATEMENTS } from "@/content/words";
+import { isQuestion, VERDICT_LABEL, VERDICTS, type Verdict, type VerdictValue } from "@/content/policies/verdicts";
 import { ACHIEVEMENT_OX } from "@/content/study/ox";
 import type { Claim } from "@/content/schema";
 
@@ -74,9 +75,10 @@ export function buildStudyBank(): StudyBank {
   const level2 = levelTwoItems(units);
   const level3 = levelThreeItems([...units, ...level2.units]);
   const level4 = levelFourItems([...units, ...level2.units, ...level3.units]);
+  const rumors = rumorItems(VERDICTS, [...units, ...level2.units, ...level3.units, ...level4.units]);
   return {
-    units: [...units, ...level2.units, ...level3.units, ...level4.units],
-    items: [...items, ...level2.items, ...level3.items, ...level4.items],
+    units: [...units, ...level2.units, ...level3.units, ...level4.units, ...rumors.units],
+    items: [...items, ...level2.items, ...level3.items, ...level4.items, ...rumors.items],
     starter: starterOf(items),
   };
 }
@@ -439,6 +441,96 @@ function levelThreeItems(known: StudyUnit[]): { units: StudyUnit[]; items: Study
       correct: HEADLINE_OPTIONS.findIndex((o) => o.verdict === q.verdict),
     };
     items.push(it);
+  }
+  return { units, items };
+}
+
+const VERDICT_ORDER: VerdictValue[] = ["true", "partly", "false", "official-only", "unknown"];
+
+const VERDICT_HINT: Record<VerdictValue, string> = {
+  true: "확인된 자료가 그대로 뒷받침해요",
+  partly: "맞는 데와 틀리거나 부풀린 데가 섞였어요",
+  false: "확인된 사실과 어긋나요",
+  "official-only": "부처가 설명했지만 따로 확인된 건 아니에요",
+  unknown: "지금 자료로는 맞다 틀리다를 가릴 수 없어요",
+};
+
+/** 판정 → 지인에게 답할 때의 뼈대. 사실이면 인정, 틀렸으면 바로잡기, 해명뿐이거나 모르면 모른다. */
+const VERDICT_SKELETON: Record<VerdictValue, Skeleton> = {
+  true: "admit",
+  partly: "admit",
+  false: "correct",
+  "official-only": "unknown",
+  unknown: "unknown",
+};
+
+/**
+ * 도는 말 문항(docs/jamgong-roadmap.md R5) — **사람이 승인한 판정만** 쓴다(verdicts.ts의 approved).
+ *   3단계 「이 말, 맞을까?」(C2): 도는 말을 보고 다섯 판정 가운데 고른다. 풀이는 승인된 판정의 note.
+ *   4단계 대화 답장(C2): 지인이 그 말을 보내면 ① 답의 뼈대(판정에서) ② 근거(이어진 claim) → 판정 note가 모범 답.
+ * 승인 전에는 문항이 하나도 생기지 않는다.
+ */
+export function rumorItems(verdicts: Record<string, Verdict>, known: StudyUnit[]): { units: StudyUnit[]; items: StudyItem[] } {
+  const units: StudyUnit[] = [];
+  const items: StudyItem[] = [];
+  for (const [key, v] of Object.entries(verdicts)) {
+    if (!v.approved) continue;
+    const [slug, rumorId] = key.split("#");
+    const p = POLICIES.find((x) => x.slug === slug);
+    const rumor = p?.rumors.find((r) => r.id === rumorId);
+    if (!p || !rumor || isQuestion(rumor.text)) continue;
+    const unit = `p:${slug}`;
+    if (!known.some((u) => u.id === unit) && !units.some((u) => u.id === unit)) {
+      units.push({ id: unit, course: "policy", era: "government", eraLabel: ERAS[eraRank("government")].label, title: p.title, kicker: "정부 정책", href: `/wiki/policy/${slug}` });
+    }
+    const anchors = rumor.claimIds.map((id) => `policy:${slug}#${id}`);
+    items.push({
+      id: `${unit}/v-${rumorId}`,
+      unit,
+      step: "source",
+      skill: "C2",
+      kind: "choice",
+      statement: `“${rumor.text}”`,
+      answer: true,
+      choice: {
+        prompt: "SNS에서 도는 말이에요. 맞을까요?",
+        options: VERDICT_ORDER.map((x) => ({ label: VERDICT_LABEL[x], hint: VERDICT_HINT[x] })),
+        correct: VERDICT_ORDER.indexOf(v.value),
+      },
+      explain: v.note,
+      anchors,
+      card: null,
+    });
+    // 대화 답장 — 근거 하나(이어진 확인된 claim)와 같은 정책의 다른 사실 둘.
+    const linked = rumor.claimIds.map((id) => p.claims.find((c) => c.id === id)).filter((c): c is Claim => Boolean(c?.verified));
+    const others = p.claims.filter((c) => c.verified && !rumor.claimIds.includes(c.id)).slice(0, 2);
+    if (linked.length === 0 || others.length < 2) continue;
+    const short = (t: string) => (t.length > 60 ? `${t.slice(0, 58)}…` : t);
+    const picks = [linked[0], ...others];
+    const order = shuffled(picks, `${unit}/r-${rumorId}`);
+    items.push({
+      id: `${unit}/r-${rumorId}`,
+      unit,
+      step: "counter",
+      skill: "C2",
+      kind: "debate",
+      statement: rumor.text,
+      answer: true,
+      debate: {
+        message: rumor.text.length > 70 ? `${rumor.text.slice(0, 68)}…` : rumor.text,
+        skeleton: {
+          options: SKELETON_OPTIONS.map(({ label, hint }) => ({ label, hint })),
+          correct: SKELETON_OPTIONS.findIndex((o) => o.id === VERDICT_SKELETON[v.value]),
+          why: `판정은 「${VERDICT_LABEL[v.value]}」예요. ${v.note}`,
+        },
+        evidence: { options: order.map((c) => short(c.text)), correct: order.indexOf(linked[0]) },
+        response: v.note,
+        href: `/wiki/policy/${slug}`,
+      },
+      explain: v.note,
+      anchors,
+      card: null,
+    });
   }
   return { units, items };
 }
