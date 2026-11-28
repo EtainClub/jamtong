@@ -12,6 +12,8 @@
  */
 import type { Policy } from "../policies/schema";
 import type { Achievement, Claim } from "../schema";
+import { DEBATE_ITEMS, debateItemSchema, type DebateItem } from "./debate";
+import { WEAKNESS_ITEMS, weaknessItemSchema, type WeaknessItem } from "./weakness";
 import { NUMBER_ITEMS, numberItemSchema, type NumberItem, type NumberKind } from "./numbers";
 import { ACHIEVEMENT_OX, type OxItem } from "./ox";
 import { SORT_ITEMS, sortItemSchema, type SortItem } from "./sort";
@@ -62,9 +64,16 @@ export function validateStudy(achievements: Achievement[], ox: Record<string, Ox
 }
 
 /** 문항 수 — 통과 줄에 적는다. */
-export function studyCount(): { items: number; units: number; sort: number; numbers: number } {
+export function studyCount(): { items: number; units: number; sort: number; numbers: number; debate: number; weakness: number } {
   const all = Object.values(ACHIEVEMENT_OX);
-  return { items: all.reduce((n, xs) => n + xs.length, 0), units: all.length, sort: SORT_ITEMS.length, numbers: NUMBER_ITEMS.length };
+  return {
+    items: all.reduce((n, xs) => n + xs.length, 0),
+    units: all.length,
+    sort: SORT_ITEMS.length,
+    numbers: NUMBER_ITEMS.length,
+    debate: DEBATE_ITEMS.length,
+    weakness: WEAKNESS_ITEMS.length,
+  };
 }
 
 // ── 2단계 「가리기」 (docs/jamgong-roadmap.md R2) ─────────────────────
@@ -151,6 +160,86 @@ export function validateNumbers(achievements: Achievement[], items: NumberItem[]
     const text = `${claim.text} ${key.caption ?? ""}`;
     if (!NUMBER_CUES[q.kind].test(text)) errors.push(`${where}: ${q.kind}라는 단서가 근거 문장에 없다`);
     if (q.kind === "actual" && NOT_ACTUAL.test(text)) errors.push(`${where}: 실적이라는데 근거가 전망·목표·잠정을 말한다`);
+  }
+  return errors;
+}
+
+// ── 4단계 「답하기」 (docs/jamgong-roadmap.md R3) ─────────────────────
+
+/**
+ * 쟁점에 답하기 검사.
+ *   1. 모양, id 겹침, 반론 하나에 문항 하나.
+ *   2. 반론이 실재한다. 근거(evidence)는 그 반론의 claimIds 가운데 하나다.
+ *   3. 오답 근거(decoys)는 같은 업적의 claim이되 반론의 claimIds가 아니다 — 근거와 섞이면 정답이 둘이 된다.
+ *   4. 모두 확인된(verified) claim이고, 보기 셋의 claim·글이 서로 다르다.
+ */
+export function validateDebate(achievements: Achievement[], items: DebateItem[] = DEBATE_ITEMS): string[] {
+  const errors: string[] = [];
+  const ids = new Set<string>();
+  const cps = new Set<string>();
+  for (const q of items) {
+    const where = `잼공 쟁점 ${q.unit}/${q.id}`;
+    const parsed = debateItemSchema.safeParse(q);
+    if (!parsed.success) {
+      errors.push(`${where}: 모양 — ${parsed.error.issues.map((i) => i.path.join(".") + " " + i.message).join(", ")}`);
+      continue;
+    }
+    if (ids.has(q.id)) errors.push(`${where}: 문항 id가 겹친다`);
+    ids.add(q.id);
+    const key = `${q.unit}#${q.counterpointId}`;
+    if (cps.has(key)) errors.push(`${where}: 같은 반론의 문항이 둘이다`);
+    cps.add(key);
+    const a = achievements.find((x) => x.slug === q.unit.slice(2));
+    const cp = a?.counterpoints.find((c) => c.id === q.counterpointId);
+    if (!a || !cp) {
+      errors.push(`${where}: 없는 업적·반론`);
+      continue;
+    }
+    if (!cp.claimIds.includes(q.evidence.claimId)) errors.push(`${where}: 근거 ${q.evidence.claimId}가 반론의 근거(claimIds)가 아니다`);
+    for (const d of q.decoys) if (cp.claimIds.includes(d.claimId)) errors.push(`${where}: 오답 근거 ${d.claimId}가 반론의 근거다 — 정답이 둘이 된다`);
+    const picks = [q.evidence, ...q.decoys];
+    for (const p of picks) {
+      const c = a.claims.find((x) => x.id === p.claimId);
+      if (!c) errors.push(`${where}: 없는 claim ${p.claimId}`);
+      else if (!c.verified) errors.push(`${where}: 확인 전 claim ${p.claimId}`);
+    }
+    if (new Set(picks.map((p) => p.claimId)).size !== 3 || new Set(picks.map((p) => p.label)).size !== 3) errors.push(`${where}: 보기 셋이 겹친다`);
+  }
+  return errors;
+}
+
+/**
+ * 약점 먼저 말하기 검사.
+ *   1. 모양, id 겹침.
+ *   2. 비판(critique)은 그 정책의 critiqueIds 가운데 하나이고, 오답(decoys)은 critiqueIds가 아니다.
+ *   3. 모두 확인된 claim이고 보기 셋이 서로 다르다.
+ */
+export function validateWeakness(policies: Policy[], items: WeaknessItem[] = WEAKNESS_ITEMS): string[] {
+  const errors: string[] = [];
+  const ids = new Set<string>();
+  for (const q of items) {
+    const where = `잼공 약점 ${q.unit}/${q.id}`;
+    const parsed = weaknessItemSchema.safeParse(q);
+    if (!parsed.success) {
+      errors.push(`${where}: 모양 — ${parsed.error.issues.map((i) => i.path.join(".") + " " + i.message).join(", ")}`);
+      continue;
+    }
+    if (ids.has(q.id)) errors.push(`${where}: 문항 id가 겹친다`);
+    ids.add(q.id);
+    const p = policies.find((x) => x.slug === q.unit.slice(2));
+    if (!p) {
+      errors.push(`${where}: 없는 정책`);
+      continue;
+    }
+    if (!p.critiqueIds.includes(q.critique.claimId)) errors.push(`${where}: ${q.critique.claimId}는 비판·한계(critiqueIds)가 아니다`);
+    for (const d of q.decoys) if (p.critiqueIds.includes(d.claimId)) errors.push(`${where}: 오답 ${d.claimId}도 비판·한계다 — 정답이 둘이 된다`);
+    const picks = [q.critique, ...q.decoys];
+    for (const x of picks) {
+      const c = p.claims.find((y) => y.id === x.claimId);
+      if (!c) errors.push(`${where}: 없는 claim ${x.claimId}`);
+      else if (!c.verified) errors.push(`${where}: 확인 전 claim ${x.claimId}`);
+    }
+    if (new Set(picks.map((x) => x.claimId)).size !== 3 || new Set(picks.map((x) => x.label)).size !== 3) errors.push(`${where}: 보기 셋이 겹친다`);
   }
   return errors;
 }

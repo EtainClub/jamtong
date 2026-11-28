@@ -77,9 +77,14 @@ export function Review({ bank, boxes, today }: { bank: StudyBank; boxes: Record<
             {when(boxes[i.id][1])} · {boxes[i.id][0]}번 상자{boxes[i.id][0] === 1 ? " · 틀린 문제" : ""}
           </p>
           <p className="text-[13.5px] font-semibold">
-            {i.kind === "choice" && i.choice ? i.statement : `${i.answer ? "⭕" : "❌"} ${i.statement}`}
+            {i.kind === "ox" ? `${i.answer ? "⭕" : "❌"} ${i.statement}` : i.kind === "debate" ? `💬 ${i.statement}` : i.statement}
           </p>
           {i.kind === "choice" && i.choice && <p className="st-small font-bold">정답: {i.choice.options[i.choice.correct].label}</p>}
+          {i.kind === "debate" && i.debate && (
+            <p className="st-small font-bold">
+              답의 뼈대: {i.debate.skeleton.options[i.debate.skeleton.correct].label} · 근거: {i.debate.evidence.options[i.debate.evidence.correct]}
+            </p>
+          )}
           <p className="st-small">{i.explain}</p>
           <p className="st-small">{units.get(i.unit)?.title}</p>
         </div>

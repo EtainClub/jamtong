@@ -8,9 +8,11 @@ import { test } from "node:test";
 import { getPublishedAchievements } from "../../content/achievements";
 import { POLICIES } from "../../content/policies";
 import { SORT_ITEMS } from "../../content/study/sort";
-import { validateNumbers, validateSort, validateStudy } from "../../content/study/validate";
-import { buildStudyBank, starterOf } from "./build";
-import { inviteFor, levelReady, pickLevelSession, sessionSize, type LevelState } from "./levels";
+import { DEBATE_ITEMS } from "../../content/study/debate";
+import { WEAKNESS_ITEMS } from "../../content/study/weakness";
+import { validateDebate, validateNumbers, validateSort, validateStudy, validateWeakness } from "../../content/study/validate";
+import { buildStudyBank, SKELETON_OPTIONS, starterOf } from "./build";
+import { inviteFor, levelReady, pickLevelSession, sessionSize, SKIP_SIZE, skipSession, skipTargets, type LevelState } from "./levels";
 import { navForLevel, STUDY_SEGMENTS, STUDY_TABS, studyNavOf, SOON, visibleSegments, visibleTabs } from "./nav";
 import { emptyStudy, normalizeStudy, type StudyData } from "./store";
 import { mergeBox, mergeStudy } from "./sync";
@@ -183,7 +185,7 @@ test("문항 은행: id가 영구 꼴이고 겹치지 않으며, 앵커가 실�
   assert.ok(bank.units.filter((u) => u.course === "achievement").length >= 20, "업적 단원이 스물 넘게");
   assert.equal(new Set(bank.items.map((i) => i.id)).size, bank.items.length);
   for (const i of bank.items) {
-    assert.match(i.id, i.kind === "ox" ? /^a:[a-z0-9-]+\/ox[0-9]+$/ : /^[ap]:[a-z0-9-]+\/[sn][0-9]+$/);
+    assert.match(i.id, i.kind === "ox" ? /^a:[a-z0-9-]+\/ox[0-9]+$/ : /^[ap]:[a-z0-9-]+\/[sndw][0-9]+$/);
     assert.ok(bank.units.some((u) => u.id === i.unit), `${i.id}: 단원이 있다`);
     for (const anchor of i.anchors) assert.ok(claimAt(anchor), `${i.id}: 없는 앵커 ${anchor}`);
   }
@@ -196,8 +198,8 @@ test("근거노트 카드: 참인 문장에서만, 확인된 claim으로만, 주
       assert.equal(i.card, null, `${i.id}: X 문항(헷갈리기 쉬운 문장)은 카드가 되지 않는다`);
       continue;
     }
-    if (i.skill === "A3") {
-      assert.equal(i.card, null, `${i.id}: 숫자 읽기는 카드가 아니다`);
+    if (i.skill === "A3" || i.kind === "debate") {
+      assert.equal(i.card, null, `${i.id}: 숫자 읽기·쟁점 연습은 카드가 아니다`);
       continue;
     }
     assert.ok(i.card, `${i.id}: 카드가 된다`);
@@ -256,7 +258,7 @@ test("단계 초대: 다음 단계 문항이 없으면 초대하지 않는다 �
   assert.equal(levelReady(real, 2), true, "R2: 가리기 문항이 있다");
   assert.equal(levelReady(real, 3), false, "따지기 문항은 아직 없다");
   assert.equal(inviteFor(real, L1, {}, cards(10), "2026-11-28"), 2, "근거 카드 10장이면 2단계로 초대");
-  assert.equal(inviteFor(real, { level: 2, stay: false }, {}, cards(99), "2026-11-28"), null, "3단계 문항이 없으니 3단계 초대는 없다");
+  assert.equal(inviteFor(real, { level: 2, stay: false }, {}, cards(99), "2026-11-28"), null, "가리기 문제를 아직 풀지 않았으면 초대하지 않는다");
 });
 
 test("단계 초대: 근거 카드 10장이면 2단계로 초대, 머물기·거절 14일·마지막 단계면 묻지 않는다", () => {
@@ -405,4 +407,68 @@ test("가리기 검사: 지금 문항은 통과하고, 층 바꾸기·귀속 남
     const bad = validateNumbers(achievements, [{ id: "n1", unit: "a:export-surplus", keyNumberId: imf.id, claimId: imf.claimId, kind: "actual", question: "이 숫자는 어떤 숫자일까요? 열다섯 자 넘게.", clue: "열 자 넘는 단서 문장." }]);
     assert.ok(bad.some((e) => e.includes("실적이라는데")), "전망을 실적이라 하면 잡는다");
   }
+});
+
+// ── 4단계 「답하기」와 건너뛰기 (R3) ─────────────────────────────────
+
+const WITH_L4: StudyBank = {
+  ...WITH_L2,
+  items: [...WITH_L2.items, ...[1, 2, 3, 4, 5, 6, 7].map((n) => item(["a:one", "a:two", "a:three"][n % 3], n, true, "counter"))],
+};
+
+test("초대: 비어 있는 단계(3단계)는 건너뛰어 4단계로 초대한다. 조건은 지금 단계에서 해 본 것", () => {
+  const l2: LevelState = { level: 2, stay: false };
+  const answered = Object.fromEntries(WITH_L4.items.filter((i) => i.step === "understand").map((i) => [i.id, [2, "x"] as Box]));
+  assert.equal(inviteFor(WITH_L4, l2, {}, cards(99), "2026-11-28"), null, "가리기 문제를 아직 20개 풀지 않았다");
+  const twenty = { ...answered, ...Object.fromEntries(Array.from({ length: 12 }, (_, k) => [`x${k}`, [2, "x"] as Box])) };
+  // 가리기 문항은 8개뿐이라 20개 조건을 채울 수 없다 — 문항이 늘면 열린다. 조건 자체를 본다.
+  assert.equal(inviteFor(WITH_L4, l2, twenty, cards(99), "2026-11-28"), null);
+  const many: StudyBank = { ...WITH_L4, items: [...WITH_L4.items, ...Array.from({ length: 20 }, (_, k) => item("a:two", 100 + k, true, "understand"))] };
+  const all = Object.fromEntries(many.items.filter((i) => i.step === "understand").map((i) => [i.id, [2, "x"] as Box]));
+  assert.equal(inviteFor(many, l2, all, cards(99), "2026-11-28"), 4, "3단계가 비어 있으니 4단계로");
+});
+
+test("건너뛰기 점검: 4단계가 있어야 켜지고, 그 단계 문제 6개를 단원이 겹치지 않게 낸다", () => {
+  assert.deepEqual(skipTargets(WITH_L2, 1), [], "4단계 문항이 없으면 점검도 없다(운영자 결정)");
+  assert.deepEqual(skipTargets(WITH_L4, 1), [2, 4]);
+  assert.deepEqual(skipTargets(WITH_L4, 2), [4]);
+  const ids = skipSession(WITH_L4, {}, 4);
+  assert.equal(ids.length, SKIP_SIZE);
+  assert.ok(ids.every((id) => WITH_L4.items.find((i) => i.id === id)?.step === "counter"));
+  assert.equal(new Set(ids.slice(0, 3).map((id) => id.split("/")[0])).size, 3, "앞의 셋은 서로 다른 단원");
+  assert.equal(sessionSize(4), 6, "답하기 판은 문제가 무거워 6개");
+});
+
+test("답하기 문항: 쟁점·약점이 은행에 들어오고, 화제 돌리기는 늘 오답이며, 정답 자리가 한곳에 몰리지 않는다", () => {
+  const bank = buildStudyBank();
+  const debates = bank.items.filter((i) => i.kind === "debate");
+  const weak = bank.items.filter((i) => i.skill === "C3");
+  assert.equal(debates.length, DEBATE_ITEMS.length);
+  assert.equal(weak.length, WEAKNESS_ITEMS.length);
+  const dodge = SKELETON_OPTIONS.findIndex((o) => o.id === "dodge");
+  for (const i of debates) {
+    assert.equal(i.step, "counter");
+    assert.notEqual(i.debate!.skeleton.correct, dodge, `${i.id}: 화제 돌리기는 정답이 아니다`);
+    assert.equal(i.debate!.evidence.options.length, 3);
+    assert.ok(i.debate!.response.length > 20, `${i.id}: 모범 답변`);
+    assert.match(i.debate!.href, /^\/achievement\/[a-z0-9-]+#counterpoint$/);
+  }
+  const spots = new Set(debates.map((i) => i.debate!.evidence.correct));
+  assert.ok(spots.size >= 2, "근거 정답 자리가 섞인다");
+  for (const i of weak) assert.ok(i.card && i.anchors[0].startsWith("policy:"), `${i.id}: 약점 카드`);
+  assert.ok(levelReady(bank, 4));
+  assert.equal(inviteFor(bank, { level: 2, stay: false }, Object.fromEntries(bank.items.filter((i) => i.step === "understand").slice(0, 20).map((i) => [i.id, [2, "x"] as Box])), cards(10), "2026-11-28"), 4, "가리기 20개를 풀면 3단계를 건너뛰어 4단계로");
+});
+
+test("답하기 검사: 지금 문항은 통과하고, 반론의 근거를 오답으로 쓰거나 비판을 오답으로 쓰면 잡는다", () => {
+  const achievements = getPublishedAchievements();
+  assert.deepEqual(validateDebate(achievements), []);
+  assert.deepEqual(validateWeakness(POLICIES), []);
+  const q = DEBATE_ITEMS[0];
+  const bad = validateDebate(achievements, [{ ...q, decoys: [{ ...q.evidence, label: "같은 근거를 오답으로 쓴 보기" }, q.decoys[1]] }]);
+  assert.ok(bad.some((e) => e.includes("정답이 둘")));
+  const w = WEAKNESS_ITEMS[0];
+  const policy = POLICIES.find((p) => p.slug === w.unit.slice(2))!;
+  const other = policy.critiqueIds.find((id) => id !== w.critique.claimId);
+  if (other) assert.ok(validateWeakness(POLICIES, [{ ...w, decoys: [{ claimId: other, label: "다른 비판을 오답으로 쓴 보기" }, w.decoys[1]] }]).some((e) => e.includes("정답이 둘")));
 });

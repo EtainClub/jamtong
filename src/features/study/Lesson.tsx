@@ -10,7 +10,8 @@ import { EvidenceCardView } from "./EvidenceCardView";
 import { Jamtongi } from "./Jamtongi";
 import { kstDay, stepDone } from "./rules";
 import { useStudy } from "./store";
-import type { StudyBank, StudyItem } from "./types";
+import { SKIP_PASS } from "./levels";
+import { STEPS, type Level, type StudyBank, type StudyItem } from "./types";
 
 /**
  * 한 판 — 문항을 하나씩 풀고, 바로 풀이(근거 claim으로 쓴 것)와 원문 링크를 본다. 설계는 docs/daily-study.md §4.3·§8.6.
@@ -25,6 +26,8 @@ const SKILL_LABEL: Partial<Record<StudyItem["skill"], string>> = {
   A0: "O/X · 알기",
   A1: "가리기 · 사실과 주장",
   A3: "가리기 · 숫자 읽기",
+  C1: "답하기 · 쟁점에 답하기",
+  C3: "답하기 · 약점 먼저 말하기",
 };
 
 interface Turn {
@@ -36,11 +39,14 @@ export function Lesson({
   bank,
   ids,
   mode,
+  target,
   onClose,
 }: {
   bank: StudyBank;
   ids: string[];
-  mode: "daily" | "unit" | "intro";
+  mode: "daily" | "unit" | "intro" | "check";
+  /** 건너뛰기 점검이면 열 단계. */
+  target?: Level;
   onClose: () => void;
 }) {
   const byId = useMemo(() => new Map(bank.items.map((i) => [i.id, i])), [bank]);
@@ -49,6 +55,8 @@ export function Lesson({
   const [at, setAt] = useState(0);
   /** O/X면 true·false, 보기 문항이면 보기 번호. */
   const [picked, setPicked] = useState<boolean | number | null>(null);
+  /** 쟁점 문항의 ① 답의 뼈대. picked는 ② 근거. */
+  const [skel, setSkel] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
   const [right, setRight] = useState(0);
   const [combo, setCombo] = useState(0);
@@ -71,7 +79,12 @@ export function Lesson({
   const finished = at >= queue.length;
   const turn = queue[at];
   const item = turn ? byId.get(turn.id)! : null;
-  const isRight = (it: StudyItem, p: boolean | number | null) => (it.kind === "choice" && it.choice ? p === it.choice.correct : p === it.answer);
+  const isRight = (it: StudyItem, p: boolean | number | null) =>
+    it.kind === "debate" && it.debate
+      ? skel === it.debate.skeleton.correct && p === it.debate.evidence.correct
+      : it.kind === "choice" && it.choice
+        ? p === it.choice.correct
+        : p === it.answer;
   const ok = item !== null && checked && isRight(item, picked);
 
   const check = () => {
@@ -92,10 +105,12 @@ export function Lesson({
   const next = () => {
     if (at + 1 >= queue.length && doneToday === null) {
       setDoneToday(useStudy.getState().finish());
+      if (mode === "check" && target && right >= SKIP_PASS) useStudy.getState().levelUp(target);
       track("study_finish", { size: firstTurns, right, mode });
     }
     setAt((n) => n + 1);
     setPicked(null);
+    setSkel(null);
     setChecked(false);
   };
 
@@ -118,7 +133,15 @@ export function Lesson({
           <>
             <div className="st-lesson-body items-center text-center">
               <Jamtongi mood="cheer" size={92} hop />
-              <p className="st-h text-[22px]">{mode === "intro" ? "오늘은 여기까지! 잘했어요" : "한 판 끝!"}</p>
+              <p className="st-h text-[22px]">
+                {mode === "intro"
+                  ? "오늘은 여기까지! 잘했어요"
+                  : mode === "check" && target
+                    ? right >= SKIP_PASS
+                      ? `통과! ${target}단계 「${STEPS.find((x) => x.level === target)?.label}」를 열었어요`
+                      : `${firstTurns}문제 가운데 ${right}개 — 조금만 더 해 봐요`
+                    : "한 판 끝!"}
+              </p>
               <p className="st-small">
                 {firstTurns}문제 가운데 {right}개를 바로 맞혔어요.
                 {right < firstTurns ? " 틀린 건 「근거노트 › 다시 볼 것」에 들어갔어요." : ""}
@@ -156,9 +179,11 @@ export function Lesson({
                 {turn.retry ? " · 한 번 더" : ""}
               </p>
               {item.choice?.prompt && <p className="st-small">{item.choice.prompt}</p>}
-              <p className="st-q">{item.kind === "choice" && item.skill === "A1" ? `“${item.statement}”` : item.statement}</p>
+              {item.kind !== "debate" && <p className="st-q">{item.kind === "choice" && item.skill === "A1" ? `“${item.statement}”` : item.statement}</p>}
               {item.choice?.from && <p className="st-small">— {item.choice.from}에서</p>}
-              {item.kind === "choice" && item.choice ? (
+              {item.kind === "debate" && item.debate ? (
+                <DebateQuestion item={item} skel={skel} ev={typeof picked === "number" ? picked : null} checked={checked} onSkel={setSkel} onEv={setPicked} />
+              ) : item.kind === "choice" && item.choice ? (
                 <div className="grid gap-2" role="group" aria-label="답 고르기">
                   {item.choice.options.map((o, k) => {
                     const cls = checked ? (k === item.choice!.correct ? "right" : k === picked ? "wrong" : "") : "";
@@ -209,10 +234,18 @@ export function Lesson({
                 <>
                   <p className="st-fb-title">
                     <Jamtongi mood={ok ? "cheer" : "smile"} size={30} hop={ok} />
-                    {ok ? "맞았어요!" : `같이 볼까요? 정답은 ${item.kind === "choice" && item.choice ? `「${item.choice.options[item.choice.correct].label}」` : item.answer ? "⭕" : "❌"}`}
+                    {ok
+                      ? "맞았어요!"
+                      : item.kind === "debate"
+                        ? "같이 볼까요?"
+                        : `같이 볼까요? 정답은 ${item.kind === "choice" && item.choice ? `「${item.choice.options[item.choice.correct].label}」` : item.answer ? "⭕" : "❌"}`}
                   </p>
-                  <p className="text-[13.5px] leading-relaxed">{item.explain}</p>
-                  <a className="st-link w-fit" href={unitOf.get(item.unit)?.href} target="_blank" rel="noopener">
+                  {item.kind === "debate" && item.debate ? (
+                    <DebateAnswer item={item} skel={skel} ev={typeof picked === "number" ? picked : null} />
+                  ) : (
+                    <p className="text-[13.5px] leading-relaxed">{item.explain}</p>
+                  )}
+                  <a className="st-link w-fit" href={item.debate?.href ?? unitOf.get(item.unit)?.href} target="_blank" rel="noopener">
                     원문 보기 — {unitOf.get(item.unit)?.title}
                   </a>
                   <button type="button" className={`st-btn ${ok ? "st-btn-ok" : "st-btn-jam"}`} onClick={next}>
@@ -220,7 +253,7 @@ export function Lesson({
                   </button>
                 </>
               ) : (
-                <button type="button" className="st-btn st-btn-jam" disabled={picked === null} onClick={check}>
+                <button type="button" className="st-btn st-btn-jam" disabled={picked === null || (item.kind === "debate" && skel === null)} onClick={check}>
                   확인
                 </button>
               )}
@@ -264,6 +297,89 @@ function GardenPerks({ bank, ids, goalMet }: { bank: StudyBank; ids: string[]; g
           🌱 「{u.title}」 알기 마침 — 정원에서 그 씨앗 받기(품종마다 한 번) →
         </Link>
       ))}
+    </div>
+  );
+}
+
+/**
+ * 쟁점 문항의 문제 쪽 — 지인 메시지, ① 답의 뼈대, ② 근거. 뼈대를 고르면 근거 고르기가 열린다.
+ * "다른 이야기로 넘어간다"는 언제나 오답이다(build.ts SKELETON_OPTIONS).
+ */
+function DebateQuestion({
+  item,
+  skel,
+  ev,
+  checked,
+  onSkel,
+  onEv,
+}: {
+  item: StudyItem;
+  skel: number | null;
+  ev: number | null;
+  checked: boolean;
+  onSkel: (k: number) => void;
+  onEv: (k: number) => void;
+}) {
+  const d = item.debate!;
+  return (
+    <div className="grid gap-3">
+      <div className="flex items-end gap-2">
+        <span className="text-[22px]" aria-hidden="true">💬</span>
+        <p className="st-bubble">
+          <span className="st-small block font-bold">지인</span>
+          {d.message}
+        </p>
+      </div>
+      <p className="st-small font-bold">① 어떻게 답할까요?</p>
+      <div className="grid gap-2" role="group" aria-label="답의 뼈대 고르기">
+        {d.skeleton.options.map((o, k) => {
+          const cls = checked ? (k === d.skeleton.correct ? "right" : k === skel ? "wrong" : "") : "";
+          return (
+            <button key={o.label} type="button" className={`st-opt ${cls}`} disabled={checked} aria-pressed={skel === k} onClick={() => onSkel(k)}>
+              <b>{o.label}</b>
+              <span>{o.hint}</span>
+            </button>
+          );
+        })}
+      </div>
+      {skel !== null && (
+        <>
+          <p className="st-small font-bold">② 어떤 근거를 댈까요?</p>
+          <div className="grid gap-2" role="group" aria-label="근거 고르기">
+            {d.evidence.options.map((label, k) => {
+              const cls = checked ? (k === d.evidence.correct ? "right" : k === ev ? "wrong" : "") : "";
+              return (
+                <button key={label} type="button" className={`st-opt ${cls}`} disabled={checked} aria-pressed={ev === k} onClick={() => onEv(k)}>
+                  <b className="text-[14px]">{label}</b>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** 쟁점 문항의 풀이 쪽 — 뼈대와 근거가 각각 맞았는지, 왜 그 뼈대인지, 모범 답변. */
+function DebateAnswer({ item, skel, ev }: { item: StudyItem; skel: number | null; ev: number | null }) {
+  const d = item.debate!;
+  const skelOk = skel === d.skeleton.correct;
+  const evOk = ev === d.evidence.correct;
+  return (
+    <div className="grid gap-2 text-[13.5px] leading-relaxed">
+      <p>
+        {skelOk ? "✅" : "↪️"} 답의 뼈대: <b>{d.skeleton.options[d.skeleton.correct].label}</b>
+        {skel === 3 && " — 다른 이야기로 넘어가면 상대는 답을 피했다고 느껴요."}
+      </p>
+      <p>
+        {evOk ? "✅" : "↪️"} 근거: <b>{d.evidence.options[d.evidence.correct]}</b>
+      </p>
+      <p className="st-small">{d.skeleton.why}</p>
+      <details className="rounded-xl bg-[var(--s-paper)] px-3 py-2">
+        <summary className="cursor-pointer font-bold">모범 답변 보기</summary>
+        <p className="mt-1">{d.response}</p>
+      </details>
     </div>
   );
 }

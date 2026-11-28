@@ -63,14 +63,26 @@ export interface StudyItem {
   unit: string;
   step: StepId;
   skill: Skill;
-  /** ox = O/X(알기), choice = 보기 고르기(가리기부터). */
-  kind: "ox" | "choice";
+  /** ox = O/X(알기), choice = 보기 고르기(가리기부터), debate = 쟁점에 답하기(답하기). */
+  kind: "ox" | "choice" | "debate";
   /** O/X 문항의 문장, 보기 문항의 문장(사실·주장 가리기)이나 질문(숫자 읽기). */
   statement: string;
   /** O/X 문항의 답. 보기 문항은 늘 true다(문장 자체는 근거가 있는 말이다). */
   answer: boolean;
   /** 보기 문항 — 보기와 정답 번호, 어디서 듣는 말인지. */
   choice?: { prompt: string; from?: string; options: Array<{ label: string; hint: string }>; correct: number };
+  /**
+   * 쟁점 문항(4단계 답하기) — 지인 메시지에 ① 답의 뼈대 ② 근거를 고르고 ③ 모범 답변을 본다. 둘 다 맞아야 맞힌 것이다.
+   */
+  debate?: {
+    message: string;
+    skeleton: { options: Array<{ label: string; hint: string }>; correct: number; why: string };
+    evidence: { options: string[]; correct: number };
+    /** 모범 답변 — 위키 반론의 답변 그대로. */
+    response: string;
+    /** 원본 반론 자리. */
+    href: string;
+  };
   explain: string;
   /** 근거 앵커. 하나 이상. */
   anchors: string[];
