@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { track } from "@/lib/analytics";
 
 import { PlantArt } from "./GardenArt";
 import { parseRareKey, RARE_BY_ID, rareImage } from "./slot/rare";
 import { SeedSlot } from "./slot/SeedSlot";
+import { SLOT_OPEN_EVENT, takeSlotRequest } from "./slot/pending";
 import { IsoYard } from "./IsoYard";
 import { YardSheet } from "./YardSheet";
 import { normalizeYard } from "./yard";
@@ -52,7 +53,15 @@ export function Beds({
 }) {
   const { plant, harvest, dig, sell, shine, feed, showFruit } = useGarden.getState();
   const [picking, setPicking] = useState<number | null>(null);
-  const [slotOpen, setSlotOpen] = useState(false);
+  // 잼공 판 끝의 "슬롯 무료 한 번"으로 왔으면 바로 연다(slot/pending.ts).
+  const [slotOpen, setSlotOpen] = useState(() => takeSlotRequest("seed"));
+  useEffect(() => {
+    const on = (e: Event) => {
+      if ((e as CustomEvent<string>).detail === "seed" && takeSlotRequest("seed")) setSlotOpen(true);
+    };
+    window.addEventListener(SLOT_OPEN_EVENT, on);
+    return () => window.removeEventListener(SLOT_OPEN_EVENT, on);
+  }, []);
   const [harvested, setHarvested] = useState<Record<number, number>>({});
   const [selected, setSelected] = useState<number | null>(null);
   /** 마당 꾸미기 중인가, 고른 꾸밈 자리(yard.ts). */

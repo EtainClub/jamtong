@@ -7,6 +7,7 @@ import { ACHIEVEMENTS, getAchievement } from "@/content/achievements";
 import { statementsFor } from "@/content/words";
 import { KIND_LABEL } from "@/content/words/schema";
 import { findScene, validateAchievement, type Achievement } from "@/content/schema";
+import { ACHIEVEMENT_OX } from "@/content/quizzes/ox";
 
 import { AchievementHero } from "@/features/achievement/AchievementHero";
 import { Section } from "@/features/achievement/Section";
@@ -14,6 +15,9 @@ import { ShortsSection } from "@/features/achievement/ShortsSection";
 import { EvidenceStatus } from "@/features/achievement/EvidenceStatus";
 import { QuickCheck } from "@/features/achievement/QuickCheck";
 import { SeedGiftLink } from "@/features/garden/SeedGiftLink";
+import { StudyPracticeLink } from "@/features/study/StudyPracticeLink";
+import { PageQuiz } from "@/features/study/PageQuiz";
+import { pageQuizItems } from "@/features/study/build";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { withArchives } from "@/content/source-archive";
 import { ShareButton } from "@/features/achievement/ShareButton";
@@ -924,9 +928,21 @@ export default async function AchievementPage({ params }: PageProps<"/achievemen
           </section>
         )}
 
-        {achievement.publishStatus === "published" && (
+        {achievement.publishStatus === "published" && (ACHIEVEMENT_OX[achievement.slug]?.length ?? 0) > 0 && (
           <div className="mt-10">
+            <PageQuiz items={pageQuizItems([achievement.slug])} where="achievement" />
+          </div>
+        )}
+
+        {achievement.publishStatus === "published" && (
+          <div className="mt-3">
             <SeedGiftLink speciesId={`a:${achievement.slug}`} title={achievement.title} />
+          </div>
+        )}
+
+        {achievement.publishStatus === "published" && (ACHIEVEMENT_OX[achievement.slug]?.length ?? 0) > 0 && (
+          <div className="mt-3">
+            <StudyPracticeLink slug={achievement.slug} title={achievement.title} />
           </div>
         )}
 

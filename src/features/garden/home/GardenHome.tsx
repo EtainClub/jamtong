@@ -8,6 +8,7 @@ import type { LineDoc } from "@/lib/firebase/ilchon";
 
 import { Dex } from "../Dex";
 import { RoomSlot } from "../slot/RoomSlot";
+import { SLOT_OPEN_EVENT, takeSlotRequest } from "../slot/pending";
 import { AlbumView } from "../album/AlbumView";
 import { requestSnap } from "../album/ClipLink";
 import type { SnapClip } from "../album/snap";
@@ -97,7 +98,15 @@ export function GardenHome({
   const [mottoOpen, setMottoOpen] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState<number | null>(null);
   const [wardrobeOpen, setWardrobeOpen] = useState(false);
-  const [slotOpen, setSlotOpen] = useState(false);
+  // 잼공 판 끝의 "슬롯 무료 한 번"으로 왔으면 바로 연다(slot/pending.ts).
+  const [slotOpen, setSlotOpen] = useState(() => takeSlotRequest("room"));
+  useEffect(() => {
+    const on = (e: Event) => {
+      if ((e as CustomEvent<string>).detail === "room" && takeSlotRequest("room")) setSlotOpen(true);
+    };
+    window.addEventListener(SLOT_OPEN_EVENT, on);
+    return () => window.removeEventListener(SLOT_OPEN_EVENT, on);
+  }, []);
   // 뽑기 기계(docs/garden-slots.md §5) — 방을 열 때 내 증정 상자에서 손님이 받아 간 것을 한 번씩 알린다.
   const hasGacha = data.room.placed.some((p) => p.it === GACHA_ID);
   const hostGid = data.share.on ? data.share.id : null;

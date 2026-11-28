@@ -36,6 +36,7 @@ import {
   WEED,
   WEED_QUIZ_ODDS,
   WEED_QUIZ_PER_DAY,
+  STUDY_JAM,
   WEED_REWARD_PER_DAY,
   WEED_SEED_ODDS,
   withRainbow,
@@ -135,6 +136,10 @@ export interface GardenData {
   weedQuiz?: { day: string; n: number; open: boolean };
   /** 원본 페이지에서 받아 간 선물 씨앗. 품종마다 한 번. */
   gifts: string[];
+  /** 원본 페이지 확인 문제(study/PageQuiz.tsx)를 맞혀 가구 선물을 받은 업적 slug. 업적마다 한 번. 옛 장부에는 없다. */
+  quizPrizes?: string[];
+  /** 잼공 하루 목표를 채우고 잼을 받은 마지막 날(한국 날짜). 하루 한 번. 옛 장부에는 없다. */
+  studyJam?: string;
   /**
    * 내가 업적마다 준 가꿈과 오늘 준 양. 화면용 사본이다 — 정원지기를 가리는
    * 진짜 값은 Firestore의 blooms/{id}/keepers/{uid}에 있고 규칙이 지킨다.
@@ -651,6 +656,17 @@ interface GardenState {
   rollWeedQuiz: () => boolean;
   /** 띄운 퀴즈에 답했다. 맞혔으면 상점 가구 하나를 선물로(가구 표의 것, 같은 확률). 받은 가구, 아니면 null. */
   settleWeedQuiz: (correct: boolean) => Furniture | null;
+  /**
+   * 원본 페이지 확인 문제를 맞힌 선물 — 방 가구 하나(잡초 퀴즈와 같은 선물 풀, 같은 확률). 업적마다 한 번.
+   * itemId는 잼공 문항 id `a:<slug>/<ox id>`. done=이 업적은 이미 받았다, full=받을 수 있는 가구를 다 가졌다, bad=모르는 문항.
+   */
+  claimQuizPrize: (itemId: string) => Furniture | "done" | "full" | "bad";
+  /**
+   * 잼공 하루 목표를 채운 날의 선물 — 잼(STUDY_JAM)과, 고른 슬롯(텃밭 씨앗·방 아이템)의 무료 한 번.
+   * 오늘 날짜만, 하루 한 번. 무료 한 번은 퀴즈 찬스와 같은 칸이고 같은 상한(SLOT_CHANCES_PER_DAY)까지 쌓인다.
+   * 받은 잼과 무료 한 번을 받은 슬롯(상한이면 null), 못 받으면 null.
+   */
+  claimStudyJam: (day: string, machine?: "seed" | "room") => { jam: number; spin: "seed" | "room" | null } | null;
   /**
    * 업적 기념관 — 문제를 맞힌 업적의 기념품을 방에 들인다(docs/garden-achievement-strategy.md §3).
    * 잼으로 사지 않는다. 업적 품종이 품종표에 있고 아직 받지 않았을 때만. 놓인 칸(빈 칸이 없으면 null) 또는 받지 못하면 false.
@@ -1738,6 +1754,29 @@ export const useGarden = create<GardenState>((set, get) => {
       if (n >= WEED_QUIZ_PER_DAY || d.weedQuiz?.open || Math.random() >= WEED_QUIZ_ODDS) return false;
       commit({ ...d, weedQuiz: { day: today, n: n + 1, open: true } });
       return true;
+    },
+
+    claimQuizPrize: (itemId) => {
+      const d = get().data;
+      const m = /^a:([a-z0-9-]+)\/ox[0-9]+$/.exec(itemId);
+      if (!d || !m) return "bad";
+      const slug = m[1];
+      if ((d.quizPrizes ?? []).includes(slug)) return "done";
+      const gift = pickGift(d.room, Math.random);
+      const next = gift ? room.giftItem(d.room, gift.id) : null;
+      if (!gift || !next) return "full";
+      commit({ ...d, room: next, quizPrizes: [...(d.quizPrizes ?? []), slug].slice(-200) });
+      return gift;
+    },
+
+    claimStudyJam: (day, machine) => {
+      const d = get().data;
+      if (!d || day !== kstDay(Date.now()) || d.studyJam === day) return null;
+      const ledger = slot.normalizeSlots(d.slots);
+      const key = machine === "seed" ? "freeSeed" : machine === "room" ? "freeRoom" : null;
+      const spin = key && ledger[key] < slot.SLOT_CHANCES_PER_DAY ? machine! : null;
+      commit({ ...d, jam: d.jam + STUDY_JAM, studyJam: day, ...(spin && key ? { slots: { ...ledger, [key]: ledger[key] + 1 } } : {}) });
+      return { jam: STUDY_JAM, spin };
     },
 
     settleWeedQuiz: (correct) => {

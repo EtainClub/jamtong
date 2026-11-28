@@ -28,6 +28,9 @@ import {
 } from "@/features/cartel/CartelProgress";
 import { Timeline } from "@/features/timeline/Timeline";
 import { CorrectionLink } from "@/features/correction/CorrectionLink";
+import { PageDoors } from "@/features/study/PageDoors";
+import { PageQuiz } from "@/features/study/PageQuiz";
+import { pageQuizItems } from "@/features/study/build";
 import { EvidenceDrawer } from "@/features/evidence/EvidenceDrawer";
 import { withArchives } from "@/content/source-archive";
 import { ShareLinkButton } from "@/features/app/ShareLinkButton";
@@ -152,6 +155,8 @@ export default async function CartelDetailPage({
   ];
 
   const open = isOpen(cartel);
+  // 걸린 업적의 확인 문제(잼공 문항과 같은 것).
+  const quiz = pageQuizItems(cartel.achievementSlugs);
 
   return (
     <>
@@ -339,6 +344,25 @@ export default async function CartelDetailPage({
             <p className="mt-1.5 text-[12px] leading-relaxed text-ash">{cartel.sourceNote}</p>
           </section>
         )}
+
+        {/* 다 읽은 사람에게 — 걸린 업적에서 확인 문제 하나, 잼공·정원으로 가는 문. 카르텔 카드는 정원 방 꾸미기 슬롯에서만 나온다. */}
+        {quiz.length > 0 && <div className="mt-10"><PageQuiz items={quiz} where="cartel" heading="이 카르텔에 걸린 일, 맞는 말일까요?" inset={false} /></div>}
+        <PageDoors study={{}} className={quiz.length > 0 ? "mt-3" : "mt-10"} inset={false} />
+        <div className="mt-3">
+          <Link
+            href="/garden?tab=room"
+            className="flex items-center gap-3 rounded-card border border-stone bg-taupe/60 px-4 py-3 text-[13px] text-graphite transition-colors hover:border-graphite"
+          >
+            <span className="text-xl" aria-hidden>
+              🎯
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-ink">「{cartel.name}」 카르텔 카드 모으기</span>
+              <span className="text-[12px] text-smoke">잼통 정원 내 방의 🎰 방 꾸미기 슬롯머신에서만 나오는 카드예요. 방에 놓고 누르면 이 페이지의 요약을 볼 수 있어요.</span>
+            </span>
+            <span aria-hidden>→</span>
+          </Link>
+        </div>
 
         <CorrectionLink
           page={`/cartel/${cartel.slug}`}

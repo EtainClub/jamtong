@@ -18,8 +18,11 @@ const LINKS = [
   /* 처음 온 사람이 가장 먼저 찾을 것. 홈 바로 다음에 둔다. */
   { href: "/guide", label: "처음 오셨나요 · 둘러보기" },
   { href: "/explore", label: "업적" },
+  /* 하단 탭에서 잼공에 자리를 내주고 여기로 왔다(업적 탭 아래이기도 하다). */
+  { href: "/wiki", label: "위키 · AI에게 묻기" },
+  { href: "/study", label: "잼공 · 매일 공부 📖" },
   { href: "/words", label: "이재명 대통령의 언행" },
-  /* 하단 탭에서 위키에 자리를 내주고 여기로 왔다. */
+  /* 하단 탭에서 위키에 자리를 내주고 여기로 왔다(위키는 그 뒤 잼공에 자리를 내줬다). */
   { href: "/timeline", label: "타임라인" },
   { href: "/garden", label: "잼통 정원 🌱" },
   { href: "/novels/immunity", label: "소설 보기 · 《면역》" },

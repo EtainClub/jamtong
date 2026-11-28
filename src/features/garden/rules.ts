@@ -516,6 +516,12 @@ export const WEED_QUIZ_ODDS = 0.16;
 export const WEED_QUIZ_PER_DAY = 20;
 
 /**
+ * 잼공(docs/daily-study.md §7) 하루 목표를 채운 날 정원에서 받는 잼. 하루 한 번(GardenData.studyJam).
+ * 공부가 잼 채굴이 되지 않게 작게 둔다 — 씨앗 몇 알 값이다.
+ */
+export const STUDY_JAM = 30;
+
+/**
  * 뽑은 칸에 잡초가 다시 날 때까지(분).
  *
  * 오늘 광장에 온 사람이 적을수록 천천히 자란다. 한두 명이 들러도 지킬 수

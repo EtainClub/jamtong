@@ -11,6 +11,8 @@ import type { Furniture } from "../room/catalog";
 import { josa, WEED_QUIZ_ODDS, WEED_QUIZ_PER_DAY } from "../rules";
 import { Sheet } from "../Sheet";
 import { useGarden } from "../store";
+import { useStudy } from "@/features/study/store";
+
 import { giftPool, type OxQuiz } from "./ox";
 
 /**
@@ -27,6 +29,8 @@ export function WeedQuiz({ quiz, onClose, say }: { quiz: OxQuiz; onClose: () => 
     setPicked(yes);
     const ok = yes === quiz.answer;
     track("weed_quiz", { slug: quiz.slug, answer: ok });
+    // 잼공과 같은 문항 — 정원에서 푼 것도 잼공 상자·근거노트에 쌓인다.
+    useStudy.getState().answer(quiz.item, ok, quiz.answer);
     const got = useGarden.getState().settleWeedQuiz(ok);
     if (ok && got) {
       setGift(got);
@@ -67,6 +71,9 @@ export function WeedQuiz({ quiz, onClose, say }: { quiz: OxQuiz; onClose: () => 
             <p className="mt-1">{quiz.explain}</p>
             <Link href={quiz.href} className="mt-1 inline-flex min-h-[44px] items-center font-semibold underline underline-offset-2">
               「{quiz.title}」 근거 보기 →
+            </Link>
+            <Link href={`/study?unit=${encodeURIComponent(quiz.slug)}`} className="ml-3 inline-flex min-h-[44px] items-center font-semibold underline underline-offset-2">
+              📖 잼공에서 이 단원 공부하기
             </Link>
             {gift && (
               <p className="mt-1 flex items-center gap-2 rounded-xl bg-white px-3 py-2">

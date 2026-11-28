@@ -218,7 +218,22 @@ export type AnalyticsEvent =
   | "cheer_agree"
   | "cheer_echo"
   | "cheer_video_post"
-  | "cheer_seed";
+  | "cheer_seed"
+  /** 잼공을 열었다(docs/daily-study.md). streak=이어 간 날, due=다시 볼 문항 수. */
+  | "study_open"
+  /** 잼공 한 판을 마쳤다. size=문항 수, right=바로 맞힌 수, mode: daily | unit. 사람이 쓴 글은 보내지 않는다. */
+  | "study_finish"
+  /**
+   * 원본 페이지 끝의 확인 문제(study/PageQuiz.tsx) — 풀었다(where, slug, correct), 정원 선물로 갔다, 잼공으로 갔다.
+   * 정원에서 그 선물을 받았다(garden_quiz_prize), 잼공 하루 목표의 잼을 받았다(garden_study_jam).
+   */
+  | "page_quiz"
+  | "page_quiz_prize"
+  | "page_quiz_study"
+  | "garden_quiz_prize"
+  | "garden_study_jam"
+  /** 잼공 판 끝의 정원 선물 링크를 눌렀다(kind jam|seed). */
+  | "study_perk";
 
 type Params = Record<string, string | number | boolean>;
 

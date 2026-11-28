@@ -7,6 +7,9 @@ import { KIND_LABEL } from "@/content/words/schema";
 import { getAchievement } from "@/content/achievements";
 import { BackButton } from "@/features/app/BackButton";
 import { CorrectionLink } from "@/features/correction/CorrectionLink";
+import { PageDoors } from "@/features/study/PageDoors";
+import { PageQuiz } from "@/features/study/PageQuiz";
+import { pageQuizItems } from "@/features/study/build";
 import { JsonLd, articleLd, breadcrumbLd } from "@/lib/seo/jsonld";
 import { BottomNav } from "@/features/app/BottomNav";
 import { ShareLinkButton } from "@/features/app/ShareLinkButton";
@@ -66,6 +69,7 @@ export default async function StatementPage({
     const found = getAchievement(s);
     return found && found.publishStatus === "published" ? [found] : [];
   });
+  const wordsQuiz = pageQuizItems(related.map((a) => a.slug));
 
   return (
     <>
@@ -192,6 +196,14 @@ export default async function StatementPage({
             </ul>
           </section>
         )}
+
+        {/* 다 읽은 사람에게 — 맞물리는 업적에서 확인 문제 하나, 이 언행의 씨앗, 잼공. */}
+        {wordsQuiz.length > 0 && (
+          <div className="mt-10">
+            <PageQuiz items={wordsQuiz} where="words" heading="이 말과 맞물리는 업적, 맞는 말일까요?" inset={false} />
+          </div>
+        )}
+        <PageDoors seed={`w:${statement.slug}`} study={{}} className={wordsQuiz.length > 0 ? "mt-3" : "mt-10"} inset={false} />
 
         <div className="mt-10">
           <CorrectionLink

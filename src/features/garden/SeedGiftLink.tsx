@@ -7,9 +7,9 @@ import Link from "next/link";
  *   정보 페이지는 게임이 가리지 않는다(docs/garden-game.md §1). 다 읽은 사람에게
  *   "이것도 키워 볼래요?"를 건네는 자리이지, 읽기 전에 끼어드는 자리가 아니다.
  */
-export function SeedGiftLink({ speciesId, title }: { speciesId: string; title: string }) {
+export function SeedGiftLink({ speciesId, title, inset = true }: { speciesId: string; title: string; /** 바깥 여백(넓은 페이지용). 이미 여백이 있는 좁은 본문에서는 false. */ inset?: boolean }) {
   return (
-    <div className="mx-auto max-w-5xl px-5">
+    <div className={inset ? "mx-auto max-w-5xl px-5" : ""}>
       <Link
         href={`/garden?gift=${encodeURIComponent(speciesId)}`}
         className="flex items-center gap-3 rounded-card border border-stone bg-taupe/60 px-4 py-3 text-[13px] text-graphite transition-colors hover:border-graphite"

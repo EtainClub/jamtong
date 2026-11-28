@@ -6,6 +6,8 @@ import { useState } from "react";
 import { track } from "@/lib/analytics";
 
 import { gardenFeedback } from "../feedback";
+import { useStudy } from "@/features/study/store";
+
 import { makeOx, type OxQuiz } from "../memorial/ox";
 import { useMemorial } from "../memorial/useMemorial";
 import { kstDay } from "../rules";
@@ -59,6 +61,8 @@ export function QuizChance({ machine, now, say }: { machine: "seed" | "room"; no
               setPicked(yes);
               const ok = yes === quiz.answer;
               track("slot_chance", { machine, correct: ok, slug: quiz.slug });
+              // 잼공과 같은 문항 — 정원에서 푼 것도 잼공 상자·근거노트에 쌓인다.
+              useStudy.getState().answer(quiz.item, ok, quiz.answer);
               if (ok) {
                 useGarden.getState().winSlotChance(machine);
                 gardenFeedback("reward");
@@ -76,6 +80,9 @@ export function QuizChance({ machine, now, say }: { machine: "seed" | "room"; no
           <p className="mt-0.5">{quiz.explain}</p>
           <Link href={quiz.href} className="mt-0.5 inline-flex min-h-[36px] items-center font-semibold underline underline-offset-2">
             「{quiz.title}」 근거 보기 →
+          </Link>
+          <Link href={`/study?unit=${encodeURIComponent(quiz.slug)}`} className="ml-3 inline-flex min-h-[36px] items-center font-semibold underline underline-offset-2">
+            📖 잼공에서 공부하기
           </Link>
           <button type="button" className="ml-3 text-[12px] underline underline-offset-2 opacity-75" onClick={() => { setQuiz(null); setPicked(null); }}>
             닫기
