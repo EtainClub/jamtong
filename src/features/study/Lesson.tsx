@@ -7,6 +7,9 @@ import { track } from "@/lib/analytics";
 import Link from "next/link";
 
 import { EvidenceCardView } from "./EvidenceCardView";
+import { flushStudy } from "./flush";
+import { markFromStudy } from "./fromStudy";
+import { GoalGift } from "./GoalGift";
 import { Jamtongi } from "./Jamtongi";
 import { kstDay, stepDone } from "./rules";
 import { useStudy } from "./store";
@@ -114,6 +117,19 @@ export function Lesson({
     setChecked(false);
   };
 
+  // 판 끝 「좋아요」 — 오늘 목표를 채웠는데 정원 선물을 받으러 가지 않았으면 한 번 묻는다.
+  const [askLeave, setAskLeave] = useState(false);
+  const [dayNow] = useState(() => kstDay(Date.now()));
+  const perkDay = useStudy((s) => s.data?.perkDay);
+  const leave = () => {
+    const goalMet = doneToday !== null && doneToday >= goal;
+    if (mode !== "intro" && goalMet && perkDay !== dayNow && !askLeave) {
+      setAskLeave(true);
+      return;
+    }
+    onClose();
+  };
+
   const pct = Math.round(((at + (checked ? 1 : 0)) / Math.max(1, queue.length)) * 100);
 
   return (
@@ -166,10 +182,27 @@ export function Lesson({
               )}
             </div>
             <div className="st-foot">
-              <button type="button" className="st-btn st-btn-jam" onClick={onClose}>
+              <button type="button" className="st-btn st-btn-jam" onClick={leave}>
                 좋아요
               </button>
             </div>
+            {askLeave && (
+              <div className="st-confirm" role="dialog" aria-modal="true" aria-label="정원 선물을 아직 안 받았어요">
+                <div>
+                  <div className="flex items-end gap-2.5">
+                    <Jamtongi mood="think" size={44} />
+                    <p className="st-bubble">
+                      <b>정원 선물을 아직 안 받았어요!</b> 잼 30과 슬롯머신 무료 한 번은 오늘이 지나면 받을 수 없어요.
+                    </p>
+                  </div>
+                  <GoalGift today={dayNow} compact />
+                  <button type="button" className="st-btn st-btn-line w-full" onClick={onClose}>
+                    받지 않고 닫기
+                  </button>
+                  <p className="st-small text-center">오늘 안에는 교실 화면에서도 받을 수 있어요.</p>
+                </div>
+              </div>
+            )}
           </>
         ) : item ? (
           <>
@@ -222,12 +255,6 @@ export function Lesson({
                 })}
               </div>
               )}
-              {!checked && (
-                <div className="mt-auto flex items-end gap-2.5">
-                  <Jamtongi mood="think" size={44} />
-                  <div className="st-bubble">근거는 언제나 원본 자료에서 와요. 틀려도 괜찮아요, 풀이를 같이 봐요.</div>
-                </div>
-              )}
             </div>
             <div className={`st-foot ${checked ? (ok ? "good" : "hint") : ""}`} aria-live="polite">
               {checked ? (
@@ -258,6 +285,13 @@ export function Lesson({
                 </button>
               )}
             </div>
+            {/* 응원 말풍선은 확인 버튼 아래 — 문제와 버튼 사이를 벌리지 않는다. */}
+            {!checked && (
+              <div className="flex items-end gap-2.5 px-4 pt-6 pb-4">
+                <Jamtongi mood="think" size={40} />
+                <div className="st-bubble">근거는 언제나 원본 자료에서 와요. 틀려도 괜찮아요, 풀이를 같이 봐요.</div>
+              </div>
+            )}
           </>
         ) : null}
       </div>
@@ -279,21 +313,20 @@ function GardenPerks({ bank, ids, goalMet }: { bank: StudyBank; ids: string[]; g
   const known = bank.units.filter((u) => unitIds.includes(u.id) && stepDone(bank.items.filter((i) => i.unit === u.id), boxes, "know")).slice(0, 2);
   if (!goalMet && known.length === 0) return null;
   return (
-    <div className="grid w-full gap-1.5 text-left">
-      <p className="st-eyebrow">잼통 정원 선물</p>
-      {goalMet && (
-        <>
-          <p className="st-small">🎯 오늘 목표 채움 — 잼 30과 슬롯머신 무료 한 번(하루 한 번). 어느 슬롯을 돌릴까요?</p>
-          <Link className="st-link" href={`/garden?study=${today}&spin=seed`} onClick={() => track("study_perk", { kind: "seed-slot" })}>
-            🌱 텃밭 씨앗 슬롯 돌리기 — 씨앗·희귀 씨앗 →
-          </Link>
-          <Link className="st-link" href={`/garden?study=${today}&spin=room`} onClick={() => track("study_perk", { kind: "room-slot" })}>
-            🛋 방 꾸미기 슬롯 돌리기 — 가구·벽지·음원·카르텔 카드 →
-          </Link>
-        </>
-      )}
+    <div className="grid w-full gap-2 text-left">
+      {/* 하루 목표 선물은 크게(GoalGift). 작은 링크로 두었더니 그냥 지나쳤다. */}
+      {goalMet && <GoalGift today={today} />}
       {known.map((u) => (
-        <Link key={u.id} className="st-link" href={`/garden?gift=${encodeURIComponent(u.id)}`} onClick={() => track("study_perk", { kind: "seed" })}>
+        <Link
+          key={u.id}
+          className="st-link"
+          href={`/garden?gift=${encodeURIComponent(u.id)}`}
+          onClick={() => {
+            flushStudy();
+            markFromStudy();
+            track("study_perk", { kind: "seed" });
+          }}
+        >
           🌱 「{u.title}」 알기 마침 — 정원에서 그 씨앗 받기(품종마다 한 번) →
         </Link>
       ))}

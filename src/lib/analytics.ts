@@ -237,7 +237,9 @@ export type AnalyticsEvent =
   /** 잼공 첫 3분의 첫 문제에 답했다. correct. 첫 화면에서 떠나는지 본다(docs/jamgong-roadmap.md §4). */
   | "study_first"
   /** 다음 단계 초대에 답했다. level, accept. */
-  | "study_level";
+  | "study_level"
+  /** 정원에서 「잼공으로 돌아가기」를 눌렀다(잼공 판 끝 선물로 왔을 때만 뜬다). */
+  | "garden_back_study";
 
 type Params = Record<string, string | number | boolean>;
 

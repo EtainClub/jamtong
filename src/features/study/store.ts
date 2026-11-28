@@ -36,6 +36,8 @@ export interface StudyData {
   declinedOn?: string;
   /** 마지막으로 고친 때(ms). 설정을 합칠 때 늦은 쪽을 따른다. */
   updatedAt?: number;
+  /** 하루 목표 선물(정원 슬롯)을 받으러 간 날. 그날은 "아직 안 받았어요"를 묻지 않는다. */
+  perkDay?: string;
 }
 
 const STORAGE_KEY = "jamgong-v1";
@@ -93,6 +95,8 @@ interface StudyState {
   /** 초대를 거절했다 — 14일 뒤에 다시 묻는다. */
   declineInvite: () => void;
   setStay: (stay: boolean) => void;
+  /** 하루 목표 선물을 받으러 정원으로 간다. */
+  markPerk: (day: string) => void;
 }
 
 export const useStudy = create<StudyState>((set, get) => {
@@ -130,5 +134,6 @@ export const useStudy = create<StudyState>((set, get) => {
     levelUp: (level) => update((d) => ({ ...d, level: Math.max(d.level ?? 1, level) as Level, declinedOn: undefined })),
     declineInvite: () => update((d) => ({ ...d, declinedOn: today() })),
     setStay: (stay) => update((d) => ({ ...d, stay })),
+    markPerk: (day) => update((d) => ({ ...d, perkDay: day })),
   };
 });

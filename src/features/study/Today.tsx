@@ -6,6 +6,7 @@ import { useState } from "react";
 import { track } from "@/lib/analytics";
 
 import { EvidenceCardView } from "./EvidenceCardView";
+import { GoalGift } from "./GoalGift";
 import { Jamtongi, Say } from "./Jamtongi";
 import { inviteFor, pickLevelSession } from "./levels";
 import { addDays, currentUnit, GOALS, isDue, kstDay, STAGE_ICON, unitStage, weekOf, type Streak } from "./rules";
@@ -74,6 +75,9 @@ export function Today({
       <Say mood={goalMet ? "cheer" : "smile"} size={56}>
         {greet}
       </Say>
+
+      {/* 오늘 목표를 채웠는데 정원 선물을 받으러 가지 않았으면 — 판 끝에서 닫았어도 오늘 안에는 여기서 받는다. */}
+      {goalMet && data.perkDay !== today && <GoalGift today={today} />}
 
       {askGoal && (
         <div className="st-card grid gap-2">
