@@ -143,7 +143,12 @@ export type AnalyticsEvent =
   | "slot_chance"
   | "slot_note"
   | "slot_pot"
+  /** 남의 방 뽑기 기계를 돌렸다(outcome win|miss, item). */
   | "gacha_guest"
+  /** 내 뽑기 기계의 증정 상자에 넣거나 꺼냈다(action put|take, item). */
+  | "gift_box"
+  /** 보관함의 가구를 상점에 팔았다(item, jam). */
+  | "item_sell"
   | "rare_harvest"
   /** 방의 카르텔 카드(슬롯 전용)를 눌렀다(slug), 카드에서 카르텔 페이지로 갔다(slug). */
   | "cartel_card_open"

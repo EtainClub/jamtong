@@ -548,9 +548,9 @@ interface GardenState {
   spinSeedSlot: (
     catalog: Species[],
     rand?: () => number,
-    /** paid=잼을 낸다, free=퀴즈 찬스로 받은 무료 한 번, guest=남의 방 뽑기 기계(그 방의 공개 id) — 하루 한 번 무료. */
-    mode?: "paid" | "free" | { guest: string },
-  ) => { spin: slot.SeedSpin; got: Array<{ species: Species; rare?: string }>; paid: number } | "jam" | "done" | "no-free" | "guest-done";
+    /** paid=잼을 낸다, free=퀴즈 찬스로 받은 무료 한 번. */
+    mode?: "paid" | "free",
+  ) => { spin: slot.SeedSpin; got: Array<{ species: Species; rare?: string }>; paid: number } | "jam" | "done" | "no-free";
   /** 미니룸 아이템 슬롯을 한 번 돌린다. 진열이 비었으면 "empty". */
   spinRoomSlot: (rand?: () => number, mode?: "paid" | "free") => { spin: slot.RoomSpin; table: slot.RoomRow[]; paid: number } | "jam" | "done" | "empty" | "no-free";
   /** 퀴즈 찬스를 하나 쓴다(문항을 여는 순간). 오늘 다 썼으면 false. */
@@ -559,8 +559,16 @@ interface GardenState {
   winSlotChance: (machine: "seed" | "room") => void;
   /** 잼 항아리 몫을 받는다(물결마다 한 번). 받았으면 true. */
   claimPot: (key: number, jam: number) => boolean;
-  /** 내 뽑기 기계를 돌려 본 손님(uid)에게서 주인 몫 잼을 받는다. 받은 잼과 처음 본 손님 수. */
-  claimGachaHost: (visitors: string[]) => { jam: number; count: number } | null;
+  /** 보관함의 가구 하나를 상점에 판다(slot/gift.ts의 sellPrice). 받은 잼, 못 팔면 null. */
+  sellFurniture: (id: string) => number | null;
+  /** 내 뽑기 기계의 증정 상자에 넣는다 — 보관함에서 하나 뺀다(공개 방에 먼저 올린 뒤에 부른다). */
+  boxGift: (id: string) => boolean;
+  /** 증정 상자에서 하나 꺼내 보관함으로 되돌린다(공개 방에서 먼저 뺀 뒤에 부른다). */
+  unboxGift: (id: string) => boolean;
+  /** 남의 방 뽑기 기계에서 받은 아이템을 보관함에 넣는다. 가진 수 상한이면 false. */
+  receiveGift: (id: string) => boolean;
+  /** 내 증정 상자에서 손님이 받아 간 것을 본 때까지 적는다(알림을 한 번씩만). */
+  seeGiftWins: (at: number) => void;
   /** 희귀 씨앗을 심는다(주머니 열쇠 key = `희귀 씨앗|품종`). */
   plantRare: (bed: number, key: string, species: Species, plaza: PlazaLevel) => void;
   /** 필살기를 산다. 잼이 모자라거나 오늘 상한에 닿았으면 false. */
@@ -1220,9 +1228,7 @@ export const useGarden = create<GardenState>((set, get) => {
       if (mode === "paid") {
         if (slot.spinsLeft(ledger, "seed", today) <= 0) return "done";
         if (d.jam < slot.SEED_SPIN_COST) return "jam";
-      } else if (mode === "free") {
-        if (ledger.freeSeed <= 0) return "no-free";
-      } else if (slot.guestCanSpin(ledger, mode.guest, today) !== "ok") return "guest-done";
+      } else if (ledger.freeSeed <= 0) return "no-free";
       const spin = slot.spinSeed(ledger.seedPity, rand);
       const of = (tier: Species["tier"]) => {
         const list = catalog.filter((x) => x.tier === tier);
@@ -1249,12 +1255,7 @@ export const useGarden = create<GardenState>((set, get) => {
         }
       }
       const paid = mode === "paid" ? slot.SEED_SPIN_COST : 0;
-      const counted =
-        mode === "paid"
-          ? { seed: ledger.seed + 1 }
-          : mode === "free"
-            ? { freeSeed: ledger.freeSeed - 1 }
-            : { guestRooms: [...ledger.guestRooms, mode.guest] };
+      const counted = mode === "paid" ? { seed: ledger.seed + 1 } : { freeSeed: ledger.freeSeed - 1 };
       commit({
         ...d,
         jam: d.jam - paid,
@@ -1336,13 +1337,45 @@ export const useGarden = create<GardenState>((set, get) => {
       return true;
     },
 
-    claimGachaHost: (visitors) => {
+    sellFurniture: (id) => {
       const d = get().data;
       if (!d) return null;
-      const got = slot.hostJam(slot.normalizeSlots(d.slots), visitors, kstDay(Date.now()));
+      const got = room.sellItem(d.room, id);
       if (!got) return null;
-      commit({ ...d, jam: d.jam + got.jam, slots: got.ledger });
-      return { jam: got.jam, count: got.fresh.length };
+      commit({ ...d, jam: d.jam + got.jam, room: got.room });
+      return got.jam;
+    },
+
+    boxGift: (id) => {
+      const d = get().data;
+      const next = d && room.takeForGift(d.room, id);
+      if (!d || !next) return false;
+      commit({ ...d, room: next });
+      return true;
+    },
+
+    unboxGift: (id) => {
+      const d = get().data;
+      const next = d && room.giftItem(d.room, id);
+      if (!d || !next) return false;
+      commit({ ...d, room: next });
+      return true;
+    },
+
+    receiveGift: (id) => {
+      const d = get().data;
+      const next = d && FURNITURE_BY_ID.has(id) ? room.giftItem(d.room, id) : null;
+      if (!d || !next) return false;
+      commit({ ...d, room: next });
+      return true;
+    },
+
+    seeGiftWins: (at) => {
+      const d = get().data;
+      if (!d) return;
+      const ledger = slot.normalizeSlots(d.slots);
+      if (at <= ledger.giftSeen) return;
+      commit({ ...d, slots: { ...ledger, giftSeen: at } });
     },
 
     plantRare: (bed, key, species, plaza) => {

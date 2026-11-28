@@ -16,8 +16,8 @@ import { RARE_SEEDS, type RareSeedId } from "./rare";
 export const SLOT_SPINS_PER_DAY = 20;
 
 /**
- * 슬롯 장부. day가 오늘이 아니면 오늘치(seed·room·chance·guestRooms·hostSeen)는 0부터 다시 센다(ofToday).
- * 천장·무료 한 번·잼 항아리 받은 물결은 날을 넘어 이어진다.
+ * 슬롯 장부. day가 오늘이 아니면 오늘치(seed·room·chance)는 0부터 다시 센다(ofToday).
+ * 천장·무료 한 번·잼 항아리 받은 물결·증정 알림을 본 때는 날을 넘어 이어진다.
  */
 export interface SlotLedger {
   day: string;
@@ -32,22 +32,19 @@ export interface SlotLedger {
   /** 퀴즈 찬스로 받은 무료 한 번(텃밭·방). */
   freeSeed: number;
   freeRoom: number;
-  /** 오늘 손님으로 무료로 돌려 본 방(공개 id). */
-  guestRooms: string[];
-  /** 오늘 내 뽑기 기계를 돌려 보고 간 손님(uid) — 주인 몫 잼을 한 번씩. */
-  hostSeen: string[];
+  /** 내 뽑기 기계에서 손님이 받아 간 것을 본 때(ms) — 이 뒤의 것만 알린다(slot/gift.ts). */
+  giftSeen: number;
   /** 잼 항아리를 받은 물결(raidKey). */
   pots: number[];
 }
 
 export function freshSlots(): SlotLedger {
-  return { day: "", seed: 0, room: 0, seedPity: 0, roomPity: 0, chance: 0, freeSeed: 0, freeRoom: 0, guestRooms: [], hostSeen: [], pots: [] };
+  return { day: "", seed: 0, room: 0, seedPity: 0, roomPity: 0, chance: 0, freeSeed: 0, freeRoom: 0, giftSeen: 0, pots: [] };
 }
 
 export function normalizeSlots(raw: unknown): SlotLedger {
   const r = (raw && typeof raw === "object" ? raw : {}) as Partial<SlotLedger>;
   const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0);
-  const strs = (v: unknown, max: number) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").slice(-max) : []);
   return {
     day: typeof r.day === "string" ? r.day : "",
     seed: n(r.seed),
@@ -57,15 +54,14 @@ export function normalizeSlots(raw: unknown): SlotLedger {
     chance: n(r.chance),
     freeSeed: Math.min(n(r.freeSeed), SLOT_CHANCES_PER_DAY),
     freeRoom: Math.min(n(r.freeRoom), SLOT_CHANCES_PER_DAY),
-    guestRooms: strs(r.guestRooms, GUEST_SPINS_PER_DAY),
-    hostSeen: strs(r.hostSeen, 100),
+    giftSeen: n(r.giftSeen),
     pots: Array.isArray(r.pots) ? r.pots.filter((x): x is number => Number.isInteger(x)).slice(-60) : [],
   };
 }
 
 /** 오늘의 장부 — 날이 바뀌었으면 오늘치를 비운다. */
 export function ofToday(ledger: SlotLedger, today: string): SlotLedger {
-  return ledger.day === today ? ledger : { ...ledger, day: today, seed: 0, room: 0, chance: 0, guestRooms: [], hostSeen: [] };
+  return ledger.day === today ? ledger : { ...ledger, day: today, seed: 0, room: 0, chance: 0 };
 }
 
 // ── 퀴즈 찬스 ───────────────────────────────────────────────────────
@@ -101,30 +97,8 @@ export function potReward(sum: number, fighters: number): number {
 
 // ── 방에 놓는 뽑기 기계 ─────────────────────────────────────────────
 
-/** 가구 id. 방에 놓으면 손님이 하루 한 번 무료로 씨앗 슬롯을 돌려 본다. */
+/** 가구 id. 방에 놓으면 주인이 고른 증정 상자에서 손님이 하루 한 번 돌려 받는다(slot/gift.ts). */
 export const GACHA_ID = "gacha";
-/** 손님이 하루에 무료로 돌려 볼 수 있는 방 수(방을 옮겨 다니며 씨앗을 모으는 것을 막는다). */
-export const GUEST_SPINS_PER_DAY = 5;
-/** 주인이 받는 잼 — 손님 한 명마다, 하루 상한. */
-export const HOST_JAM = 10;
-export const HOST_JAM_DAY = 50;
-
-export function guestCanSpin(ledger: SlotLedger, gid: string, today: string): "ok" | "done-here" | "done-today" {
-  const t = ofToday(ledger, today);
-  if (t.guestRooms.includes(gid)) return "done-here";
-  if (t.guestRooms.length >= GUEST_SPINS_PER_DAY) return "done-today";
-  return "ok";
-}
-
-/** 주인 몫 — 오늘 처음 보는 손님마다 HOST_JAM, 하루 HOST_JAM_DAY까지. */
-export function hostJam(ledger: SlotLedger, visitors: readonly string[], today: string): { jam: number; fresh: string[]; ledger: SlotLedger } | null {
-  const t = ofToday(ledger, today);
-  const fresh = [...new Set(visitors)].filter((u) => !t.hostSeen.includes(u));
-  if (fresh.length === 0) return null;
-  const room = Math.max(0, HOST_JAM_DAY - t.hostSeen.length * HOST_JAM);
-  const jam = Math.min(room, fresh.length * HOST_JAM);
-  return { jam, fresh, ledger: { ...t, hostSeen: [...t.hostSeen, ...fresh] } };
-}
 
 // ── 희귀 씨앗 컬렉션 ───────────────────────────────────────────────
 

@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { loadGachaVisits } from "@/lib/firebase/slot";
-import { GACHA_ID } from "../slot/rules";
-import { kstDayNumber } from "../rules";
+import { loadGiftWins } from "@/lib/firebase/slot";
+import { GACHA_ID, normalizeSlots } from "../slot/rules";
 
 import type { LineDoc } from "@/lib/firebase/ilchon";
 
@@ -99,22 +98,28 @@ export function GardenHome({
   const [keyboardOpen, setKeyboardOpen] = useState<number | null>(null);
   const [wardrobeOpen, setWardrobeOpen] = useState(false);
   const [slotOpen, setSlotOpen] = useState(false);
-  // 뽑기 기계(docs/garden-slots.md) — 방을 열 때 오늘 돌려 보고 간 손님을 읽어 주인 몫 잼을 받는다(손님 한 명 10, 하루 50).
+  // 뽑기 기계(docs/garden-slots.md §5) — 방을 열 때 내 증정 상자에서 손님이 받아 간 것을 한 번씩 알린다.
   const hasGacha = data.room.placed.some((p) => p.it === GACHA_ID);
   const hostGid = data.share.on ? data.share.id : null;
   useEffect(() => {
     const gid = hostGid;
     if (!hasGacha || !gid || !uid) return;
     let alive = true;
-    loadGachaVisits(gid, kstDayNumber(Date.now()))
+    loadGiftWins(gid)
       .then((list) => {
         if (!alive) return;
-        const got = useGarden.getState().claimGachaHost(list.filter((v) => v.uid !== uid).map((v) => v.uid));
-        if (!got) return;
-        const names = list.slice(0, 2).map((v) => v.nick).join(", ");
-        say(`🎰 ${names}${got.count > 2 ? ` 외 ${got.count - 2}명` : ""}님이 뽑기 기계를 돌려 보고 갔어요${got.jam ? ` · 잼 +${got.jam}` : ""}`);
+        const store = useGarden.getState();
+        const seen = normalizeSlots(store.data?.slots).giftSeen;
+        const fresh = list.filter((w) => w.at > seen && w.uid !== uid);
+        if (fresh.length === 0) return;
+        store.seeGiftWins(Math.max(...fresh.map((w) => w.at)));
+        const got = fresh.filter((w) => w.it);
+        if (got.length === 0) return say(`🎰 손님 ${fresh.length}명이 뽑기 기계를 돌려 보고 갔어요`);
+        const first = got[0];
+        const more = got.length > 1 ? ` 외 ${got.length - 1}명` : "";
+        say(`🎁 ${first.nick}님${more}이 뽑기 기계에서 ${FURNITURE_BY_ID.get(first.it)?.label ?? "아이템"}${got.length > 1 ? " 등" : ""}을 받아 갔어요`);
       })
-      .catch((e) => console.error("[gacha] 손님 표식을 읽지 못했다", e));
+      .catch((e) => console.error("[gift] 받아 간 기록을 읽지 못했다", e));
     return () => {
       alive = false;
     };

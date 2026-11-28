@@ -475,19 +475,44 @@ service cloud.firestore {
        *                  받기는 방명록 설정을 따른다(주인은 언제나). 사진이 있고 댓글을 끄지 않았을 때만.
        *   photoScraps    퍼감 표식. 남의 열린 방의 사진에 한 번(id = uid_사진). 내 정원의 순간(m:)은 퍼가지 못한다.
        */
-      // 방의 뽑기 기계(slot/rules.ts의 GACHA_ID) — 손님이 오늘 돌려 봤다는 표식. 남의 열린 방에 하루 한 번.
-      match /slotVisits/{uid} {
+      /*
+       * 방의 뽑기 기계(slot/gift.ts) — 주인이 고른 아이템을 손님에게 증정하는 슬롯.
+       *   giftBox/stock    증정 상자 {items: {가구 id: 수}, at}. 주인이 넣고 뺀다(가지 수 20·한 가지 99 — gift.ts와 같다).
+       *                    손님은 giftWins에 오늘 받은 그것을 적는 같은 쓰기(트랜잭션)에서만, 그것 하나를 하나만 뺀다.
+       *   giftWins/{uid}   손님이 돌린 마지막 기록 {day, it(꽝이면 ""), n, at}. 남의 열린 방에 하루 한 번.
+       * 결과(당첨·무엇)는 손님의 화면이 정한다 — 규칙은 하루 한 번과 상자에 있던 것 하나만 나갔는지를 본다.
+       */
+      match /giftBox/{box} {
+        allow read: if box == 'stock' && (roomVisible(gid) || isGardenOwner(gid) || isAdmin());
+        allow create, update: if box == 'stock' && isGardenOwner(gid)
+          && request.resource.data.keys().hasOnly(['items', 'at'])
+          && request.resource.data.items is map
+          && request.resource.data.items.size() <= 20
+          && request.resource.data.at == request.time;
+        allow update: if box == 'stock' && request.auth != null
+          && roomOpenToMe(gid)
+          && !exists(blockPath(gid, request.auth.uid))
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['items'])
+          && giftTaken(gid, resource.data.items, request.resource.data.items);
+        allow delete: if box == 'stock' && isGardenOwner(gid);
+      }
+
+      match /giftWins/{uid} {
         allow read: if request.auth != null
           && (request.auth.uid == uid || isGardenOwner(gid));
         allow create, update: if request.auth != null
           && request.auth.uid == uid
-          && request.resource.data.keys().hasOnly(['day', 'nick', 'at'])
+          && request.resource.data.keys().hasOnly(['day', 'it', 'n', 'at'])
           && request.resource.data.day == kstDayNumber()
           && request.resource.data.at == request.time
-          && nickOk(request.resource.data.nick)
+          && request.resource.data.it is string
+          && nickOk(request.resource.data.n)
           && (resource == null || resource.data.day < kstDayNumber())
           && roomOpenToMe(gid)
-          && !exists(blockPath(gid, uid));
+          && !exists(blockPath(gid, uid))
+          && (request.resource.data.it == ''
+            || getAfter(giftStockPath(gid)).data.items.get(request.resource.data.it, 0)
+              == get(giftStockPath(gid)).data.items.get(request.resource.data.it, 0) - 1);
         allow delete: if false;
       }
 
@@ -626,6 +651,21 @@ service cloud.firestore {
 
     function blockPath(gid, uid) {
       return /databases/$(database)/documents/gardens/$(gid)/blocks/$(uid);
+    }
+
+    function giftStockPath(gid) {
+      return /databases/$(database)/documents/gardens/$(gid)/giftBox/stock;
+    }
+
+    // 손님이 상자에서 뺀 것: 같은 쓰기에서 적은 오늘의 기록(giftWins/{나})의 그것 하나를 하나만.
+    function giftTaken(gid, before, after) {
+      let w = getAfter(/databases/$(database)/documents/gardens/$(gid)/giftWins/$(request.auth.uid)).data;
+      return w.day == kstDayNumber()
+        && w.at == request.time
+        && w.it != ''
+        && after.diff(before).affectedKeys().hasOnly([w.it])
+        && before.get(w.it, 0) >= 1
+        && after.get(w.it, 0) == before.get(w.it, 0) - 1;
     }
 
     function counterPath(gid) {

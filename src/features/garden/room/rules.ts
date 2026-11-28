@@ -12,6 +12,7 @@ import type { Fruit, Mutation, Species } from "../types";
 import { DEFAULT_FLOOR, DEFAULT_MOOD, DEFAULT_WALL, FRAME_BLANK, FURNITURE, FURNITURE_BY_ID, MOODS, ROOM_SIZES, type Furniture } from "./catalog";
 import { avatarAtOk, avatarFromPublic, freshAvatar, normalizeAvatar, packAvatar, type AvatarData } from "../avatar/rules";
 import { holds } from "./iso";
+import { giftable, sellPrice } from "../slot/gift";
 import { facingDir, footprint, isoFromSlots, isoProblem, isoProblemAt, isoSpecOf, isWallPos, packPos, posShape, slotToPos, spotNear, unpackPos, WALL_H, type IsoPos, type SlotPlaced } from "./isoPlace";
 import { freshKeys, KEYBOARD_ID, KEY_VER_MAX, recSlots, keysFromPublic, normalizeKeys, publicKeys, packKeyboard, unpackKeyboard, type RoomKey } from "./keyboard";
 
@@ -652,6 +653,26 @@ export function buyTrophyItem(room: RoomData, roots: number, id: string): { room
 export function giftItem(room: RoomData, id: string): RoomData | null {
   const have = room.owned[id] ?? 0;
   return have >= OWN_MAX ? null : { ...room, owned: { ...room.owned, [id]: have + 1 } };
+}
+
+/** 보관함(놓지 않은 것)에서 하나 뺀다. 남은 것이 없으면 null. */
+function takeStowed(room: RoomData, id: string): RoomData | null {
+  if (stowedCount(room, id) < 1) return null;
+  const owned = { ...room.owned, [id]: (room.owned[id] ?? 0) - 1 };
+  if (owned[id] <= 0) delete owned[id];
+  return { ...room, owned };
+}
+
+/** 보관함의 가구 하나를 상점에 판다(slot/gift.ts). 놓인 것은 팔지 않는다 — 보관함에 넣은 뒤에. */
+export function sellItem(room: RoomData, id: string): { room: RoomData; jam: number } | null {
+  const jam = sellPrice(id);
+  const next = jam === null ? null : takeStowed(room, id);
+  return next && jam !== null ? { room: next, jam } : null;
+}
+
+/** 증정 상자에 넣는다 — 보관함에서 하나 뺀다. 줄 수 없는 것이거나 보관함에 없으면 null. */
+export function takeForGift(room: RoomData, id: string): RoomData | null {
+  return giftable(id) ? takeStowed(room, id) : null;
 }
 
 export function grantItem(room: RoomData, id: string): RoomData {

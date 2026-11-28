@@ -120,7 +120,7 @@ export const FURNITURE: Furniture[] = [
   // 팔지 않는 것 — 특별한 책을 3·5·7권 가지면(room/library.ts의 LIBRARY_SETS).
   { id: "wp-library", label: "서재 벽지", kind: "wallpaper", size: 1, price: 0, cur: "reward", art: "wp-library", hint: "특별한 책을 세 권 모은 사람의 서재 벽지." },
   { id: "rare-jar", label: "희귀 씨앗 유리병", kind: "floor", size: 1, price: 0, cur: "reward", art: "rare-jar", hint: "희귀 씨앗 여섯 가지를 모두 심어 거둔 사람의 유리병. 칭호 💎 희귀종 수집가와 함께 받아요." },
-  { id: "gacha", label: "잼통 뽑기 기계", kind: "floor", size: 1, price: 1200, art: "gacha", hint: "누르면 방 꾸미기 슬롯머신이 열려요. 놀러 온 손님은 하루 한 번 무료로 씨앗 슬롯을 돌려 볼 수 있고, 주인은 손님 한 명마다 잼 10(하루 50까지)을 받아요." },
+  { id: "gacha", label: "잼통 뽑기 기계", kind: "floor", size: 1, price: 10_000, art: "gacha", hint: "손님에게 선물하는 슬롯머신. 남는 가구를 증정 상자에 넣어 두면, 놀러 온 손님이 하루 한 번 무료로 돌려 받아 가요. 방을 공개해야 손님이 돌릴 수 있어요.", newUntil: "2026-12-28" },
   { id: "souvenir-case", label: "기념품 진열장", kind: "floor", size: 1, price: 0, cur: "reward", art: "souvenir-case", hint: "업적 기념관에서 받은 기념품을 모두 담는 진열장. 한 칸만 차지하고, 누르면 기념품 하나하나의 업적 카드를 볼 수 있어요. 첫 기념품을 받으면 생겨요." },
   { id: "lamp-reading", label: "서재 독서등", kind: "floor", size: 1, price: 0, cur: "reward", art: "lamp-reading", hint: "특별한 책을 다섯 권 모은 사람의 금빛 독서등." },
   { id: "shelf-complete", label: "완전한 서재 책장", kind: "floor", size: 2, price: 0, cur: "reward", art: "shelf-complete", hint: "특별한 책 일곱 권을 모두 모은 사람의 책장. 일곱 권의 색이 꽂혀 있어요." },
