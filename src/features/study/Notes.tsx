@@ -61,11 +61,12 @@ export function Cards({ bank, wallet }: { bank: StudyBank; wallet: string[] }) {
  * 근거노트 › 다시 볼 것 — 푼 문항과 다음에 물을 날. 틀린 것(1칸)이 위에 온다.
  * X 문항은 문장 바로 아래에 풀이가 붙는다 — 틀린 문장만 따로 보이지 않게.
  */
-export function Review({ bank, boxes, today }: { bank: StudyBank; boxes: Record<string, Box>; today: string }) {
+export function Review({ bank, boxes, today, sure = {} }: { bank: StudyBank; boxes: Record<string, Box>; today: string; sure?: Record<string, string> }) {
   const units = useMemo(() => new Map(bank.units.map((u) => [u.id, u])), [bank]);
+  // 「확실해요」라고 했는데 틀린 문제가 맨 앞 — 가장 위험한 착각이다(docs/jamgong-roadmap.md §5.2).
   const rows = bank.items
     .filter((i) => boxes[i.id])
-    .sort((a, b) => boxes[a.id][0] - boxes[b.id][0] || boxes[a.id][1].localeCompare(boxes[b.id][1]));
+    .sort((a, b) => Number(Boolean(sure[b.id])) - Number(Boolean(sure[a.id])) || boxes[a.id][0] - boxes[b.id][0] || boxes[a.id][1].localeCompare(boxes[b.id][1]));
   if (rows.length === 0) return <Say mood="smile">아직 푼 문제가 없어요. 푼 문제는 잊을 때쯤 오늘의 한 판에 다시 나와요.</Say>;
   const when = (d: string) => (d <= today ? "오늘" : `${Number(d.slice(5, 7))}월 ${Number(d.slice(8))}일`);
   return (
@@ -74,6 +75,7 @@ export function Review({ bank, boxes, today }: { bank: StudyBank; boxes: Record<
       {rows.map((i) => (
         <div key={i.id} className="st-card grid gap-1">
           <p className="st-eyebrow">
+            {sure[i.id] ? "⚠️ 확신했는데 틀림 · " : ""}
             {when(boxes[i.id][1])} · {boxes[i.id][0]}번 상자{boxes[i.id][0] === 1 ? " · 틀린 문제" : ""}
           </p>
           <p className="text-[13.5px] font-semibold">

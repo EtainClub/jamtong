@@ -13,6 +13,8 @@ import { NUMBER_ITEMS, NUMBER_KIND_LABEL, type NumberKind } from "@/content/stud
 import { SORT_ITEMS } from "@/content/study/sort";
 import { DEBATE_ITEMS, type Skeleton } from "@/content/study/debate";
 import { WEAKNESS_ITEMS } from "@/content/study/weakness";
+import { CHECK_ITEMS, HEADLINE_ITEMS, LEAP_ITEMS, WEIGHT_ITEMS, type Leap, type WeightAnswer } from "@/content/study/weigh";
+import { STATEMENTS } from "@/content/words";
 import { ACHIEVEMENT_OX } from "@/content/study/ox";
 import type { Claim } from "@/content/schema";
 
@@ -70,10 +72,11 @@ export function buildStudyBank(): StudyBank {
   if (missing.length) throw new Error(`잼공: 시기를 정하지 않은 업적 — src/features/study/eras.ts에 적는다: ${missing.join(", ")}`);
   units.sort((a, b) => keys.get(a.id)!.localeCompare(keys.get(b.id)!));
   const level2 = levelTwoItems(units);
-  const level4 = levelFourItems([...units, ...level2.units]);
+  const level3 = levelThreeItems([...units, ...level2.units]);
+  const level4 = levelFourItems([...units, ...level2.units, ...level3.units]);
   return {
-    units: [...units, ...level2.units, ...level4.units],
-    items: [...items, ...level2.items, ...level4.items],
+    units: [...units, ...level2.units, ...level3.units, ...level4.units],
+    items: [...items, ...level2.items, ...level3.items, ...level4.items],
     starter: starterOf(items),
   };
 }
@@ -299,6 +302,143 @@ function levelFourItems(known: StudyUnit[]): { units: StudyUnit[]; items: StudyI
       anchors: [anchor],
       card: { text: q.critique.label, type: critique.assertionType, ...(critique.assertedBy ? { by: critique.assertedBy } : {}), anchor },
     });
+  }
+  return { units, items };
+}
+
+export const CHECK_OPTIONS = [
+  { answer: "confirmed", label: "확인된 사실이에요", hint: "문서·통계·판결로 확인됐어요" },
+  { answer: "unconfirmed", label: "아직 확인되지 않았어요", hint: "확인 못 했거나, 검증에 한계가 있어요" },
+] as const;
+
+export const WEIGHT_OPTIONS: Array<{ answer: WeightAnswer | "press"; label: string; hint: string }> = [
+  { answer: "legislative", label: "법령·관보·국회 기록", hint: "법이 정한 것, 언제 통과·시행됐는지" },
+  { answer: "statistics", label: "공식 통계", hint: "통계청·한국은행 같은 기관의 숫자" },
+  { answer: "judicial", label: "판결문·수사 기록", hint: "법원이 무엇을 판단했는지" },
+  { answer: "official", label: "정부·기관 공식 발표", hint: "보도자료·공식 계획·공고" },
+  { answer: "press", label: "언론 기사", hint: "기자가 옮기거나 정리한 것" },
+];
+
+export const LEAP_OPTIONS: Array<{ leap: Leap; label: string; hint: string }> = [
+  { leap: "plan-as-done", label: "계획·약속을 이미 한 일로", hint: "“하겠다”를 “했다”로" },
+  { leap: "forecast-as-fact", label: "전망·추정을 확정된 것으로", hint: "“될 것”을 “됐다”로" },
+  { leap: "part-as-whole", label: "일부를 전체로", hint: "“몇 곳”을 “모두”로" },
+  { leap: "claim-as-fact", label: "한쪽의 말을 확인된 사실로", hint: "발표·해명을 그대로 사실로" },
+  { leap: "cause", label: "함께 일어난 일을 원인으로", hint: "“같이 늘었다”를 “때문이다”로" },
+];
+
+export const HEADLINE_OPTIONS = [
+  { verdict: "same", label: "제목이 근거와 같은 말을 해요", hint: "근거에 그대로 있어요" },
+  { verdict: "stronger", label: "제목이 근거보다 세게 말해요", hint: "확정·전부·최초처럼 더 나갔어요" },
+  { verdict: "different", label: "제목이 근거와 다른 말을 해요", hint: "근거가 말하지 않은 쪽을 말해요" },
+] as const;
+
+/**
+ * 3단계 「따지기」 문항(docs/jamgong-roadmap.md R4) — 확인 수준(A2)·자료의 무게(A4)·비약 찾기(B1)·제목과 근거(B2).
+ * 근거가 없거나 어긋나면 싣지 않는다(검사는 src/content/study/validate.ts).
+ */
+function levelThreeItems(known: StudyUnit[]): { units: StudyUnit[]; items: StudyItem[] } {
+  const achievements = new Map(getPublishedAchievements().map((a) => [a.slug, a]));
+  const policies = new Map(POLICIES.map((p) => [p.slug, p]));
+  const words = new Map((STATEMENTS as Array<{ slug: string; title: string }>).map((w) => [w.slug, w]));
+  const units: StudyUnit[] = [];
+  const items: StudyItem[] = [];
+  const gov = { era: "government" as const, eraLabel: ERAS[eraRank("government")].label };
+  const ensure = (unit: string): boolean => {
+    if (known.some((u) => u.id === unit) || units.some((u) => u.id === unit)) return true;
+    const slug = unit.slice(2);
+    if (unit.startsWith("p:")) {
+      const p = policies.get(slug);
+      if (!p) return false;
+      units.push({ id: unit, course: "policy", ...gov, title: p.title, kicker: "정부 정책", href: `/wiki/policy/${slug}` });
+      return true;
+    }
+    if (unit.startsWith("w:")) {
+      const w = words.get(slug);
+      if (!w) return false;
+      units.push({ id: unit, course: "words", ...gov, title: w.title, kicker: "말과 연설", href: `/words/${slug}` });
+      return true;
+    }
+    return false;
+  };
+  const claimOf = (unit: string, claimId: string) =>
+    unit.startsWith("a:") ? achievements.get(unit.slice(2))?.claims.find((c) => c.id === claimId) : policies.get(unit.slice(2))?.claims.find((c) => c.id === claimId);
+  const anchorOf = (unit: string, claimId: string) => (unit.startsWith("a:") ? `${unit.slice(2)}#${claimId}` : `policy:${unit.slice(2)}#${claimId}`);
+  const base = (unit: string, id: string, skill: StudyItem["skill"], statement: string, explain: string, anchors: string[]): StudyItem => ({
+    id: `${unit}/${id}`,
+    unit,
+    step: "source",
+    skill,
+    kind: "choice",
+    statement,
+    answer: true,
+    explain,
+    anchors,
+    card: null,
+  });
+
+  for (const q of CHECK_ITEMS) {
+    if (!ensure(q.unit)) continue;
+    const anchor = q.kind === "gap" ? `policy:${q.unit.slice(2)}` : anchorOf(q.unit, q.claimId ?? "");
+    const it = base(q.unit, q.id, "A2", q.statement, q.clue, [anchor]);
+    it.choice = {
+      prompt: "이 말은 지금 확인된 걸까요?",
+      options: CHECK_OPTIONS.map(({ label, hint }) => ({ label, hint })),
+      correct: CHECK_OPTIONS.findIndex((o) => o.answer === q.answer),
+    };
+    if (q.kind === "verified") it.card = { text: q.statement, type: "FACT", anchor };
+    items.push(it);
+  }
+  for (const q of WEIGHT_ITEMS) {
+    const claim = claimOf(q.unit, q.claimId);
+    if (!claim?.verified || !ensure(q.unit)) continue;
+    const anchor = anchorOf(q.unit, q.claimId);
+    const it = base(q.unit, q.id, "A4", q.statement, q.clue, [anchor]);
+    it.choice = {
+      prompt: "이 말을 가장 단단히 확정해 주는 자료는?",
+      options: WEIGHT_OPTIONS.map(({ label, hint }) => ({ label, hint })),
+      correct: WEIGHT_OPTIONS.findIndex((o) => o.answer === q.answer),
+    };
+    items.push(it);
+  }
+  for (const q of LEAP_ITEMS) {
+    let unit: string;
+    let anchors: string[];
+    if (q.source === "caveat") {
+      if (!q.slug) continue;
+      unit = `w:${q.slug}`;
+      anchors = [`words:${q.slug}`];
+    } else {
+      const a = q.unit ? achievements.get(q.unit.slice(2)) : undefined;
+      const ox = a ? ACHIEVEMENT_OX[a.slug]?.find((x) => x.id === q.oxId) : undefined;
+      if (!a || !ox || !q.unit) continue;
+      unit = q.unit;
+      anchors = ox.claimIds.map((id) => `${a.slug}#${id}`);
+    }
+    if (!ensure(unit)) continue;
+    const it = base(unit, q.id, "B1", q.overreach, q.clue, anchors);
+    it.choice = {
+      prompt: "이 말은 어디서 근거보다 더 나갔을까요?",
+      options: LEAP_OPTIONS.map(({ label, hint }) => ({ label, hint })),
+      correct: LEAP_OPTIONS.findIndex((o) => o.leap === q.leap),
+    };
+    items.push(it);
+  }
+  for (const q of HEADLINE_ITEMS) {
+    const slug = q.unit.slice(2);
+    const sources = q.unit.startsWith("a:") ? achievements.get(slug)?.sources : policies.get(slug)?.sources;
+    const source = sources?.find((x) => x.id === q.sourceId);
+    const claim = claimOf(q.unit, q.claimId);
+    if (!source || !claim?.verified || !ensure(q.unit)) continue;
+    const it = base(q.unit, q.id, "B2", `“${source.title}”`, q.clue, [anchorOf(q.unit, q.claimId)]);
+    it.choice = {
+      prompt: "기사 제목과 근거를 견줘 보세요.",
+      from: source.publisher,
+      evidence: claim.text,
+      options: HEADLINE_OPTIONS.map(({ label, hint }) => ({ label, hint })),
+      correct: HEADLINE_OPTIONS.findIndex((o) => o.verdict === q.verdict),
+    };
+    items.push(it);
   }
   return { units, items };
 }

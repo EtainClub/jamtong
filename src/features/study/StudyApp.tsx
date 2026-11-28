@@ -11,10 +11,10 @@ import { Lesson } from "./Lesson";
 import { Say } from "./Jamtongi";
 import { Debates } from "./Debates";
 import { setStudyFlusher } from "./flush";
-import { pickLevelSession, skipSession, skipTargets } from "./levels";
+import { assessReady, assessSession, pickLevelSession, skipSession, skipTargets } from "./levels";
 import { navForLevel, STUDY_HOME, SOON, studyNavOf, visibleSegments, visibleTabs, type StudyNav, type StudySegment } from "./nav";
 import { Cards, Review } from "./Notes";
-import { Attendance, Settings } from "./Record";
+import { Assessment, Attendance, Settings } from "./Record";
 import { Road, UnitSheet } from "./Road";
 import { isDue, kstDay, streakOf, unitSession } from "./rules";
 import { useStudy, type StudyData } from "./store";
@@ -48,7 +48,7 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
     if (unit) return { tab: "road", seg: "path" };
     return studyNavOf(new URL(window.location.href).searchParams.get("tab")) ?? STUDY_HOME;
   });
-  const [lesson, setLesson] = useState<{ ids: string[]; mode: "daily" | "unit" | "intro" | "check"; target?: Level; key: number } | null>(null);
+  const [lesson, setLesson] = useState<{ ids: string[]; mode: "daily" | "unit" | "intro" | "check" | "assess"; target?: Level; key: number } | null>(null);
   const [today, setToday] = useState(() => (typeof window === "undefined" ? "" : kstDay(Date.now())));
   const opened = useRef(false);
 
@@ -166,6 +166,7 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
   const startIntro = (ids: string[]) => setLesson({ ids, mode: "intro", key: Date.now() });
   const startCheck = (target: Level) => setLesson({ ids: skipSession(bank, data.boxes, target), mode: "check", target, key: Date.now() });
   const startItems = (ids: string[]) => setLesson({ ids, mode: "unit", key: Date.now() });
+  const startAssess = () => setLesson({ ids: assessSession(bank, data.boxes, data.checked ?? [], level), mode: "assess", key: Date.now() });
   const startUnit = (id: string) => {
     setUnit(null);
     setLesson({ ids: unitSession(bank, data.boxes, id, level), mode: "unit", key: Date.now() });
@@ -212,6 +213,7 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
           onIntro={startIntro}
           onCheck={startCheck}
           onItems={startItems}
+          onAssess={startAssess}
           onUnit={setUnit}
         />
       </section>
@@ -266,6 +268,7 @@ function Panel({
   onIntro,
   onCheck,
   onItems,
+  onAssess,
   onUnit,
 }: {
   seg: StudySegment;
@@ -276,6 +279,7 @@ function Panel({
   onIntro: (ids: string[]) => void;
   onCheck: (target: Level) => void;
   onItems: (ids: string[]) => void;
+  onAssess: () => void;
   onUnit: (unitId: string) => void;
 }) {
   const data = useStudy((s) => s.data)!;
@@ -300,11 +304,23 @@ function Panel({
     case "cards":
       return <Cards bank={bank} wallet={data.wallet} />;
     case "review":
-      return <Review bank={bank} boxes={data.boxes} today={today} />;
+      return <Review bank={bank} boxes={data.boxes} today={today} sure={data.sureMisses} />;
     case "attend":
       return <Attendance data={data} streak={streak} today={today} />;
     case "settings":
       return <Settings data={data} targets={skipTargets(bank, data.level ?? 1)} onCheck={onCheck} />;
+    case "rewards": {
+      const lv = data.level ?? 1;
+      return (
+        <Assessment
+          data={data}
+          today={today}
+          ready={assessReady(lv, data.checks, today)}
+          poolSize={assessSession(bank, data.boxes, data.checked ?? [], lv).length}
+          onStart={onAssess}
+        />
+      );
+    }
     case "reply":
       return <Debates bank={bank} boxes={data.boxes} onItems={onItems} />;
     default:

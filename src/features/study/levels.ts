@@ -120,3 +120,41 @@ export function pickLevelSession(bank: StudyBank, boxes: Record<string, Box>, to
   }
   return out;
 }
+
+// ── 실력 점검 (docs/jamgong-roadmap.md §5.3 — 3단계부터, 선택) ──────────────
+
+export const ASSESS_SIZE = 12;
+export const ASSESS_EVERY_DAYS = 28;
+
+/** 점검을 볼 수 있나 — 3단계부터, 마지막 점검에서 28일이 지났으면. */
+export function assessReady(level: Level, checks: Array<{ day: string }> | undefined, today: string): boolean {
+  if (level < 3) return false;
+  const last = (checks ?? []).map((c) => c.day).sort().at(-1);
+  return !last || addDays(last, ASSESS_EVERY_DAYS) <= today;
+}
+
+/**
+ * 점검 문항 — **처음 보는 문장**만. 상자에 없고(푼 적 없고) 전에 점검에 낸 적 없는 문항 가운데,
+ * 내 단계까지의 기술을 돌아가며 하나씩 12개. 같은 단원이 겹치지 않게 고른다.
+ */
+export function assessSession(bank: StudyBank, boxes: Record<string, Box>, checked: string[], level: Level): string[] {
+  const seen = new Set(checked);
+  const pool = bank.items.filter((i) => LEVEL_OF[i.step] <= level && !boxes[i.id] && !seen.has(i.id));
+  const bySkill = new Map<string, typeof pool>();
+  for (const i of pool) bySkill.set(i.skill, [...(bySkill.get(i.skill) ?? []), i]);
+  const out: string[] = [];
+  const units = new Set<string>();
+  for (let round = 0; out.length < ASSESS_SIZE && round < 50; round++) {
+    let added = false;
+    for (const list of bySkill.values()) {
+      const next = list.find((i) => !out.includes(i.id) && !units.has(i.unit)) ?? list.find((i) => !out.includes(i.id));
+      if (next && out.length < ASSESS_SIZE) {
+        out.push(next.id);
+        units.add(next.unit);
+        added = true;
+      }
+    }
+    if (!added) break;
+  }
+  return out;
+}

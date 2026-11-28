@@ -10,9 +10,11 @@ import { POLICIES } from "../../content/policies";
 import { SORT_ITEMS } from "../../content/study/sort";
 import { DEBATE_ITEMS } from "../../content/study/debate";
 import { WEAKNESS_ITEMS } from "../../content/study/weakness";
-import { validateDebate, validateNumbers, validateSort, validateStudy, validateWeakness } from "../../content/study/validate";
+import { validateDebate, validateNumbers, validateSort, validateStudy, validateWeakness, validateWeigh } from "../../content/study/validate";
+import { CHECK_ITEMS, WEIGHT_ITEMS } from "../../content/study/weigh";
+import { STATEMENTS } from "../../content/words";
 import { buildStudyBank, SKELETON_OPTIONS, starterOf } from "./build";
-import { inviteFor, levelReady, pickLevelSession, sessionSize, SKIP_SIZE, skipSession, skipTargets, type LevelState } from "./levels";
+import { ASSESS_SIZE, assessReady, assessSession, inviteFor, levelReady, pickLevelSession, sessionSize, SKIP_SIZE, skipSession, skipTargets, type LevelState } from "./levels";
 import { navForLevel, STUDY_SEGMENTS, STUDY_TABS, studyNavOf, SOON, visibleSegments, visibleTabs } from "./nav";
 import { emptyStudy, normalizeStudy, type StudyData } from "./store";
 import { mergeBox, mergeStudy } from "./sync";
@@ -173,39 +175,40 @@ test("길: 탭 다섯, 칸 이름이 겹치지 않고, 자리 이름으로 탭·
 
 // ── 문항 은행 ────────────────────────────────────────────────────────
 
-/** 앵커가 가리키는 claim — 업적 `<slug>#<id>`, 정책 `policy:<slug>#<id>`. */
+/** 앵커가 가리키는 것 — 업적 claim `<slug>#<id>`, 정책 claim `policy:<slug>#<id>`, 정책 `policy:<slug>`, 언행 `words:<slug>`. */
 function claimAt(anchor: string) {
   const [head, claimId] = anchor.split("#");
   if (head.startsWith("policy:")) return POLICIES.find((p) => p.slug === head.slice(7))?.claims.find((c) => c.id === claimId);
   return getPublishedAchievements().find((a) => a.slug === head)?.claims.find((c) => c.id === claimId);
 }
+function anchorExists(anchor: string): boolean {
+  if (anchor.startsWith("words:")) return (STATEMENTS as Array<{ slug: string }>).some((w) => w.slug === anchor.slice(6));
+  if (anchor.startsWith("policy:") && !anchor.includes("#")) return POLICIES.some((p) => p.slug === anchor.slice(7));
+  return Boolean(claimAt(anchor));
+}
 
-test("문항 은행: id가 영구 꼴이고 겹치지 않으며, 앵커가 실재하는 claim을 가리킨다", () => {
+test("문항 은행: id가 영구 꼴이고 겹치지 않으며, 앵커가 실재하는 것을 가리킨다", () => {
   const bank = buildStudyBank();
   assert.ok(bank.units.filter((u) => u.course === "achievement").length >= 20, "업적 단원이 스물 넘게");
   assert.equal(new Set(bank.items.map((i) => i.id)).size, bank.items.length);
   for (const i of bank.items) {
-    assert.match(i.id, i.kind === "ox" ? /^a:[a-z0-9-]+\/ox[0-9]+$/ : /^[ap]:[a-z0-9-]+\/[sndw][0-9]+$/);
+    assert.match(i.id, i.kind === "ox" ? /^a:[a-z0-9-]+\/ox[0-9]+$/ : /^[apw]:[a-z0-9-]+\/[sndwkglh][0-9]+$/);
     assert.ok(bank.units.some((u) => u.id === i.unit), `${i.id}: 단원이 있다`);
-    for (const anchor of i.anchors) assert.ok(claimAt(anchor), `${i.id}: 없는 앵커 ${anchor}`);
+    for (const anchor of i.anchors) assert.ok(anchorExists(anchor), `${i.id}: 없는 앵커 ${anchor}`);
   }
 });
 
-test("근거노트 카드: 참인 문장에서만, 확인된 claim으로만, 주장(CLAIM)이면 누구의 주장인지 붙는다", () => {
+test("근거노트 카드: 참이고 확인된 것에서만, 주장(CLAIM)이면 누구의 주장인지 붙는다", () => {
   const bank = buildStudyBank();
   for (const i of bank.items) {
-    if (i.kind === "ox" && !i.answer) {
-      assert.equal(i.card, null, `${i.id}: X 문항(헷갈리기 쉬운 문장)은 카드가 되지 않는다`);
-      continue;
-    }
-    if (i.skill === "A3" || i.kind === "debate") {
-      assert.equal(i.card, null, `${i.id}: 숫자 읽기·쟁점 연습은 카드가 아니다`);
-      continue;
-    }
-    assert.ok(i.card, `${i.id}: 카드가 된다`);
+    if (i.kind === "ox" && !i.answer) assert.equal(i.card, null, `${i.id}: X 문항(헷갈리기 쉬운 문장)은 카드가 되지 않는다`);
+    if (i.skill === "A2" && i.choice?.correct === 1) assert.equal(i.card, null, `${i.id}: 확인되지 않은 말은 카드가 되지 않는다`);
+    if (i.kind === "debate" || i.skill === "A3" || i.skill === "B1" || i.skill === "B2") assert.equal(i.card, null, `${i.id}: 카드가 아니다`);
+    if (!i.card) continue;
     assert.ok(i.anchors.every((x) => claimAt(x)?.verified), `${i.id}: 확인된 claim만`);
     if (i.card.type === "CLAIM") assert.ok(i.card.by, `${i.id}: 주장한 사람`);
   }
+  for (const i of bank.items.filter((x) => (x.kind === "ox" && x.answer) || x.skill === "A1" || x.skill === "C3")) assert.ok(i.card, `${i.id}: 카드가 된다`);
 });
 
 test("업적의 길: 성남시장 → 경기도지사 → 이재명 정부, 문항이 있는 업적은 모두 시기가 정해져 있다", async () => {
@@ -256,7 +259,7 @@ test("단계 초대: 다음 단계 문항이 없으면 초대하지 않는다 �
   const real = buildStudyBank();
   assert.equal(levelReady(real, 1), true);
   assert.equal(levelReady(real, 2), true, "R2: 가리기 문항이 있다");
-  assert.equal(levelReady(real, 3), false, "따지기 문항은 아직 없다");
+  assert.equal(levelReady(real, 3), true, "R4: 따지기 문항이 있다");
   assert.equal(inviteFor(real, L1, {}, cards(10), "2026-11-28"), 2, "근거 카드 10장이면 2단계로 초대");
   assert.equal(inviteFor(real, { level: 2, stay: false }, {}, cards(99), "2026-11-28"), null, "가리기 문제를 아직 풀지 않았으면 초대하지 않는다");
 });
@@ -457,7 +460,7 @@ test("답하기 문항: 쟁점·약점이 은행에 들어오고, 화제 돌리�
   assert.ok(spots.size >= 2, "근거 정답 자리가 섞인다");
   for (const i of weak) assert.ok(i.card && i.anchors[0].startsWith("policy:"), `${i.id}: 약점 카드`);
   assert.ok(levelReady(bank, 4));
-  assert.equal(inviteFor(bank, { level: 2, stay: false }, Object.fromEntries(bank.items.filter((i) => i.step === "understand").slice(0, 20).map((i) => [i.id, [2, "x"] as Box])), cards(10), "2026-11-28"), 4, "가리기 20개를 풀면 3단계를 건너뛰어 4단계로");
+  assert.equal(inviteFor(bank, { level: 2, stay: false }, Object.fromEntries(bank.items.filter((i) => i.step === "understand").slice(0, 20).map((i) => [i.id, [2, "x"] as Box])), cards(10), "2026-11-28"), 3, "가리기 20개를 풀면 3단계 따지기로(R4부터 3단계가 있다)");
 });
 
 test("답하기 검사: 지금 문항은 통과하고, 반론의 근거를 오답으로 쓰거나 비판을 오답으로 쓰면 잡는다", () => {
@@ -472,3 +475,55 @@ test("답하기 검사: 지금 문항은 통과하고, 반론의 근거를 오�
   const other = policy.critiqueIds.find((id) => id !== w.critique.claimId);
   if (other) assert.ok(validateWeakness(POLICIES, [{ ...w, decoys: [{ claimId: other, label: "다른 비판을 오답으로 쓴 보기" }, w.decoys[1]] }]).some((e) => e.includes("정답이 둘")));
 });
+
+// ── 3단계 「따지기」와 실력 점검 (R4) ─────────────────────────────────
+
+test("따지기 문항: 네 갈래가 은행에 들어오고, 단계는 3(source), 언행 단원은 /words로 간다", () => {
+  const bank = buildStudyBank();
+  const l3 = bank.items.filter((i) => i.step === "source");
+  for (const skill of ["A2", "A4", "B1", "B2"]) assert.ok(l3.some((i) => i.skill === skill), `${skill} 문항이 있다`);
+  for (const i of l3) assert.ok(i.choice && i.choice.correct >= 0 && i.choice.correct < i.choice.options.length, `${i.id}: 정답 번호`);
+  assert.ok(l3.filter((i) => i.skill === "B2").every((i) => i.choice?.evidence), "제목과 근거 문항은 근거 문장을 함께 보인다");
+  assert.ok(l3.filter((i) => i.skill === "A4").every((i) => i.choice!.options[i.choice!.correct].label !== "언론 기사"), "언론 기사는 늘 오답 보기");
+  const words = bank.units.filter((u) => u.course === "words");
+  assert.ok(words.length > 5);
+  for (const u of words) assert.match(u.href, /^\/words\/[a-z0-9-]+$/);
+  assert.ok(bank.items.filter((i) => i.unit.startsWith("w:")).every((i) => i.anchors[0].startsWith("words:")));
+});
+
+test("따지기 검사: 지금 문항은 통과하고, 확인 수준을 거꾸로 하거나 출처에 없는 자료를 답으로 하면 잡는다", () => {
+  const achievements = getPublishedAchievements();
+  assert.deepEqual(validateWeigh(achievements, POLICIES, STATEMENTS as never), []);
+  const v = CHECK_ITEMS.find((q) => q.kind === "verified")!;
+  assert.equal(validateWeigh(achievements, POLICIES, STATEMENTS as never, { check: [{ ...v, answer: "unconfirmed" }] }).length, 1, "확인된 claim을 확인 안 됨으로");
+  const g = CHECK_ITEMS.find((q) => q.kind === "gap")!;
+  assert.equal(validateWeigh(achievements, POLICIES, STATEMENTS as never, { check: [{ ...g, gapIndex: 999 }] }).length, 1, "없는 gap");
+  const w = WEIGHT_ITEMS.find((q) => q.answer === "legislative")!;
+  const other = (["statistics", "judicial", "official"] as const).find((t) => {
+    const unit = w.unit;
+    const c = (unit.startsWith("a:") ? achievements.find((a) => a.slug === unit.slice(2))?.claims : POLICIES.find((p) => p.slug === unit.slice(2))?.claims)?.find((x) => x.id === w.claimId);
+    const srcs = unit.startsWith("a:") ? achievements.find((a) => a.slug === unit.slice(2))?.sources : POLICIES.find((p) => p.slug === unit.slice(2))?.sources;
+    return !c?.sourceIds.some((id) => srcs?.find((x) => x.id === id)?.type === t);
+  });
+  if (other) assert.equal(validateWeigh(achievements, POLICIES, STATEMENTS as never, { weight: [{ ...w, answer: other }] }).length, 1, "출처 종류에 없는 답");
+});
+
+test("실력 점검: 3단계부터, 28일마다, 처음 보는 문장만, 기술을 고루 12개", () => {
+  const bank = buildStudyBank();
+  assert.equal(assessReady(2, [], "2026-11-28"), false, "2단계는 아직");
+  assert.equal(assessReady(3, [], "2026-11-28"), true);
+  assert.equal(assessReady(3, [{ day: "2026-11-10" }], "2026-11-28"), false, "18일 전에 봤다");
+  assert.equal(assessReady(3, [{ day: "2026-10-31" }], "2026-11-28"), true, "28일 지났다");
+  const seen = Object.fromEntries(bank.items.slice(0, 40).map((i) => [i.id, [2, "x"] as Box]));
+  const checked = bank.items.slice(40, 60).map((i) => i.id);
+  const ids = pickAssess(bank, seen, checked);
+  assert.equal(ids.length, ASSESS_SIZE);
+  assert.ok(ids.every((id) => !seen[id] && !checked.includes(id)), "푼 적도, 점검에 낸 적도 없는 문항");
+  const skills = new Set(ids.map((id) => bank.items.find((i) => i.id === id)!.skill));
+  assert.ok(skills.size >= 4, "기술이 고루 섞인다");
+  assert.ok(ids.every((id) => (bank.items.find((i) => i.id === id)!.step as string) !== "counter"), "3단계 사람에게 4단계 문항을 내지 않는다");
+});
+
+function pickAssess(bank: StudyBank, boxes: Record<string, Box>, checked: string[]) {
+  return assessSession(bank, boxes, checked, 3);
+}

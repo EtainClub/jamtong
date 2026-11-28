@@ -11,6 +11,7 @@ import { STEPS, type StudyBank } from "./types";
 const COURSES = [
   { id: "achievement", label: "업적의 길", minLevel: 1 },
   { id: "policy", label: "정책 팩트의 길", minLevel: 2 },
+  { id: "words", label: "말과 연설의 길", minLevel: 3 },
 ] as const;
 
 /**
@@ -33,8 +34,8 @@ export function Road({ bank, boxes, level, onUnit }: { bank: StudyBank; boxes: R
           ))}
         </div>
       )}
-      {course === "policy" ? (
-        <PolicyCourse bank={bank} boxes={boxes} onUnit={onUnit} />
+      {course !== "achievement" ? (
+        <CourseList bank={bank} boxes={boxes} course={course} onUnit={onUnit} />
       ) : (
         <>
       <p className="st-small">업적의 길 · {roadUnits.length}단원 · 성남시장 시절부터 이재명 정부까지 · 앞 단원을 풀기 시작하면 다음 단원이 열려요</p>
@@ -76,14 +77,22 @@ export function Road({ bank, boxes, level, onUnit }: { bank: StudyBank; boxes: R
 }
 
 /**
- * 정책 팩트의 길 — 정부 정책 단원(위키 정책 페이지)의 「가리기」 문항. 2단계부터 보인다.
- * 업적의 길처럼 잠그지 않는다 — 관심 있는 정책부터 골라 푼다.
+ * 정책 팩트의 길(2단계부터)·말과 연설의 길(3단계부터) — 단원 목록.
+ * 업적의 길처럼 잠그지 않는다 — 관심 있는 것부터 골라 푼다.
  */
-function PolicyCourse({ bank, boxes, onUnit }: { bank: StudyBank; boxes: Record<string, Box>; onUnit: (unitId: string) => void }) {
-  const units = bank.units.filter((u) => u.course === "policy");
+const COURSE_NOTE: Record<string, string> = {
+  policy: "뉴스에서 듣는 문장이 사실인지 누구의 주장인지 가려 봐요",
+  words: "연설 요약만 보면 어디서 오해하기 쉬운지 따져 봐요",
+};
+
+function CourseList({ bank, boxes, course, onUnit }: { bank: StudyBank; boxes: Record<string, Box>; course: string; onUnit: (unitId: string) => void }) {
+  const units = bank.units.filter((u) => u.course === course);
+  const label = COURSES.find((c) => c.id === course)?.label ?? "";
   return (
     <div className="grid gap-2">
-      <p className="st-small">정책 팩트의 길 · {units.length}단원 · 뉴스에서 듣는 문장이 사실인지 누구의 주장인지 가려 봐요</p>
+      <p className="st-small">
+        {label} · {units.length}단원 · {COURSE_NOTE[course]}
+      </p>
       {units.map((u) => {
         const items = bank.items.filter((i) => i.unit === u.id);
         const learned = items.filter((i) => (boxes[i.id]?.[0] ?? 0) >= 2).length;
@@ -95,7 +104,7 @@ function PolicyCourse({ bank, boxes, onUnit }: { bank: StudyBank; boxes: Record<
             <span className="min-w-0 flex-1">
               <span className="block text-[14px] font-bold leading-snug">{u.title}</span>
               <span className="st-small block">
-                가리기 {learned}/{items.length}
+                익힘 {learned}/{items.length}
               </span>
             </span>
             <span aria-hidden="true">→</span>
@@ -143,7 +152,7 @@ export function UnitSheet({
   return (
     <div className="st-sheet-wrap" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={unit.title} className="st-sheet">
-        <p className="st-eyebrow">{isPolicy ? "정책 팩트의 길" : `업적의 길 · ${unit.eraLabel} · ${unit.kicker}`}</p>
+        <p className="st-eyebrow">{unit.course === "words" ? "말과 연설의 길" : isPolicy ? "정책 팩트의 길" : `업적의 길 · ${unit.eraLabel} · ${unit.kicker}`}</p>
         <p className="st-h">{unit.title}</p>
         <div className="st-steps">
           {/* 내 단계까지만 보인다 — 1단계 사람은 아직 오지 않은 단계(가리기…)를 보지 않는다(docs/jamgong-roadmap.md §3.3). */}
@@ -155,7 +164,7 @@ export function UnitSheet({
           ))}
         </div>
         <Link className="st-link w-fit" href={unit.href}>
-          {isPolicy ? "위키 정책 페이지 보기" : "원본 업적 페이지 보기"}
+          {unit.course === "words" ? "원문 보기" : isPolicy ? "위키 정책 페이지 보기" : "원본 업적 페이지 보기"}
         </Link>
         <div className="flex gap-2">
           <button type="button" className="st-btn st-btn-line flex-1" onClick={onClose}>
