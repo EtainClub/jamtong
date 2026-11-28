@@ -28,6 +28,7 @@ import {
   addDays,
   courseUnits,
   currentUnit,
+  withoutSkipped,
   grade,
   learned,
   pickSession,
@@ -198,8 +199,9 @@ test("문항 은행: id가 영구 꼴이고 겹치지 않으며, 앵커가 실�
   const bank = buildStudyBank();
   assert.ok(bank.units.filter((u) => u.course === "achievement").length >= 20, "업적 단원이 스물 넘게");
   assert.equal(new Set(bank.items.map((i) => i.id)).size, bank.items.length);
+  assert.equal(new Set(bank.units.map((u) => u.id)).size, bank.units.length, "단원 id가 겹치지 않는다");
   for (const i of bank.items) {
-    assert.match(i.id, i.kind === "ox" ? /^a:[a-z0-9-]+\/ox[0-9]+$/ : /^[apw]:[a-z0-9-]+\/([sndwkglhbt][0-9]+|[vrt]-[a-z0-9-]+)$/);
+    assert.match(i.id, i.kind === "ox" ? /^[ap]:[a-z0-9-]+\/ox[0-9]+$/ : /^[apw]:[a-z0-9-]+\/([sndwkglhbt][0-9]+|[vrt]-[a-z0-9-]+)$/);
     assert.ok(bank.units.some((u) => u.id === i.unit), `${i.id}: 단원이 있다`);
     for (const anchor of i.anchors) assert.ok(anchorExists(anchor), `${i.id}: 없는 앵커 ${anchor}`);
   }
@@ -310,7 +312,8 @@ test("첫 3분 문제: 서로 다른 단원의 O 문항 셋, 근거 카드가 �
   const items = bank.starter.map((id) => bank.items.find((i) => i.id === id)!);
   assert.ok(items.every((i) => i.answer && i.card), "맞히면 근거 카드를 받는 O 문항");
   assert.equal(new Set(items.map((i) => i.unit)).size, 3);
-  assert.deepEqual(starterOf(bank.items), bank.starter, "빌드마다 같다");
+  assert.ok(items.every((i) => i.unit.startsWith("a:")), "업적에서 — 첫 화면 은행에 실리는 것");
+  assert.deepEqual(starterOf(bank.items.filter((i) => i.unit.startsWith("a:"))), bank.starter, "빌드마다 같다");
 });
 
 // ── 기기 사이 합치기 ─────────────────────────────────────────────────
@@ -681,4 +684,37 @@ test("점검·개선(2026-11-28): 빈 단원 숨기기, 첫 화면 은행, 열�
   const ids = pickLevelSession(bank, says, "2026-12-01", 5);
   assert.ok(ids.every((x) => bank.items.find((i) => i.id === x)!.kind !== "say"));
   assert.ok(ids.length > 0, "말의 뼈대와 복습으로 채운다");
+});
+
+test("시기 건너뛰기: 이재명 정부부터 걸으면 그 첫 단원이 지금 단원이고, 성남·경기 문항은 한 판에 나오지 않는다", () => {
+  const bank = buildStudyBank();
+  const gov = withoutSkipped(bank, ["seongnam", "gyeonggi"]);
+  const eraOf = (unit: string) => bank.units.find((u) => u.id === unit)!;
+  const cur = currentUnit(gov, {});
+  assert.ok(cur && eraOf(cur).era === "government", "지금 단원은 이재명 정부의 첫 단원");
+  assert.ok(unitOpen(gov, {}, cur!), "그 단원은 열려 있다");
+  for (const level of [1, 3] as const) {
+    const ids = pickLevelSession(gov, {}, "2026-12-01", level);
+    assert.ok(ids.length > 0);
+    assert.ok(ids.every((id) => { const u = eraOf(id.split("/")[0]); return u.course !== "achievement" || u.era === "government"; }), `L${level}: 건너뛴 시기의 업적이 없다`);
+  }
+  assert.equal(gov.units.filter((u) => u.course === "policy").length, bank.units.filter((u) => u.course === "policy").length, "정책 단원은 시기와 상관없이 남는다");
+  assert.equal(withoutSkipped(bank, []), bank, "건너뛰지 않으면 그대로");
+  // 합칠 때 늦게 고친 쪽의 선택을 따르고, 물었다는 표시는 어느 쪽이든 남는다.
+  const a = { ...emptyStudy(), skipEras: ["seongnam"], eraAsked: true, updatedAt: 1 };
+  const b = { ...emptyStudy(), skipEras: ["seongnam", "gyeonggi"], eraAsked: false, updatedAt: 2 };
+  assert.deepEqual(mergeStudy(a, b).skipEras, ["seongnam", "gyeonggi"]);
+  assert.equal(mergeStudy(a, b).eraAsked, true);
+});
+
+test("정책 팩트 알기: 이재명 정부부터 걸으면 업적 14건을 다 익힌 뒤에도 정책 단원의 새 O/X가 이어진다", () => {
+  const bank = buildStudyBank();
+  const gov = withoutSkipped(bank, ["seongnam", "gyeonggi"]);
+  const policyOx = bank.items.filter((i) => i.kind === "ox" && i.unit.startsWith("p:"));
+  assert.ok(policyOx.length >= 300, "정책 알기 문항이 수백 개");
+  assert.ok(policyOx.every((i) => i.step === "know" && i.anchors.every((a) => a.startsWith("policy:"))));
+  const done = Object.fromEntries(gov.items.filter((i) => i.unit.startsWith("a:")).map((i) => [i.id, [3, "2099-01-01"] as Box]));
+  const ids = pickLevelSession(gov, done, "2026-12-01", 1);
+  assert.ok(ids.length > 0 && ids.every((id) => id.startsWith("p:")), "다음은 정책 단원");
+  assert.ok(courseUnits(bank, "policy", 1).length >= 150, "1단계에서도 정책 팩트의 길이 열린다");
 });

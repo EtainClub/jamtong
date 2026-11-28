@@ -79,6 +79,8 @@ export function Today({
       {/* 오늘 목표를 채웠는데 정원 선물을 받으러 가지 않았으면 — 판 끝에서 닫았어도 오늘 안에는 여기서 받는다. */}
       {goalMet && data.perkDay !== today && <GoalGift today={today} />}
 
+      {!data.eraAsked && <EraPick />}
+
       {askGoal && (
         <div className="st-card grid gap-2">
           <p className="st-eyebrow">다시 와 줘서 반가워요 · 하루 목표를 골라 볼까요?</p>
@@ -268,6 +270,34 @@ function FirstCard({ item, unitTitle, picked, onPick }: { item: StudyItem; unitT
         ))}
       </div>
       {checked && <p className="text-[13.5px] leading-relaxed">{item.explain}</p>}
+    </div>
+  );
+}
+
+/**
+ * 어디서부터 걸을까요 — 첫 3분을 마친 뒤 한 번 묻는다. 성남·경기 시절에 관심이 없으면 이재명 정부부터.
+ * 고르지 않고 지나가도 된다(처음부터 걷는다). 배움길에서 시기마다 언제든 건너뛰고 다시 넣는다.
+ */
+const ERA_STARTS: Array<{ label: string; hint: string; skip: string[] }> = [
+  { label: "이재명 정부부터", hint: "지금 정부의 일부터", skip: ["seongnam", "gyeonggi"] },
+  { label: "경기도지사 시절부터", hint: "2018년부터", skip: ["seongnam"] },
+  { label: "성남시장 시절부터", hint: "처음부터 차례로", skip: [] },
+];
+
+function EraPick() {
+  const setSkipEras = useStudy((s) => s.setSkipEras);
+  return (
+    <div className="st-card grid gap-2">
+      <p className="st-eyebrow">어디서부터 걸을까요?</p>
+      <div className="grid gap-2">
+        {ERA_STARTS.map((e) => (
+          <button key={e.label} type="button" className="st-opt" onClick={() => setSkipEras(e.skip)}>
+            <b>{e.label}</b>
+            <span>{e.hint}</span>
+          </button>
+        ))}
+      </div>
+      <p className="st-small">건너뛴 시기는 「배움길」에서 언제든 다시 넣을 수 있어요.</p>
     </div>
   );
 }

@@ -18,7 +18,7 @@ import { navForLevel, STUDY_HOME, SOON, studyNavOf, visibleSegments, visibleTabs
 import { Cards, Review } from "./Notes";
 import { Assessment, Attendance, Settings } from "./Record";
 import { Road, UnitSheet } from "./Road";
-import { isDue, kstDay, streakOf, unitSession } from "./rules";
+import { isDue, kstDay, streakOf, unitSession, withoutSkipped } from "./rules";
 import { useStudy, type StudyData } from "./store";
 import { sameStudy } from "./sync";
 import styles from "./study.module.css";
@@ -36,7 +36,7 @@ const SAVE_DELAY = 2_000;
 /** 1단계 사람이 은행 전체를 받기 시작하는 때(첫 화면이 다 그려진 뒤). 초대·건너뛰기 점검에 필요하다. */
 const FULL_BANK_IDLE_MS = 3_000;
 
-export function StudyApp({ bank: entry }: { bank: StudyBank }) {
+export function StudyApp({ bank: entry, bankVersion }: { bank: StudyBank; bankVersion: string }) {
   const data = useStudy((s) => s.data);
   /*
    * 은행 — 첫 화면에는 1단계 문항만 실려 온다(build.ts entryBank). 전체는 /study/bank.json에서 받는다.
@@ -138,7 +138,7 @@ export function StudyApp({ bank: entry }: { bank: StudyBank }) {
     if (!hasData || full) return;
     let alive = true;
     const load = () =>
-      fetch("/study/bank.json")
+      fetch(`/study/bank.json?v=${bankVersion}`)
         .then((r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.json() as Promise<StudyBank>;
@@ -157,7 +157,7 @@ export function StudyApp({ bank: entry }: { bank: StudyBank }) {
       alive = false;
       clearTimeout(timer);
     };
-  }, [hasData, full, needFull, attempt]);
+  }, [hasData, full, needFull, attempt, bankVersion]);
 
   // 자정을 넘겨 켜 둔 화면도 날짜를 바꾼다.
   useEffect(() => {
@@ -168,7 +168,7 @@ export function StudyApp({ bank: entry }: { bank: StudyBank }) {
   useEffect(() => {
     if (!data || !today || opened.current) return;
     opened.current = true;
-    const due = bank.items.filter((i) => data.boxes[i.id] && isDue(data.boxes[i.id], today)).length;
+    const due = withoutSkipped(bank, data.skipEras).items.filter((i) => data.boxes[i.id] && isDue(data.boxes[i.id], today)).length;
     track("study_open", { streak: streakOf(data.days, today).count, due });
   }, [data, today, bank]);
 
@@ -217,12 +217,14 @@ export function StudyApp({ bank: entry }: { bank: StudyBank }) {
   const tabs = visibleTabs(level);
   const shown = navForLevel(nav, level);
   const segs = visibleSegments(shown.tab, level);
-  const startDaily = () => setLesson({ ids: pickLevelSession(bank, data.boxes, today, level), mode: "daily", key: Date.now() });
+  // 건너뛴 시기를 뺀 은행 — 오늘의 한 판·점검은 여기서 고른다. 길과 판(문항 찾기)은 전체 은행을 쓴다.
+  const scoped = withoutSkipped(bank, data.skipEras);
+  const startDaily = () => setLesson({ ids: pickLevelSession(scoped, data.boxes, today, level), mode: "daily", key: Date.now() });
   const startIntro = (ids: string[]) => setLesson({ ids, mode: "intro", key: Date.now() });
-  const startCheck = (target: Level) => setLesson({ ids: skipSession(bank, data.boxes, target), mode: "check", target, key: Date.now() });
+  const startCheck = (target: Level) => setLesson({ ids: skipSession(scoped, data.boxes, target), mode: "check", target, key: Date.now() });
   // 빈 판은 열지 않는다 — 문항이 없으면 그대로 둔다.
   const startItems = (ids: string[]) => ids.length > 0 && setLesson({ ids, mode: "unit", key: Date.now() });
-  const startAssess = () => setLesson({ ids: assessSession(bank, data.boxes, data.checked ?? [], level), mode: "assess", key: Date.now() });
+  const startAssess = () => setLesson({ ids: assessSession(scoped, data.boxes, data.checked ?? [], level), mode: "assess", key: Date.now() });
   const startUnit = (id: string) => {
     const ids = unitSession(bank, data.boxes, id, level);
     if (ids.length === 0) return;
@@ -265,6 +267,7 @@ export function StudyApp({ bank: entry }: { bank: StudyBank }) {
         <Panel
           seg={shown.seg}
           bank={bank}
+          scoped={scoped}
           today={today}
           streak={streak}
           onDaily={startDaily}
@@ -320,6 +323,7 @@ export function StudyApp({ bank: entry }: { bank: StudyBank }) {
 function Panel({
   seg,
   bank,
+  scoped,
   today,
   streak,
   onDaily,
@@ -330,7 +334,10 @@ function Panel({
   onUnit,
 }: {
   seg: StudySegment;
+  /** 전체 은행 — 길·근거노트·다시 볼 것. */
   bank: StudyBank;
+  /** 건너뛴 시기를 뺀 은행 — 오늘·초대·점검. */
+  scoped: StudyBank;
   today: string;
   streak: ReturnType<typeof streakOf>;
   onDaily: () => void;
@@ -356,9 +363,9 @@ function Panel({
   }
   switch (seg) {
     case "today":
-      return <Today bank={bank} data={data} streak={streak} today={today} onDaily={onDaily} onIntro={onIntro} onUnit={onUnit} />;
+      return <Today bank={scoped} data={data} streak={streak} today={today} onDaily={onDaily} onIntro={onIntro} onUnit={onUnit} />;
     case "path":
-      return <Road bank={bank} boxes={data.boxes} level={data.level ?? 1} onUnit={onUnit} />;
+      return <Road bank={bank} boxes={data.boxes} level={data.level ?? 1} skip={data.skipEras ?? []} onUnit={onUnit} />;
     case "cards":
       return <Cards bank={bank} wallet={data.wallet} />;
     case "review":
@@ -366,7 +373,7 @@ function Panel({
     case "attend":
       return <Attendance data={data} streak={streak} today={today} />;
     case "settings":
-      return <Settings data={data} targets={skipTargets(bank, data.level ?? 1)} onCheck={onCheck} />;
+      return <Settings data={data} targets={skipTargets(scoped, data.level ?? 1)} onCheck={onCheck} />;
     case "rewards": {
       const lv = data.level ?? 1;
       return (
@@ -374,7 +381,7 @@ function Panel({
           data={data}
           today={today}
           ready={assessReady(lv, data.checks, today)}
-          poolSize={assessSession(bank, data.boxes, data.checked ?? [], lv).length}
+          poolSize={assessSession(scoped, data.boxes, data.checked ?? [], lv).length}
           onStart={onAssess}
         />
       );

@@ -47,6 +47,13 @@ export interface StudyData {
   checks?: StudyCheck[];
   /** 점검에 이미 낸 문항 — 다음 점검에 다시 내지 않는다. */
   checked?: string[];
+  /**
+   * 업적의 길에서 건너뛴 시기(eras.ts의 id). 성남·경기 시절에 관심이 없으면 이재명 정부부터 걷는다.
+   * 건너뛴 시기의 업적은 오늘의 한 판과 길의 순서에서 빠진다. 배움길에서 언제든 다시 넣는다.
+   */
+  skipEras?: string[];
+  /** 어디서부터 걸을지 물었다 — 첫 3분을 마친 뒤 한 번만 묻는다. */
+  eraAsked?: boolean;
 }
 
 export interface StudyCheck {
@@ -118,6 +125,8 @@ interface StudyState {
   markSure: (itemId: string) => void;
   /** 실력 점검을 마쳤다. */
   recordCheck: (result: StudyCheck, ids: string[]) => void;
+  /** 건너뛸 시기를 정했다. */
+  setSkipEras: (eras: string[]) => void;
 }
 
 export const useStudy = create<StudyState>((set, get) => {
@@ -162,6 +171,7 @@ export const useStudy = create<StudyState>((set, get) => {
     setStay: (stay) => update((d) => ({ ...d, stay })),
     markPerk: (day) => update((d) => ({ ...d, perkDay: day })),
     markSure: (itemId) => update((d) => ({ ...d, sureMisses: { ...(d.sureMisses ?? {}), [itemId]: today() } })),
+    setSkipEras: (eras) => update((d) => ({ ...d, skipEras: [...new Set(eras)], eraAsked: true })),
     recordCheck: (result, ids) =>
       update((d) => ({
         ...d,
