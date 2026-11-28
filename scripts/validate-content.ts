@@ -19,7 +19,7 @@ import { CORRECTIONS, validateCorrections } from "../src/content/corrections";
 import { archiveEntry } from "../src/content/source-archive";
 import { ARRIVALS } from "../src/features/garden/arrivals";
 import { buildCatalog } from "../src/features/garden/catalog";
-import { studyCount, validateNumbers, validateSort, validateStudy } from "../src/content/study/validate";
+import { studyCount, validateDebate, validateNumbers, validateSort, validateStudy, validateWeakness } from "../src/content/study/validate";
 
 let failed = false;
 
@@ -240,14 +240,22 @@ if (correctionErrors.length > 0) {
  */
 {
   const published = ACHIEVEMENTS.filter((a) => a.publishStatus === "published");
-  const studyErrors = [...validateStudy(published), ...validateSort(published, POLICIES), ...validateNumbers(published)];
+  const studyErrors = [
+    ...validateStudy(published),
+    ...validateSort(published, POLICIES),
+    ...validateNumbers(published),
+    ...validateDebate(published),
+    ...validateWeakness(POLICIES),
+  ];
   if (studyErrors.length > 0) {
     failed = true;
     console.error(`\n✗ 잼공 문항 ${studyErrors.length}건`);
     for (const e of studyErrors) console.error(`    ${e}`);
   } else {
-    const { items, units, sort, numbers } = studyCount();
-    console.log(`✓ 잼공 문항 — 알기 O/X ${items}개(업적 ${units}건), 가리기 사실·주장 ${sort}개·숫자 ${numbers}개 — 앵커·확인 여부·층·주장한 사람`);
+    const { items, units, sort, numbers, debate, weakness } = studyCount();
+    console.log(
+      `✓ 잼공 문항 — 알기 O/X ${items}개(업적 ${units}건), 가리기 사실·주장 ${sort}개·숫자 ${numbers}개, 답하기 쟁점 ${debate}개·약점 ${weakness}개`,
+    );
   }
 }
 

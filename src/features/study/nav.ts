@@ -36,7 +36,7 @@ export const STUDY_TABS: Array<{ id: StudyTab; icon: string; label: string }> = 
 export const STUDY_SEGMENTS: Record<StudyTab, Array<{ id: StudySegment; label: string; minLevel: Level }>> = {
   class: [{ id: "today", label: "오늘", minLevel: 1 }, { id: "notice", label: "알림장", minLevel: 3 }],
   road: [{ id: "path", label: "길", minLevel: 1 }, { id: "fields", label: "분야 지도", minLevel: 2 }],
-  talk: [{ id: "reply", label: "대화 연습", minLevel: 4 }, { id: "rumors", label: "도는 말", minLevel: 4 }, { id: "explain", label: "30초 설명", minLevel: 5 }],
+  talk: [{ id: "reply", label: "쟁점 연습", minLevel: 4 }, { id: "rumors", label: "도는 말", minLevel: 4 }, { id: "explain", label: "30초 설명", minLevel: 5 }],
   note: [{ id: "cards", label: "근거 카드", minLevel: 1 }, { id: "review", label: "다시 볼 것", minLevel: 1 }, { id: "terms", label: "용어장", minLevel: 2 }],
   me: [{ id: "attend", label: "출석부", minLevel: 1 }, { id: "rewards", label: "꽃밭·배지", minLevel: 3 }, { id: "settings", label: "설정", minLevel: 1 }],
 };
@@ -64,7 +64,6 @@ export function navForLevel(nav: StudyNav | null, level: Level): StudyNav {
 export const SOON: Partial<Record<StudySegment, string>> = {
   notice: "새 단원이 열리거나, 내가 익힌 근거가 고쳐지면 여기에 알려 드려요.",
   fields: "분야(외교·안보, 민생·복지 …)마다 내가 아는 단원이 꽃밭으로 피어요.",
-  reply: "친구가 보낸 도는 말에 근거 카드를 골라 답장을 만들어 보는 연습이에요. 정책 팩트의 길과 함께 열려요.",
   rumors: "SNS에서 도는 말 가운데 대응하는 근거가 있는 것만 모아 보여 드려요.",
   explain: "다 익힌 단원을 소리 내어 30초 동안 설명하고, 빠뜨린 것을 스스로 짚어 보는 연습이에요.",
   terms: "언행의 용어 풀이와 레슨에서 만난 낱말이 모여요.",

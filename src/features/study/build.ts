@@ -11,6 +11,8 @@ import { getPublishedAchievements } from "@/content/achievements";
 import { POLICIES } from "@/content/policies";
 import { NUMBER_ITEMS, NUMBER_KIND_LABEL, type NumberKind } from "@/content/study/numbers";
 import { SORT_ITEMS } from "@/content/study/sort";
+import { DEBATE_ITEMS, type Skeleton } from "@/content/study/debate";
+import { WEAKNESS_ITEMS } from "@/content/study/weakness";
 import { ACHIEVEMENT_OX } from "@/content/study/ox";
 import type { Claim } from "@/content/schema";
 
@@ -68,7 +70,12 @@ export function buildStudyBank(): StudyBank {
   if (missing.length) throw new Error(`잼공: 시기를 정하지 않은 업적 — src/features/study/eras.ts에 적는다: ${missing.join(", ")}`);
   units.sort((a, b) => keys.get(a.id)!.localeCompare(keys.get(b.id)!));
   const level2 = levelTwoItems(units);
-  return { units: [...units, ...level2.units], items: [...items, ...level2.items], starter: starterOf(items) };
+  const level4 = levelFourItems([...units, ...level2.units]);
+  return {
+    units: [...units, ...level2.units, ...level4.units],
+    items: [...items, ...level2.items, ...level4.items],
+    starter: starterOf(items),
+  };
 }
 
 /** 사실·주장 가리기의 네 보기. 늘 같은 순서 — 갈래를 익히게 한다. */
@@ -198,4 +205,100 @@ export function pageQuizItems(slugs: readonly string[]): PageQuizItem[] {
     out.push({ id: i.id, slug, title: a.title, statement: i.statement, answer: i.answer, explain: i.explain, card: Boolean(i.card) });
   }
   return out;
+}
+
+/** 답의 뼈대 네 보기. 마지막 "화제 돌리기"는 언제나 오답이다 — 하지 말아야 할 답을 익힌다. */
+export const SKELETON_OPTIONS: Array<{ id: Skeleton | "dodge"; label: string; hint: string }> = [
+  { id: "admit", label: "맞는 부분은 인정하고, 함께 볼 사실을 댄다", hint: "“맞아, 다만 …”" },
+  { id: "correct", label: "사실과 다른 점을 근거로 바로잡는다", hint: "“그건 사실과 달라, …”" },
+  { id: "unknown", label: "아직 모르는 건 모른다고 하고, 확인된 것만 말한다", hint: "“그건 아직 결론이 안 났어, …”" },
+  { id: "dodge", label: "다른 이야기로 넘어간다", hint: "“그럼 저쪽은?”" },
+];
+
+/** 문항 id로 정한 순서 — 정답이 늘 같은 자리에 오지 않게. 빌드마다 같다. */
+function shuffled<T>(xs: T[], seed: string): T[] {
+  let h = 0;
+  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const out = [...xs];
+  for (let i = out.length - 1; i > 0; i--) {
+    h = (h * 1103515245 + 12345) >>> 0;
+    const j = h % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+/**
+ * 4단계 「답하기」 문항(docs/jamgong-roadmap.md R3) — 쟁점에 답하기(C1·C4)와 약점 먼저 말하기(C3).
+ * 근거 claim이 없거나 확인 전이면 싣지 않는다.
+ */
+function levelFourItems(known: StudyUnit[]): { units: StudyUnit[]; items: StudyItem[] } {
+  const achievements = new Map(getPublishedAchievements().map((a) => [a.slug, a]));
+  const policies = new Map(POLICIES.map((p) => [p.slug, p]));
+  const units: StudyUnit[] = [];
+  const items: StudyItem[] = [];
+
+  for (const q of DEBATE_ITEMS) {
+    const a = achievements.get(q.unit.slice(2));
+    const cp = a?.counterpoints.find((c) => c.id === q.counterpointId);
+    if (!a || !cp || !known.some((u) => u.id === q.unit)) continue;
+    const picks = [q.evidence, ...q.decoys];
+    if (picks.some((p) => !a.claims.find((c) => c.id === p.claimId)?.verified)) continue;
+    const order = shuffled(picks, `${q.unit}/${q.id}`);
+    items.push({
+      id: `${q.unit}/${q.id}`,
+      unit: q.unit,
+      step: "counter",
+      skill: "C1",
+      kind: "debate",
+      statement: q.message,
+      answer: true,
+      debate: {
+        message: q.message,
+        skeleton: {
+          options: SKELETON_OPTIONS.map(({ label, hint }) => ({ label, hint })),
+          correct: SKELETON_OPTIONS.findIndex((o) => o.id === q.skeleton),
+          why: q.why,
+        },
+        evidence: { options: order.map((p) => p.label), correct: order.indexOf(q.evidence) },
+        response: cp.response,
+        href: `/achievement/${a.slug}#counterpoint`,
+      },
+      explain: q.why,
+      anchors: cp.claimIds.map((id) => `${a.slug}#${id}`),
+      card: null,
+    });
+  }
+
+  for (const q of WEAKNESS_ITEMS) {
+    const p = policies.get(q.unit.slice(2));
+    if (!p) continue;
+    const critique = p.claims.find((c) => c.id === q.critique.claimId);
+    if (!critique?.verified || !p.critiqueIds.includes(critique.id)) continue;
+    if (q.decoys.some((d) => !p.claims.find((c) => c.id === d.claimId)?.verified || p.critiqueIds.includes(d.claimId))) continue;
+    if (!known.some((u) => u.id === q.unit) && !units.some((u) => u.id === q.unit)) {
+      units.push({ id: q.unit, course: "policy", era: "government", eraLabel: ERAS[eraRank("government")].label, title: p.title, kicker: "정부 정책", href: `/wiki/policy/${p.slug}` });
+    }
+    const picks = [q.critique, ...q.decoys];
+    const order = shuffled(picks, `${q.unit}/${q.id}`);
+    const anchor = `policy:${p.slug}#${critique.id}`;
+    items.push({
+      id: `${q.unit}/${q.id}`,
+      unit: q.unit,
+      step: "counter",
+      skill: "C3",
+      kind: "choice",
+      statement: `「${p.title}」에 대해 나온 비판·한계는 어느 것일까요?`,
+      answer: true,
+      choice: {
+        prompt: "상대가 꺼내기 전에 먼저 인정할 약점을 골라요.",
+        options: order.map((x) => ({ label: x.label, hint: "" })),
+        correct: order.indexOf(q.critique),
+      },
+      explain: `${q.why} 다른 둘은 이 정책의 사실이지만 비판·한계는 아니에요.`,
+      anchors: [anchor],
+      card: { text: q.critique.label, type: critique.assertionType, ...(critique.assertedBy ? { by: critique.assertedBy } : {}), anchor },
+    });
+  }
+  return { units, items };
 }

@@ -9,7 +9,8 @@ import { loadStudy, saveStudy } from "@/lib/firebase/study";
 
 import { Lesson } from "./Lesson";
 import { Say } from "./Jamtongi";
-import { pickLevelSession } from "./levels";
+import { Debates } from "./Debates";
+import { pickLevelSession, skipSession, skipTargets } from "./levels";
 import { navForLevel, STUDY_HOME, SOON, studyNavOf, visibleSegments, visibleTabs, type StudyNav, type StudySegment } from "./nav";
 import { Cards, Review } from "./Notes";
 import { Attendance, Settings } from "./Record";
@@ -19,7 +20,7 @@ import { useStudy, type StudyData } from "./store";
 import { sameStudy } from "./sync";
 import styles from "./study.module.css";
 import { Today } from "./Today";
-import type { StudyBank } from "./types";
+import type { Level, StudyBank } from "./types";
 
 /**
  * 잼공 — 재밌는 공부, 잼통 공부. 설계는 docs/daily-study.md, 시안은 docs/study-room-proto.html.
@@ -46,7 +47,7 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
     if (unit) return { tab: "road", seg: "path" };
     return studyNavOf(new URL(window.location.href).searchParams.get("tab")) ?? STUDY_HOME;
   });
-  const [lesson, setLesson] = useState<{ ids: string[]; mode: "daily" | "unit" | "intro"; key: number } | null>(null);
+  const [lesson, setLesson] = useState<{ ids: string[]; mode: "daily" | "unit" | "intro" | "check"; target?: Level; key: number } | null>(null);
   const [today, setToday] = useState(() => (typeof window === "undefined" ? "" : kstDay(Date.now())));
   const opened = useRef(false);
 
@@ -145,6 +146,8 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
   const segs = visibleSegments(shown.tab, level);
   const startDaily = () => setLesson({ ids: pickLevelSession(bank, data.boxes, today, level), mode: "daily", key: Date.now() });
   const startIntro = (ids: string[]) => setLesson({ ids, mode: "intro", key: Date.now() });
+  const startCheck = (target: Level) => setLesson({ ids: skipSession(bank, data.boxes, target), mode: "check", target, key: Date.now() });
+  const startItems = (ids: string[]) => setLesson({ ids, mode: "unit", key: Date.now() });
   const startUnit = (id: string) => {
     setUnit(null);
     setLesson({ ids: unitSession(bank, data.boxes, id, level), mode: "unit", key: Date.now() });
@@ -189,6 +192,8 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
           streak={streak}
           onDaily={startDaily}
           onIntro={startIntro}
+          onCheck={startCheck}
+          onItems={startItems}
           onUnit={setUnit}
         />
       </section>
@@ -229,7 +234,7 @@ export function StudyApp({ bank }: { bank: StudyBank }) {
       </nav>
 
       {unit && <UnitSheet bank={bank} boxes={data.boxes} unitId={unit} level={level} onStart={() => startUnit(unit)} onClose={closeUnit} />}
-      {lesson && <Lesson key={lesson.key} bank={bank} ids={lesson.ids} mode={lesson.mode} onClose={closeLesson} />}
+      {lesson && <Lesson key={lesson.key} bank={bank} ids={lesson.ids} mode={lesson.mode} target={lesson.target} onClose={closeLesson} />}
     </div>
   );
 }
@@ -241,6 +246,8 @@ function Panel({
   streak,
   onDaily,
   onIntro,
+  onCheck,
+  onItems,
   onUnit,
 }: {
   seg: StudySegment;
@@ -249,6 +256,8 @@ function Panel({
   streak: ReturnType<typeof streakOf>;
   onDaily: () => void;
   onIntro: (ids: string[]) => void;
+  onCheck: (target: Level) => void;
+  onItems: (ids: string[]) => void;
   onUnit: (unitId: string) => void;
 }) {
   const data = useStudy((s) => s.data)!;
@@ -277,7 +286,9 @@ function Panel({
     case "attend":
       return <Attendance data={data} streak={streak} today={today} />;
     case "settings":
-      return <Settings data={data} />;
+      return <Settings data={data} targets={skipTargets(bank, data.level ?? 1)} onCheck={onCheck} />;
+    case "reply":
+      return <Debates bank={bank} boxes={data.boxes} onItems={onItems} />;
     default:
       return null;
   }

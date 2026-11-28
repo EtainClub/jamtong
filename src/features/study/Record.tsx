@@ -3,7 +3,8 @@
 import { Say } from "./Jamtongi";
 import { addDays, GOALS, RESTS_PER_WEEK, weekday, type Streak } from "./rules";
 import { useStudy, type StudyData } from "./store";
-import { STEPS } from "./types";
+import { SKIP_PASS, SKIP_SIZE } from "./levels";
+import { STEPS, type Level } from "./types";
 
 /**
  * 내 기록 › 출석부 — 이 달의 도장 달력. 본인만 본다(docs/daily-study.md §6.1).
@@ -60,7 +61,7 @@ export function Attendance({ data, streak, today }: { data: StudyData; streak: S
 }
 
 /** 내 기록 › 설정 — 하루 목표. 알림은 다음 단계(docs/daily-study.md §8.5). */
-export function Settings({ data }: { data: StudyData }) {
+export function Settings({ data, targets, onCheck }: { data: StudyData; targets: Level[]; onCheck: (target: Level) => void }) {
   const setGoal = useStudy((s) => s.setGoal);
   return (
     <div className="grid gap-3">
@@ -82,7 +83,7 @@ export function Settings({ data }: { data: StudyData }) {
         </div>
         <p className="st-small">목표를 넘겨도 더 주는 것은 없어요. 내 속도에 맞게 골라요.</p>
       </div>
-      <LevelCard data={data} />
+      <LevelCard data={data} targets={targets} onCheck={onCheck} />
       <div className="st-card grid gap-1">
         <p className="st-eyebrow">기록은 어디에</p>
         <p className="text-[13.5px]">
@@ -98,7 +99,7 @@ export function Settings({ data }: { data: StudyData }) {
  * 내 단계 — 다섯 단계 가운데 어디인지와 「지금 단계에 머물기」(docs/jamgong-roadmap.md §3.1).
  * 1단계에 머무는 것도 성공이다. 머물기를 켜면 다음 단계 초대가 뜨지 않는다.
  */
-function LevelCard({ data }: { data: StudyData }) {
+function LevelCard({ data, targets, onCheck }: { data: StudyData; targets: Level[]; onCheck: (target: Level) => void }) {
   const setStay = useStudy((s) => s.setStay);
   const level = data.level ?? 1;
   return (
@@ -118,6 +119,20 @@ function LevelCard({ data }: { data: StudyData }) {
           </li>
         ))}
       </ol>
+      {targets.length > 0 && (
+        <div className="grid gap-1.5 border-t border-[var(--s-line)] pt-2">
+          <p className="text-[13.5px]">
+            이미 잘 아나요? <span className="st-small">그 단계 문제 {SKIP_SIZE}개 가운데 {SKIP_PASS}개를 맞히면 바로 열려요.</span>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {targets.map((t) => (
+              <button key={t} type="button" className="st-btn st-btn-line px-3 py-1.5 text-[12.5px]" onClick={() => onCheck(t)}>
+                {t}단계 「{STEPS.find((x) => x.level === t)?.label}」 건너뛰기 점검
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <label className="flex items-center justify-between gap-3 border-t border-[var(--s-line)] pt-2 text-[13.5px]">
         <span>
           지금 단계에 머물기
